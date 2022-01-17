@@ -1,6 +1,22 @@
 @import "../../utils/commons.scss";
 
 .btn {
-  background: white;
-  border: 1px solid #e6e6e6;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border: none;
+  outline: none;
+  border-radius: 0.5rem;
+  min-width: 10rem;
+}
+.clrPrimary {
+  background: var(--clr-primary);
+}
+.clrError {
+  background: var(--clr-error);
+}
+.clrWarning {
+  background: var(--clr-warning);
+}
+.clrSuccess {
+  background: var(--clr-success);
 }
