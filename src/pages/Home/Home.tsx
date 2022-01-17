@@ -1,5 +1,9 @@
+import { InputField } from "../../components";
+
 const Home = () => {
-  return <div>This is home.</div>;
+  return <div>
+    <InputField/>
+  </div>;
 };
 
 export default Home;
