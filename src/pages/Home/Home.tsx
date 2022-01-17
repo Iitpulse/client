@@ -5,7 +5,9 @@ const Home = () => {
     <div>
       <section>
         <h1>Button</h1>
-        <Button>Btn</Button>
+        <Button title="Test Btn" type="button">
+          Btn
+        </Button>
       </section>
     </div>
   );
