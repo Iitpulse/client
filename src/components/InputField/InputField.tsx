@@ -1,4 +1,4 @@
-import { ChangeEventHandler, HTMLInputTypeAttribute } from "react";
+import {HTMLInputTypeAttribute } from "react";
 import styles from "./InputField.module.scss";
 
 interface Props{
@@ -8,16 +8,17 @@ interface Props{
     placeholder?:string;
     disabled?:boolean;
     value:string ;
+    required?:boolean;
     onChange:(event:React.ChangeEvent<HTMLInputElement>)=>void;
     [x:string]:any;
 }
 
 const InputField = (props:Props) => {
-    const {id,type,label,placeholder,disabled,value,onChange,...rest}=props;
+    const {id,type,label,placeholder,required,disabled,value,onChange,...rest}=props;
     return (
-        <div>
-            <label htmlFor={id}>{label}</label>
+        <div className={styles.container}>
             <input id={id} type={type} placeholder={placeholder} disabled={disabled} value={value} onChange={onChange} {...rest}/>
+            <label htmlFor={id}>{label}{required && " *"}</label>
         </div>
     )
 }
