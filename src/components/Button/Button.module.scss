@@ -2,12 +2,18 @@
 
 .btn {
   color: white;
-  padding: 0.5rem 1.5rem;
+  padding: calc(0.5rem + 2px) 1.5rem;
   border: none;
   outline: none;
   border-radius: 0.5rem;
   min-width: 10rem;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  margin: 0.5rem 0;
 }
+
 .clrPrimary {
   background: var(--clr-primary);
 }

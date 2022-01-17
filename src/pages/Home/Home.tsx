@@ -8,8 +8,10 @@ const Home = () => {
     <div className={styles.container}>
       <section>
         <h1>Button</h1>
-        <Button>Btn</Button>
-        <InputField
+        <Button title="Test BTN" color="primary">
+          Btn Primary
+        </Button>
+        {/* <InputField
           id="some-button"
           disabled
           type="text"
@@ -17,7 +19,7 @@ const Home = () => {
           value={name}
           required
           onChange={(e) => setName(e.target.value)}
-        />
+        /> */}
       </section>
       <Card title="Hello">
         <h1>Hello</h1>
