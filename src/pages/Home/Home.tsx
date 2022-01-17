@@ -1,6 +1,9 @@
-import { Button } from "../../components";
+import { Button, InputField } from "../../components";
+import {useState} from "react";
+
 
 const Home = () => {
+const [name,setName]=useState<string>("");
   return (
     <div>
       <section>
@@ -8,6 +11,7 @@ const Home = () => {
         <Button title="Test Btn" type="button">
           Btn
         </Button>
+        <InputField id="some-button" type="text" label="Name" value={name} onChange={(e)=>setName(e.target.value)} />
       </section>
     </div>
   );
