@@ -10,10 +10,12 @@ const [name,setName]=useState<string>("");
       <section>
         <h1>Button</h1>
         <Button>Btn</Button>
-        <InputField id="some-button" type="text" label="Name" value={name} required onChange={(e)=>setName(e.target.value)} />
+        <InputField id="some-button" type= "text" label="Name" value={name} required onChange={(e)=>setName(e.target.value)} />
       </section>
     </div>
   );
 };
+
+
 
 export default Home;

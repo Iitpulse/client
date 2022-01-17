@@ -16,11 +16,11 @@ interface Props{
 const InputField = (props:Props) => {
     const {id,type,label,placeholder,required,disabled,value,onChange,...rest}=props;
     return (
-        <div className={styles.container}>
+        <div style= {type==="radio"||type==="checkbox"? {flexDirection:'row',width:'fit-content',alignItems:'center'}:{flexDirection:"column-reverse", width:'250px'}}  className={styles.container}>
             <input id={id} type={type} placeholder={placeholder} disabled={disabled} value={value} onChange={onChange} {...rest}/>
             <label htmlFor={id}>{label}{required && " *"}</label>
         </div>
     )
 }
 
-export default InputField
+export default InputField;
