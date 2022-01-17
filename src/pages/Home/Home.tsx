@@ -8,7 +8,9 @@ const [name,setName]=useState<string>("");
     <div>
       <section>
         <h1>Button</h1>
-        <Button>Btn</Button>
+        <Button title="Test Btn" type="button">
+          Btn
+        </Button>
         <InputField id="some-button" type="text" label="Name" value={name} onChange={(e)=>setName(e.target.value)} />
       </section>
     </div>

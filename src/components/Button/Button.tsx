@@ -1,20 +1,63 @@
+import { ButtonHTMLAttributes, ChangeEvent } from "react";
+import clsx from "clsx";
 import styles from "./Button.module.scss";
 
 interface ButtonProps {
   children: React.ReactNode | string;
   title?: string;
-  onClick?: () => void;
-  classes?: string[];
-  icon?: string;
-  type?: "button" | "submit" | "reset";
+  onClick?: (event: ChangeEvent<HTMLButtonElement>) => void;
+  classes?: Array<string>;
+  icon?: React.ReactNode;
+  type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
+  disabled?: boolean;
+  color?: "primary" | "success" | "error" | "warning";
+  [key: string]: any;
 }
 
 const Button = (props: ButtonProps) => {
+  const {
+    title,
+    classes,
+    icon: Icon,
+    type,
+    children,
+    onClick,
+    disabled = false,
+    color,
+    ...rest
+  } = props;
+
   return (
-    <button title={props.title} className={styles.btn}>
-      btn
+    <button
+      title={title}
+      type={type}
+      className={clsx(
+        styles.btn,
+        classes ? [...classes] : "",
+        getStyleByColor(color || "primary")
+      )}
+      disabled={disabled}
+      {...rest}
+    >
+      {children}
+      {Icon && <span className={styles.icon}>{Icon}</span>}
     </button>
   );
 };
 
 export default Button;
+
+function getStyleByColor(color: string) {
+  switch (color) {
+    case "primary":
+      return styles.clrPrimary;
+    case "success":
+      return styles.clrSuccess;
+    case "error":
+      return styles.clrError;
+    case "warning":
+      return styles.clrWarning;
+    default:
+      return "";
+  }
+}
