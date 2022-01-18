@@ -1,4 +1,5 @@
 import styles from "./MainLayout.module.scss";
+import {MenuDrawer} from "../components"
 
 interface Props {
   children: React.ReactNode;
@@ -9,7 +10,7 @@ interface Props {
 const MainLayout = (props: Props) => {
   return (
     <div className={styles.container} {...props}>
-      <div>side nav</div>
+      <MenuDrawer/>
       <section className={styles.mainContainer}>
         <nav>
           <h2>{props.title}</h2>
