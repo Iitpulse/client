@@ -1,4 +1,6 @@
 import styles from "./MainLayout.module.scss";
+import notificationIcon from "../assets/icons/notification.svg";
+import searchIcon from "../assets/icons/search.svg";
 
 interface Props {
   children: React.ReactNode;
@@ -14,8 +16,12 @@ const MainLayout = (props: Props) => {
         <nav>
           <h2>{props.title}</h2>
           <div className={styles.actions}>
-            <span>s</span>
-            <span>n</span>
+            <div>
+              <img src={searchIcon} alt="search" />
+            </div>
+            <div>
+              <img src={notificationIcon} alt="notification" />
+            </div>
           </div>
         </nav>
         <main className={styles.main}>{props.children}</main>
