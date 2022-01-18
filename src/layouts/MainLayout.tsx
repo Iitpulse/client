@@ -3,7 +3,6 @@ import { MenuDrawer } from "../components";
 import notificationIcon from "../assets/icons/notification.svg";
 import searchIcon from "../assets/icons/search.svg";
 import { IconButton } from "@mui/material";
-import { Sidebar } from "../components";
 
 interface Props {
   children: React.ReactNode;
@@ -22,6 +21,7 @@ const MainLayout = (props: Props) => {
             <IconButton>
               <img src={searchIcon} alt="search" />
             </IconButton>
+            &nbsp;
             <IconButton>
               <img src={notificationIcon} alt="notification" />
             </IconButton>

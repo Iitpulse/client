@@ -39,7 +39,7 @@ const Home = () => {
             <NotificationCard
               id="aasdadsd"
               status={i % 2 === 0 ? "success" : "warning"}
-              title={"New Student Joined" + i}
+              title={"New Student Joined-" + i}
               description="New student join IIT Pulse Anurag Pal - Dropper Batch"
               createdAt="10 Jan, 2022"
             />
