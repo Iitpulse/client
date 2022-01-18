@@ -1,0 +1,40 @@
+@import "../../utils/commons.scss";
+
+.cardWrapper {
+  height: auto;
+  width: 535px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 2rem;
+
+  .header {
+    @extend .flexRow;
+
+    .title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #848484;
+    }
+
+    .btn {
+      border: none;
+      background: transparent;
+      color: #848484;
+      font-size: 14px;
+    }
+  }
+
+  .selected {
+    font-size: 22px;
+    font-weight: 500;
+    margin: 5px 0 20px 0;
+  }
+
+  .cardContainer {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    width: 100%;
+    height: auto;
+  }
+}
