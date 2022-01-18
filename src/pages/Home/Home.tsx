@@ -6,24 +6,7 @@ const Home = () => {
   const [name, setName] = useState<string>("");
   return (
     <div className={styles.container}>
-      <section>
-        <h1>Button</h1>
-        <Button title="Test BTN" color="primary">
-          Btn Primary
-        </Button>
-        {/* <InputField
-          id="some-button"
-          disabled
-          type="text"
-          label="Name"
-          value={name}
-          required
-          onChange={(e) => setName(e.target.value)}
-        /> */}
-      </section>
-      <Card title="Hello">
-        <h1>Hello</h1>
-      </Card>
+      <Button color="error">Kuldeep</Button>
     </div>
   );
 };
