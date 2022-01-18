@@ -1,5 +1,8 @@
 import styles from "./MainLayout.module.scss";
 import {MenuDrawer} from "../components"
+import notificationIcon from "../assets/icons/notification.svg";
+import searchIcon from "../assets/icons/search.svg";
+import { IconButton } from "@mui/material";
 
 interface Props {
   children: React.ReactNode;
@@ -15,8 +18,12 @@ const MainLayout = (props: Props) => {
         <nav>
           <h2>{props.title}</h2>
           <div className={styles.actions}>
-            <span>s</span>
-            <span>n</span>
+            <IconButton>
+              <img src={searchIcon} alt="search" />
+            </IconButton>
+            <IconButton>
+              <img src={notificationIcon} alt="notification" />
+            </IconButton>
           </div>
         </nav>
         <main className={styles.main}>{props.children}</main>
