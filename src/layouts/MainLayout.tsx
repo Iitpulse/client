@@ -1,5 +1,5 @@
 import styles from "./MainLayout.module.scss";
-import {MenuDrawer} from "../components"
+import { MenuDrawer } from "../components";
 import notificationIcon from "../assets/icons/notification.svg";
 import searchIcon from "../assets/icons/search.svg";
 import { IconButton } from "@mui/material";
@@ -14,7 +14,7 @@ interface Props {
 const MainLayout = (props: Props) => {
   return (
     <div className={styles.container} {...props}>
-      <MenuDrawer/>
+      <MenuDrawer />
       <section className={styles.mainContainer}>
         <nav>
           <h3>{props.title}</h3>
@@ -29,13 +29,6 @@ const MainLayout = (props: Props) => {
         </nav>
         <main className={styles.main}>{props.children}</main>
       </section>
-      <Sidebar title="Recent Activity">
-        {Array(10)
-          .fill(0)
-          .map((_, i) => (
-            <p>Content</p>
-          ))}
-      </Sidebar>
     </div>
   );
 };
