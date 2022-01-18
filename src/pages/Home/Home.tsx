@@ -1,4 +1,4 @@
-import { Button, InputField, Card } from "../../components";
+import { Button, InputField, Card, NotificationCard } from "../../components";
 import styles from "./Home.module.scss";
 import { useState } from "react";
 
@@ -21,9 +21,16 @@ const Home = () => {
           onChange={(e) => setName(e.target.value)}
         /> */}
       </section>
-      <Card title="Hello">
-        <h1>Hello</h1>
+      <Card title="Recent Test Analysis">
+        <h1>Children Cards</h1>
       </Card>
+      <NotificationCard
+        id="aasdadsd"
+        status="success"
+        title="New Student Joined"
+        description="New student join IIT Pulse Anurag Pal - Dropper Batch"
+        createdAt="10 Jan, 2022"
+      />
     </div>
   );
 };
