@@ -1,0 +1,31 @@
+@import "../../utils/commons.scss";
+
+.notificationCard {
+  width: 300px;
+  height: 100px;
+  background: #f8f8f8;
+  //   background: #55bc7e;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 1rem 0;
+  word-wrap: break-word;
+  border-left: 6px solid #55bc7e;
+  position: relative;
+  .title {
+    font-size: 1.1rem;
+    color: #323232;
+  }
+  .description {
+    font-size: 0.9rem;
+    color: #757575;
+  }
+  .createdAt {
+    position: absolute;
+    font-size: 0.8rem;
+    color: #b9b9b9;
+    bottom: 0;
+    right: 0;
+    margin-right: 10px;
+    margin-bottom: 5px;
+  }
+}
