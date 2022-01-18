@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Home,Roles,Test,Users,Questions,Patterns,Batches } from "./pages";
+import { Home, Roles, Test, Users, Questions, Pattern, Batches } from "./pages";
 import styles from "./App.module.scss";
 import MainLayout from "./layouts/MainLayout";
 
@@ -24,12 +24,12 @@ const App = () => {
               </MainLayout>
             }
           />
-          
+
           <Route
-            path="/patterns"
+            path="/pattern"
             element={
-              <MainLayout title="Patterns">
-                <Patterns />
+              <MainLayout title="Pattern">
+                <Pattern />
               </MainLayout>
             }
           />
