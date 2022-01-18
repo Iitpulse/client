@@ -1,4 +1,5 @@
 import styles from "./MainLayout.module.scss";
+import {MenuDrawer} from "../components"
 import notificationIcon from "../assets/icons/notification.svg";
 import searchIcon from "../assets/icons/search.svg";
 import { IconButton } from "@mui/material";
@@ -13,7 +14,7 @@ interface Props {
 const MainLayout = (props: Props) => {
   return (
     <div className={styles.container} {...props}>
-      <div>side nav</div>
+      <MenuDrawer/>
       <section className={styles.mainContainer}>
         <nav>
           <h3>{props.title}</h3>
