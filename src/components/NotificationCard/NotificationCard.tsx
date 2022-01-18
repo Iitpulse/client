@@ -1,6 +1,6 @@
 import styles from "./NotificationCard.module.scss";
 
-interface NotificationCard {
+interface Props {
   id: string;
   status: "general" | "success" | "warning" | "error";
   title: string;
@@ -9,11 +9,10 @@ interface NotificationCard {
   createdAt: string;
 }
 
-const NotificationCard = (props: NotificationCard) => {
+const NotificationCard = (props: Props) => {
   const { id, status, title, description, createdAt } = props;
   return (
     <div className={styles.notificationCard}>
-      <button></button>
       <p className={styles.title}>{title}</p>
       <p className={styles.description}>{description}</p>
       <p className={styles.createdAt}>{createdAt}</p>
