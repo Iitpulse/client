@@ -1,0 +1,13 @@
+@import "../../utils/commons.scss";
+
+.container {
+  position: absolute;
+  top: 50%;
+  right: 2rem;
+  transform: translateY(-50%);
+  width: 300px;
+  background: white;
+  border-radius: 0.5rem;
+  height: calc(100% - 4rem);
+  padding: 1rem;
+}

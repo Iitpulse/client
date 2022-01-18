@@ -12,8 +12,33 @@
   --clr-success: #55bc7e;
   --clr-warning: #f8ba1c;
   --clr-error: #fc5f5f;
+  --clr-txt-light: #848484;
+  --clr-txt-dark: #454545;
 }
 
 body {
   font-size: 16px;
+  h1 {
+    font-size: 2rem;
+    color: var(--clr-txt-dark);
+  }
+  h2 {
+    font-size: 1.5rem;
+    color: var(--clr-txt-dark);
+  }
+  h3 {
+    font-size: 1.2rem;
+    color: var(--clr-txt-dark);
+  }
+  h4 {
+    font-size: 1.1rem;
+    color: var(--clr-txt-dark);
+  }
+  h5 {
+    font-size: 1rem;
+  }
+  p {
+    font-size: 1rem;
+    color: var(--clr-txt-light);
+  }
 }
