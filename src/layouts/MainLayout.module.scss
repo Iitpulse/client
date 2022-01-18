@@ -1,15 +1,6 @@
 @import "../utils/commons.scss";
 
 .container {
-  > div {
-    width: 200px;
-  }
-  .right {
-    width: 250px;
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
   position: relative;
   @extend .flexRow;
   min-height: 100vh;
@@ -17,8 +8,8 @@
     flex: 1;
     background: lightblue;
     border-radius: 2rem 0 0 2rem;
-    padding: 1rem;
     min-height: 100vh;
+    padding: 2rem 1.5rem;
 
     nav {
       @extend .flexRow;
