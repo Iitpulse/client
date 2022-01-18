@@ -6,7 +6,7 @@
   min-height: 100vh;
   .mainContainer {
     flex: 1;
-    background: lightblue;
+    background: var(--clr-bg-light);
     border-radius: 2rem 0 0 2rem;
     min-height: 100vh;
     padding: 2rem 1.5rem;

@@ -21,7 +21,7 @@ const MainLayout = (props: Props) => {
             <IconButton>
               <img src={searchIcon} alt="search" />
             </IconButton>
-            &nbsp;
+            &nbsp; &nbsp;
             <IconButton>
               <img src={notificationIcon} alt="notification" />
             </IconButton>
