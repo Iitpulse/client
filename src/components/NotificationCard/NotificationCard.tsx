@@ -10,7 +10,7 @@ interface Props {
 }
 
 const NotificationCard = (props: Props) => {
-  const { id, status, title, description, createdAt } = props;
+  const { title, description, createdAt } = props;
   return (
     <div className={styles.notificationCard}>
       <p className={styles.title}>{title}</p>
