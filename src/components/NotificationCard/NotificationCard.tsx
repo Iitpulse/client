@@ -1,6 +1,7 @@
 import styles from "./NotificationCard.module.scss";
 import closeIcon from "../../assets/icons/close-circle.svg";
-interface NotificationCard {
+
+interface Props {
   id: string;
   status: "general" | "success" | "warning" | "error";
   title: string;
@@ -9,8 +10,8 @@ interface NotificationCard {
   createdAt: string;
 }
 
-const NotificationCard = (props: NotificationCard) => {
-  const { id, status, title, description, createdAt } = props;
+const NotificationCard = (props: Props) => {
+  const { title, description, createdAt } = props;
   return (
     <div className={styles.notificationCard}>
       <button className={styles.closeIconBtn}>

@@ -1,11 +1,11 @@
-import { ButtonHTMLAttributes, ChangeEvent } from "react";
+import { ButtonHTMLAttributes, MouseEvent } from "react";
 import clsx from "clsx";
 import styles from "./Button.module.scss";
 
 interface ButtonProps {
   children: React.ReactNode | string;
   title?: string;
-  onClick?: (event: ChangeEvent<HTMLButtonElement>) => void;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   classes?: Array<string>;
   icon?: React.ReactNode;
   type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
@@ -37,6 +37,7 @@ const Button = (props: ButtonProps) => {
         getStyleByColor(color || "primary")
       )}
       disabled={disabled}
+      onClick={onClick || (() => {})}
       {...rest}
     >
       {children}

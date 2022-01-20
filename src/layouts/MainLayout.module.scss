@@ -1,0 +1,31 @@
+@import "../utils/commons.scss";
+
+.container {
+  position: relative;
+  @extend .flexRow;
+  min-height: 100vh;
+  .mainContainer {
+    flex: 1;
+    background: var(--clr-bg-light);
+    border-radius: 2rem 0 0 2rem;
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+
+    nav {
+      @extend .flexRow;
+      h3 {
+        font-weight: 500;
+      }
+
+      .actions {
+        button {
+          background: white;
+        }
+      }
+    }
+    nav,
+    main {
+      margin-right: 20rem;
+    }
+  }
+}
