@@ -5,13 +5,29 @@
   width: 100%;
   min-height: 100px;
   background: #f8f8f8;
-  //   background: #55bc7e;
   border-radius: 5px;
   padding: 10px;
   margin: 1rem 0;
   word-wrap: break-word;
   border-left: 6px solid #55bc7e;
   position: relative;
+
+  .closeIconBtn {
+    border: none;
+    outline: none;
+    background: transparent;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: 12px 10px 0 0;
+  }
+
   .title {
     font-size: 1rem;
     color: #323232;
