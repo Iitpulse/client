@@ -26,7 +26,6 @@ const App = () => {
                 </MainLayout>
               }
             />
-
             <Route
               path="/pattern"
               element={

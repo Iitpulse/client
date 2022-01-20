@@ -6,9 +6,10 @@ interface PrivateRouteProps {
   children: React.ReactNode;
 }
 
-const PrivateRoute = (props: PrivateRouteProps) => {
+const PrivateRouteAdmin = (props: PrivateRouteProps) => {
   const { currentUser } = useContext(AuthContext);
+
   return !!currentUser ? props.children : <Navigate to="/login" />;
 };
 
-export default PrivateRoute;
+export default PrivateRouteAdmin;
