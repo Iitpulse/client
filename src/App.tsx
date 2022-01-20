@@ -3,6 +3,7 @@ import { Home, Roles, Test, Users, Questions, Pattern, Batches } from "./pages";
 import styles from "./App.module.scss";
 import MainLayout from "./layouts/MainLayout";
 import AuthContextProvider from "./utils/auth/AuthContext";
+import PrivateRoute from "./utils/auth/PrivateRoute";
 
 const App = () => {
   return (
@@ -12,59 +13,31 @@ const App = () => {
           <Routes>
             <Route
               path="/"
-              element={
-                <MainLayout title="Home">
-                  <Home />
-                </MainLayout>
-              }
+              element={<PrivateRoute component={Home} title="Home" />}
             />
             <Route
               path="/batches"
-              element={
-                <MainLayout title="Batches">
-                  <Batches />
-                </MainLayout>
-              }
+              element={<PrivateRoute component={Batches} title="Batches" />}
             />
             <Route
               path="/pattern"
-              element={
-                <MainLayout title="Pattern">
-                  <Pattern />
-                </MainLayout>
-              }
+              element={<PrivateRoute component={Pattern} title="Pattern" />}
             />
             <Route
               path="/test"
-              element={
-                <MainLayout title="Test">
-                  <Test />
-                </MainLayout>
-              }
+              element={<PrivateRoute component={Test} title="Test" />}
             />
             <Route
               path="/questions"
-              element={
-                <MainLayout title="Questions">
-                  <Questions />
-                </MainLayout>
-              }
+              element={<PrivateRoute component={Questions} title="Questions" />}
             />
             <Route
               path="/roles"
-              element={
-                <MainLayout title="Roles">
-                  <Roles />
-                </MainLayout>
-              }
+              element={<PrivateRoute component={Roles} title="Roles" />}
             />
             <Route
               path="/users"
-              element={
-                <MainLayout title="Users">
-                  <Users />
-                </MainLayout>
-              }
+              element={<PrivateRoute component={Users} title="Users" />}
             />
           </Routes>
         </Router>

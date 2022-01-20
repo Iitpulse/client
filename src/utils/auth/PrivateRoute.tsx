@@ -1,15 +1,28 @@
 import { useContext } from "react";
 import { Navigate } from "react-router-dom";
+import MainLayout from "../../layouts/MainLayout";
 import { AuthContext } from "./AuthContext";
 
-interface PrivateRouteProps {
-  children: React.ReactNode;
+interface Props {
+  component: React.ComponentType;
+  path?: string;
+  title: string;
 }
-
-const PrivateRouteAdmin = (props: PrivateRouteProps) => {
+const PrivateRoute: React.FC<Props> = ({
+  component: RouteComponent,
+  title,
+}) => {
   const { currentUser } = useContext(AuthContext);
 
-  return !!currentUser ? props.children : <Navigate to="/login" />;
+  if (!!currentUser) {
+    return (
+      <MainLayout title={title}>
+        <RouteComponent />
+      </MainLayout>
+    );
+  }
+
+  return <Navigate to="/login" />;
 };
 
-export default PrivateRouteAdmin;
+export default PrivateRoute;
