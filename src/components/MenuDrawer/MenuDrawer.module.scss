@@ -33,8 +33,25 @@
         padding: 0.5rem 1rem;
       }
     }
+
     .navLink:hover {
-      background: rgb(238, 238, 238);
+      background-color: rgb(238, 238, 238);
+    }
+    .activeNavLink {
+      color: white;
+      background-color: #61b4f1;
+      svg > path {
+        stroke: white;
+      }
+    }
+    .activeNavLinkForRole {
+      svg > path {
+        fill: white;
+        stroke: none;
+      }
+    }
+    .activeNavLink:hover {
+      background-color: #61b4f1;
     }
   }
   .instituteInfoContainer {
