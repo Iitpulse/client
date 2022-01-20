@@ -1,7 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Home, Roles, Test, Users, Questions, Pattern, Batches } from "./pages";
+import {
+  Home,
+  Roles,
+  Test,
+  Users,
+  Questions,
+  Pattern,
+  Batches,
+  Login,
+} from "./pages";
 import styles from "./App.module.scss";
-import MainLayout from "./layouts/MainLayout";
 import AuthContextProvider from "./utils/auth/AuthContext";
 import PrivateRoute from "./utils/auth/PrivateRoute";
 
@@ -15,6 +23,7 @@ const App = () => {
               path="/"
               element={<PrivateRoute component={Home} title="Home" />}
             />
+            <Route path="/login" element={<Login />} />
             <Route
               path="/batches"
               element={<PrivateRoute component={Batches} title="Batches" />}

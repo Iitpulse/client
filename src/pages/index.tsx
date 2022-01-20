@@ -5,3 +5,4 @@ export { default as Roles } from "./Roles/Roles";
 export { default as Batches } from "./Batches/Batches";
 export { default as Questions } from "./Questions/Questions";
 export { default as Pattern } from "./Pattern/Pattern";
+export { default as Login } from "./Login/Login";
