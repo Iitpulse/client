@@ -7,30 +7,27 @@ import {
 } from "../../components";
 import styles from "./Home.module.scss";
 import { useState } from "react";
+import { Grid } from "@mui/material";
 
 const Home = () => {
   const [name, setName] = useState<string>("");
   return (
     <>
       <div className={styles.container}>
-        <section>
-          <h1>Button</h1>
-          <Button title="Test BTN" color="primary">
-            Btn Primary
-          </Button>
-          {/* <InputField
-          id="some-button"
-          disabled
-          type="text"
-          label="Name"
-          value={name}
-          required
-          onChange={(e) => setName(e.target.value)}
-        /> */}
-        </section>
-        <Card title="Recent Test Analysis">
-          <h1>Children Cards</h1>
-        </Card>
+        <Grid container spacing={4}>
+          <Grid item xl={6} lg={12} md={12} sm={12} xs={12}>
+            <Card title="Recent Test Analysis">Analysis</Card>
+          </Grid>
+          <Grid item xl={6} lg={12} md={12} sm={12} xs={12}>
+            <div>
+              <Card title="Upcoming Tests">something</Card>
+              <Card title="Institute Details">something2</Card>
+            </div>
+          </Grid>
+          <Grid item xl={12} md={12} xs={12}>
+            <Card title="Schedule">schedule</Card>
+          </Grid>
+        </Grid>
       </div>
       <Sidebar title="Recent Activity">
         {Array(10)
