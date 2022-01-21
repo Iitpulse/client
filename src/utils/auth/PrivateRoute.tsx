@@ -14,7 +14,7 @@ const PrivateRoute: React.FC<Props> = ({
 }) => {
   const { currentUser } = useContext(AuthContext);
 
-  if (!!currentUser) {
+  if (!currentUser) {
     return (
       <MainLayout title={title}>
         <RouteComponent />
