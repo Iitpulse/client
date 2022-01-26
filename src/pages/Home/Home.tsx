@@ -37,6 +37,7 @@ const Home = () => {
           .fill(0)
           .map((_, i) => (
             <NotificationCard
+              key={i}
               id="aasdadsd"
               status={i % 2 === 0 ? "success" : "warning"}
               title={"New Student Joined-" + i}

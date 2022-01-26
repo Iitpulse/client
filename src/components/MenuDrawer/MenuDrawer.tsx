@@ -1,13 +1,7 @@
 import styles from "./MenuDrawer.module.scss";
 import { useState } from "react";
 import logo from "../../assets/images/logo.svg";
-import home from "../../assets/icons/home.svg";
-import questions from "../../assets/icons/questions.svg";
-import batch from "../../assets/icons/batch.svg";
-import pattern from "../../assets/icons/pattern.svg";
-import test from "../../assets/icons/test.svg";
-import users from "../../assets/icons/users.svg";
-import roles from "../../assets/icons/roles.svg";
+import dropdown from "../../assets/icons/dropdown.svg";
 import collapse from "../../assets/icons/collapse.svg";
 import profilePlaceholder from "../../assets/images/profilePlaceholder.svg";
 import institutePlaceholder from "../../assets/images/institutePlaceholder.svg";
@@ -444,7 +438,7 @@ const ProfileOptionsMenu = () => {
     setAnchorEl(null);
   };
   return (
-    <section className={styles.profileOptionsMenuContainer}>
+    <div className={styles.profileOptionsMenuContainer}>
       <IconButton
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}
@@ -452,7 +446,7 @@ const ProfileOptionsMenu = () => {
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
       >
-        <img src={collapse} alt={collapse} />
+        <img src={dropdown} alt="Dropdown" />
       </IconButton>
       <Menu
         id="basic-menu"
@@ -466,7 +460,7 @@ const ProfileOptionsMenu = () => {
         <MenuItem onClick={handleClose}>My account</MenuItem>
         <MenuItem onClick={handleClose}>Logout</MenuItem>
       </Menu>
-    </section>
+    </div>
   );
 };
 

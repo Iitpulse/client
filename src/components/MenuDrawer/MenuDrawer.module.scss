@@ -14,6 +14,12 @@
   }
   .topContainer {
     @extend .flexRow;
+    button {
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
   }
   .navLinksContainer {
     margin: 1rem 0rem;
@@ -96,7 +102,6 @@
     img {
       width: 15px;
       height: 15px;
-      rotate: -90deg;
     }
   }
 }
