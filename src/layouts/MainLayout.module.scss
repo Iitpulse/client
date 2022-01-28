@@ -6,9 +6,10 @@
   min-height: 100vh;
   .mainContainer {
     flex: 1;
+    overflow-y: auto;
     background: var(--clr-bg-light);
     border-radius: 2rem 0 0 2rem;
-    min-height: 100vh;
+    height: 100vh;
     padding: 2rem 1.5rem;
 
     nav {

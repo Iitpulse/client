@@ -5,6 +5,9 @@
   padding: 1rem;
   height: 100vh;
   overflow: auto;
+  @extend .flexCol;
+  justify-content: flex-start;
+  transition: all 200ms;
   .imageContainer {
     user-select: none;
   }
@@ -13,17 +16,25 @@
     user-select: none;
   }
   .topContainer {
+    width: 100%;
     @extend .flexRow;
+    transition: all 200ms;
     button {
       img {
         width: 20px;
         height: 20px;
       }
     }
+    height: 7vh;
+    min-height: 40px;
   }
   .navLinksContainer {
     margin: 1rem 0rem;
+    width: 100%;
+
+    @extend .flexCol;
     .navLink {
+      width: 100%;
       user-select: none;
       margin-bottom: 5px;
       @extend .flexRow;
@@ -73,6 +84,7 @@
   }
 }
 .profileContainer {
+  width: 100%;
   span {
     font-size: 0.8rem;
   }

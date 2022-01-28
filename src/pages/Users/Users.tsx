@@ -1,9 +1,5 @@
 const Users = () => {
-    return (
-        <div>
-            Users
-        </div>
-    )
-}
+  return <div>This is Users.tsx</div>;
+};
 
-export default Users
+export default Users;

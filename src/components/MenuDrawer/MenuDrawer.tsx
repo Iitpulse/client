@@ -16,23 +16,44 @@ interface MenuDrawerProps {
 }
 
 const MenuDrawer = (props: MenuDrawerProps) => {
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   return (
-    <div className={styles.container}>
-      <section className={styles.topContainer}>
-        <NavLink to="/">
+    <div
+      style={
+        isCollapsed
+          ? { width: "fit-content", minWidth: "80px", padding: "1rem 0" }
+          : {}
+      }
+      className={styles.container}
+    >
+      <section
+        style={isCollapsed ? { justifyContent: "center" } : {}}
+        className={styles.topContainer}
+      >
+        {isCollapsed || (
+          <NavLink to="/">
+            {" "}
+            <div className={styles.imageContainer}>
+              <img src={logo} alt={logo} />
+            </div>
+          </NavLink>
+        )}
+        <IconButton onClick={() => setIsCollapsed((prev) => !prev)}>
           {" "}
-          <div className={styles.imageContainer}>
-            <img src={logo} alt={logo} />
-          </div>
-        </NavLink>
-        <IconButton>
-          {" "}
-          <img src={collapse} alt={collapse} />
+          <img
+            style={isCollapsed ? { transform: "rotate(180deg)" } : {}}
+            src={collapse}
+            alt={collapse}
+          />
         </IconButton>
       </section>
 
-      <section className={styles.navLinksContainer}>
+      <section
+        style={isCollapsed ? { padding: "0rem" } : {}}
+        className={styles.navLinksContainer}
+      >
         <NavLink
+          style={isCollapsed ? { width: "fit-content" } : {}}
           className={({ isActive }) =>
             isActive
               ? clsx(styles.navLink, styles.activeNavLink)
@@ -64,9 +85,10 @@ const MenuDrawer = (props: MenuDrawerProps) => {
               />
             </svg>
           </div>{" "}
-          <span>Home</span>
+          {isCollapsed || <span>Home</span>}
         </NavLink>
         <NavLink
+          style={isCollapsed ? { width: "fit-content" } : {}}
           to="/questions"
           className={({ isActive }) =>
             isActive
@@ -126,9 +148,10 @@ const MenuDrawer = (props: MenuDrawerProps) => {
               />
             </svg>
           </div>{" "}
-          <span>Questions</span>
+          {isCollapsed || <span>Questions</span>}
         </NavLink>
         <NavLink
+          style={isCollapsed ? { width: "fit-content" } : {}}
           to="/users"
           className={({ isActive }) =>
             isActive
@@ -174,9 +197,10 @@ const MenuDrawer = (props: MenuDrawerProps) => {
               />
             </svg>
           </div>{" "}
-          <span>Users</span>
+          {isCollapsed || <span>Users</span>}
         </NavLink>
         <NavLink
+          style={isCollapsed ? { width: "fit-content" } : {}}
           to="/test"
           className={({ isActive }) =>
             isActive
@@ -222,9 +246,10 @@ const MenuDrawer = (props: MenuDrawerProps) => {
               />
             </svg>
           </div>{" "}
-          <span>Test</span>
+          {isCollapsed || <span>Test</span>}
         </NavLink>
         <NavLink
+          style={isCollapsed ? { width: "fit-content" } : {}}
           to="/pattern"
           className={({ isActive }) =>
             isActive
@@ -297,9 +322,10 @@ const MenuDrawer = (props: MenuDrawerProps) => {
               />
             </svg>
           </div>{" "}
-          <span>Pattern</span>
+          {isCollapsed || <span>Pattern</span>}
         </NavLink>
         <NavLink
+          style={isCollapsed ? { width: "fit-content" } : {}}
           to="/batches"
           className={({ isActive }) =>
             isActive
@@ -359,10 +385,11 @@ const MenuDrawer = (props: MenuDrawerProps) => {
               />
             </svg>
           </div>{" "}
-          <span>Batches</span>
+          {isCollapsed || <span>Batches</span>}
         </NavLink>
         <NavLink
           to="/roles"
+          style={isCollapsed ? { width: "fit-content" } : {}}
           className={({ isActive }) =>
             isActive
               ? clsx(
@@ -387,18 +414,21 @@ const MenuDrawer = (props: MenuDrawerProps) => {
               />
             </svg>
           </div>{" "}
-          <span>Roles</span>
+          {isCollapsed || <span>Roles</span>}
         </NavLink>
       </section>
-      <div className={styles.divider}></div>
-      <section className={styles.instituteInfoContainer}>
-        <div className={styles.imageContainer}>
-          <img src={institutePlaceholder} alt={institutePlaceholder} />
-        </div>
-        <span>Institute of Engineering {"&"} Technology, Indore</span>
-      </section>
+      {isCollapsed || <div className={styles.divider}></div>}
+      {isCollapsed || (
+        <section className={styles.instituteInfoContainer}>
+          <div className={styles.imageContainer}>
+            <img src={institutePlaceholder} alt={institutePlaceholder} />
+          </div>
+          <span>Institute of Engineering {"&"} Technology, Indore</span>
+        </section>
+      )}
       <div className={styles.divider}></div>
       <Profile
+        isCollapsed={isCollapsed}
         image={profilePlaceholder}
         name={"Shishir Tiwari"}
         userType={"Admin"}
@@ -411,24 +441,41 @@ interface ProfileProps {
   image: string;
   name: string;
   userType: string;
+  isCollapsed: boolean;
 }
 
 const Profile = (props: ProfileProps) => {
   return (
-    <div className={styles.profileContainer}>
-      <div className={styles.imageContainer}>
+    <div
+      style={
+        props.isCollapsed
+          ? { width: "fit-content", flexDirection: "column" }
+          : {}
+      }
+      className={styles.profileContainer}
+    >
+      <div
+        style={props.isCollapsed ? { margin: "auto" } : {}}
+        className={styles.imageContainer}
+      >
         <img src={props.image} alt={props.image} />
       </div>
-      <div className={styles.textContainer}>
-        <span>{props.name}</span>
-        <span>({props.userType})</span>
-      </div>
-      <ProfileOptionsMenu />
+      {props.isCollapsed || (
+        <div className={styles.textContainer}>
+          <span>{props.name}</span>
+          <span>({props.userType})</span>
+        </div>
+      )}
+      <ProfileOptionsMenu style={props.isCollapsed ? { margin: "auto" } : {}} />
     </div>
   );
 };
 
-const ProfileOptionsMenu = () => {
+interface ProfileOptionMenuProps {
+  style?: HTMLStyleElement | any;
+}
+
+const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -438,7 +485,7 @@ const ProfileOptionsMenu = () => {
     setAnchorEl(null);
   };
   return (
-    <div className={styles.profileOptionsMenuContainer}>
+    <div style={props.style} className={styles.profileOptionsMenuContainer}>
       <IconButton
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}
