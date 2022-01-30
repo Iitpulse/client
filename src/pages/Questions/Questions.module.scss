@@ -1,1 +1,10 @@
 @import "../../utils/commons.scss";
+
+.container {
+  .inputFields {
+    margin: 0.5rem;
+    > * {
+      margin: 1rem;
+    }
+  }
+}
