@@ -13,12 +13,24 @@
     padding: 2rem 1.5rem;
 
     nav {
+      z-index: 100;
+      user-select: all;
       @extend .flexRow;
       h3 {
         font-weight: 500;
       }
 
       .actions {
+        width: 70%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 auto;
+
+        .inputField {
+          height: 30px;
+        }
+
         button {
           background: white;
         }
@@ -27,6 +39,10 @@
     nav,
     main {
       margin-right: 20rem;
+    }
+
+    main {
+      margin-top: 2rem;
     }
   }
 }
