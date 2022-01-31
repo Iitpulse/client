@@ -3,8 +3,21 @@
 .container {
   .inputFields {
     margin: 0.5rem;
+    flex-wrap: wrap;
+    display: flex;
     > * {
       margin: 1rem;
+    }
+    > div:nth-child(2) {
+      max-width: 500px;
+    }
+    > div:nth-child(2),
+    > div:nth-child(5),
+    > div:nth-child(6) {
+      min-width: 250px;
+    }
+    > div:nth-child(8) {
+      width: 250px;
     }
   }
 }
