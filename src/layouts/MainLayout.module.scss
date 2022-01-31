@@ -13,12 +13,59 @@
     padding: 2rem 1.5rem;
 
     nav {
+      z-index: 100;
+      user-select: all;
       @extend .flexRow;
       h3 {
         font-weight: 500;
       }
 
       .actions {
+        // width: 20%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 auto;
+
+        div {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: row;
+
+          .imageContainer {
+            width: fit-content;
+            margin: 0;
+            padding: 10px;
+            border-radius: 0 10px 10px 0;
+            cursor: pointer;
+          }
+        }
+
+        img {
+          width: 20px;
+        }
+
+        div > div {
+          width: 300px;
+          border-radius: 10px 0 0 10px;
+          border: none;
+          background: gray;
+          padding: 0;
+
+          div > div > input {
+            padding: 10px;
+          }
+
+          div > div::before {
+            border-bottom: none;
+          }
+
+          div > div::after {
+            border-bottom: none;
+          }
+        }
+
         button {
           background: white;
         }
@@ -27,6 +74,10 @@
     nav,
     main {
       margin-right: 20rem;
+    }
+
+    main {
+      margin-top: 2rem;
     }
   }
 }
