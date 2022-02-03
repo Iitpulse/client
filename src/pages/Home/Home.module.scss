@@ -1,1 +1,57 @@
 @import "../../utils/commons.scss";
+
+.wrapper {
+  width: 225px;
+  height: 100px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  background: rgba(85, 188, 126, 0.2);
+  padding: 1rem 1rem 0.5rem 1rem;
+  position: relative;
+
+  .title {
+    font-size: 1.2rem;
+    color: #5c5c5c;
+  }
+
+  .content {
+    color: rgb(85, 188, 126);
+    font-size: 4rem;
+    font-weight: bold;
+  }
+
+  .icon {
+    position: absolute;
+    width: 35px;
+    right: 0;
+    bottom: 0;
+    margin: 0 1.5rem 2.5rem 0;
+  }
+}
+
+.listItemContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 10px;
+  font-size: 1.1rem;
+  width: 300px;
+  height: 30px;
+  margin: 2px;
+
+  .title {
+    color: black;
+  }
+
+  .details {
+    color: black;
+    display: flex;
+    align-items: center;
+    .indicator {
+      width: 14px;
+      margin-left: 8px;
+    }
+  }
+}
