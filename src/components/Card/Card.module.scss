@@ -21,6 +21,12 @@
       background: transparent;
       color: #848484;
       font-size: 14px;
+      display: flex;
+      align-items: center;
+
+      .leftArrow {
+        transform: scale(0.6) rotate(180deg);
+      }
     }
   }
 
@@ -30,11 +36,11 @@
     margin: 5px 0 20px 0;
   }
 
-  .cardContainer {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-    width: 100%;
-    height: auto;
-  }
+  // .cardContainer {
+  //   // display: grid;
+  //   // grid-template-columns: repeat(2, 1fr);
+  //   // gap: 2rem;
+  //   // width: 100%;
+  //   // height: auto;
+  // }
 }
