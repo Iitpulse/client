@@ -24,8 +24,16 @@ const MenuDrawer = (props: MenuDrawerProps) => {
   }, []);
 
   useLayoutEffect(() => {
-    // Close the menu drawer if width is less than 1300px
-    setIsCollapsed(window.innerWidth <= 1300);
+    function handleResize() {
+      // Close the menu drawer if width is less than 1300px
+      setIsCollapsed(window.innerWidth <= 1300);
+    }
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   return (
