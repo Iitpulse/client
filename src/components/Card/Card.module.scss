@@ -2,16 +2,18 @@
 
 .cardWrapper {
   height: auto;
-  width: 535px;
+  width: 400px;
   background: #ffffff;
   border-radius: 10px;
-  padding: 2rem;
+  padding: 0.5rem;
+  margin: 0.5rem;
 
   .header {
     @extend .flexRow;
+    margin-bottom: 10px;
 
     .title {
-      font-size: 14px;
+      font-size: 1rem;
       font-weight: 500;
       color: #848484;
     }
@@ -20,12 +22,14 @@
       border: none;
       background: transparent;
       color: #848484;
-      font-size: 14px;
+      font-size: 0.9rem;
       display: flex;
       align-items: center;
+      cursor: pointer;
 
       .leftArrow {
-        transform: scale(0.6) rotate(180deg);
+        transform: rotate(180deg);
+        width: 14px;
       }
     }
   }
@@ -33,7 +37,7 @@
   .selected {
     font-size: 22px;
     font-weight: 500;
-    margin: 5px 0 20px 0;
+    margin: 5px 0 10px 0;
   }
 
   // .cardContainer {
