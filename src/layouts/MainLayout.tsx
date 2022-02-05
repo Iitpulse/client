@@ -33,7 +33,7 @@ const MainLayout = (props: Props) => {
                   <TextField
                     className={styles.inputField}
                     {...params}
-                    // label="Search Here"
+                    placeholder="What are you looking for?"
                     variant="filled"
                     InputProps={{
                       ...params.InputProps,
@@ -48,6 +48,9 @@ const MainLayout = (props: Props) => {
             </Stack>
             {/* &nbsp; &nbsp; */}
             <IconButton>
+              <img src={notificationIcon} alt="notification" />
+            </IconButton>
+            <IconButton className={styles.burgerMenu}>
               <img src={notificationIcon} alt="notification" />
             </IconButton>
           </div>
