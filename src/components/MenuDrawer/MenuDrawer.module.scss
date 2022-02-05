@@ -9,11 +9,11 @@
   justify-content: flex-start;
   transition: all 200ms;
   .imageContainer {
-    user-select: none;
+    @extend .noSelect;
   }
   .iconContainer {
     @extend .flexRow;
-    user-select: none;
+    @extend .noSelect;
   }
   .topContainer {
     width: 100%;
@@ -35,7 +35,7 @@
     @extend .flexCol;
     .navLink {
       width: 100%;
-      user-select: none;
+      @extend .noSelect;
       margin-bottom: 5px;
       @extend .flexRow;
       justify-content: flex-start;
