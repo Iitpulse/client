@@ -82,7 +82,7 @@
     }
     nav {
       background: var(--clr-bg-light);
-      padding: 2rem 1.5rem;
+      padding: 2rem;
       width: calc(100% - calc(var(--sidebar-width) + 2rem));
 
       .burgerMenu {
@@ -91,7 +91,7 @@
     }
 
     main {
-      padding: 0 1.5rem;
+      padding: 0 2rem;
       margin-right: calc(var(--sidebar-width) + 2rem);
       // margin-top: 1rem;
       @extend .flexRow;

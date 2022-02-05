@@ -1,7 +1,6 @@
 @import "../../utils/commons.scss";
 
 .wrapper {
-  height: 100px;
   border-radius: 5px;
   display: flex;
   flex-direction: column;
@@ -10,15 +9,16 @@
   padding: 0.5rem;
   position: relative;
 
-  .title {
-    font-size: 1.1rem;
-    color: #5c5c5c;
-  }
-
   .content {
-    color: rgb(85, 188, 126);
-    font-size: 2.5rem;
-    font-weight: 500;
+    padding: 0.5rem;
+    p {
+      color: #5c5c5c;
+    }
+    h4 {
+      color: rgb(85, 188, 126);
+      font-size: 3rem;
+      font-weight: 600;
+    }
   }
 
   .icon {
@@ -27,6 +27,22 @@
     right: 0;
     bottom: 0;
     margin: 0 1rem 1.5rem 0;
+  }
+}
+
+.container {
+  .recentTestContainer {
+    h2 {
+      // font-size: 1.6rem;
+      font-weight: 400;
+    }
+    .data {
+      margin-top: 1rem;
+      display: -ms-grid;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
   }
 }
 
@@ -54,9 +70,12 @@
   }
 }
 
+.instituteDetailsCard {
+  margin-top: 2rem;
+}
+
 .instituteDetails {
-  display: flex;
-  align-items: center;
+  @extend .flexRow;
   // justify-content: space-evenly;
   // padding: 10px 10px 10px 0;
 

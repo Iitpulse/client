@@ -11,6 +11,7 @@ import { Grid } from "@mui/material";
 import icon from "../../assets/icons/flag.svg";
 import Users from "../../assets/icons/users.svg";
 import monitor from "../../assets/icons/monitor.svg";
+import edit from "../../assets/icons/edit.svg";
 
 interface SubCardProps {
   title: string;
@@ -21,66 +22,106 @@ interface SubCardProps {
 interface InstituteDetailsProps {
   icon: string;
   batch: string;
-  number: Number;
+  value: Number;
+}
+
+interface UpcomingTestItemProps {
+  index: number;
+  title: string;
+  marks: number;
+  durationHours: number;
+  mode: "online" | "offline";
 }
 
 const SubCard = (props: SubCardProps) => {
   const { title, content } = props;
   return (
     <div className={styles.wrapper}>
-      <span className={styles.title}>{title}</span>
-      <span className={styles.content}>{content}</span>
+      <div className={styles.content}>
+        <p>{title}</p>
+        <h4>{content}</h4>
+      </div>
       <img src={icon} alt="Icon" className={styles.icon} />
     </div>
   );
 };
 
-const ListItem = () => {
+const ListItem: React.FC<UpcomingTestItemProps> = ({
+  index,
+  title,
+  durationHours,
+  marks,
+  mode,
+}) => {
   return (
     <div className={styles.listItemContainer}>
-      <span className={styles.index}>1.</span>
-      <p className={styles.title}>Sunday Test</p>
+      <span className={styles.index}>{index}</span>
+      <p className={styles.title}>{title}</p>
       <div className={styles.details}>
-        <span>360 | </span> <span> 3 Hr |</span>
-        <img src={monitor} alt="icon" className={styles.indicator} />
+        <span>{marks} | </span> <span> {durationHours} Hr |</span>
+        {mode === "online" ? (
+          <img src={monitor} alt="icon" className={styles.indicator} />
+        ) : (
+          <img src={edit} alt="icon" className={styles.indicator} />
+        )}
       </div>
     </div>
   );
 };
 
 const InstituteDetails = (props: InstituteDetailsProps) => {
-  const { icon, batch, number } = props;
+  const { icon, batch, value } = props;
   return (
     <div className={styles.batch}>
       <div className={styles.batchContainer}>
         <img src={icon} alt="icon" />
         <span className={styles.batchName}>{batch}</span>
       </div>
-      <span className={styles.number}>{number}</span>
+      <span className={styles.number}>{value}</span>
     </div>
   );
 };
 
 const Home = () => {
   const [name, setName] = useState<string>("");
+
+  const upcomgingTests = [
+    {
+      title: "Sunday Test JEE Advanced",
+      marks: 360,
+      durationHours: 3,
+      mode: "online",
+    },
+    {
+      title: "Sunday Test JEE Mains",
+      marks: 360,
+      durationHours: 3,
+      mode: "offline",
+    },
+    {
+      title: "Sunday Test NEET Dropper",
+      marks: 720,
+      durationHours: 3,
+      mode: "online",
+    },
+  ];
+
   return (
     <>
       <div className={styles.container}>
         <Grid container spacing={4}>
           <Grid item xl={6} lg={6} md={12} sm={12} xs={12}>
             <Card
-              dropDown={true}
               title="Recent Test Analysis"
-              styles={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: "1rem",
-              }}
+              classes={[styles.recentTestContainer]}
             >
-              <SubCard title="Highest Mark" content="302" icon={icon} />
-              <SubCard title="Highest Mark" content="302" icon={icon} />
-              <SubCard title="Highest Mark" content="302" icon={icon} />
-              <SubCard title="Highest Mark" content="302" icon={icon} />
+              <h2>Sunday Test IOY</h2>
+              <div className={styles.data}>
+                <SubCard title="Highest Mark" content="302" icon={icon} />
+                <SubCard title="Highest Mark" content="302" icon={icon} />
+                <SubCard title="Highest Mark" content="302" icon={icon} />
+                <SubCard title="Highest Mark" content="302" icon={icon} />
+              </div>
             </Card>
           </Grid>
           <Grid item xl={6} lg={6} md={12} sm={12} xs={12}>
@@ -89,15 +130,24 @@ const Home = () => {
                 title="Upcoming Tests"
                 styles={{ display: "flex", flexWrap: "wrap" }}
               >
-                <ListItem />
-                <ListItem />
-                <ListItem />
+                {upcomgingTests.map((item, i) => (
+                  <ListItem
+                    index={i + 1}
+                    title="Sunday Test JEE Adv."
+                    marks={360}
+                    durationHours={3}
+                    mode="online"
+                  />
+                ))}
               </Card>
-              <Card title="Institute Details">
+              <Card
+                title="Institute Details"
+                classes={[styles.instituteDetailsCard]}
+              >
                 <div className={styles.instituteDetails}>
-                  <InstituteDetails icon={icon} batch="IOY" number={123} />
-                  <InstituteDetails icon={icon} batch="IOY" number={123} />
-                  <InstituteDetails icon={icon} batch="IOY" number={123} />
+                  <InstituteDetails icon={icon} batch="IOY" value={123} />
+                  <InstituteDetails icon={icon} batch="IOY" value={123} />
+                  <InstituteDetails icon={icon} batch="IOY" value={123} />
                 </div>
               </Card>
             </div>

@@ -1,17 +1,18 @@
 import styles from "./Card.module.scss";
 import leftArrow from "../../assets/icons/collapse.svg";
+import clsx from "clsx";
 
 interface CardProps {
   title?: string;
   actionBtn?: React.ReactNode;
   children: React.ReactNode;
   styles?: React.CSSProperties;
-  dropDown?: Boolean;
+  classes?: Array<string>;
 }
 const Card = (props: CardProps) => {
-  const { title, actionBtn, children, dropDown } = props;
+  const { title, actionBtn, children, classes } = props;
   return (
-    <div className={styles.cardWrapper}>
+    <div className={clsx(styles.cardWrapper, classes)}>
       <div className={styles.header}>
         <p className={styles.title}>{title}</p>
         <div className={styles.btn}>
@@ -19,12 +20,6 @@ const Card = (props: CardProps) => {
           <img src={leftArrow} alt="Left Arrow" className={styles.leftArrow} />
         </div>
       </div>
-
-      {dropDown ? (
-        <div className={styles.listItems}>
-          <p className={styles.selected}>Sunday Test JEE IOY</p>
-        </div>
-      ) : null}
 
       <div className={styles.cardContainer} style={props.styles}>
         {children}
