@@ -13,7 +13,8 @@ const Sidebar = (props: SidebarProps) => {
         <p>{props.title}</p>
         {props.ActionBtn}
       </div>
-      <div>{props.children}</div>
+      <div className={styles.hLine}></div>
+      <div className={styles.children}>{props.children}</div>
     </div>
   );
 };
