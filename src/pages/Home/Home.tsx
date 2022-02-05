@@ -8,23 +8,29 @@ import {
 import styles from "./Home.module.scss";
 import { useState } from "react";
 import { Grid } from "@mui/material";
-import icon from "../../assets/icons/crown.svg";
+import icon from "../../assets/icons/flag.svg";
+import Users from "../../assets/icons/users.svg";
 import monitor from "../../assets/icons/monitor.svg";
-import React from "react";
 
-interface subCardProps {
-  title: String;
-  // icon: Document;
-  content: String;
+interface SubCardProps {
+  title: string;
+  icon: string;
+  content: string;
 }
 
-const SubCard = (props: subCardProps) => {
+interface InstituteDetailsProps {
+  icon: string;
+  batch: string;
+  number: Number;
+}
+
+const SubCard = (props: SubCardProps) => {
   const { title, content } = props;
   return (
     <div className={styles.wrapper}>
       <span className={styles.title}>{title}</span>
       <span className={styles.content}>{content}</span>
-      <img src={icon} alt="Crown Icon" className={styles.icon} />
+      <img src={icon} alt="Icon" className={styles.icon} />
     </div>
   );
 };
@@ -42,29 +48,42 @@ const ListItem = () => {
   );
 };
 
+const InstituteDetails = (props: InstituteDetailsProps) => {
+  const { icon, batch, number } = props;
+  return (
+    <div className={styles.batch}>
+      <div className={styles.batchContainer}>
+        <img src={icon} alt="icon" />
+        <span className={styles.batchName}>{batch}</span>
+      </div>
+      <span className={styles.number}>{number}</span>
+    </div>
+  );
+};
+
 const Home = () => {
   const [name, setName] = useState<string>("");
   return (
     <>
       <div className={styles.container}>
         <Grid container spacing={4}>
-          <Grid item xl={6} lg={12} md={12} sm={12} xs={12}>
+          <Grid item xl={6} lg={6} md={12} sm={12} xs={12}>
             <Card
+              dropDown={true}
               title="Recent Test Analysis"
               styles={{
                 display: "grid",
                 gridTemplateColumns: "repeat(2, 1fr)",
-                gap: "2rem",
-                width: "100%",
+                gap: "1rem",
               }}
             >
-              <SubCard title="Highest Mark" content="302" />
-              <SubCard title="Highest Mark" content="302" />
-              <SubCard title="Highest Mark" content="302" />
-              <SubCard title="Highest Mark" content="302" />
+              <SubCard title="Highest Mark" content="302" icon={icon} />
+              <SubCard title="Highest Mark" content="302" icon={icon} />
+              <SubCard title="Highest Mark" content="302" icon={icon} />
+              <SubCard title="Highest Mark" content="302" icon={icon} />
             </Card>
           </Grid>
-          <Grid item xl={6} lg={12} md={12} sm={12} xs={12}>
+          <Grid item xl={6} lg={6} md={12} sm={12} xs={12}>
             <div>
               <Card
                 title="Upcoming Tests"
@@ -74,7 +93,13 @@ const Home = () => {
                 <ListItem />
                 <ListItem />
               </Card>
-              <Card title="Institute Details">something2</Card>
+              <Card title="Institute Details">
+                <div className={styles.instituteDetails}>
+                  <InstituteDetails icon={icon} batch="IOY" number={123} />
+                  <InstituteDetails icon={icon} batch="IOY" number={123} />
+                  <InstituteDetails icon={icon} batch="IOY" number={123} />
+                </div>
+              </Card>
             </div>
           </Grid>
           <Grid item xl={12} md={12} xs={12}>
