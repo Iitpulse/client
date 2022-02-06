@@ -50,8 +50,12 @@ const MainLayout = (props: Props) => {
             <IconButton>
               <img src={notificationIcon} alt="notification" />
             </IconButton>
-            <IconButton className={styles.burgerMenu}>
-              <img src={notificationIcon} alt="notification" />
+            <IconButton className={styles.burgerMenuBtn}>
+              <div className={styles.burger}>
+                <span className={styles.burgerItem}></span>
+                <span className={styles.burgerItem}></span>
+                <span className={styles.burgerItem}></span>
+              </div>
             </IconButton>
           </div>
         </nav>

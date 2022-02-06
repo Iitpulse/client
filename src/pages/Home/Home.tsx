@@ -116,7 +116,7 @@ const Home = () => {
     <>
       <div className={styles.container}>
         <Grid container spacing={4}>
-          <Grid item xl={6} lg={6} md={12} sm={12} xs={12}>
+          <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
             <Card
               title="Recent Test Analysis"
               classes={[styles.recentTestContainer]}
@@ -130,7 +130,7 @@ const Home = () => {
               </div>
             </Card>
           </Grid>
-          <Grid item xl={6} lg={6} md={12} sm={12} xs={12}>
+          <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
             <div>
               <Card
                 title="Upcoming Tests"

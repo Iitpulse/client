@@ -83,16 +83,40 @@
     nav {
       background: var(--clr-bg-light);
       padding: 2rem;
-      width: calc(100% - calc(var(--sidebar-width) + 2rem));
+      width: calc(100% - var(--margin-due-to-sidebar));
 
-      .burgerMenu {
+      .burgerMenuBtn {
         display: none;
+        .burger {
+          width: 20px;
+          height: 20px;
+          padding: 2px;
+          @extend .flexCol;
+          .burgerItem {
+            height: 2px;
+            background: rgb(66, 66, 66);
+            width: 100%;
+
+            &:nth-of-type(2) {
+              width: calc(100% - 5px);
+              margin-left: auto;
+            }
+            &:nth-of-type(3) {
+              width: calc(100% - 10px);
+              margin-left: auto;
+            }
+          }
+        }
+
+        @media screen and (max-width: 1300px) {
+          display: block;
+        }
       }
     }
 
     main {
       padding: 0 2rem;
-      margin-right: calc(var(--sidebar-width) + 2rem);
+      margin-right: var(--margin-due-to-sidebar);
       // margin-top: 1rem;
       @extend .flexRow;
       align-items: flex-start;

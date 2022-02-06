@@ -29,4 +29,8 @@
     background: #f3f3f3;
     margin: 1rem 0;
   }
+
+  @media screen and (max-width: 1300px) {
+    display: none;
+  }
 }

@@ -19,6 +19,7 @@
 
   // sizes
   --sidebar-width: 300px;
+  --margin-due-to-sidebar: calc(var(--sidebar-width) + 2rem);
 }
 
 html {
@@ -56,4 +57,19 @@ html {
 *::-webkit-scrollbar-thumb {
   background: rgb(194, 194, 194);
   border-radius: 0.5rem;
+}
+
+// Reduce the size of right side bar on 1400px and
+// display: none on width <= 1300px
+@media screen and (max-width: 1400px) {
+  :root {
+    --sidebar-width: 250px;
+    --margin-due-to-sidebar: calc(var(--sidebar-width) + 2rem);
+  }
+}
+
+@media screen and (max-width: 1300px) {
+  :root {
+    --margin-due-to-sidebar: 0;
+  }
 }
