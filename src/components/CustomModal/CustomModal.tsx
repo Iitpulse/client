@@ -37,11 +37,10 @@ const content = {
 };
 
 const CustomModal = (props: CustomModalProps) => {
-  const { open, handleClose, children, title, handleOpen } = props;
+  const { open, handleClose, children, title } = props;
 
   return (
     <div>
-      <Button onClick={handleOpen}>OPEN</Button>
       <Modal
         open={open}
         onClose={handleClose}

@@ -85,10 +85,7 @@ const InstituteDetails = (props: InstituteDetailsProps) => {
 };
 
 const Home = () => {
-  const [name, setName] = useState<string>("");
-
   const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   const upcomgingTests = [
@@ -182,7 +179,6 @@ const Home = () => {
         title="Hello From Deepak"
         open={open}
         handleClose={handleClose}
-        handleOpen={handleOpen}
       >
         YE CHILDREN HAI
       </CustomModal>
