@@ -12,6 +12,8 @@ import icon from "../../assets/icons/flag.svg";
 import Users from "../../assets/icons/users.svg";
 import monitor from "../../assets/icons/monitor.svg";
 import edit from "../../assets/icons/edit.svg";
+import CustomModal from "../../components/CustomModal/CustomModal";
+import React from "react";
 
 interface SubCardProps {
   title: string;
@@ -83,7 +85,8 @@ const InstituteDetails = (props: InstituteDetailsProps) => {
 };
 
 const Home = () => {
-  const [name, setName] = useState<string>("");
+  const [open, setOpen] = React.useState(false);
+  const handleClose = () => setOpen(false);
 
   const upcomgingTests = [
     {
@@ -171,6 +174,14 @@ const Home = () => {
             />
           ))}
       </Sidebar>
+
+      <CustomModal
+        title="Hello From Deepak"
+        open={open}
+        handleClose={handleClose}
+      >
+        YE CHILDREN HAI
+      </CustomModal>
     </>
   );
 };
