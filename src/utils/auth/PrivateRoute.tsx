@@ -14,15 +14,15 @@ const PrivateRoute: React.FC<Props> = ({
 }) => {
   const { currentUser } = useContext(AuthContext);
 
-  if (!currentUser) {
-    return (
-      <MainLayout title={title}>
-        <RouteComponent />
-      </MainLayout>
-    );
+  if (!currentUser && !localStorage.getItem("token")) {
+    return <Navigate to="/login" />;
   }
 
-  return <Navigate to="/login" />;
+  return (
+    <MainLayout title={title}>
+      <RouteComponent />
+    </MainLayout>
+  );
 };
 
 export default PrivateRoute;

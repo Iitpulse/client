@@ -6,7 +6,7 @@ import {
   Sidebar,
 } from "../../components";
 import styles from "./Home.module.scss";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Grid } from "@mui/material";
 import icon from "../../assets/icons/flag.svg";
 import Users from "../../assets/icons/users.svg";
@@ -14,6 +14,7 @@ import monitor from "../../assets/icons/monitor.svg";
 import edit from "../../assets/icons/edit.svg";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import React from "react";
+import { TestContext } from "../../utils/contexts/TestContext";
 
 interface SubCardProps {
   title: string;
@@ -29,6 +30,7 @@ interface InstituteDetailsProps {
 
 interface UpcomingTestItemProps {
   index: number;
+  id: string;
   title: string;
   marks: number;
   durationHours: number;
@@ -50,13 +52,22 @@ const SubCard = (props: SubCardProps) => {
 
 const ListItem: React.FC<UpcomingTestItemProps> = ({
   index,
+  id,
   title,
   durationHours,
   marks,
   mode,
 }) => {
+  function handleClickTest() {
+    let a = document.createElement("a");
+    let token = localStorage.getItem("token");
+    a.href = `http://localhost:3001/auth/${token}/${id}`;
+    a.target = "_blank";
+    a.click();
+  }
+
   return (
-    <div className={styles.listItemContainer}>
+    <div className={styles.listItemContainer} onClick={handleClickTest}>
       <span className={styles.index}>{index}</span>
       <p className={styles.title}>{title}</p>
       <div className={styles.details}>
@@ -109,6 +120,9 @@ const Home = () => {
     },
   ];
 
+  const { state } = useContext(TestContext);
+  const { tests } = state;
+
   return (
     <>
       <div className={styles.container}>
@@ -133,10 +147,12 @@ const Home = () => {
                 title="Upcoming Tests"
                 styles={{ display: "flex", flexWrap: "wrap" }}
               >
-                {upcomgingTests.map((item, i) => (
+                {tests?.map((test, i) => (
                   <ListItem
+                    key={test.id}
+                    id={test.id}
                     index={i + 1}
-                    title="Sunday Test JEE Adv."
+                    title={test.name}
                     marks={360}
                     durationHours={3}
                     mode="online"
