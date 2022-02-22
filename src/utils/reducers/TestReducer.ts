@@ -13,8 +13,8 @@ export default function TestReducer(
     case TEST_ACTION_TYPES.SET_TEST:
       return {
         ...state,
-        tests: payload.test.map((test: ITest) => ({
-          id: test.id,
+        tests: payload.test.map((test: any) => ({
+          id: test._id,
           name: test.name,
         })),
       };
