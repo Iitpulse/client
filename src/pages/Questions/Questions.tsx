@@ -13,6 +13,8 @@ import {
 import { styled } from "@mui/system";
 import { Sidebar, NotificationCard } from "../../components";
 import { useState } from "react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 export const questionTypes = [
   { name: "Single Correct", value: "single" },
@@ -113,6 +115,9 @@ const Questions = () => {
       uploadedBy,
     });
   });
+
+  const [value, setValue] = useState("");
+
   return (
     <div className={styles.container}>
       <form>
@@ -171,6 +176,9 @@ const Questions = () => {
           />
         </div>
       </form>
+      <main>
+        <ReactQuill theme="snow" value={value} onChange={setValue} />
+      </main>
       <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
