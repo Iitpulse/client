@@ -7,6 +7,7 @@ import {
   GridToolbarDensitySelector,
 } from "@mui/x-data-grid";
 import { useDemoData } from "@mui/x-data-grid-generator";
+import { useEffect } from "react";
 
 function CustomToolbar() {
   return (
@@ -25,6 +26,10 @@ const Test = () => {
     rowLength: 10,
     maxColumns: 6,
   });
+
+  useEffect(() => {
+    console.log({ data });
+  }, [data]);
 
   return (
     <div style={{ height: 400, width: "100%" }}>

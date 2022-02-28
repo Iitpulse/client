@@ -16,6 +16,11 @@ import { useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
+// KaTeX dependency for math support
+// import katex from "katex";
+// import "katex/dist/katex.css";
+// window.katex = katex;
+
 export const questionTypes = [
   { name: "Single Correct", value: "single" },
   { name: "Multiple Correct", value: "multiple" },
@@ -118,6 +123,41 @@ const Questions = () => {
 
   const [value, setValue] = useState("");
 
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [
+        { list: "ordered" },
+        { list: "bullet" },
+        { indent: "-1" },
+        { indent: "+1" },
+      ],
+      ["link", "image"],
+      ["clean"],
+      ["formula"], // NOT WORKING YET
+    ],
+  };
+
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "blockquote",
+    "list",
+    "bullet",
+    "indent",
+    "link",
+    "image",
+    "formula", // NOT WORKING YET
+  ];
+
+  React.useEffect(() => {
+    console.log({ value });
+  }, [value]);
+
   return (
     <div className={styles.container}>
       <form>
@@ -177,7 +217,13 @@ const Questions = () => {
         </div>
       </form>
       <main>
-        <ReactQuill theme="snow" value={value} onChange={setValue} />
+        <ReactQuill
+          theme="snow"
+          value={value}
+          onChange={setValue}
+          modules={modules}
+          formats={formats}
+        />
       </main>
       <Sidebar title="Recent Activity">
         {Array(10)
