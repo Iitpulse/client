@@ -1,0 +1,7 @@
+@import "../Users.module.scss";
+
+.container {
+  > div {
+    margin-top: 2rem;
+  }
+}

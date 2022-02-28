@@ -24,7 +24,7 @@ export const StyledMUITextField = styled(TextField)(() => {
 });
 
 export interface UserProps {
-  setIsModalRequested: React.Dispatch<React.SetStateAction<boolean>>;
+  handleCloseModal: () => void;
   onSubmit: (e: any) => void;
   name: string;
   setName: React.Dispatch<React.SetStateAction<string>>;

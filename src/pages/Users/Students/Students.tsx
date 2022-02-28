@@ -3,23 +3,81 @@ import { Button } from "../../../components";
 import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
+import {
+  DataGrid,
+  GridToolbarContainer,
+  GridToolbarColumnsButton,
+  GridToolbarFilterButton,
+  GridToolbarExport,
+  GridToolbarDensitySelector,
+} from "@mui/x-data-grid";
 
-const Students = () => {
+function CustomToolbar() {
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>Students</h1>
-        <Button>Add Student</Button>
-      </div>
+    <GridToolbarContainer>
+      <GridToolbarColumnsButton touchRippleRef={null} />
+      <GridToolbarFilterButton />
+      <GridToolbarDensitySelector touchRippleRef={null} />
+      <GridToolbarExport touchRippleRef={null} />
+    </GridToolbarContainer>
+  );
+}
+
+const Students: React.FC<{
+  activeTab: number;
+  student: UserProps;
+  openModal: boolean;
+  handleCloseModal: () => void;
+}> = ({ activeTab, student, openModal, handleCloseModal }) => {
+  const data = {
+    columns: [
+      {
+        field: "id",
+        headerName: "Id",
+        hidden: false,
+      },
+      {
+        field: "name",
+        headerName: "Name",
+        hidden: false,
+      },
+      {
+        field: "branch",
+        headerName: "Branch",
+        hidden: false,
+      },
+    ],
+    rows: [
+      {
+        id: "IITP_ST_ABC123",
+        name: "Student",
+        branch: "CSE",
+      },
+    ],
+  };
+
+  return (
+    <div className={styles.container} style={{ height: 400, width: "100%" }}>
+      <DataGrid
+        {...data}
+        components={{
+          Toolbar: CustomToolbar,
+        }}
+      />
+      {openModal && activeTab === 0 && (
+        <Student student={student} handleCloseModal={handleCloseModal} />
+      )}
     </div>
   );
 };
 
 export default Students;
 
-const Student = (props: UserProps) => {
+const Student: React.FC<{
+  student: UserProps;
+  handleCloseModal: () => void;
+}> = (props) => {
   const {
-    setIsModalRequested,
     onSubmit,
     name,
     setName,
@@ -40,17 +98,14 @@ const Student = (props: UserProps) => {
     setPreparingFor,
     id,
     handleReset,
-  } = props;
+  } = props.student;
+
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <form onSubmit={onSubmit}>
         <div className={styles.header}>
           <h2>Add a Student</h2>
-          <img
-            onClick={() => setIsModalRequested(false)}
-            src={closeIcon}
-            alt="Close"
-          />
+          <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
         </div>
         <div className={styles.inputFields}>
           <StyledMUITextField

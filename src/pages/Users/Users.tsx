@@ -19,6 +19,9 @@ import "./Users.css";
 import closeIcon from "../../assets/icons/close-circle.svg";
 import info from "../../assets/icons/info.svg";
 import { StyledMUITextField, UserProps } from "./components";
+import Students from "./Students/Students";
+import Teachers from "./Teachers/Teachers";
+import Managers from "./Managers/Managers";
 
 const UserTypesForCards = [
   {
@@ -70,201 +73,108 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+const defaultValue = {
+  id: "IITP_TT_ABC12334",
+  uploadedBy: "John Doe",
+  name: "",
+  email: "",
+  preparingFor: "",
+  adhaarNumber: "",
+  personalContact: "",
+  emergencyContact: "",
+  currentAddress: "",
+  permanentAddress: "",
+};
+
 const Users = () => {
   // For Modal
-  const id = "IITP_TT_ABC12334";
-  const uploadedBy = "John Doe";
-  const [name, setName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [preparingFor, setPreparingFor] = useState<string>("");
-  const [adhaarNumber, setAdhaarNumber] = useState<string>("");
-  const [personalContact, setPersonalContact] = useState<string>("");
-  const [emergencyContact, setEmergencyContact] = useState<string>("");
-  const [currentAddress, setCurrentAddress] = useState<string>("");
-  const [permanentAddress, setPermanentAddress] = useState<string>("");
+  // const id = "IITP_TT_ABC12334";
+  // const uploadedBy = "John Doe";
+  // const [name, setName] = useState<string>("");
+  // const [email, setEmail] = useState<string>("");
+  // const [preparingFor, setPreparingFor] = useState<string>("");
+  // const [adhaarNumber, setAdhaarNumber] = useState<string>("");
+  // const [personalContact, setPersonalContact] = useState<string>("");
+  // const [emergencyContact, setEmergencyContact] = useState<string>("");
+  // const [currentAddress, setCurrentAddress] = useState<string>("");
+  // const [permanentAddress, setPermanentAddress] = useState<string>("");
+
+  const [student, setStudent] = useState<any>(defaultValue);
+  const [admin, setAdmin] = useState<any>(defaultValue);
+  const [manager, setManager] = useState<any>(defaultValue);
+  const [teacher, setTeacher] = useState<any>(defaultValue);
+  const [operator, setOperator] = useState<any>(defaultValue);
 
   //For Option Menu
   const [selectedUserType, setSelectedUserType] = useState<string>("");
-  const [isModalRequested, setIsModalRequested] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false);
 
   function submitHandler(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     //BEFORE SUBMITTING MAKE SURE that you don't send values that are Empty string which are not the part of their respective form
 
     //After Submitting the form
-    setName("");
-    setEmail("");
-    setPreparingFor("");
-    setAdhaarNumber("");
-    setPermanentAddress("");
-    setCurrentAddress("");
-    setEmergencyContact("");
-    setPersonalContact("");
+    // setName("");
+    // setEmail("");
+    // setPreparingFor("");
+    // setAdhaarNumber("");
+    // setPermanentAddress("");
+    // setCurrentAddress("");
+    // setEmergencyContact("");
+    // setPersonalContact("");
   }
 
   function handleReset() {
-    setName("");
-    setEmail("");
-    setPreparingFor("");
-    setAdhaarNumber("");
-    setPermanentAddress("");
-    setCurrentAddress("");
-    setEmergencyContact("");
-    setPersonalContact("");
+    setStudent(defaultValue);
+    setAdmin(defaultValue);
+    setManager(defaultValue);
+    setTeacher(defaultValue);
+    setOperator(defaultValue);
   }
+
   const [tab, setTab] = useState(0);
 
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
     setTab(newValue);
   };
 
+  function handleCloseModal() {
+    setOpenModal(false);
+  }
+
   return (
     <div className={styles.container}>
-      <Tabs value={tab} onChange={handleChangeTab}>
-        <Tab label="Students" />
-        <Tab label="Teachers" />
-        <Tab label="Managers" />
-      </Tabs>
+      <div className={styles.header}>
+        <Tabs value={tab} onChange={handleChangeTab}>
+          <Tab label="Students" />
+          <Tab label="Teachers" />
+          <Tab label="Managers" />
+        </Tabs>
+        <Button onClick={() => setOpenModal(!openModal)}>Add New</Button>
+      </div>
       <TabPanel value={tab} index={0}>
-        <main>
-          <h1>What Type of User do you want to add ?</h1>
-          <div className={styles.cards}>
-            {UserTypesForCards.map((user, i) => {
-              return (
-                <UserCard
-                  key={i}
-                  onClick={() => {
-                    setSelectedUserType(user.title);
-                    setIsModalRequested(true);
-                  }}
-                  title={user.title}
-                  icon={user.icon}
-                  description={user.description}
-                />
-              );
-            })}
-            {/* {isModalRequested && selectedUserType === "Student" && (
-            <Student
-              id={id}
-              setIsModalRequested={setIsModalRequested}
-              onSubmit={submitHandler}
-              name={name}
-              setName={setName}
-              email={email}
-              setEmail={setEmail}
-              preparingFor={preparingFor}
-              setPreparingFor={setPreparingFor}
-              adhaarNumber={adhaarNumber}
-              setAdhaarNumber={setAdhaarNumber}
-              permanentAddress={permanentAddress}
-              setPermanentAddress={setPermanentAddress}
-              currentAddress={currentAddress}
-              setCurrentAddress={setCurrentAddress}
-              personalContact={personalContact}
-              setPersonalContact={setPersonalContact}
-              emergencyContact={emergencyContact}
-              setEmergencyContact={setEmergencyContact}
-              uploadedBy={uploadedBy}
-              handleReset={handleReset}
-            />
-          )} */}
-            {isModalRequested && selectedUserType === "Teacher" && (
-              <Teacher
-                id={id}
-                setIsModalRequested={setIsModalRequested}
-                onSubmit={submitHandler}
-                name={name}
-                setName={setName}
-                email={email}
-                setEmail={setEmail}
-                adhaarNumber={adhaarNumber}
-                setAdhaarNumber={setAdhaarNumber}
-                permanentAddress={permanentAddress}
-                setPermanentAddress={setPermanentAddress}
-                currentAddress={currentAddress}
-                setCurrentAddress={setCurrentAddress}
-                personalContact={personalContact}
-                setPersonalContact={setPersonalContact}
-                emergencyContact={emergencyContact}
-                setEmergencyContact={setEmergencyContact}
-                uploadedBy={uploadedBy}
-                handleReset={handleReset}
-              />
-            )}
-            {isModalRequested && selectedUserType === "Admin" && (
-              <Admin
-                id={id}
-                setIsModalRequested={setIsModalRequested}
-                onSubmit={submitHandler}
-                name={name}
-                setName={setName}
-                email={email}
-                setEmail={setEmail}
-                adhaarNumber={adhaarNumber}
-                setAdhaarNumber={setAdhaarNumber}
-                permanentAddress={permanentAddress}
-                setPermanentAddress={setPermanentAddress}
-                currentAddress={currentAddress}
-                setCurrentAddress={setCurrentAddress}
-                personalContact={personalContact}
-                setPersonalContact={setPersonalContact}
-                emergencyContact={emergencyContact}
-                setEmergencyContact={setEmergencyContact}
-                uploadedBy={uploadedBy}
-                handleReset={handleReset}
-              />
-            )}
-            {isModalRequested && selectedUserType === "Manager" && (
-              <Manager
-                id={id}
-                setIsModalRequested={setIsModalRequested}
-                onSubmit={submitHandler}
-                name={name}
-                setName={setName}
-                email={email}
-                setEmail={setEmail}
-                adhaarNumber={adhaarNumber}
-                setAdhaarNumber={setAdhaarNumber}
-                permanentAddress={permanentAddress}
-                setPermanentAddress={setPermanentAddress}
-                currentAddress={currentAddress}
-                setCurrentAddress={setCurrentAddress}
-                personalContact={personalContact}
-                setPersonalContact={setPersonalContact}
-                emergencyContact={emergencyContact}
-                setEmergencyContact={setEmergencyContact}
-                uploadedBy={uploadedBy}
-                handleReset={handleReset}
-              />
-            )}
-            {isModalRequested && selectedUserType === "Operator" && (
-              <Operator
-                id={id}
-                setIsModalRequested={setIsModalRequested}
-                onSubmit={submitHandler}
-                name={name}
-                setName={setName}
-                email={email}
-                setEmail={setEmail}
-                adhaarNumber={adhaarNumber}
-                setAdhaarNumber={setAdhaarNumber}
-                permanentAddress={permanentAddress}
-                setPermanentAddress={setPermanentAddress}
-                currentAddress={currentAddress}
-                setCurrentAddress={setCurrentAddress}
-                personalContact={personalContact}
-                setPersonalContact={setPersonalContact}
-                emergencyContact={emergencyContact}
-                setEmergencyContact={setEmergencyContact}
-                uploadedBy={uploadedBy}
-                handleReset={handleReset}
-              />
-            )}
-          </div>
-        </main>
+        <Students
+          student={student}
+          activeTab={tab}
+          openModal={openModal}
+          handleCloseModal={handleCloseModal}
+        />
       </TabPanel>
       <TabPanel value={tab} index={1}>
-        Teachers
+        <Teachers
+          teacher={teacher}
+          activeTab={tab}
+          openModal={openModal}
+          handleCloseModal={handleCloseModal}
+        />
+      </TabPanel>
+      <TabPanel value={tab} index={2}>
+        <Managers
+          manager={teacher}
+          activeTab={tab}
+          openModal={openModal}
+          handleCloseModal={handleCloseModal}
+        />
       </TabPanel>
 
       <Sidebar title="Recent Activity">
@@ -285,525 +195,22 @@ const Users = () => {
   );
 };
 
-//----------------------------------------------User Type: Teacher
-
-const Teacher = (props: UserProps) => {
-  const {
-    setIsModalRequested,
-    onSubmit,
-    name,
-    setName,
-    email,
-    setEmail,
-    adhaarNumber,
-    setAdhaarNumber,
-    permanentAddress,
-    setPermanentAddress,
-    currentAddress,
-    setCurrentAddress,
-    personalContact,
-    setPersonalContact,
-    emergencyContact,
-    setEmergencyContact,
-    uploadedBy,
-    id,
-    handleReset,
-  } = props;
-  return (
-    <div className={clsx(styles.studentContainer, styles.modal)}>
-      <form onSubmit={onSubmit}>
-        <div className={styles.header}>
-          <h2>Add a Teacher</h2>
-          <img
-            onClick={() => setIsModalRequested(false)}
-            src={closeIcon}
-            alt="Close"
-          />
-        </div>
-        <div className={styles.inputFields}>
-          <StyledMUITextField
-            id="id"
-            disabled
-            label="Id"
-            value={id}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="name"
-            required
-            label="Name"
-            value={name}
-            onChange={(e: any) => setName(e.target.value)}
-            variant="outlined"
-          />
-
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="currentAddress"
-            value={currentAddress}
-            onChange={(e: any) => setCurrentAddress(e.target.value)}
-            label="Current Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="permanentAddress"
-            value={permanentAddress}
-            onChange={(e: any) => setPermanentAddress(e.target.value)}
-            label="Permanent Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="email"
-            value={email}
-            onChange={(e: any) => setEmail(e.target.value)}
-            label="Email"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="adhaarNumber"
-            value={adhaarNumber}
-            onChange={(e: any) => setAdhaarNumber(e.target.value)}
-            label="Adhaar Number"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="personalContact"
-            value={personalContact}
-            onChange={(e: any) => setPersonalContact(e.target.value)}
-            label="Personal Contact"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="emergencyContact"
-            value={emergencyContact}
-            onChange={(e: any) => setEmergencyContact(e.target.value)}
-            label="Emergency Contact"
-            variant="outlined"
-          />
-
-          <StyledMUITextField
-            id="uploadedBy"
-            className="uploadedBy"
-            value={uploadedBy}
-            label="Uploaded By"
-            disabled
-            variant="outlined"
-          />
-        </div>
-        <div className={styles.buttons}>
-          <Button>Submit</Button>
-          <Button onClick={handleReset} type="button" color="warning">
-            Reset
-          </Button>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-//----------------------------------------------User Type: Teacher
-
 //----------------------------------------------User Type: Admin
 
-const Admin = (props: UserProps) => {
-  const {
-    setIsModalRequested,
-    onSubmit,
-    name,
-    setName,
-    email,
-    setEmail,
-    adhaarNumber,
-    setAdhaarNumber,
-    permanentAddress,
-    setPermanentAddress,
-    currentAddress,
-    setCurrentAddress,
-    personalContact,
-    setPersonalContact,
-    emergencyContact,
-    setEmergencyContact,
-    uploadedBy,
-    id,
-    handleReset,
-  } = props;
+const Admin = (props: UserProps) => {};
 
-  return (
-    <div className={clsx(styles.studentContainer, styles.modal)}>
-      <form onSubmit={onSubmit}>
-        <div className={styles.header}>
-          <h2>Add an Admin</h2>
-          <img
-            onClick={() => setIsModalRequested(false)}
-            src={closeIcon}
-            alt="Close"
-          />
-        </div>
-        <div className={styles.inputFields}>
-          <StyledMUITextField
-            id="id"
-            disabled
-            label="Id"
-            value={id}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="name"
-            required
-            label="Name"
-            value={name}
-            onChange={(e: any) => setName(e.target.value)}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="currentAddress"
-            value={currentAddress}
-            onChange={(e: any) => setCurrentAddress(e.target.value)}
-            label="Current Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="permanentAddress"
-            value={permanentAddress}
-            onChange={(e: any) => setPermanentAddress(e.target.value)}
-            label="Permanent Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="email"
-            value={email}
-            onChange={(e: any) => setEmail(e.target.value)}
-            label="Email"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="adhaarNumber"
-            value={adhaarNumber}
-            onChange={(e: any) => setAdhaarNumber(e.target.value)}
-            label="Adhaar Number"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="personalContact"
-            value={personalContact}
-            onChange={(e: any) => setPersonalContact(e.target.value)}
-            label="Personal Contact"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="emergencyContact"
-            value={emergencyContact}
-            onChange={(e: any) => setEmergencyContact(e.target.value)}
-            label="Emergency Contact"
-            variant="outlined"
-          />
-
-          <StyledMUITextField
-            id="uploadedBy"
-            className="uploadedBy"
-            value={uploadedBy}
-            label="Uploaded By"
-            disabled
-            variant="outlined"
-          />
-        </div>
-        <div className={styles.buttons}>
-          <Button>Submit</Button>
-          <Button onClick={handleReset} type="button" color="warning">
-            Reset
-          </Button>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-//----------------------------------------------User Type: Admin
-
-//----------------------------------------------User Type: Operator
-
-const Operator = (props: UserProps) => {
-  const {
-    setIsModalRequested,
-    onSubmit,
-    name,
-    setName,
-    email,
-    setEmail,
-    adhaarNumber,
-    setAdhaarNumber,
-    permanentAddress,
-    setPermanentAddress,
-    currentAddress,
-    setCurrentAddress,
-    personalContact,
-    setPersonalContact,
-    emergencyContact,
-    setEmergencyContact,
-    uploadedBy,
-    id,
-    handleReset,
-  } = props;
-  return (
-    <div className={clsx(styles.studentContainer, styles.modal)}>
-      <form onSubmit={onSubmit}>
-        <div className={styles.header}>
-          <h2>Add an Operator</h2>
-          <img
-            onClick={() => setIsModalRequested(false)}
-            src={closeIcon}
-            alt="Close"
-          />
-        </div>
-        <div className={styles.inputFields}>
-          <StyledMUITextField
-            id="id"
-            disabled
-            label="Id"
-            value={id}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="name"
-            required
-            label="Name"
-            value={name}
-            onChange={(e: any) => setName(e.target.value)}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="currentAddress"
-            value={currentAddress}
-            onChange={(e: any) => setCurrentAddress(e.target.value)}
-            label="Current Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="permanentAddress"
-            value={permanentAddress}
-            onChange={(e: any) => setPermanentAddress(e.target.value)}
-            label="Permanent Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="email"
-            value={email}
-            onChange={(e: any) => setEmail(e.target.value)}
-            label="Email"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="adhaarNumber"
-            value={adhaarNumber}
-            onChange={(e: any) => setAdhaarNumber(e.target.value)}
-            label="Adhaar Number"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="personalContact"
-            value={personalContact}
-            onChange={(e: any) => setPersonalContact(e.target.value)}
-            label="Personal Contact"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="emergencyContact"
-            value={emergencyContact}
-            onChange={(e: any) => setEmergencyContact(e.target.value)}
-            label="Emergency Contact"
-            variant="outlined"
-          />
-
-          <StyledMUITextField
-            id="uploadedBy"
-            className="uploadedBy"
-            value={uploadedBy}
-            label="Uploaded By"
-            disabled
-            variant="outlined"
-          />
-        </div>
-        <div className={styles.buttons}>
-          <Button>Submit</Button>
-          <Button onClick={handleReset} type="button" color="warning">
-            Reset
-          </Button>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-//----------------------------------------------User Type: Operator
-
-//----------------------------------------------User Type: Manager
-
-const Manager = (props: UserProps) => {
-  const {
-    setIsModalRequested,
-    onSubmit,
-    name,
-    setName,
-    email,
-    setEmail,
-    adhaarNumber,
-    setAdhaarNumber,
-    permanentAddress,
-    setPermanentAddress,
-    currentAddress,
-    setCurrentAddress,
-    personalContact,
-    setPersonalContact,
-    emergencyContact,
-    setEmergencyContact,
-    uploadedBy,
-    id,
-    handleReset,
-  } = props;
-  return (
-    <div className={clsx(styles.studentContainer, styles.modal)}>
-      <form onSubmit={onSubmit}>
-        <div className={styles.header}>
-          <h2>Add a Manager</h2>
-          <img
-            onClick={() => setIsModalRequested(false)}
-            src={closeIcon}
-            alt="Close"
-          />
-        </div>
-        <div className={styles.inputFields}>
-          <StyledMUITextField
-            id="id"
-            disabled
-            label="Id"
-            value={id}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="name"
-            required
-            label="Name"
-            value={name}
-            onChange={(e: any) => setName(e.target.value)}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="currentAddress"
-            value={currentAddress}
-            onChange={(e: any) => setCurrentAddress(e.target.value)}
-            label="Current Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="permanentAddress"
-            value={permanentAddress}
-            onChange={(e: any) => setPermanentAddress(e.target.value)}
-            label="Permanent Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="email"
-            value={email}
-            onChange={(e: any) => setEmail(e.target.value)}
-            label="Email"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="adhaarNumber"
-            value={adhaarNumber}
-            onChange={(e: any) => setAdhaarNumber(e.target.value)}
-            label="Adhaar Number"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="personalContact"
-            value={personalContact}
-            onChange={(e: any) => setPersonalContact(e.target.value)}
-            label="Personal Contact"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="emergencyContact"
-            value={emergencyContact}
-            onChange={(e: any) => setEmergencyContact(e.target.value)}
-            label="Emergency Contact"
-            variant="outlined"
-          />
-
-          <StyledMUITextField
-            id="uploadedBy"
-            className="uploadedBy"
-            value={uploadedBy}
-            label="Uploaded By"
-            disabled
-            variant="outlined"
-          />
-        </div>
-        <div className={styles.buttons}>
-          <Button>Submit</Button>
-          <Button onClick={handleReset} type="button" color="warning">
-            Reset
-          </Button>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-//----------------------------------------------User Type: Manager
-
-//----------------------------------------------UserCard
-
-interface UserCardProps {
-  title: string;
-  icon: string;
-  description: string;
-  onClick: () => void;
-}
-
-const UserCard = (props: UserCardProps) => {
-  const { title, icon, description, onClick } = props;
-  return (
-    <div onClick={onClick} className={styles.userCardContainer}>
-      <div>
-        <p>{title}</p>
-        <img src={info} alt="More Info" />
-        <div className={styles.moreInfo}>{description}</div>
-      </div>
-    </div>
-  );
-};
+// const UserCard = (props: UserCardProps) => {
+//   const { title, icon, description, onClick } = props;
+//   return (
+//     <div onClick={onClick} className={styles.userCardContainer}>
+//       <div>
+//         <p>{title}</p>
+//         <img src={info} alt="More Info" />
+//         <div className={styles.moreInfo}>{description}</div>
+//       </div>
+//     </div>
+//   );
+// };
 
 //----------------------------------------------MUIElements and Styled Components
 

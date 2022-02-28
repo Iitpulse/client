@@ -1,33 +1,34 @@
 import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
-import styles from "./Teachers.module.scss";
+import styles from "./Managers.module.scss";
 import { Button } from "../../../components";
 
-const Teachers: React.FC<{
+const Managers: React.FC<{
   activeTab: number;
-  admin: UserProps;
+  manager: UserProps;
   openModal: boolean;
   handleCloseModal: () => void;
-}> = ({ activeTab, admin, openModal, handleCloseModal }) => {
+}> = ({ activeTab, manager, openModal, handleCloseModal }) => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Admins</h1>
-        <Button>Add Amin</Button>
+        <h1>Managers</h1>
+        <Button>Add manager</Button>
       </div>
-      {openModal && activeTab === 3 && (
-        <Admin admin={admin} handleCloseModal={handleCloseModal} />
+      {openModal && activeTab === 4 && (
+        <Manager manager={manager} handleCloseModal={handleCloseModal} />
       )}
     </div>
   );
 };
 
-export default Teachers;
+export default Managers;
 
-const Admin: React.FC<{ admin: UserProps; handleCloseModal: () => void }> = (
-  props
-) => {
+const Manager: React.FC<{
+  manager: UserProps;
+  handleCloseModal: () => void;
+}> = (props) => {
   const {
     onSubmit,
     name,
@@ -47,13 +48,12 @@ const Admin: React.FC<{ admin: UserProps; handleCloseModal: () => void }> = (
     uploadedBy,
     id,
     handleReset,
-  } = props.admin;
-
+  } = props.manager;
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <form onSubmit={onSubmit}>
         <div className={styles.header}>
-          <h2>Add an Admin</h2>
+          <h2>Add a Manager</h2>
           <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
         </div>
         <div className={styles.inputFields}>

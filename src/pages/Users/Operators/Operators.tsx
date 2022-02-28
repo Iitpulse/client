@@ -1,33 +1,33 @@
 import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
-import styles from "./Teachers.module.scss";
+import styles from "./Operators.module.scss";
 import { Button } from "../../../components";
 
-const Teachers: React.FC<{
+const Operators: React.FC<{
   activeTab: number;
-  admin: UserProps;
-  openModal: boolean;
+  operator: UserProps;
   handleCloseModal: () => void;
-}> = ({ activeTab, admin, openModal, handleCloseModal }) => {
+}> = ({ activeTab, operator, handleCloseModal }) => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Admins</h1>
-        <Button>Add Amin</Button>
+        <h1>Operators</h1>
+        <Button>Add Operator</Button>
       </div>
-      {openModal && activeTab === 3 && (
-        <Admin admin={admin} handleCloseModal={handleCloseModal} />
+      {activeTab === 2 && (
+        <Operator operator={operator} handleCloseModal={handleCloseModal} />
       )}
     </div>
   );
 };
 
-export default Teachers;
+export default Operators;
 
-const Admin: React.FC<{ admin: UserProps; handleCloseModal: () => void }> = (
-  props
-) => {
+const Operator: React.FC<{
+  operator: UserProps;
+  handleCloseModal: () => void;
+}> = (props) => {
   const {
     onSubmit,
     name,
@@ -47,13 +47,12 @@ const Admin: React.FC<{ admin: UserProps; handleCloseModal: () => void }> = (
     uploadedBy,
     id,
     handleReset,
-  } = props.admin;
-
+  } = props.operator;
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <form onSubmit={onSubmit}>
         <div className={styles.header}>
-          <h2>Add an Admin</h2>
+          <h2>Add an Operator</h2>
           <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
         </div>
         <div className={styles.inputFields}>
