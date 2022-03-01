@@ -28,6 +28,39 @@
     bottom: 0;
     margin: 0 1rem 1.5rem 0;
   }
+
+  &.successCard {
+    background: #dafde8;
+    .content {
+      h4 {
+        color: var(--clr-success);
+      }
+    }
+  }
+  &.warningCard {
+    background: #fff3d3;
+    .content {
+      h4 {
+        color: var(--clr-warning);
+      }
+    }
+  }
+  &.errorCard {
+    background: #ffe8e8;
+    .content {
+      h4 {
+        color: var(--clr-error);
+      }
+    }
+  }
+  &.primaryCard {
+    background: #dbf0ff;
+    .content {
+      h4 {
+        color: var(--clr-primary);
+      }
+    }
+  }
 }
 
 .container {
@@ -40,6 +73,7 @@
       margin-top: 1rem;
       display: -ms-grid;
       display: grid;
+      -ms-grid-columns: repeat(2, 1fr);
       grid-template-columns: repeat(2, 1fr);
       gap: 1rem;
     }
