@@ -47,17 +47,17 @@ const Students: React.FC<{
         hidden: false,
       },
     ],
-    rows: [
-      {
+    rows: Array(100)
+      .fill({
         id: "IITP_ST_ABC123",
         name: "Student",
         branch: "CSE",
-      },
-    ],
+      })
+      .map((item, i) => ({ ...item, id: item.id + i })),
   };
 
   return (
-    <div className={styles.container} style={{ height: 400, width: "100%" }}>
+    <div className={styles.container} style={{ height: 500, width: "100%" }}>
       <DataGrid
         {...data}
         components={{

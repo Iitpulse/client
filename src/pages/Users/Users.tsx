@@ -22,6 +22,8 @@ import { StyledMUITextField, UserProps } from "./components";
 import Students from "./Students/Students";
 import Teachers from "./Teachers/Teachers";
 import Managers from "./Managers/Managers";
+import Operators from "./Operators/Operators";
+import Admins from "./Admins/Admins";
 
 const UserTypesForCards = [
   {
@@ -148,6 +150,8 @@ const Users = () => {
         <Tabs value={tab} onChange={handleChangeTab}>
           <Tab label="Students" />
           <Tab label="Teachers" />
+          <Tab label="Operators" />
+          <Tab label="Admins" />
           <Tab label="Managers" />
         </Tabs>
         <Button onClick={() => setOpenModal(!openModal)}>Add New</Button>
@@ -169,8 +173,25 @@ const Users = () => {
         />
       </TabPanel>
       <TabPanel value={tab} index={2}>
+        <Operators
+          operator={operator}
+          activeTab={tab}
+          openModal={openModal}
+          handleCloseModal={handleCloseModal}
+        />
+      </TabPanel>
+
+      <TabPanel value={tab} index={3}>
+        <Admins
+          admin={admin}
+          activeTab={tab}
+          openModal={openModal}
+          handleCloseModal={handleCloseModal}
+        />
+      </TabPanel>
+      <TabPanel value={tab} index={4}>
         <Managers
-          manager={teacher}
+          manager={manager}
           activeTab={tab}
           openModal={openModal}
           handleCloseModal={handleCloseModal}

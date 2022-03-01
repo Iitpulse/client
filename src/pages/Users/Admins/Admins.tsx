@@ -1,10 +1,10 @@
 import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
-import styles from "./Teachers.module.scss";
+import styles from "./Admins.module.scss";
 import { Button } from "../../../components";
 
-const Teachers: React.FC<{
+const Admins: React.FC<{
   activeTab: number;
   admin: UserProps;
   openModal: boolean;
@@ -23,7 +23,7 @@ const Teachers: React.FC<{
   );
 };
 
-export default Teachers;
+export default Admins;
 
 const Admin: React.FC<{ admin: UserProps; handleCloseModal: () => void }> = (
   props

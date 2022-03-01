@@ -7,15 +7,16 @@ import { Button } from "../../../components";
 const Operators: React.FC<{
   activeTab: number;
   operator: UserProps;
+  openModal: boolean;
   handleCloseModal: () => void;
-}> = ({ activeTab, operator, handleCloseModal }) => {
+}> = ({ activeTab, operator, openModal, handleCloseModal }) => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Operators</h1>
         <Button>Add Operator</Button>
       </div>
-      {activeTab === 2 && (
+      {openModal && activeTab === 2 && (
         <Operator operator={operator} handleCloseModal={handleCloseModal} />
       )}
     </div>

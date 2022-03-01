@@ -11,6 +11,23 @@ export interface IAuthContext {
 }
 
 export interface ITest {
+  id: string; //TT_AB123
   name: string;
-  id: string;
+  description: string;
+  exam: {
+    id: string;
+    name: string;
+    fullName: string;
+  };
+  status: string; // ongoing | active | inactive | expired
+  validity: {
+    from: string;
+    to: string;
+  };
+  createdBy: {
+    userType: string;
+    id: string;
+    name: string;
+  };
+  createdAt: Date;
 }
