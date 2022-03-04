@@ -24,8 +24,8 @@ import Objective from "./Objective/Objective";
 export const questionTypes = [
   { name: "Objective", value: "objective" },
   // { name: "Multiple Correct", value: "multiple" },
-  { name: "Matrix Match", value: "matrix" },
   { name: "Integer Type", value: "integer" },
+  { name: "Matrix Match", value: "matrix" },
 ];
 
 export const subjects = [

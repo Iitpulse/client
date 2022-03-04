@@ -3,7 +3,15 @@ import { Button } from "../../../components";
 import styles from "./Objective.module.scss";
 import ReactQuill from "react-quill";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
-import { Tab } from "@mui/material";
+import {
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Tab,
+  Checkbox,
+  FormGroup,
+  IconButton,
+} from "@mui/material";
 import { TabPanel } from "../Common";
 
 interface Props {
@@ -16,6 +24,7 @@ const Objective: React.FC<Props> = ({ id }) => {
   const [tab, setTab] = useState(0);
   const [optionsCount, setOptionsCount] = useState(4);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
+  const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
 
   const [values, setValues] = useState({
     en: {
@@ -96,6 +105,94 @@ const Objective: React.FC<Props> = ({ id }) => {
     });
   }
 
+  function handleChangeAnswerType(e: any) {
+    setValues({
+      ...values,
+      en: {
+        ...values.en,
+        options: values.en.options.map((option) => ({
+          ...option,
+          isCorrectAnswer: false,
+        })),
+      },
+      hi: {
+        ...values.hi,
+        options: values.hi.options.map((option) => ({
+          ...option,
+          isCorrectAnswer: false,
+        })),
+      },
+    });
+    setAnswerType(e.target.value);
+  }
+
+  function handleChangeCorrectAnswer(e: any, optionIdx: number) {
+    setValues({
+      ...values,
+      en: {
+        ...values.en,
+        options: values.en.options.map(
+          (option, i) =>
+            i === optionIdx
+              ? { ...option, isCorrectAnswer: e.target.checked }
+              : answerType === "single"
+              ? { ...option, isCorrectAnswer: false } // Setting other values to false in case of single correct
+              : option // nothing happens with multiple correct
+        ),
+      },
+      hi: {
+        ...values.hi,
+        options: values.hi.options.map(
+          (option, i) =>
+            i === optionIdx
+              ? { ...option, isCorrectAnswer: e.target.checked }
+              : answerType === "single"
+              ? { ...option, isCorrectAnswer: false } // Setting other values to false in case of single correct
+              : option // nothing happens with multiple correct
+        ),
+      },
+    });
+  }
+
+  function handleChaneOptionsCount(type: "increment" | "decrement") {
+    if (type === "increment") {
+      setOptionsCount((prev) => prev + 1);
+      setValues({
+        ...values,
+        en: {
+          ...values.en,
+          options: [
+            ...values.en.options,
+            { id, value: "", isCorrectAnswer: false },
+          ],
+        },
+        hi: {
+          ...values.hi,
+          options: [
+            ...values.hi.options,
+            { id, value: "", isCorrectAnswer: false },
+          ],
+        },
+      });
+    } else {
+      if (optionsCount > 0) {
+        // Don't allow to decrement below 0
+        setOptionsCount((prev) => prev - 1);
+        setValues({
+          ...values,
+          en: {
+            ...values.en,
+            options: values.en.options.slice(0, optionsCount - 1),
+          },
+          hi: {
+            ...values.hi,
+            options: values.hi.options.slice(0, optionsCount - 1),
+          },
+        });
+      }
+    }
+  }
+
   return (
     <section className={styles.container}>
       <div className={styles.header}>
@@ -126,40 +223,53 @@ const Objective: React.FC<Props> = ({ id }) => {
           </div>
         </div>
       </div>
-      <Tabs
-        value={tab}
-        onChange={handleChangeTab}
-        variant="scrollable"
-        scrollButtons="auto"
-        sx={{
-          [`& .${tabsClasses.scrollButtons}`]: {
-            "&.Mui-disabled": { opacity: 0.3 },
-          },
-          ".css-1h9z7r5-MuiButtonBase-root-MuiTab-root.Mui-selected": {
-            backgroundColor: "#f5f5f5",
-            borderRadius: "5px",
-          },
-          ".css-1aquho2-MuiTabs-indicator": {
-            display: "none",
-          },
-        }}
-      >
-        <Tab label="Question" />
-        {Array(optionsCount)
-          .fill(0)
-          .map((_, index) => (
-            <Tab
-              label={`Option ${index + 1}`}
-              key={index}
-              className={
-                values[currentLanguage].options[index].isCorrectAnswer
-                  ? styles.correctAnswer
-                  : ""
-              }
-            />
-          ))}
-        <Tab label="Solution" />
-      </Tabs>
+      <div className={styles.tabsContainer}>
+        <Tabs
+          value={tab}
+          onChange={handleChangeTab}
+          variant="scrollable"
+          scrollButtons="auto"
+          className={styles.tabs}
+          sx={{
+            [`& .${tabsClasses.scrollButtons}`]: {
+              "&.Mui-disabled": { opacity: 0.3 },
+            },
+            ".css-1h9z7r5-MuiButtonBase-root-MuiTab-root.Mui-selected": {
+              backgroundColor: "#f5f5f5",
+              borderRadius: "5px",
+            },
+            ".css-1aquho2-MuiTabs-indicator": {
+              display: "none",
+            },
+          }}
+        >
+          <Tab label="Question" />
+          {Array(optionsCount)
+            .fill(0)
+            .map((_, index) => (
+              <Tab
+                label={`Option ${String.fromCharCode(65 + index)}`}
+                key={index}
+                className={
+                  values[currentLanguage].options[index].isCorrectAnswer
+                    ? styles.correctAnswer
+                    : ""
+                }
+              />
+            ))}
+          <Tab label="Solution" />
+        </Tabs>
+        <div className={styles.optionsCounter}>
+          <IconButton onClick={() => handleChaneOptionsCount("decrement")}>
+            -
+          </IconButton>
+          <span className={styles.count}>{optionsCount}</span>
+          <IconButton onClick={() => handleChaneOptionsCount("increment")}>
+            +
+          </IconButton>
+        </div>
+      </div>
+
       <TabPanel value={tab} index={0}>
         <div className={styles.editor}>
           <ReactQuill
@@ -197,6 +307,40 @@ const Objective: React.FC<Props> = ({ id }) => {
           />
         </div>
       </TabPanel>
+      <div className={styles.actions}>
+        <RadioGroup
+          row
+          aria-labelledby="answer-type"
+          name="answer-type-radio-group"
+          value={answerType}
+        >
+          <FormControlLabel
+            value="single"
+            control={<Radio />}
+            label="Single Correct"
+            onChange={handleChangeAnswerType}
+          />
+          <FormControlLabel
+            value="multiple"
+            control={<Radio />}
+            label="Multiple Correct"
+            onChange={handleChangeAnswerType}
+          />
+        </RadioGroup>
+        <div className={styles.correctAnswers}>
+          <FormGroup row>
+            {values[currentLanguage].options.map((option, i) => (
+              <FormControlLabel
+                control={answerType === "single" ? <Radio /> : <Checkbox />}
+                label={String.fromCharCode(65 + i)} // Using ASCII for generating characters through index
+                key={i}
+                checked={option.isCorrectAnswer}
+                onChange={(e: any) => handleChangeCorrectAnswer(e, i)}
+              />
+            ))}
+          </FormGroup>
+        </div>
+      </div>
     </section>
   );
 };

@@ -14,11 +14,13 @@
     }
     .languages {
       @extend .flexRow;
-      border: 2px solid rgba(0, 0, 0, 0.2);
-      border-radius: 5px;
+      // border: 2px solid var(--clr-primary);
+      overflow: hidden;
       div {
         padding: 0.3rem 1rem;
+        border-radius: 5px;
         cursor: pointer;
+        color: rgba(0, 0, 0, 0.4);
       }
       .selected {
         background: var(--clr-primary);
@@ -26,8 +28,26 @@
       }
     }
   }
+  .tabsContainer {
+    @extend .flexRow;
+
+    .optionsCounter {
+      @extend .flexRow;
+      justify-content: center;
+      .count {
+        margin: 0 1rem;
+      }
+    }
+  }
+  .tabs {
+    margin-top: 1rem;
+  }
   .editor {
     margin-top: 1.2rem;
+    height: 250px;
+    > div {
+      height: 210px;
+    }
     > div > div {
       &:nth-child(1) {
         border-radius: 5px 5px 0 0;
@@ -36,5 +56,9 @@
         border-radius: 0 0 5px 5px;
       }
     }
+  }
+  .actions {
+    margin-top: 1.2rem;
+    @extend .flexRow;
   }
 }
