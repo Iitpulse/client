@@ -1,6 +1,8 @@
 @import "../../utils/commons.scss";
 
 .container {
+  width: 100%;
+  padding-bottom: 2rem;
   .inputFields {
     margin: 0.5rem 0;
     @extend .flexRow;
@@ -23,5 +25,11 @@
     > div:nth-child(8) {
       width: 250px;
     }
+  }
+  .main {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    margin-top: 1rem;
   }
 }
