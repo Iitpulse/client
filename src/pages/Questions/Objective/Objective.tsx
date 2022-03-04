@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components";
 import styles from "./Objective.module.scss";
-import ReactQuill from "react-quill";
+import ReactQuill, { Quill } from "react-quill";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
 import {
   FormControlLabel,
@@ -13,10 +13,14 @@ import {
   IconButton,
 } from "@mui/material";
 import { TabPanel } from "../Common";
+// @ts-ignore
+import ImageResize from "quill-image-resize-module-react";
 
 interface Props {
   id: string;
 }
+
+Quill.register("modules/imageResize", ImageResize);
 
 const Objective: React.FC<Props> = ({ id }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
@@ -46,6 +50,7 @@ const Objective: React.FC<Props> = ({ id }) => {
   const modules = {
     toolbar: [
       [{ header: [1, 2, false] }],
+      [{ size: [] }],
       ["bold", "italic", "underline", "strike", "blockquote"],
       [
         { list: "ordered" },
@@ -57,6 +62,14 @@ const Objective: React.FC<Props> = ({ id }) => {
       ["clean"],
       ["formula"], // NOT WORKING YET
     ],
+    clipboard: {
+      // toggle to add extra line breaks when pasting HTML:
+      matchVisual: true,
+    },
+    imageResize: {
+      parchment: Quill.import("parchment"),
+      modules: ["Resize", "DisplaySize"],
+    },
   };
 
   const formats = [
@@ -278,6 +291,7 @@ const Objective: React.FC<Props> = ({ id }) => {
             onChange={(val: string) => handleChangeEditor("question", val)}
             modules={modules}
             formats={formats}
+            bounds={styles.editor}
           />
         </div>
       </TabPanel>
@@ -292,6 +306,7 @@ const Objective: React.FC<Props> = ({ id }) => {
               }
               modules={modules}
               formats={formats}
+              bounds={styles.editor}
             />
           </div>
         </TabPanel>
@@ -304,6 +319,7 @@ const Objective: React.FC<Props> = ({ id }) => {
             onChange={(val: string) => handleChangeEditor("solution", val)}
             modules={modules}
             formats={formats}
+            bounds={styles.editor}
           />
         </div>
       </TabPanel>
@@ -341,6 +357,8 @@ const Objective: React.FC<Props> = ({ id }) => {
           </FormGroup>
         </div>
       </div>
+      {/* Just for preview */}
+      {/* <div dangerouslySetInnerHTML={{ __html: values.en.question }}></div> */}
     </section>
   );
 };
