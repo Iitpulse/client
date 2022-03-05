@@ -15,6 +15,7 @@ import { Sidebar, NotificationCard } from "../../components";
 import { useState } from "react";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
+import Integer from "./Integer/Integer";
 
 // KaTeX dependency for math support
 // import katex from "katex";
@@ -100,14 +101,14 @@ export const examList = [
 const Questions = () => {
   const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<string>>([]);
-  const [type, setType] = useState<string>("");
+  const [type, setType] = useState<string>("objective");
   const [subject, setSubject] = useState<string>("");
   const [chapter, setChapter] = useState<Array<string>>([]);
   const [topics, setTopics] = useState<Array<string>>([]);
   const [difficulty, setDifficulty] = useState<string>("");
   const [source, setSource] = useState<string>("");
   const [uploadedBy, setUploadedBy] = useState<string>("John Doe");
-
+  console.log(type);
   React.useEffect(() => {
     console.log({
       id,
@@ -181,7 +182,8 @@ const Questions = () => {
       </form>
       <hr />
       <section className={styles.main}>
-        <Objective id={id} />
+        {type === "objective" && <Objective id={id} />}
+        {type === "integer" && <Integer id={id} />}
       </section>
       <Sidebar title="Recent Activity">
         {Array(10)
