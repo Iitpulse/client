@@ -56,6 +56,14 @@
         border-radius: 0 0 5px 5px;
       }
     }
+    // quill > ql-container ql-snow
+    > div > div:nth-of-type(2) > div {
+      //ql-tooltip formula
+      &:nth-last-child(1) {
+        left: -10px !important;
+        top: 10px !important;
+      }
+    }
   }
   .actions {
     margin-top: 1.2rem;
