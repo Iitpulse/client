@@ -1,0 +1,22 @@
+@import "../../../utils/commons.scss";
+@import "../Objective/Objective.module.scss";
+
+.container {
+  .paragraphEditor {
+    hr {
+      border: 1px solid rgb(243, 243, 243);
+    }
+    .questionsCounter {
+      @extend .flexRow;
+
+      > div {
+        .count {
+          margin: 0 1rem;
+        }
+      }
+    }
+  }
+  .question {
+    margin-top: 1rem;
+  }
+}
