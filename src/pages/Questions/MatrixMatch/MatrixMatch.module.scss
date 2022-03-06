@@ -1,0 +1,32 @@
+@import "../../../utils/commons.scss";
+@import "../Objective/Objective.module.scss";
+
+.container {
+  .matrix {
+    background: rgba(0, 0, 0, 0.05);
+    width: -moz-fit-content;
+    width: fit-content;
+    padding: 1rem;
+    border-radius: 0.3rem;
+  }
+  .row {
+    @extend .flexRow;
+    justify-content: flex-start;
+  }
+  .item {
+    width: 40px;
+    @extend .flexRow;
+    justify-content: center;
+  }
+  .rowItem {
+    justify-content: flex-start;
+    width: 20px;
+  }
+  .col {
+    width: 40px;
+  }
+  .colHeader {
+    @extend .flexRow;
+    justify-content: flex-start;
+  }
+}

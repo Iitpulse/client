@@ -12,7 +12,7 @@ import {
   MUISimpleAutocomplete,
   StyledMUISelect,
 } from "./components";
-
+import MatrixMatch from "./MatrixMatch/MatrixMatch";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -101,7 +101,7 @@ const Questions = () => {
   const [difficulty, setDifficulty] = useState<string>("");
   const [source, setSource] = useState<string>("");
   const [uploadedBy, setUploadedBy] = useState<string>("John Doe");
-  console.log(type);
+
   React.useEffect(() => {
     console.log({
       id,
@@ -126,16 +126,16 @@ const Questions = () => {
             value={id}
             variant="outlined"
           />
-          <MUIChipsAutocomplete
-            label="Exam(s)"
-            options={examList}
-            onChange={setExams}
-          />
           <StyledMUISelect
             label={"Type"}
             options={questionTypes}
             state={type}
             onChange={setType}
+          />
+          <MUIChipsAutocomplete
+            label="Exam(s)"
+            options={examList}
+            onChange={setExams}
           />
           <StyledMUISelect
             label={"Subject"}
@@ -174,9 +174,7 @@ const Questions = () => {
         </div>
       </form>
       {/* <hr /> */}
-      <section className={styles.main}>
-        {getQuestionFromType(type, id)}
-      </section>
+      <section className={styles.main}>{getQuestionFromType(type, id)}</section>
       <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
@@ -201,9 +199,11 @@ function getQuestionFromType(type: string, id: string) {
   switch (type) {
     case "objective":
       return <Objective id={id} />;
-    case "objective":
+    case "integer":
       return <Integer id={id} />;
     case "paragraph":
       return <Paragraph id={id} />;
+    case "matrix":
+      return <MatrixMatch id={id} />;
   }
 }

@@ -12,7 +12,7 @@ import {
   FormGroup,
   IconButton,
 } from "@mui/material";
-import { TabPanel } from "../Common";
+import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
 import clsx from "clsx";
@@ -22,46 +22,6 @@ interface Props {
 }
 
 Quill.register("modules/imageResize", ImageResize);
-
-const modules = {
-  toolbar: [
-    [{ header: [1, 2, false] }],
-    [{ size: [] }],
-    ["bold", "italic", "underline", "strike", "blockquote"],
-    [
-      { list: "ordered" },
-      { list: "bullet" },
-      { indent: "-1" },
-      { indent: "+1" },
-    ],
-    ["link", "image"],
-    ["clean"],
-    ["formula"], // NOT WORKING YET
-  ],
-  clipboard: {
-    // toggle to add extra line breaks when pasting HTML:
-    matchVisual: true,
-  },
-  imageResize: {
-    parchment: Quill.import("parchment"),
-    modules: ["Resize", "DisplaySize"],
-  },
-};
-
-const formats = [
-  "header",
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "blockquote",
-  "list",
-  "bullet",
-  "indent",
-  "link",
-  "image",
-  "formula", // NOT WORKING YET
-];
 
 const Paragraph: React.FC<Props> = ({ id }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
@@ -228,8 +188,8 @@ const Question: React.FC<{
         },
       });
     } else {
-      if (optionsCount > 0) {
-        // Don't allow to decrement below 0
+      if (optionsCount > 1) {
+        // Don't allow to decrement below 1 as there has to be at least 1 option
         setOptionsCount((prev) => prev - 1);
         setValues({
           ...values,

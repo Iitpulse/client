@@ -47,9 +47,9 @@ const MainLayout = (props: Props) => {
               </div>
             </Stack>
             {/* &nbsp; &nbsp; */}
-            <IconButton>
+            {/* <IconButton>
               <img src={notificationIcon} alt="notification" />
-            </IconButton>
+            </IconButton> */}
             <IconButton className={styles.burgerMenuBtn}>
               <div className={styles.burger}>
                 <span className={styles.burgerItem}></span>

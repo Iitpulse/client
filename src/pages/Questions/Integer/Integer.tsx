@@ -5,7 +5,7 @@ import ReactQuill, { Quill } from "react-quill";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
 import { TextField, Tab } from "@mui/material";
 import { styled } from "@mui/system";
-import { TabPanel } from "../Common";
+import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
 
@@ -40,46 +40,6 @@ const Integer: React.FC<Props> = ({ id }) => {
       solution: "",
     },
   });
-
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, false] }],
-      [{ size: [] }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
-      [
-        { list: "ordered" },
-        { list: "bullet" },
-        { indent: "-1" },
-        { indent: "+1" },
-      ],
-      ["link", "image"],
-      ["clean"],
-      ["formula"], // NOT WORKING YET
-    ],
-    clipboard: {
-      // toggle to add extra line breaks when pasting HTML:
-      matchVisual: true,
-    },
-    imageResize: {
-      parchment: Quill.import("parchment"),
-      modules: ["Resize", "DisplaySize"],
-    },
-  };
-
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "blockquote",
-    "list",
-    "bullet",
-    "indent",
-    "link",
-    "image",
-    "formula", // NOT WORKING YET
-  ];
 
   useEffect(() => {
     console.log({ values });

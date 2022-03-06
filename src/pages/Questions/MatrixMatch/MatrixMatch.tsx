@@ -1,20 +1,14 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components";
-import styles from "./Objective.module.scss";
+import styles from "./MatrixMatch.module.scss";
 import ReactQuill, { Quill } from "react-quill";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
-import {
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  Tab,
-  Checkbox,
-  FormGroup,
-  IconButton,
-} from "@mui/material";
+import { TextField, Tab, IconButton, Checkbox } from "@mui/material";
+import { styled } from "@mui/system";
 import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
+import clsx from "clsx";
 
 interface Props {
   id: string;
@@ -22,14 +16,15 @@ interface Props {
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Objective: React.FC<Props> = ({ id }) => {
+const MatrixMatch: React.FC<Props> = ({ id }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [tab, setTab] = useState(0);
   const [optionsCount, setOptionsCount] = useState(4);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
   const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
-
+  const [from, setFrom] = useState<string>("");
+  const [to, setTo] = useState<string>("");
   const [values, setValues] = useState({
     en: {
       question: "",
@@ -46,6 +41,8 @@ const Objective: React.FC<Props> = ({ id }) => {
       solution: "",
     },
   });
+  const [rows, setRows] = useState(1);
+  const [cols, setCols] = useState(1);
 
   useEffect(() => {
     console.log({ values });
@@ -148,8 +145,8 @@ const Objective: React.FC<Props> = ({ id }) => {
         },
       });
     } else {
-      if (optionsCount > 1) {
-        // Don't allow to decrement below 1 as there has to be at least 1 option
+      if (optionsCount > 0) {
+        // Don't allow to decrement below 0
         setOptionsCount((prev) => prev - 1);
         setValues({
           ...values,
@@ -170,7 +167,7 @@ const Objective: React.FC<Props> = ({ id }) => {
     <section className={styles.container}>
       <div className={styles.header}>
         <div className={styles.left}>
-          <h3>Objective Type Question</h3>
+          <h3>Matrix Match Type Question</h3>
           {/* <input
             name="assertionEnglish"
             id="assertionEnglish"
@@ -217,7 +214,7 @@ const Objective: React.FC<Props> = ({ id }) => {
           }}
         >
           <Tab label="Question" />
-          {Array(optionsCount)
+          {/* {Array(optionsCount)
             .fill(0)
             .map((_, index) => (
               <Tab
@@ -229,10 +226,10 @@ const Objective: React.FC<Props> = ({ id }) => {
                     : ""
                 }
               />
-            ))}
+            ))} */}
           <Tab label="Solution" />
         </Tabs>
-        <div className={styles.optionsCounter}>
+        {/* <div className={styles.optionsCounter}>
           <IconButton onClick={() => handleChaneOptionsCount("decrement")}>
             -
           </IconButton>
@@ -240,7 +237,7 @@ const Objective: React.FC<Props> = ({ id }) => {
           <IconButton onClick={() => handleChaneOptionsCount("increment")}>
             +
           </IconButton>
-        </div>
+        </div> */}
       </div>
 
       <TabPanel value={tab} index={0}>
@@ -284,7 +281,22 @@ const Objective: React.FC<Props> = ({ id }) => {
         </div>
       </TabPanel>
       <div className={styles.actions}>
-        <RadioGroup
+        <div className={styles.flexRow}>
+          <div className={styles.rows}>
+            <p>Rows</p>
+            <IconButton onClick={() => setRows(rows - 1)}>-</IconButton>
+            <span>{rows}</span>
+            <IconButton onClick={() => setRows(rows + 1)}>+</IconButton>
+          </div>
+          <div className={styles.cols}>
+            <p>Columns</p>
+            <IconButton onClick={() => setCols(cols - 1)}>-</IconButton>
+            <span>{cols}</span>
+            <IconButton onClick={() => setCols(cols + 1)}>+</IconButton>
+          </div>
+        </div>
+        <Button type="button">Submit</Button>
+        {/* <RadioGroup
           row
           aria-labelledby="answer-type"
           name="answer-type-radio-group"
@@ -302,8 +314,8 @@ const Objective: React.FC<Props> = ({ id }) => {
             label="Multiple Correct"
             onChange={handleChangeAnswerType}
           />
-        </RadioGroup>
-        <div className={styles.correctAnswers}>
+        </RadioGroup> */}
+        {/* <div className={styles.correctAnswers}>
           <FormGroup row>
             {values[currentLanguage].options.map((option, i) => (
               <FormControlLabel
@@ -315,12 +327,88 @@ const Objective: React.FC<Props> = ({ id }) => {
               />
             ))}
           </FormGroup>
-        </div>
+        </div> */}
       </div>
+      <GenerateMatrix rows={rows} cols={cols} />
       {/* Just for preview */}
       {/* <div dangerouslySetInnerHTML={{ __html: values.en.question }}></div> */}
     </section>
   );
 };
 
-export default Objective;
+const StyledMUITextField = styled(TextField)(() => {
+  return {
+    minWidth: "250px",
+    input: {
+      fontSize: "1rem",
+      padding: "1.2rem 1.3rem",
+    },
+    label: {
+      fontSize: "1rem",
+      maxWidth: "none",
+      padding: "0rem 0.5rem",
+      backgroundColor: "white",
+    },
+    ".MuiInputLabel-root.Mui-focused": {
+      transform: "translate(12px, -9px) scale(0.75)",
+    },
+    ".MuiFormLabel-filled": {
+      transform: "translate(12px, -9px) scale(0.75)",
+    },
+  };
+});
+
+export default MatrixMatch;
+
+const GenerateMatrix: React.FC<{ rows: number; cols: number }> = ({
+  rows,
+  cols,
+}) => {
+  const [matrix, setMatrix] = useState<any[]>([]);
+
+  useEffect(() => {
+    setMatrix(
+      Array(rows)
+        .fill(0)
+        .map(() => Array(cols).fill(0))
+    );
+  }, [rows, cols]);
+
+  function handleClickCheck(e: any, row: number, col: number) {
+    let newMatrix = [...matrix];
+    newMatrix[row][col] = e.target.checked;
+    setMatrix(newMatrix);
+  }
+
+  return (
+    <div className={styles.matrix}>
+      <div className={styles.colHeader}>
+        <span className={clsx(styles.item, styles.rowItem)}></span>
+        {Array(cols)
+          .fill(0)
+          .map((_, i) => (
+            <span key={i} className={styles.item}>
+              C{i + 1}
+            </span>
+          ))}
+      </div>
+      {matrix.map((row: any, i: number) => (
+        <div className={styles.row} key={i}>
+          <span className={clsx(styles.item, styles.rowItem)}>{`R${
+            i + 1
+          }`}</span>
+          {row.map((col: any, j: number) => (
+            <div className={styles.col} key={j}>
+              <span className={styles.item}>
+                <Checkbox
+                  checked={Boolean(matrix[i][j])}
+                  onChange={(e: any) => handleClickCheck(e, i, j)}
+                />
+              </span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
