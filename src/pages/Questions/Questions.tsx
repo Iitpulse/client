@@ -4,6 +4,7 @@ import { Sidebar, NotificationCard } from "../../components";
 import { useState } from "react";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
+import Integer from "./Integer/Integer";
 import Paragraph from "./Paragraph/Paragraph";
 import { StyledMUITextField } from "../Users/components";
 import {
@@ -11,6 +12,7 @@ import {
   MUISimpleAutocomplete,
   StyledMUISelect,
 } from "./components";
+
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -92,14 +94,14 @@ export const examList = [
 const Questions = () => {
   const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<string>>([]);
-  const [type, setType] = useState<string>("");
+  const [type, setType] = useState<string>("objective");
   const [subject, setSubject] = useState<string>("");
   const [chapter, setChapter] = useState<Array<string>>([]);
   const [topics, setTopics] = useState<Array<string>>([]);
   const [difficulty, setDifficulty] = useState<string>("");
   const [source, setSource] = useState<string>("");
   const [uploadedBy, setUploadedBy] = useState<string>("John Doe");
-
+  console.log(type);
   React.useEffect(() => {
     console.log({
       id,
@@ -174,7 +176,6 @@ const Questions = () => {
       {/* <hr /> */}
       <section className={styles.main}>
         {getQuestionFromType(type, id)}
-        {/* <Objective id={id} /> */}
       </section>
       <Sidebar title="Recent Activity">
         {Array(10)
@@ -200,6 +201,8 @@ function getQuestionFromType(type: string, id: string) {
   switch (type) {
     case "objective":
       return <Objective id={id} />;
+    case "objective":
+      return <Integer id={id} />;
     case "paragraph":
       return <Paragraph id={id} />;
   }
