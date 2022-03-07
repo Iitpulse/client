@@ -9,13 +9,15 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 ###  Installing dependencies
-RUN npm install --silent && npm run build
+RUN npm install --silent
 
 # Give permission to access node_modules
 # RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
 
 # copy local files to app folder
 COPY . .
+
+RUN npm run build
 
 EXPOSE 3000
 
