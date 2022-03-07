@@ -1,1 +1,50 @@
 @import "../../utils/commons.scss";
+
+.container {
+  width: 100%;
+  .header {
+    @extend .flexRow;
+    > div {
+      //   flex: 1;
+      width: 48%;
+    }
+  }
+  .addSection {
+    width: 100%;
+    border: 2px dotted rgba(0, 0, 0, 0.4);
+    background: #f7f7f7;
+    border-radius: 0.3rem;
+    margin-top: 1rem;
+    padding: 2rem;
+    position: -webkit-sticky;
+    position: sticky;
+    bottom: 1rem;
+    left: 0;
+    cursor: pointer;
+    p {
+      text-align: center;
+    }
+    transition: 0.2s ease-in-out;
+    transition-property: background;
+
+    &:hover {
+      background: #ededed;
+    }
+  }
+
+  .sections {
+    .section {
+      background: white;
+      padding: 1rem;
+      border-radius: 0.2rem;
+      margin: 1rem 0;
+    }
+
+    .subSection {
+      border: 2px solid var(--clr-primary);
+      border-radius: 0.3rem;
+      margin: 1rem 0;
+      padding: 1rem;
+    }
+  }
+}

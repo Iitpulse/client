@@ -31,3 +31,23 @@ export interface ITest {
   };
   createdAt: Date;
 }
+
+export interface ISubSection {
+  id: string; // PT_SS_MCQ123
+  name: string;
+  description: string; // (optional) this will be used as a placeholder for describing the subsection and will be replaced by the actual description later on
+  type: string;
+  totalQuestions: number;
+  toBeAttempted: number;
+  questions: [];
+}
+
+export interface ISection {
+  id: string; // PT_SE_PHY123
+  name: string;
+  exam: string;
+  subject: string;
+  subSections: Array<ISubSection>; // Nesting toBeAttempted
+  totalQuestions: number;
+  toBeAttempted: number;
+}
