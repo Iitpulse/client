@@ -163,6 +163,26 @@ const MatrixMatch: React.FC<Props> = ({ id }) => {
     }
   }
 
+  function handleAddRowsCols(type: "row" | "col") {
+    if (type === "row") {
+      setRows(rows + 1);
+    } else {
+      setCols(cols + 1);
+    }
+  }
+
+  function handleRemoveRowsCols(type: "row" | "col") {
+    if (type === "row") {
+      if (rows > 1) {
+        setRows(rows - 1);
+      }
+    } else if (type === "col") {
+      if (cols > 1) {
+        setCols(cols - 1);
+      }
+    }
+  }
+
   return (
     <section className={styles.container}>
       <div className={styles.header}>
@@ -284,15 +304,19 @@ const MatrixMatch: React.FC<Props> = ({ id }) => {
         <div className={styles.flexRow}>
           <div className={styles.rows}>
             <p>Rows</p>
-            <IconButton onClick={() => setRows(rows - 1)}>-</IconButton>
+            <IconButton onClick={() => handleRemoveRowsCols("row")}>
+              -
+            </IconButton>
             <span>{rows}</span>
-            <IconButton onClick={() => setRows(rows + 1)}>+</IconButton>
+            <IconButton onClick={() => handleAddRowsCols("row")}>+</IconButton>
           </div>
           <div className={styles.cols}>
             <p>Columns</p>
-            <IconButton onClick={() => setCols(cols - 1)}>-</IconButton>
+            <IconButton onClick={() => handleRemoveRowsCols("col")}>
+              -
+            </IconButton>
             <span>{cols}</span>
-            <IconButton onClick={() => setCols(cols + 1)}>+</IconButton>
+            <IconButton onClick={() => handleAddRowsCols("col")}>+</IconButton>
           </div>
         </div>
         <Button type="button">Submit</Button>

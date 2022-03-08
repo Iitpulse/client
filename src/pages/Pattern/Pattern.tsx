@@ -29,7 +29,9 @@ const Pattern = () => {
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
-  const [sections, setSections] = useState<Array<ISection>>([sampleSection]);
+  const [sections, setSections] = useState<Array<ISection>>([
+    { ...sampleSection, id: `${Math.random() * 100}` },
+  ]);
 
   function handleChangeSection(id: string, data: any) {
     setSections(
@@ -40,7 +42,10 @@ const Pattern = () => {
   }
 
   function handleClickAddNew() {
-    setSections([...sections, sampleSection]);
+    setSections([
+      ...sections,
+      { ...sampleSection, id: `${Math.random() * 100}` },
+    ]);
   }
 
   return (
@@ -103,7 +108,10 @@ const Section: React.FC<{
   function handleClickAddNewSubSection() {
     setSection(section.id, {
       ...section,
-      subSections: [...section.subSections, sampleSubSection],
+      subSections: [
+        ...section.subSections,
+        { sampleSubSection, id: `${Math.random() * 100}` },
+      ],
     });
   }
 
