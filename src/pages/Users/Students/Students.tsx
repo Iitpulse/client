@@ -3,25 +3,45 @@ import { Button } from "../../../components";
 import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-  GridToolbarFilterButton,
-  GridToolbarExport,
-  GridToolbarDensitySelector,
-} from "@mui/x-data-grid";
+import { Table } from "antd";
+import "antd/dist/antd.css";
 
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarColumnsButton touchRippleRef={null} />
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector touchRippleRef={null} />
-      <GridToolbarExport touchRippleRef={null} />
-    </GridToolbarContainer>
-  );
+const columns = [
+  {
+    title: "ID",
+    dataIndex: "id",
+    // render: (text: string) => <a>{text}</a>,
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+  },
+  {
+    title: "Branch",
+    dataIndex: "branch",
+  },
+];
+
+interface DataType {
+  key: React.Key;
+  id: string;
+  name: string;
+  branch: string;
 }
+
+const rowSelection = {
+  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
+    console.log(
+      `selectedRowKeys: ${selectedRowKeys}`,
+      "selectedRows: ",
+      selectedRows
+    );
+  },
+  getCheckboxProps: (record: DataType) => ({
+    disabled: record.name === "Disabled User", // Column configuration not to be checked
+    name: record.name,
+  }),
+};
 
 const Students: React.FC<{
   activeTab: number;
@@ -29,40 +49,24 @@ const Students: React.FC<{
   openModal: boolean;
   handleCloseModal: () => void;
 }> = ({ activeTab, student, openModal, handleCloseModal }) => {
-  const data = {
-    columns: [
-      {
-        field: "id",
-        headerName: "Id",
-        hidden: false,
-      },
-      {
-        field: "name",
-        headerName: "Name",
-        hidden: false,
-      },
-      {
-        field: "branch",
-        headerName: "Branch",
-        hidden: false,
-      },
-    ],
-    rows: Array(100)
-      .fill({
-        id: "IITP_ST_ABC123",
-        name: "Student",
-        branch: "CSE",
-      })
-      .map((item, i) => ({ ...item, id: item.id + i })),
-  };
+  const data: DataType[] = Array(100)
+    .fill({
+      key: "IITP_ST_ABC123",
+      id: "IITP_ST_ABC123",
+      name: "Student",
+      branch: "CSE",
+    })
+    .map((item, i) => ({ ...item, id: item.id + i }));
 
   return (
-    <div className={styles.container} style={{ height: 500, width: "100%" }}>
-      <DataGrid
-        {...data}
-        components={{
-          Toolbar: CustomToolbar,
+    <div className={styles.container}>
+      <Table
+        rowSelection={{
+          type: "checkbox",
+          ...rowSelection,
         }}
+        columns={columns}
+        dataSource={data}
       />
       {openModal && activeTab === 0 && (
         <Student student={student} handleCloseModal={handleCloseModal} />

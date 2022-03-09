@@ -1,18 +1,59 @@
 import { useContext, useEffect, useState } from "react";
-import {
-  DataGrid,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-  GridToolbarFilterButton,
-  GridToolbarExport,
-  GridToolbarDensitySelector,
-  GridValueGetterParams,
-} from "@mui/x-data-grid";
 import { Tab, Tabs } from "@mui/material";
-import { useDemoData } from "@mui/x-data-grid-generator";
 import styles from "./Test.module.scss";
 import { Button, Modal, Sidebar } from "../../components";
 import { TestContext } from "../../utils/contexts/TestContext";
+import { Table } from "antd";
+import "antd/dist/antd.css";
+
+const columns = [
+  {
+    title: "ID",
+    dataIndex: "id",
+    // render: (text: string) => <a>{text}</a>,
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+  },
+  {
+    title: "Exam",
+    dataIndex: "exam",
+    render: (exam: any) => exam.fullName,
+  },
+  {
+    title: "Created",
+    dataIndex: "createdAt",
+    render: (date: string) => new Date(date).toLocaleString(),
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+  },
+];
+
+interface DataType {
+  key: React.Key;
+  id: string;
+  name: string;
+  exam: string;
+  createdAt: string;
+  status: string;
+}
+
+const rowSelection = {
+  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
+    console.log(
+      `selectedRowKeys: ${selectedRowKeys}`,
+      "selectedRows: ",
+      selectedRows
+    );
+  },
+  getCheckboxProps: (record: DataType) => ({
+    disabled: record.name === "Disabled User", // Column configuration not to be checked
+    name: record.name,
+  }),
+};
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -36,17 +77,6 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-function CustomToolbar() {
-  return (
-    <GridToolbarContainer>
-      <GridToolbarColumnsButton touchRippleRef={null} />
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector touchRippleRef={null} />
-      <GridToolbarExport touchRippleRef={null} />
-    </GridToolbarContainer>
-  );
-}
-
 const Test = () => {
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -56,47 +86,23 @@ const Test = () => {
     setTab(newValue);
   }
 
-  const cols = [
-    {
-      field: "id",
-      headerName: "ID",
-    },
-    {
-      field: "name",
-      headerName: "Test",
-    },
-    {
-      field: "exam",
-      headerName: "Exam",
-      valueGetter: (params: GridValueGetterParams) => {
-        return params.row.name;
-      },
-    },
-    {
-      field: "createdAt",
-      headerName: "Timing",
-      valueGetter: (params: GridValueGetterParams) => {
-        return new Date(params.row.createdAt).toLocaleString();
-      },
-      width: 200,
-    },
-    {
-      field: "status",
-      headerName: "Status",
-    },
-  ];
-
-  const [data, setData] = useState<any>({
-    columns: cols,
-    rows: [],
-  });
+  const [data, setData] = useState<any>([]);
 
   const { state } = useContext(TestContext);
   const { tests } = state;
 
   useEffect(() => {
     if (tests?.length) {
-      setData((prev: any) => ({ ...prev, rows: tests }));
+      setData(
+        tests.map((test) => ({
+          key: test.id,
+          id: test.id,
+          name: test.name,
+          createdAt: test.createdAt,
+          status: test.status,
+          exam: test.exam,
+        }))
+      );
       setLoading(false);
     }
   }, [tests]);
@@ -113,15 +119,14 @@ const Test = () => {
         <Button onClick={() => setOpenModal(true)}>Add New</Button>
       </div>
       <TabPanel value={tab} index={0}>
-        <div className={styles.data} style={{ height: 400, width: "100%" }}>
-          <DataGrid
-            {...data}
-            components={{
-              Toolbar: CustomToolbar,
+        <div className={styles.data}>
+          <Table
+            rowSelection={{
+              type: "checkbox",
+              ...rowSelection,
             }}
-            checkboxSelection
-            disableSelectionOnClick
-            loading={loading}
+            columns={columns}
+            dataSource={data}
           />
         </div>
       </TabPanel>
