@@ -73,8 +73,8 @@ const Pattern = () => {
         name,
         exam,
         sections,
-        createdAt: new Date(),
-        modifiedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
         createdBy: {
           userType: currentUser.userType || "",
           id: currentUser.id || "",

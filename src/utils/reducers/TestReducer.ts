@@ -13,14 +13,8 @@ export default function TestReducer(
       return {
         ...state,
         tests: payload.test.map((test: any) => ({
+          ...test,
           id: test._id,
-          name: test.name,
-          description: test.description,
-          exam: test.exam,
-          status: test.status,
-          validity: test.validity,
-          createdBy: test.createdBy,
-          createdAt: test.createdAt,
         })),
       };
     default:

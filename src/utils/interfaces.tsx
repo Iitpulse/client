@@ -10,7 +10,7 @@ export interface IAuthContext {
   setCurrentUser: React.Dispatch<React.SetStateAction<ICurrentUser | null>>;
 }
 
-export interface ITest {
+export interface ITestTable {
   id: string; //TT_AB123
   name: string;
   description: string;
@@ -29,7 +29,26 @@ export interface ITest {
     id: string;
     name: string;
   };
-  createdAt: Date;
+  createdAt: string;
+}
+
+export interface ITest extends ITestTable {
+  sections: ISection[];
+  attemptedBy?: {
+    studentsCount: number | null;
+    locations: Array<string>;
+  };
+  result?: {
+    maxMarks: number | null;
+    averageMarks: number | null;
+    averageCompletionTime: number | null;
+    students: Array<{
+      name: string;
+      id: string;
+      marks: number | null;
+    }>;
+  };
+  modfiedAt?: string;
 }
 
 export interface IPattern {
@@ -38,8 +57,8 @@ export interface IPattern {
   sections: Array<ISection>;
   exam: string;
   usedIn?: Array<string>;
-  createdAt: Date;
-  modifiedAt: Date;
+  createdAt: string;
+  modifiedAt: string;
   createdBy: {
     userType: string;
     id: string;
@@ -51,9 +70,9 @@ export interface ISubSection {
   name: string;
   description: string; // (optional) this will be used as a placeholder for describing the subsection and will be replaced by the actual description later on
   type: string;
-  totalQuestions: number;
-  toBeAttempted: number;
-  questions: [];
+  totalQuestions: number | null;
+  toBeAttempted: number | null;
+  questions: {};
 }
 
 export interface ISection {
@@ -62,6 +81,6 @@ export interface ISection {
   exam: string;
   subject: string;
   subSections: Array<ISubSection>; // Nesting toBeAttempted
-  totalQuestions: number;
-  toBeAttempted: number;
+  totalQuestions: number | null;
+  toBeAttempted: number | null;
 }
