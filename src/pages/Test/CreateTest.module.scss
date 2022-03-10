@@ -1,4 +1,14 @@
 @import "../../utils/commons.scss";
 
 .container {
+  width: 100%;
+  .inputFields {
+    width: 100%;
+    @extend .flexRow;
+    flex-wrap: wrap;
+    > div {
+      margin: 0.5rem;
+      flex: 1;
+    }
+  }
 }

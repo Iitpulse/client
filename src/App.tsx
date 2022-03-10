@@ -41,7 +41,9 @@ const App = () => {
               />
               <Route
                 path="/test/new"
-                element={<PrivateRoute component={CreateTest} title="Test" />}
+                element={
+                  <PrivateRoute component={CreateTest} title="Create Test" />
+                }
               />
               <Route
                 path="/questions"
