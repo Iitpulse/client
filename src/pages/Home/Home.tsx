@@ -15,11 +15,13 @@ import edit from "../../assets/icons/edit.svg";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import React from "react";
 import { TestContext } from "../../utils/contexts/TestContext";
+import clsx from "clsx";
 
 interface SubCardProps {
   title: string;
   icon: string;
   content: string;
+  variant: "success" | "warning" | "error" | "primary";
 }
 
 interface InstituteDetailsProps {
@@ -37,10 +39,40 @@ interface UpcomingTestItemProps {
   mode: "online" | "offline";
 }
 
+function getVariantColor(variant: "success" | "warning" | "error" | "primary") {
+  switch (variant) {
+    case "success":
+      return "#dafde8";
+    case "warning":
+      return "#fff3d3";
+    case "error":
+      return "#ffd8d8";
+    case "primary":
+      return "var(--clr-primary)";
+    default:
+      return "var(--clr-primary)";
+  }
+}
+
+function getVariantClass(variant: "success" | "warning" | "error" | "primary") {
+  switch (variant) {
+    case "success":
+      return styles.successCard;
+    case "warning":
+      return styles.warningCard;
+    case "error":
+      return styles.errorCard;
+    case "primary":
+      return styles.primaryCard;
+    default:
+      return styles.primaryCard;
+  }
+}
+
 const SubCard = (props: SubCardProps) => {
-  const { title, content } = props;
+  const { title, content, variant } = props;
   return (
-    <div className={styles.wrapper}>
+    <div className={clsx(styles.wrapper, getVariantClass(variant))}>
       <div className={styles.content}>
         <p>{title}</p>
         <h4>{content}</h4>
@@ -134,10 +166,30 @@ const Home = () => {
             >
               <h2>Sunday Test IOY</h2>
               <div className={styles.data}>
-                <SubCard title="Highest Mark" content="302" icon={icon} />
-                <SubCard title="Highest Mark" content="302" icon={icon} />
-                <SubCard title="Highest Mark" content="302" icon={icon} />
-                <SubCard title="Highest Mark" content="302" icon={icon} />
+                <SubCard
+                  title="Highest Marks"
+                  content="302"
+                  icon={icon}
+                  variant="success"
+                />
+                <SubCard
+                  title="Average Marks"
+                  content="302"
+                  icon={icon}
+                  variant="warning"
+                />
+                <SubCard
+                  title="Lowest Marks"
+                  content="302"
+                  icon={icon}
+                  variant="error"
+                />
+                <SubCard
+                  title="Total Appeared"
+                  content="302"
+                  icon={icon}
+                  variant="primary"
+                />
               </div>
             </Card>
           </Grid>

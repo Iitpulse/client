@@ -1,0 +1,17 @@
+@import "../../../utils/commons.scss";
+@import "../Objective/Objective.module.scss";
+
+.container {
+  .actions {
+    margin-top: 1.2rem;
+    @extend .flexRow;
+    justify-content: flex-start;
+    > * {
+      margin-right: 20px;
+    }
+    button {
+      margin-left: auto;
+      margin-right: 0;
+    }
+  }
+}

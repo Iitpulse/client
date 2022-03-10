@@ -1,1 +1,16 @@
 @import "../../utils/commons.scss";
+
+.container {
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  padding: 1rem;
+
+  .header {
+    @extend .flexRow;
+  }
+
+  .data {
+    margin-top: 1rem;
+  }
+}

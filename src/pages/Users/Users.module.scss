@@ -2,12 +2,20 @@
 
 .container {
   width: 100%;
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+
   main {
     width: 100%;
     padding: 2rem 0;
     > h1 {
       margin-bottom: 2rem;
     }
+  }
+  .header {
+    @extend .flexRow;
+    justify-content: space-between;
   }
   .modal {
     position: fixed;

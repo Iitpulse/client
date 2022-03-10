@@ -1,84 +1,32 @@
-import clsx from "clsx";
-import { Button } from "../../../components";
 import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
-import styles from "./Students.module.scss";
-import { Table } from "antd";
-import "antd/dist/antd.css";
+import clsx from "clsx";
+import styles from "./Managers.module.scss";
+import { Button } from "../../../components";
 
-const columns = [
-  {
-    title: "ID",
-    dataIndex: "id",
-    // render: (text: string) => <a>{text}</a>,
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-  },
-  {
-    title: "Branch",
-    dataIndex: "branch",
-  },
-];
-
-interface DataType {
-  key: React.Key;
-  id: string;
-  name: string;
-  branch: string;
-}
-
-const rowSelection = {
-  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-    console.log(
-      `selectedRowKeys: ${selectedRowKeys}`,
-      "selectedRows: ",
-      selectedRows
-    );
-  },
-  getCheckboxProps: (record: DataType) => ({
-    disabled: record.name === "Disabled User", // Column configuration not to be checked
-    name: record.name,
-  }),
-};
-
-const Students: React.FC<{
+const Managers: React.FC<{
   activeTab: number;
-  student: UserProps;
+  manager: UserProps;
   openModal: boolean;
   handleCloseModal: () => void;
-}> = ({ activeTab, student, openModal, handleCloseModal }) => {
-  const data: DataType[] = Array(100)
-    .fill({
-      key: "IITP_ST_ABC123",
-      id: "IITP_ST_ABC123",
-      name: "Student",
-      branch: "CSE",
-    })
-    .map((item, i) => ({ ...item, id: item.id + i, key: item.id + i }));
-
+}> = ({ activeTab, manager, openModal, handleCloseModal }) => {
   return (
     <div className={styles.container}>
-      <Table
-        rowSelection={{
-          type: "checkbox",
-          ...rowSelection,
-        }}
-        columns={columns}
-        dataSource={data}
-      />
-      {openModal && activeTab === 0 && (
-        <Student student={student} handleCloseModal={handleCloseModal} />
+      <div className={styles.header}>
+        <h1>Managers</h1>
+        <Button>Add manager</Button>
+      </div>
+      {openModal && activeTab === 4 && (
+        <Manager manager={manager} handleCloseModal={handleCloseModal} />
       )}
     </div>
   );
 };
 
-export default Students;
+export default Managers;
 
-const Student: React.FC<{
-  student: UserProps;
+const Manager: React.FC<{
+  manager: UserProps;
   handleCloseModal: () => void;
 }> = (props) => {
   const {
@@ -98,17 +46,14 @@ const Student: React.FC<{
     emergencyContact,
     setEmergencyContact,
     uploadedBy,
-    preparingFor,
-    setPreparingFor,
     id,
     handleReset,
-  } = props.student;
-
+  } = props.manager;
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <form onSubmit={onSubmit}>
         <div className={styles.header}>
-          <h2>Add a Student</h2>
+          <h2>Add a Manager</h2>
           <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
         </div>
         <div className={styles.inputFields}>
@@ -125,16 +70,6 @@ const Student: React.FC<{
             label="Name"
             value={name}
             onChange={(e: any) => setName(e.target.value)}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="preparingFor"
-            required
-            value={preparingFor}
-            onChange={(e: any) =>
-              setPreparingFor ? setPreparingFor(e.target.value) : {}
-            }
-            label="Preparing For"
             variant="outlined"
           />
           <StyledMUITextField
@@ -207,5 +142,3 @@ const Student: React.FC<{
     </div>
   );
 };
-
-//----------------------------------------------User Type: Student

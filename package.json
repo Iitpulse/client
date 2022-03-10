@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
+    "@mui/lab": "^5.0.0-alpha.72",
     "@mui/material": "^5.3.0",
     "@mui/x-data-grid": "^5.5.1",
     "@mui/x-data-grid-generator": "^5.5.1",
@@ -20,7 +21,7 @@
     "axios": "^0.26.0",
     "clsx": "^1.1.1",
     "jsonwebtoken": "^8.5.1",
-    "katex": "^0.15.2",
+    "quill-image-resize-module-react": "^3.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-jwt": "^1.1.4",
@@ -55,5 +56,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "mini-css-extract-plugin": "2.4.5"
   }
 }

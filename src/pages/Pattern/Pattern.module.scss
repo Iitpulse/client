@@ -1,1 +1,122 @@
 @import "../../utils/commons.scss";
+
+.container {
+  width: 100%;
+  margin-top: 0.5rem;
+  .header {
+    @extend .flexRow;
+    > div {
+      //   flex: 1;
+      width: 48%;
+    }
+  }
+  .accordionHeader {
+    @extend .flexRow;
+    width: 100%;
+  }
+  .addSection {
+    width: 100%;
+    border: 2px dotted rgba(0, 0, 0, 0.4);
+    background: #f7f7f7;
+    border-radius: 0.3rem;
+    margin-top: 1rem;
+    padding: 2rem;
+    // position: -webkit-sticky;
+    // position: sticky;
+    // bottom: 1rem;
+    // left: 0;
+    cursor: pointer;
+    p {
+      text-align: center;
+    }
+    transition: 0.2s ease-in-out;
+    transition-property: background;
+
+    &:hover {
+      background: #ededed;
+    }
+  }
+
+  .sections {
+    margin-top: 1rem;
+    .section {
+      background: white;
+      padding: 1rem;
+      border-radius: 0.2rem;
+      margin: 1rem 0;
+
+      .sectionHeader {
+        @extend .flexRow;
+        flex-wrap: wrap;
+        div {
+          flex: 1;
+        }
+        // > div:nth-child(2) {
+        //   align-self: flex-start;
+        // }
+      }
+    }
+
+    .subSection {
+      // border: 2px solid var(--clr-primary);
+      background: #f7f7f7;
+      border-radius: 0.3rem;
+      margin: 1rem 0;
+      padding: 1rem;
+      .actionHeader {
+        @extend .flexRow;
+      }
+      .subSectionHeader {
+        @extend .flexRow;
+        flex-wrap: wrap;
+        div {
+          flex: 1;
+        }
+      }
+    }
+  }
+
+  .savePatternBtn {
+    position: fixed;
+    bottom: 2rem;
+    right: calc(var(--margin-due-to-sidebar) + 1rem);
+    background: var(--clr-success) !important;
+    color: white;
+    padding: 1.2rem;
+  }
+}
+
+.customInputStyling {
+  outline: none;
+  padding: 0.5rem 0.8rem;
+  // border: 1px solid var(--clr-primary);
+  background: rgba(0, 0, 0, 0.02);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.2rem;
+  min-width: 250px;
+  margin-top: 0.2rem;
+}
+
+.customInput {
+  @extend .flexCol;
+  align-items: flex-start;
+  margin: 0.5rem 0.2rem;
+  width: 300px;
+
+  label {
+    color: rgba(0, 0, 0, 0.7);
+  }
+  // max-width: 300px;
+  input {
+    @extend .customInputStyling;
+    width: 100%;
+  }
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    text-indent: 1px;
+    text-overflow: "";
+    @extend .customInputStyling;
+    width: 100%;
+  }
+}

@@ -1,6 +1,5 @@
 import { TEST_ACTION, TEST_ACTION_TYPES } from "../actions";
 import { ITestContext } from "../contexts/TestContext";
-import { ITest } from "../interfaces";
 
 export default function TestReducer(
   state: ITestContext,
@@ -14,8 +13,8 @@ export default function TestReducer(
       return {
         ...state,
         tests: payload.test.map((test: any) => ({
+          ...test,
           id: test._id,
-          name: test.name,
         })),
       };
     default:

@@ -1,31 +1,25 @@
 import * as React from "react";
 import styles from "./Questions.module.scss";
-import {
-  TextField,
-  FormControl,
-  MenuItem,
-  Select,
-  InputLabel,
-  Chip,
-  Autocomplete,
-  SelectChangeEvent,
-} from "@mui/material";
-import { styled } from "@mui/system";
 import { Sidebar, NotificationCard } from "../../components";
 import { useState } from "react";
-import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-
-// KaTeX dependency for math support
-// import katex from "katex";
-// import "katex/dist/katex.css";
-// window.katex = katex;
+import Objective from "./Objective/Objective";
+import Integer from "./Integer/Integer";
+import Paragraph from "./Paragraph/Paragraph";
+import { StyledMUITextField } from "../Users/components";
+import {
+  MUIChipsAutocomplete,
+  MUISimpleAutocomplete,
+  StyledMUISelect,
+} from "./components";
+import MatrixMatch from "./MatrixMatch/MatrixMatch";
 
 export const questionTypes = [
-  { name: "Single Correct", value: "single" },
-  { name: "Multiple Correct", value: "multiple" },
-  { name: "Matrix Match", value: "matrix" },
+  { name: "Objective", value: "objective" },
+  // { name: "Multiple Correct", value: "multiple" },
   { name: "Integer Type", value: "integer" },
+  { name: "Paragraph", value: "paragraph" },
+  { name: "Matrix Match", value: "matrix" },
 ];
 
 export const subjects = [
@@ -100,7 +94,7 @@ export const examList = [
 const Questions = () => {
   const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<string>>([]);
-  const [type, setType] = useState<string>("");
+  const [type, setType] = useState<string>("objective");
   const [subject, setSubject] = useState<string>("");
   const [chapter, setChapter] = useState<Array<string>>([]);
   const [topics, setTopics] = useState<Array<string>>([]);
@@ -121,43 +115,6 @@ const Questions = () => {
     });
   });
 
-  const [value, setValue] = useState("");
-
-  const modules = {
-    toolbar: [
-      [{ header: [1, 2, false] }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
-      [
-        { list: "ordered" },
-        { list: "bullet" },
-        { indent: "-1" },
-        { indent: "+1" },
-      ],
-      ["link", "image"],
-      ["clean"],
-      ["formula"], // NOT WORKING YET
-    ],
-  };
-
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "blockquote",
-    "list",
-    "bullet",
-    "indent",
-    "link",
-    "image",
-    "formula", // NOT WORKING YET
-  ];
-
-  React.useEffect(() => {
-    console.log({ value });
-  }, [value]);
-
   return (
     <div className={styles.container}>
       <form>
@@ -169,16 +126,16 @@ const Questions = () => {
             value={id}
             variant="outlined"
           />
-          <MUIChipsAutocomplete
-            label="Exam(s)"
-            options={examList}
-            onChange={setExams}
-          />
           <StyledMUISelect
             label={"Type"}
             options={questionTypes}
             state={type}
             onChange={setType}
+          />
+          <MUIChipsAutocomplete
+            label="Exam(s)"
+            options={examList}
+            onChange={setExams}
           />
           <StyledMUISelect
             label={"Subject"}
@@ -216,15 +173,8 @@ const Questions = () => {
           />
         </div>
       </form>
-      <main>
-        <ReactQuill
-          theme="snow"
-          value={value}
-          onChange={setValue}
-          modules={modules}
-          formats={formats}
-        />
-      </main>
+      {/* <hr /> */}
+      <section className={styles.main}>{getQuestionFromType(type, id)}</section>
       <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
@@ -243,157 +193,17 @@ const Questions = () => {
   );
 };
 
-interface MUISelectProps {
-  label: string;
-  state: string;
-  options: Array<{
-    name: string;
-    value: string;
-  }>;
-  onChange: React.Dispatch<React.SetStateAction<string>>;
-}
-
-const MUISelect = (props: MUISelectProps) => {
-  const handleChange = (event: SelectChangeEvent<string>) => {
-    props.onChange(event.target.value);
-  };
-  return (
-    <StyledFormControl sx={{ minWidth: 250 }}>
-      <InputLabel id="demo-simple-select-helper-label">
-        {props.label}
-      </InputLabel>
-      <Select
-        labelId="demo-simple-select-helper-label"
-        id="demo-simple-select-helper"
-        value={props.state}
-        label="Age"
-        onChange={handleChange}
-      >
-        {props.options.map((item, index) => (
-          <MenuItem key={index} value={item.value}>
-            {item.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </StyledFormControl>
-  );
-};
-
-interface MUIAutocompleteProps {
-  label: string;
-  state?: string;
-  onChange: any;
-  options: Array<{
-    name: string;
-    value: string;
-  }>;
-}
-
-const MUIChipsAutocomplete = (props: MUIAutocompleteProps) => {
-  return (
-    <Autocomplete
-      multiple
-      id="tags-outlined"
-      onChange={(_, value) =>
-        props.onChange(
-          value.map((item) => {
-            return item.value;
-          })
-        )
-      }
-      options={props.options}
-      getOptionLabel={(option) => option.name}
-      filterSelectedOptions
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={props.label}
-          placeholder={"Search for " + props.label}
-        />
-      )}
-    />
-  );
-};
-
-const MUISimpleAutocomplete = (props: MUIAutocompleteProps) => {
-  return (
-    <Autocomplete
-      className={styles.something}
-      disablePortal
-      id="combo-box-demo"
-      options={props.options}
-      onChange={(_, value) => props.onChange(value?.value || "")}
-      getOptionLabel={(option) => option.name || ""}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          placeholder={"Search for" + props.label}
-          label={props.label}
-        />
-      )}
-    />
-  );
-};
-
-const StyledMUITextField = styled(TextField)(() => {
-  return {
-    minWidth: "250px",
-    input: {
-      fontSize: "1rem",
-      padding: "1.2rem 1.3rem",
-    },
-    label: {
-      fontSize: "1rem",
-      maxWidth: "none",
-      padding: "0rem 0.5rem",
-      backgroundColor: " #f3f3f9",
-    },
-    ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-    ".MuiFormLabel-filled": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-  };
-});
-
-const StyledMUISelect = styled(MUISelect)(() => {
-  return {
-    minWidth: "250px",
-    input: {
-      fontSize: "1rem",
-      padding: "1.2rem 1.3rem",
-    },
-
-    ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-    ".MuiFormLabel-filled": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-  };
-});
-
-const StyledFormControl = styled(FormControl)(() => {
-  return {
-    minWidth: "250px",
-    input: {
-      fontSize: "1rem",
-      padding: "1.2rem 1.3rem",
-    },
-    label: {
-      fontSize: "1rem",
-      maxWidth: "none",
-      padding: "0rem 0.5rem",
-      backgroundColor: " #f3f3f9",
-    },
-    ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-    ".MuiFormLabel-filled": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-  };
-});
-
 export default Questions;
+
+function getQuestionFromType(type: string, id: string) {
+  switch (type) {
+    case "objective":
+      return <Objective id={id} />;
+    case "integer":
+      return <Integer id={id} />;
+    case "paragraph":
+      return <Paragraph id={id} />;
+    case "matrix":
+      return <MatrixMatch id={id} />;
+  }
+}

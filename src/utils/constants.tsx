@@ -136,3 +136,63 @@ export const top100Films = [
   { title: "3 Idiots", year: 2009 },
   { title: "Monty Python and the Holy Grail", year: 1975 },
 ];
+
+export const SAMPLE_TEST = {
+  id: "",
+  name: "",
+  description: "",
+  sections: [
+    {
+      id: "",
+      name: "",
+      exam: "",
+      subject: "",
+      totalQuestions: null,
+      toBeAttempted: null,
+      subSections: [
+        {
+          id: "",
+          name: "",
+          description: "",
+          type: "",
+          totalQuestions: null,
+          toBeAttempted: null,
+          questions: {},
+        },
+      ],
+    },
+  ],
+  exam: {
+    id: "",
+    name: "",
+    fullName: "",
+  },
+  status: "",
+  validity: {
+    from: "",
+    to: "",
+  },
+  attemptedBy: {
+    studentsCount: 0,
+    locations: [],
+  },
+  result: {
+    maxMarks: null,
+    averageMarks: null,
+    averageCompletionTime: null,
+    students: [
+      {
+        name: "",
+        id: "",
+        marks: null,
+      },
+    ],
+  },
+  createdBy: {
+    id: "",
+    name: "",
+    userType: "",
+  },
+  createdAt: "",
+  modifiedAt: "",
+};
