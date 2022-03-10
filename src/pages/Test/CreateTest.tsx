@@ -1,7 +1,7 @@
 import styles from "./CreateTest.module.scss";
 import { Sidebar } from "../../components";
-import { useState } from "react";
-import { ITest } from "../../utils/interfaces";
+import { useEffect, useState } from "react";
+import { ITest, IPattern, ISection, ISubSection } from "../../utils/interfaces";
 import { SAMPLE_TEST } from "../../utils/constants";
 import { StyledMUITextField } from "../Users/components";
 import DateRangePicker from "@mui/lab/DateRangePicker";
@@ -9,11 +9,16 @@ import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import { TextField, Autocomplete } from "@mui/material";
 import { Box } from "@mui/system";
+import {
+  CustomAccordion,
+  CustomAccordionDetails,
+  CustomAccordionSummary,
+} from "../Pattern/components/CustomAccordion";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
   const { id, name, description, exam, status, validity, sections } = test;
-  const [pattern, setPattern] = useState(null);
+  const [pattern, setPattern] = useState<IPattern | null>(null);
 
   function onChangeInput(e: any) {
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -22,6 +27,12 @@ const CreateTest = () => {
   function handleChangeValidity(newValue: any) {
     setTest({ ...test, validity: { from: newValue[0], to: newValue[1] } });
   }
+
+  useEffect(() => {
+    if (pattern?.sections) {
+      setTest((prev) => ({ ...prev, sections: pattern.sections }));
+    }
+  }, [pattern]);
 
   return (
     <>
@@ -84,7 +95,13 @@ const CreateTest = () => {
             options={[]}
           />
         </div>
-        <section className={styles.sections}></section>
+        {sections && (
+          <section className={styles.sections}>
+            {sections.map((section) => (
+              <Section {...section} key={section.id} />
+            ))}
+          </section>
+        )}
       </div>
       <Sidebar title="Recent Activity">Recent</Sidebar>
     </>
@@ -92,6 +109,88 @@ const CreateTest = () => {
 };
 
 export default CreateTest;
+
+const Section: React.FC<ISection> = ({
+  name,
+  subject,
+  totalQuestions,
+  toBeAttempted,
+  subSections,
+}) => {
+  return (
+    <CustomAccordion className={styles.section}>
+      <CustomAccordionSummary>{name}</CustomAccordionSummary>
+      <CustomAccordionDetails>
+        <div className={styles.header}>
+          <div>
+            <span>Name</span>
+            <p>{name}</p>
+          </div>
+          <div>
+            <span>Subject</span>
+            <p>{subject}</p>
+          </div>
+          <div>
+            <span>Total Questions</span>
+            <p>{totalQuestions}</p>
+          </div>
+          <div>
+            <span>To Be Attempted</span>
+            <p>{toBeAttempted}</p>
+          </div>
+        </div>
+        <div className={styles.subSections}>
+          {subSections?.map((subSection: ISubSection) => (
+            <SubSection {...subSection} />
+          ))}
+        </div>
+      </CustomAccordionDetails>
+    </CustomAccordion>
+  );
+};
+
+const SubSection: React.FC<ISubSection> = ({
+  name,
+  description,
+  totalQuestions,
+  toBeAttempted,
+  type,
+  questions,
+}) => {
+  return (
+    <div className={styles.subSection}>
+      <div className={styles.header}>
+        <div>
+          <span>Name</span>
+          <p>{name}</p>
+        </div>
+        <div>
+          <span>Total Questions</span>
+          <p>{totalQuestions}</p>
+        </div>
+        <div>
+          <span>To Be Attempted</span>
+          <p>{toBeAttempted}</p>
+        </div>
+        <div>
+          <span>Type</span>
+          <p>{type}</p>
+        </div>
+      </div>
+      <div className={styles.questions}>
+        <MUISimpleAutocomplete
+          label="Search Question"
+          onChange={() => {}}
+          options={[]}
+        />
+      </div>
+    </div>
+  );
+};
+
+// const Question: React.FC<IQuestion> = () =>{
+
+// }
 
 interface MUIAutocompleteProps {
   label: string;
