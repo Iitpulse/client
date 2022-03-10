@@ -40,7 +40,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
     <div
       style={
         isCollapsed
-          ? { width: "fit-content", minWidth: "80px", padding: "1rem 0" }
+          ? { width: "fit-content",  padding: "0 1rem" }
           : {}
       }
       className={styles.container}
@@ -468,7 +468,7 @@ const Profile = (props: ProfileProps) => {
     <div
       style={
         props.isCollapsed
-          ? { width: "fit-content", flexDirection: "column" }
+          ? { width: "fit-content", flexDirection: "column" ,marginTop:'auto'}
           : {}
       }
       className={styles.profileContainer}
