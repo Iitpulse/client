@@ -1,4 +1,44 @@
 @import "../../utils/commons.scss";
 
 .container {
+  width: 100%;
+  .inputFields {
+    width: 100%;
+    @extend .flexRow;
+    flex-wrap: wrap;
+    > div {
+      margin: 0.5rem;
+      flex: 1;
+    }
+  }
+
+  .sections {
+    margin-top: 1rem;
+    .section {
+      background: white;
+      border-radius: 0.3rem;
+      padding: 1.5rem;
+      margin: 1rem 0;
+    }
+  }
+  .subSections {
+    margin-top: 1rem;
+    .subSection {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 1.5rem;
+      border-radius: 0.3rem;
+    }
+  }
+  .header {
+    @extend .flexRow;
+    p {
+      font-size: 1rem;
+      color: rgba(0, 0, 0, 0.7);
+      text-transform: capitalize;
+    }
+    span {
+      font-size: 0.9rem;
+      color: rgba(0, 0, 0, 0.5);
+    }
+  }
 }
