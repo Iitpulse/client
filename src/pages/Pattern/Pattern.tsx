@@ -1,11 +1,11 @@
-
+import UserProfile from '../../components/UserProfile/UserProfile';
 
 const Patterns = () => {
-    return (
-        <div>
-            Patterns
-        </div>
-    )
-}
+  return (
+    <div>
+      <UserProfile />
+    </div>
+  );
+};
 
-export default Patterns
+export default Patterns;
