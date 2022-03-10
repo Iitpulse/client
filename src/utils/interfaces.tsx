@@ -32,6 +32,20 @@ export interface ITest {
   createdAt: Date;
 }
 
+export interface IPattern {
+  id: string; // PT_JEE_MAINS
+  name: string;
+  sections: Array<ISection>;
+  exam: string;
+  usedIn?: Array<string>;
+  createdAt: Date;
+  modifiedAt: Date;
+  createdBy: {
+    userType: string;
+    id: string;
+  };
+}
+
 export interface ISubSection {
   id: string; // PT_SS_MCQ123
   name: string;

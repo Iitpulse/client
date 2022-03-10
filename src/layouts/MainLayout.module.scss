@@ -121,6 +121,7 @@
       // margin-top: 1rem;
       @extend .flexRow;
       align-items: flex-start;
+      position: relative;
     }
   }
 }

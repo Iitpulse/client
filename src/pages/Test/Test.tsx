@@ -5,6 +5,7 @@ import { Button, Modal, Sidebar } from "../../components";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { Table } from "antd";
 import "antd/dist/antd.css";
+import { useNavigate } from "react-router";
 
 const columns = [
   {
@@ -82,6 +83,8 @@ const Test = () => {
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
 
+  const navigate = useNavigate();
+
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
@@ -116,7 +119,7 @@ const Test = () => {
           <Tab label="Inactive" />
           <Tab label="Expired" />
         </Tabs>
-        <Button onClick={() => setOpenModal(true)}>Add New</Button>
+        <Button onClick={() => navigate("/test/new")}>Add New</Button>
       </div>
       <TabPanel value={tab} index={0}>
         <div className={styles.data}>

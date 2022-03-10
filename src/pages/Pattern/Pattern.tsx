@@ -1,8 +1,8 @@
-import React, { HTMLInputTypeAttribute, useState } from "react";
+import React, { HTMLInputTypeAttribute, useContext, useState } from "react";
 import styles from "./Pattern.module.scss";
 import { Sidebar, NotificationCard } from "../../components";
 import { StyledMUITextField } from "../Users/components";
-import { ISection, ISubSection } from "../../utils/interfaces";
+import { IPattern, ISection, ISubSection } from "../../utils/interfaces";
 import clsx from "clsx";
 import { IconButton, Tooltip } from "@mui/material";
 import deleteIcon from "../../assets/icons/delete.svg";
@@ -12,6 +12,8 @@ import {
   CustomAccordionDetails,
   CustomAccordionSummary,
 } from "./components/CustomAccordion";
+import tickCircle from "../../assets/icons/tick-circle.svg";
+import { AuthContext } from "../../utils/auth/AuthContext";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -19,8 +21,8 @@ const sampleSection = {
   exam: "",
   subject: "",
   subSections: [], // Nesting toBeAttempted
-  totalQuestions: 0,
-  toBeAttempted: 0,
+  totalQuestions: 1,
+  toBeAttempted: 1,
 };
 
 const sampleSubSection = {
@@ -28,12 +30,14 @@ const sampleSubSection = {
   name: "",
   description: "", // (optional) this will be used as a placeholder for describing the subsection and will be replaced by the actual description later on
   type: "",
-  totalQuestions: 0,
-  toBeAttempted: 0,
+  totalQuestions: 1,
+  toBeAttempted: 1,
   questions: [],
 };
 
 const Pattern = () => {
+  const { currentUser } = useContext(AuthContext);
+
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
@@ -58,6 +62,27 @@ const Pattern = () => {
 
   function handleDeleteSection(id: string) {
     setSections(sections.filter((section) => section.id !== id));
+  }
+
+  function handleClickSubmit() {
+    if (currentUser) {
+      const pattern: IPattern = {
+        id: `${currentUser.instituteId}_${name
+          .replace(/ /g, "")
+          .toUpperCase()}`,
+        name,
+        exam,
+        sections,
+        createdAt: new Date(),
+        modifiedAt: new Date(),
+        createdBy: {
+          userType: currentUser.userType || "",
+          id: currentUser.id || "",
+        },
+        usedIn: [],
+      };
+      console.log({ pattern });
+    }
   }
 
   return (
@@ -89,6 +114,14 @@ const Pattern = () => {
         <div className={styles.addSection} onClick={handleClickAddNew}>
           <p>+ Add New Section</p>
         </div>
+        <Tooltip title="Save Pattern" placement="top">
+          <IconButton
+            className={styles.savePatternBtn}
+            onClick={handleClickSubmit}
+          >
+            <img src={tickCircle} alt="save-pattern" />
+          </IconButton>
+        </Tooltip>
       </section>
       <Sidebar title="Recent Activity">
         {Array(10)
@@ -130,7 +163,7 @@ const Section: React.FC<{
       ...section,
       subSections: [
         ...section.subSections,
-        { sampleSubSection, id: `${Math.random() * 100}` },
+        { ...sampleSubSection, id: `${Math.random() * 100}` },
       ],
     });
   }
@@ -143,6 +176,13 @@ const Section: React.FC<{
       ),
     });
   }
+
+  const subjects = [
+    { value: "physics", label: "Physics" },
+    { value: "chemistry", label: "Chemistry" },
+    { value: "maths", label: "Maths" },
+    { value: "Biology", label: "Biology" },
+  ];
 
   return (
     <CustomAccordion className={styles.section} defaultExpanded>
@@ -170,33 +210,35 @@ const Section: React.FC<{
               setSection(section.id, { name: e.target.value })
             }
           />
+          <CustomSelect
+            id="sction-subject"
+            value={section.subject}
+            label="Subject"
+            onChange={(e: any) => {
+              setSection(section.id, { subject: e.target.value });
+            }}
+            options={subjects}
+          />
           <CustomInputSection
-            value={section.exam}
-            label="Exam"
+            value={section.totalQuestions}
+            label="Total Questions"
+            type="number"
+            inputProps={{ min: 1 }}
             onChange={(e: any) =>
-              setSection(section.id, { exam: e.target.value })
+              setSection(section.id, {
+                totalQuestions: parseInt(e.target.value),
+              })
             }
           />
-          <select
-            value={section.subject}
-            title="Subject"
-            className={styles.customInput}
-            onChange={(e: any) =>
-              setSection(section.id, { subject: e.target.value })
-            }
-          >
-            <option value="physics">Physics</option>
-            <option value="chemistry">Chemistry</option>
-            <option value="maths">Maths</option>
-            <option value="Biology">Biology</option>
-          </select>
           <CustomInputSection
             value={section.toBeAttempted}
             label="Questions To be Attempted"
             type="number"
             inputProps={{ min: 1 }}
             onChange={(e: any) =>
-              setSection(section.id, { toBeAttempted: e.target.value })
+              setSection(section.id, {
+                toBeAttempted: parseInt(e.target.value),
+              })
             }
           />
         </div>
@@ -226,45 +268,61 @@ const SubSection: React.FC<{
   handleDeleteSubSection: (id: string) => void;
   index: number;
 }> = ({ subSection, setSubSection, handleDeleteSubSection, index }) => {
+  const subSectionTypes = [
+    {
+      label: "Single",
+      value: "single",
+    },
+    {
+      label: "Multiple",
+      value: "multiple",
+    },
+    {
+      label: "Integer",
+      value: "integer",
+    },
+    {
+      label: "Paragraph",
+      value: "paragraph",
+    },
+    {
+      label: "Matrix",
+      value: "matrix",
+    },
+  ];
+
   return (
     <div className={styles.subSection}>
-      <p>{subSection.name || `SubSection ${index + 1}`}</p>
+      <div className={styles.actionHeader}>
+        <p>{subSection.name || `SubSection ${index + 1}`}</p>
+        <IconButton onClick={() => handleDeleteSubSection(subSection.id)}>
+          <img src={closeCircleIcon} alt="Delete Sub-Section" />
+        </IconButton>
+      </div>
       <div className={styles.subSectionHeader}>
-        <div>
-          <CustomInputSection
-            value={subSection.name}
-            label="Name"
-            onChange={(e: any) =>
-              setSubSection(subSection.id, { name: e.target.value })
-            }
-          />
-          <CustomInputSection
-            value={subSection.description}
-            label="Description"
-            onChange={(e: any) =>
-              setSubSection(subSection.id, { description: e.target.value })
-            }
-          />
-          <select
-            value={subSection.type}
-            title="Subsection Type"
-            className={styles.customInput}
-            onChange={(e: any) =>
-              setSubSection(subSection.id, { type: e.target.value })
-            }
-          >
-            <option value="single">Single</option>
-            <option value="multiple">Multiple</option>
-            <option value="integer">Integer</option>
-            <option value="paragraph">Paragraph</option>
-            <option value="matrix">Matrix</option>
-          </select>
-        </div>
-        <div>
-          <IconButton onClick={() => handleDeleteSubSection(subSection.id)}>
-            <img src={closeCircleIcon} alt="Delete Sub-Section" />
-          </IconButton>
-        </div>
+        <CustomInputSection
+          value={subSection.name}
+          label="Name"
+          onChange={(e: any) =>
+            setSubSection(subSection.id, { name: e.target.value })
+          }
+        />
+        <CustomInputSection
+          value={subSection.description}
+          label="Description"
+          onChange={(e: any) =>
+            setSubSection(subSection.id, { description: e.target.value })
+          }
+        />
+        <CustomSelect
+          id="subsection-type"
+          value={subSection.type}
+          label="Subsection Type"
+          onChange={(e: any) => {
+            setSubSection(subSection.id, { type: e.target.value });
+          }}
+          options={subSectionTypes}
+        />
       </div>
     </div>
   );
@@ -275,6 +333,7 @@ interface IInputProps {
   value: any;
   onChange: (e: any) => void;
   label?: string;
+  placehodler?: string;
   inputProps?: any;
   id?: string;
 }
@@ -283,20 +342,57 @@ const CustomInputSection: React.FC<IInputProps> = ({
   type,
   id,
   label,
+  placehodler,
   value,
   onChange,
   inputProps,
 }) => {
   return (
-    <input
-      className={styles.customInput}
-      title={label}
-      onChange={onChange}
-      type={type}
-      value={value}
-      id={id}
-      placeholder={label}
-      {...inputProps}
-    />
+    <div className={styles.customInput}>
+      <label htmlFor={id}>{label}</label>
+      <input
+        title={label}
+        onChange={onChange}
+        type={type}
+        value={value}
+        id={id}
+        placeholder={placehodler}
+        {...inputProps}
+      />
+    </div>
+  );
+};
+
+interface ICustomSelectProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (e: any) => void;
+  options: Array<{
+    value: string;
+    label: string;
+  }>;
+  inputProps?: any;
+}
+
+const CustomSelect: React.FC<ICustomSelectProps> = ({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+  inputProps,
+}) => {
+  return (
+    <div className={styles.customInput}>
+      <label htmlFor={id}>{label}</label>
+      <select value={value} title={label} onChange={onChange}>
+        {options.map((option) => (
+          <option key={option.label} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };

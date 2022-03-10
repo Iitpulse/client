@@ -56,7 +56,7 @@ const Students: React.FC<{
       name: "Student",
       branch: "CSE",
     })
-    .map((item, i) => ({ ...item, id: item.id + i }));
+    .map((item, i) => ({ ...item, id: item.id + i, key: item.id + i }));
 
   return (
     <div className={styles.container}>
