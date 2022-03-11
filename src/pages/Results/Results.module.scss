@@ -1,0 +1,42 @@
+@import "../../utils/commons.scss";
+
+.container {
+  width: 100%;
+  .back {
+    cursor: pointer;
+    color: rgb(143, 140, 140);
+    &:hover {
+      color: black;
+    }
+  }
+  .top {
+    @extend .flexRow;
+    width: 100%;
+    margin-top: 3rem;
+    margin-bottom: 2rem;
+    h1 {
+      margin-bottom: 0;
+    }
+    align-items: center;
+    .status {
+      @extend .flexRow;
+      justify-content: flex-start;
+      width: fit-content;
+    }
+    .statusColor {
+      margin: 0px 10px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+  }
+  .subjectCard {
+    width: 250px;
+    height: 200px;
+    padding: 1rem;
+    border: 2px solid rgb(209, 206, 206);
+  }
+  .cards {
+    @extend .flexRow;
+  }
+}

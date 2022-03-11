@@ -8,7 +8,7 @@ import {
   Pattern,
   Batches,
   Login,
-  CreateTest,
+  CreateTest,Results
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -44,6 +44,10 @@ const App = () => {
                 element={<PrivateRoute component={CreateTest} title="Test" />}
               />
               <Route
+                path="/test/result/:testId"
+                element={<PrivateRoute component={Results} title="Results" />}
+              />
+              <Route
                 path="/questions"
                 element={
                   <PrivateRoute component={Questions} title="Questions" />
@@ -57,6 +61,7 @@ const App = () => {
                 path="/users"
                 element={<PrivateRoute component={Users} title="Users" />}
               />
+              
             </Routes>
           </Router>
         </TestsContextProvider>
