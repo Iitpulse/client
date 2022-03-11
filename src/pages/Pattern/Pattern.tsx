@@ -14,7 +14,6 @@ import {
 } from "./components/CustomAccordion";
 import tickCircle from "../../assets/icons/tick-circle.svg";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import UserProfile from '../../components/UserProfile/UserProfile';
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -125,7 +124,7 @@ const Pattern = () => {
         </Tooltip>
       </section>
       <Sidebar title="Recent Activity">
-<!--         {Array(10)
+        {Array(10)
           .fill(0)
           .map((_, i) => (
             <NotificationCard
@@ -136,8 +135,7 @@ const Pattern = () => {
               description="New student join IIT Pulse Anurag Pal - Dropper Batch"
               createdAt="10 Jan, 2022"
             />
-          ))} -->
-        <UserProfile />
+          ))}
       </Sidebar>
     </>
   );

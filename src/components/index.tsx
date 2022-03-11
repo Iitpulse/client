@@ -6,3 +6,4 @@ export { default as NotificationCard } from "./NotificationCard/NotificationCard
 export { default as Sidebar } from "./Sidebar/Sidebar";
 export { default as MenuDrawer } from "./MenuDrawer/MenuDrawer";
 export { default as Modal } from "./Modal/Modal";
+export * from "./CustomMUIComps/CustomMUIComps";

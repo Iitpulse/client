@@ -1,29 +1,18 @@
 import { Sidebar, NotificationCard, Button } from "../../components";
 import styles from "./Users.module.scss";
-import { useState, useEffect } from "react";
-import {
-  TextField,
-  FormControl,
-  MenuItem,
-  Select,
-  InputLabel,
-  Chip,
-  Autocomplete,
-  SelectChangeEvent,
-  Tabs,
-  Tab,
-} from "@mui/material";
-import { styled } from "@mui/system";
+import { useState } from "react";
+import { Tabs, Tab } from "@mui/material";
 import clsx from "clsx";
 import "./Users.css";
 import closeIcon from "../../assets/icons/close-circle.svg";
 import info from "../../assets/icons/info.svg";
-import { StyledMUITextField, UserProps } from "./components";
+import { UserProps } from "./components";
 import Students from "./Students/Students";
 import Teachers from "./Teachers/Teachers";
 import Managers from "./Managers/Managers";
 import Operators from "./Operators/Operators";
 import Admins from "./Admins/Admins";
+import UserProfile from "../../components/UserProfile/UserProfile";
 
 const UserTypesForCards = [
   {
@@ -199,18 +188,7 @@ const Users = () => {
       </TabPanel>
 
       <Sidebar title="Recent Activity">
-        {Array(10)
-          .fill(0)
-          .map((_, i) => (
-            <NotificationCard
-              key={i}
-              id="aasdadsd"
-              status={i % 2 === 0 ? "success" : "warning"}
-              title={"New Student Joined-" + i}
-              description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-              createdAt="10 Jan, 2022"
-            />
-          ))}
+        <UserProfile />
       </Sidebar>
     </div>
   );
@@ -234,136 +212,5 @@ const Admin = (props: UserProps) => {};
 // };
 
 //----------------------------------------------MUIElements and Styled Components
-
-interface MUISelectProps {
-  label: string;
-  state: string;
-  options: Array<{
-    name: string;
-    value: string;
-  }>;
-  onChange: React.Dispatch<React.SetStateAction<string>>;
-}
-
-const MUISelect = (props: MUISelectProps) => {
-  const handleChange = (event: SelectChangeEvent<string>) => {
-    props.onChange(event.target.value);
-  };
-  return (
-    <StyledFormControl sx={{ minWidth: 250 }}>
-      <InputLabel id="demo-simple-select-helper-label">
-        {props.label}
-      </InputLabel>
-      <Select
-        labelId="demo-simple-select-helper-label"
-        id="demo-simple-select-helper"
-        value={props.state}
-        label="Age"
-        onChange={handleChange}
-      >
-        {props.options.map((item, index) => (
-          <MenuItem key={index} value={item.value}>
-            {item.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </StyledFormControl>
-  );
-};
-
-interface MUIAutocompleteProps {
-  label: string;
-  state?: string;
-  onChange: any;
-  options: Array<{
-    name: string;
-    value: string;
-  }>;
-}
-
-const MUIChipsAutocomplete = (props: MUIAutocompleteProps) => {
-  return (
-    <Autocomplete
-      multiple
-      id="tags-outlined"
-      onChange={(_, value) =>
-        props.onChange(
-          value.map((item) => {
-            return item.value;
-          })
-        )
-      }
-      options={props.options}
-      getOptionLabel={(option) => option.name}
-      filterSelectedOptions
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={props.label}
-          placeholder={"Search for " + props.label}
-        />
-      )}
-    />
-  );
-};
-
-const MUISimpleAutocomplete = (props: MUIAutocompleteProps) => {
-  return (
-    <Autocomplete
-      className={styles.something}
-      disablePortal
-      id="combo-box-demo"
-      options={props.options}
-      onChange={(_, value) => props.onChange(value?.value || "")}
-      getOptionLabel={(option) => option.name || ""}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          placeholder={"Search for" + props.label}
-          label={props.label}
-        />
-      )}
-    />
-  );
-};
-
-const StyledMUISelect = styled(MUISelect)(() => {
-  return {
-    minWidth: "250px",
-    input: {
-      fontSize: "1rem",
-      padding: "1.2rem 1.3rem",
-    },
-
-    ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-    ".MuiFormLabel-filled": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-  };
-});
-
-const StyledFormControl = styled(FormControl)(() => {
-  return {
-    minWidth: "250px",
-    input: {
-      fontSize: "1rem",
-      padding: "1.2rem 1.3rem",
-    },
-    label: {
-      fontSize: "1rem",
-      maxWidth: "none",
-      padding: "0rem 0.5rem",
-      backgroundColor: " #f3f3f9",
-    },
-    ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-    ".MuiFormLabel-filled": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-  };
-});
 
 export default Users;

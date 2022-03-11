@@ -1,24 +1,33 @@
 import styles from "./CreateTest.module.scss";
 import { Button, Sidebar } from "../../components";
 import { useEffect, useState } from "react";
-import { ITest, IPattern, ISection, ISubSection } from "../../utils/interfaces";
+import {
+  ITest,
+  IPattern,
+  ISection,
+  ISubSection,
+  ITestQuestionObjective,
+} from "../../utils/interfaces";
 import { SAMPLE_TEST } from "../../utils/constants";
 import { StyledMUITextField } from "../Users/components";
 import DateRangePicker from "@mui/lab/DateRangePicker";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
-import { TextField, Autocomplete } from "@mui/material";
+import { TextField } from "@mui/material";
 import { Box } from "@mui/system";
 import {
   CustomAccordion,
   CustomAccordionDetails,
   CustomAccordionSummary,
 } from "../Pattern/components/CustomAccordion";
+import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
+import InsertQuestionModal from "./components/InsertQuestionModal";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
   const { id, name, description, exam, status, validity, sections } = test;
   const [pattern, setPattern] = useState<IPattern | null>(null);
+  const [questionModal, setQuestionModal] = useState<boolean>(true);
 
   function onChangeInput(e: any) {
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -103,6 +112,14 @@ const CreateTest = () => {
           </section>
         )}
       </div>
+      <InsertQuestionModal
+        open={questionModal}
+        onClose={() => setQuestionModal(false)}
+        questions={[]}
+        setQuestions={(a: any) => {}}
+        type="Single"
+        subject="Physics"
+      />
       <Sidebar title="Recent Activity">Recent</Sidebar>
     </>
   );
@@ -186,41 +203,23 @@ const SubSection: React.FC<ISubSection> = ({
           />
           <Button>Auto Generate</Button>
         </div>
+        <div className={styles.questionsList}>
+          {Object.values(questions).map((question: any) => (
+            <Question {...question} />
+          ))}
+        </div>
       </div>
     </div>
   );
 };
 
-// const Question: React.FC<IQuestion> = () =>{
-
-// }
-
-interface MUIAutocompleteProps {
-  label: string;
-  state?: string;
-  onChange: any;
-  options: Array<{
-    name: string;
-    value: string;
-  }>;
-}
-
-const MUISimpleAutocomplete = (props: MUIAutocompleteProps) => {
+const Question: React.FC<ITestQuestionObjective> = ({ question }) => {
   return (
-    <Autocomplete
-      className={styles.something}
-      disablePortal
-      id="combo-box-demo"
-      options={props.options}
-      onChange={(_, value) => props.onChange(value?.value || "")}
-      getOptionLabel={(option) => option.name || ""}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          placeholder={"Search for" + props.label}
-          label={props.label}
-        />
-      )}
-    />
+    <div className={styles.questionContainer}>
+      <div
+        dangerouslySetInnerHTML={{ __html: question }}
+        className={styles.question}
+      ></div>
+    </div>
   );
 };
