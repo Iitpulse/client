@@ -11,11 +11,12 @@ import ImageResize from "quill-image-resize-module-react";
 
 interface Props {
   id: string;
+  setData: (data: any) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Integer: React.FC<Props> = ({ id }) => {
+const Integer: React.FC<Props> = ({ id, setData }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [tab, setTab] = useState(0);
@@ -42,8 +43,8 @@ const Integer: React.FC<Props> = ({ id }) => {
   });
 
   useEffect(() => {
-    console.log({ values });
-  }, [values]);
+    setData({ ...values, type: answerType });
+  }, [values, setData, answerType]);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);

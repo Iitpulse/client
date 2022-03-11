@@ -106,20 +106,11 @@ interface IMarkingScheme {
 interface IQuestionCore {
   id: string; // Q_AB123
   type: string; // single | multiple | integer | paragraph | matrix
-  question: string;
-  markingScheme: IMarkingScheme;
   source: string;
-  subject: {
-    id: string;
-    name: string;
-  };
-  chapter: {
-    id: string;
-    name: string;
-  };
+  subject: string;
+  chapters: Array<string>;
   topics: Array<string>;
   difficulty: string; // easy | medium | hard
-  solution: string; // QuillJS_HTMLString
   isProofRead: boolean;
   createdAt: string;
   modifiedAt: string;
@@ -130,11 +121,28 @@ interface IQuestionCore {
 }
 
 export interface IQuestionObjective extends IQuestionCore {
-  options: Array<IOption>;
+  en: {
+    question: string;
+    solution: string; // QuillJS_HTMLString
+    options: Array<IOption>;
+  };
+  hi: {
+    question: string;
+    solution: string; // QuillJS_HTMLString
+    options: Array<IOption>;
+  };
   correctAnswers: Array<string>; // OptionIDs
 }
 
 export interface IQuestionInteger extends IQuestionCore {
+  en: {
+    question: string;
+    solution: string; // QuillJS_HTMLString
+  };
+  hi: {
+    question: string;
+    solution: string; // QuillJS_HTMLString
+  };
   correctAnswers: {
     from: number;
     to: number;
@@ -153,18 +161,29 @@ export interface IQuestionMatrix extends IQuestionCore {
 
 interface ITestQuestionCore {
   id: string; // QT_MCQ123
-  question: string; // QuillJS_HTMLString
-  options: Array<IOption>;
   markingScheme: IMarkingScheme;
   type: string;
 }
 
 export interface ITestQuestionObjective extends ITestQuestionCore {
-  options: Array<IOption>;
+  en: {
+    question: string;
+    options: Array<IOption>;
+  };
+  hi: {
+    question: string;
+    options: Array<IOption>;
+  };
   correctAnswers: Array<string>;
 }
 
 export interface ITestQuestionInteger extends ITestQuestionCore {
+  en: {
+    question: string;
+  };
+  hi: {
+    question: string;
+  };
   correctAnswers: {
     from: number;
     to: number;

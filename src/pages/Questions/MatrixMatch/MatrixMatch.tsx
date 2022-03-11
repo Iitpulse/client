@@ -12,11 +12,12 @@ import clsx from "clsx";
 
 interface Props {
   id: string;
+  setData: (data: any) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const MatrixMatch: React.FC<Props> = ({ id }) => {
+const MatrixMatch: React.FC<Props> = ({ id, setData }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [tab, setTab] = useState(0);

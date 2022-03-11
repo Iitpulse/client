@@ -1,7 +1,6 @@
-import * as React from "react";
+import { useState, useContext, useEffect } from "react";
 import styles from "./Questions.module.scss";
-import { Sidebar, NotificationCard } from "../../components";
-import { useState } from "react";
+import { Sidebar, NotificationCard, Button } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
 import Integer from "./Integer/Integer";
@@ -13,6 +12,8 @@ import {
   StyledMUISelect,
 } from "./components";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
+import { IQuestionObjective } from "../../utils/interfaces";
+import { AuthContext } from "../../utils/auth/AuthContext";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -96,24 +97,68 @@ const Questions = () => {
   const [exams, setExams] = useState<Array<string>>([]);
   const [type, setType] = useState<string>("objective");
   const [subject, setSubject] = useState<string>("");
-  const [chapter, setChapter] = useState<Array<string>>([]);
+  const [chapters, setChapters] = useState<Array<string>>([]);
   const [topics, setTopics] = useState<Array<string>>([]);
   const [difficulty, setDifficulty] = useState<string>("");
   const [source, setSource] = useState<string>("");
-  const [uploadedBy, setUploadedBy] = useState<string>("John Doe");
-
-  React.useEffect(() => {
-    console.log({
-      id,
-      type,
-      subject,
-      chapter,
-      topics,
-      difficulty,
-      source,
-      uploadedBy,
-    });
+  const [uploadedBy, setUploadedBy] = useState<{
+    userType: string;
+    id: string;
+  }>({
+    userType: "operator",
+    id: "",
   });
+  const [data, setData] = useState<any>({});
+
+  const { currentUser } = useContext(AuthContext);
+
+  // useEffect(() => {
+  //   console.log({
+  //     id,
+  //     type,
+  //     subject,
+  //     chapter: chapters,
+  //     topics,
+  //     difficulty,
+  //     source,
+  //     uploadedBy,
+  //   });
+  // });
+
+  function handleSubmitQuestion() {
+    if (currentUser) {
+      if (data.type === "single" || data.type === "multiple") {
+        const finalQuestion: IQuestionObjective = {
+          id,
+          type: data.type,
+          subject,
+          chapters,
+          topics,
+          difficulty,
+          source,
+          uploadedBy: {
+            userType: currentUser?.userType,
+            id: currentUser.id,
+          },
+          en: {
+            question: data.en.question,
+            options: data.en.options,
+            solution: data.en.solution,
+          },
+          hi: {
+            question: data.hi.question,
+            options: data.hi.options,
+            solution: data.hi.solution,
+          },
+          correctAnswers: data.correctAnswers,
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          isProofRead: false,
+        };
+        console.log({ finalQuestion });
+      }
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -145,8 +190,11 @@ const Questions = () => {
           />
           <MUIChipsAutocomplete
             label="Chapter(s)"
-            options={chapters}
-            onChange={setChapter}
+            options={chapters.map((chapter) => ({
+              name: chapter,
+              value: chapter,
+            }))}
+            onChange={setChapters}
           />
           <MUIChipsAutocomplete
             label="Topics"
@@ -174,7 +222,12 @@ const Questions = () => {
         </div>
       </form>
       {/* <hr /> */}
-      <section className={styles.main}>{getQuestionFromType(type, id)}</section>
+      <section className={styles.main}>
+        {getQuestionFromType(type, id, setData)}
+      </section>
+      <div>
+        <Button onClick={handleSubmitQuestion}>Submit</Button>
+      </div>
       <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
@@ -195,15 +248,19 @@ const Questions = () => {
 
 export default Questions;
 
-function getQuestionFromType(type: string, id: string) {
+function getQuestionFromType(
+  type: string,
+  id: string,
+  setData: (data: any) => void
+) {
   switch (type) {
     case "objective":
-      return <Objective id={id} />;
+      return <Objective id={id} setData={setData} />;
     case "integer":
-      return <Integer id={id} />;
+      return <Integer id={id} setData={setData} />;
     case "paragraph":
-      return <Paragraph id={id} />;
+      return <Paragraph id={id} setData={setData} />;
     case "matrix":
-      return <MatrixMatch id={id} />;
+      return <MatrixMatch id={id} setData={setData} />;
   }
 }

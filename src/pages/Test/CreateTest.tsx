@@ -213,11 +213,11 @@ const SubSection: React.FC<ISubSection> = ({
   );
 };
 
-const Question: React.FC<ITestQuestionObjective> = ({ question }) => {
+const Question: React.FC<ITestQuestionObjective> = ({ en }) => {
   return (
     <div className={styles.questionContainer}>
       <div
-        dangerouslySetInnerHTML={{ __html: question }}
+        dangerouslySetInnerHTML={{ __html: en.question }}
         className={styles.question}
       ></div>
     </div>

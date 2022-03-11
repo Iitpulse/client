@@ -19,6 +19,7 @@ import clsx from "clsx";
 
 interface Props {
   id: string;
+  setData: (data: any) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
@@ -68,6 +69,10 @@ const Paragraph: React.FC<Props> = ({ id }) => {
       setQuestions(questions.slice(0, questions.length - 1));
     }
   }
+
+  // useEffect(() => {
+  //   setData({ ...questions.map });
+  // }, [questions, setData, answerType]);
 
   return (
     <section className={styles.container}>
