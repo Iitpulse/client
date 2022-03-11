@@ -1,11 +1,7 @@
-import { TextField } from "@mui/material";
-import { useState } from "react";
-import {
-  Modal,
-  MUIChipsAutocomplete,
-  MUISelect,
-  StyledMUISelect,
-} from "../../../components";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { MUIChipsAutocomplete } from "../../../components";
+import CustomModal from "../../../components/CustomModal/CustomModal";
 import styles from "../CreateTest.module.scss";
 
 interface Props {
@@ -23,7 +19,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   questions,
   setQuestions,
 }) => {
-  const [difficulty, setDifficulty] = useState("easy");
+  const [difficulties, setDifficulties] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [topics, setTopics] = useState([]);
   const [search, setSearch] = useState("");
@@ -40,29 +36,55 @@ const InsertQuestionModal: React.FC<Props> = ({
     { name: "Hard", value: "hard" },
   ];
 
+  async function fetchQuestions() {
+    const res = await axios.get("http://localhost:5001/mcq/difficulty", {
+      params: {
+        difficulties,
+      },
+    });
+
+    console.log({ res: res.data, difficulties });
+    if (res.data?.length) {
+      setQuestions(res.data);
+    }
+  }
+
+  useEffect(() => {
+    if (difficulties?.length) {
+      fetchQuestions();
+    }
+  }, [difficulties]);
+
   return (
-    <Modal
-      isOpen={open}
-      onClose={onClose}
-      title="Insert Question"
-      backdropClose={false}
-    >
+    <CustomModal open={open} handleClose={onClose} title="Insert Question">
       <div className={styles.insertQuestionModal}>
         <div className={styles.inputFieldsHeader}>
-          <StyledMUISelect
-            value={difficulty}
-            label="Difficulty"
+          <MUIChipsAutocomplete
+            label="Difficulty(s)"
             options={difficultyOptions}
-            onChange={setDifficulty}
+            onChange={setDifficulties}
           />
           <MUIChipsAutocomplete
             label="Chapter(s)"
-            options={chapters}
+            options={chaptersOptions}
             onChange={setChapters}
           />
         </div>
       </div>
-    </Modal>
+      {questions.map((question: any) => (
+        <div className={styles.modalQuestion}>
+          <div
+            key={question.id}
+            dangerouslySetInnerHTML={{ __html: question?.en?.question }}
+          ></div>
+          <div className={styles.options}>
+            {question.en.options.map((option: any) => (
+              <div dangerouslySetInnerHTML={{ __html: option.value }}></div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </CustomModal>
   );
 };
 

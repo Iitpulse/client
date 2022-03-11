@@ -43,8 +43,48 @@
   }
   .searchHeader {
     @extend .flexRow;
+    .addQuestion {
+      flex: 1;
+      background: white;
+      text-align: center;
+      padding: 0.6rem 0;
+      border-radius: 0.2rem;
+      cursor: pointer;
+    }
+    button {
+      margin-left: 1rem;
+    }
+  }
+}
+.insertQuestionModal {
+  width: 500px;
+  padding: 1rem 0;
+  .inputFieldsHeader {
+    @extend .flexRow;
+    flex-wrap: wrap;
     > div {
       flex: 1;
+      margin: 1rem 0.2rem;
+    }
+  }
+}
+.modalQuestion {
+  border: 2px dotted rgba(0, 0, 0, 0.3);
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.2rem;
+  .options {
+    @extend .flexRow;
+    div {
+      background: rgba(0, 0, 0, 0.05);
+      margin: 0 0.4rem;
+      @extend .flexRow;
+      justify-content: center;
+      flex: 1;
+      height: 3rem;
+      p {
+        margin: 0;
+      }
     }
   }
 }

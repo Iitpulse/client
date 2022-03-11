@@ -18,8 +18,8 @@ const wrapper = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "400px",
-  height: "150px",
+  minWidth: "400px",
+  minHeight: "150px",
   background: "#f9f9f9",
   display: "flex",
   alignItems: "center",
@@ -59,10 +59,11 @@ const CustomModal = (props: CustomModalProps) => {
               <img
                 src={closeIcon}
                 style={{ width: "25px", cursor: "pointer" }}
+                alt="close-modal"
               />
             </Button>
           </Box>
-          <Typography id="modal-modal-description">{children}</Typography>
+          {children}
         </Box>
       </Modal>
     </div>

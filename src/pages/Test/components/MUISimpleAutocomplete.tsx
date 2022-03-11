@@ -16,7 +16,7 @@ const MUISimpleAutocomplete = (props: MUIAutocompleteProps) => {
       disablePortal
       id="combo-box-demo"
       options={props.options}
-      onChange={(_, value) => props.onChange(value?.value || "")}
+      onChange={(_, value) => props.onChange(value)}
       getOptionLabel={(option) => option.name || ""}
       renderInput={(params) => (
         <TextField

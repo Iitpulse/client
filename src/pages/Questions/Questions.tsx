@@ -14,6 +14,7 @@ import {
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
 import { IQuestionObjective } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import axios from "axios";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -125,7 +126,7 @@ const Questions = () => {
   //   });
   // });
 
-  function handleSubmitQuestion() {
+  async function handleSubmitQuestion() {
     if (currentUser) {
       if (data.type === "single" || data.type === "multiple") {
         const finalQuestion: IQuestionObjective = {
@@ -156,6 +157,12 @@ const Questions = () => {
           isProofRead: false,
         };
         console.log({ finalQuestion });
+        const res = await axios.post(
+          "http://localhost:5001/mcq/new",
+          finalQuestion
+        );
+
+        console.log({ res });
       }
     }
   }

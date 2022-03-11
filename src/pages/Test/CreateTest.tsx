@@ -22,12 +22,13 @@ import {
 } from "../Pattern/components/CustomAccordion";
 import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
+import axios from "axios";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
   const { id, name, description, exam, status, validity, sections } = test;
   const [pattern, setPattern] = useState<IPattern | null>(null);
-  const [questionModal, setQuestionModal] = useState<boolean>(true);
+  const [patternOptions, setPatternOptions] = useState([]);
 
   function onChangeInput(e: any) {
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -42,6 +43,14 @@ const CreateTest = () => {
       setTest((prev) => ({ ...prev, sections: pattern.sections }));
     }
   }, [pattern]);
+
+  useEffect(() => {
+    let fetchData = async () => {
+      let response = await axios.get("http://localhost:5002/pattern/");
+      setPatternOptions(response.data);
+    };
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -100,8 +109,8 @@ const CreateTest = () => {
           </LocalizationProvider>
           <MUISimpleAutocomplete
             label="Pattern"
-            onChange={() => {}}
-            options={[]}
+            onChange={(val: any) => setPattern(val)}
+            options={patternOptions}
           />
         </div>
         {sections && (
@@ -112,14 +121,6 @@ const CreateTest = () => {
           </section>
         )}
       </div>
-      <InsertQuestionModal
-        open={questionModal}
-        onClose={() => setQuestionModal(false)}
-        questions={[]}
-        setQuestions={(a: any) => {}}
-        type="Single"
-        subject="Physics"
-      />
       <Sidebar title="Recent Activity">Recent</Sidebar>
     </>
   );
@@ -158,7 +159,7 @@ const Section: React.FC<ISection> = ({
         </div>
         <div className={styles.subSections}>
           {subSections?.map((subSection: ISubSection) => (
-            <SubSection {...subSection} />
+            <SubSection key={subSection.id} {...subSection} />
           ))}
         </div>
       </CustomAccordionDetails>
@@ -172,8 +173,10 @@ const SubSection: React.FC<ISubSection> = ({
   totalQuestions,
   toBeAttempted,
   type,
-  questions,
 }) => {
+  const [questionModal, setQuestionModal] = useState<boolean>(false);
+  const [questions, setQuestions] = useState([]);
+
   return (
     <div className={styles.subSection}>
       <div className={styles.header}>
@@ -196,19 +199,33 @@ const SubSection: React.FC<ISubSection> = ({
       </div>
       <div className={styles.questions}>
         <div className={styles.searchHeader}>
-          <MUISimpleAutocomplete
+          {/* <MUISimpleAutocomplete
             label="Search Question"
             onChange={() => {}}
             options={[]}
-          />
+          /> */}
+          <div
+            className={styles.addQuestion}
+            onClick={() => setQuestionModal(true)}
+          >
+            + Add Question
+          </div>
           <Button>Auto Generate</Button>
         </div>
         <div className={styles.questionsList}>
           {Object.values(questions).map((question: any) => (
-            <Question {...question} />
+            <Question key={question.id} {...question} />
           ))}
         </div>
       </div>
+      <InsertQuestionModal
+        open={questionModal}
+        onClose={() => setQuestionModal(false)}
+        questions={questions}
+        setQuestions={(qs: any) => setQuestions(qs)}
+        type="Single"
+        subject="Physics"
+      />
     </div>
   );
 };

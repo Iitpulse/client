@@ -14,6 +14,7 @@ import {
 } from "./components/CustomAccordion";
 import tickCircle from "../../assets/icons/tick-circle.svg";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import axios from "axios";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -64,7 +65,7 @@ const Pattern = () => {
     setSections(sections.filter((section) => section.id !== id));
   }
 
-  function handleClickSubmit() {
+  async function handleClickSubmit() {
     if (currentUser) {
       const pattern: IPattern = {
         id: `${currentUser.instituteId}_${name
@@ -82,6 +83,11 @@ const Pattern = () => {
         usedIn: [],
       };
       console.log({ pattern });
+      const res = await axios.post(
+        "http://localhost:5002/pattern/create",
+        pattern
+      );
+      console.log({ res });
     }
   }
 
