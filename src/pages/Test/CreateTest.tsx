@@ -1,5 +1,5 @@
 import styles from "./CreateTest.module.scss";
-import { Sidebar } from "../../components";
+import { Button, Sidebar } from "../../components";
 import { useEffect, useState } from "react";
 import { ITest, IPattern, ISection, ISubSection } from "../../utils/interfaces";
 import { SAMPLE_TEST } from "../../utils/constants";
@@ -178,11 +178,14 @@ const SubSection: React.FC<ISubSection> = ({
         </div>
       </div>
       <div className={styles.questions}>
-        <MUISimpleAutocomplete
-          label="Search Question"
-          onChange={() => {}}
-          options={[]}
-        />
+        <div className={styles.searchHeader}>
+          <MUISimpleAutocomplete
+            label="Search Question"
+            onChange={() => {}}
+            options={[]}
+          />
+          <Button>Auto Generate</Button>
+        </div>
       </div>
     </div>
   );

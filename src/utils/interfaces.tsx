@@ -84,3 +84,97 @@ export interface ISection {
   totalQuestions: number | null;
   toBeAttempted: number | null;
 }
+
+export interface IStatus {
+  status: string;
+  visitedAt: string | null;
+  answeredAt: string | null;
+  answeredAndMarkedForReviewAt: string | null;
+  markedForReviewAt: string | null;
+}
+
+export interface IOption {
+  id: string;
+  value: string;
+}
+
+interface IMarkingScheme {
+  correct: Array<number>; // index-wise marks (index+1 = no. of correct options)
+  incorrect: number; // -1
+}
+
+interface IQuestionCore {
+  id: string; // Q_AB123
+  type: string; // single | multiple | integer | paragraph | matrix
+  question: string;
+  markingScheme: IMarkingScheme;
+  source: string;
+  subject: {
+    id: string;
+    name: string;
+  };
+  chapter: {
+    id: string;
+    name: string;
+  };
+  topics: Array<string>;
+  difficulty: string; // easy | medium | hard
+  solution: string; // QuillJS_HTMLString
+  isProofRead: boolean;
+  createdAt: string;
+  modifiedAt: string;
+  uploadedBy: {
+    userType: string; // operator | teacher | admin
+    id: string;
+  };
+}
+
+export interface IQuestionObjective extends IQuestionCore {
+  options: Array<IOption>;
+  correctAnswers: Array<string>; // OptionIDs
+}
+
+export interface IQuestionInteger extends IQuestionCore {
+  correctAnswers: {
+    from: number;
+    to: number;
+  };
+}
+
+export interface IQuestionParagraph extends IQuestionCore {
+  questions: Array<IQuestionObjective | IQuestionInteger>;
+}
+
+export interface IQuestionMatrix extends IQuestionCore {
+  correctAnswers: Array<Array<string>>; // 2D Matrix of OptionIDs
+}
+
+// Test Questions
+
+interface ITestQuestionCore {
+  id: string; // QT_MCQ123
+  question: string; // QuillJS_HTMLString
+  options: Array<IOption>;
+  markingScheme: IMarkingScheme;
+  type: string;
+}
+
+export interface ITestQuestionObjective extends ITestQuestionCore {
+  options: Array<IOption>;
+  correctAnswers: Array<string>;
+}
+
+export interface ITestQuestionInteger extends ITestQuestionCore {
+  correctAnswers: {
+    from: number;
+    to: number;
+  };
+}
+
+export interface ITestQuestionParagraph extends ITestQuestionCore {
+  questions: Array<ITestQuestionObjective | ITestQuestionInteger>;
+}
+
+export interface ITestQuestionMatrix extends ITestQuestionCore {
+  correctAnswers: Array<Array<string>>; // OptionIDs
+}
