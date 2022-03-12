@@ -41,9 +41,7 @@ const Pattern = () => {
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
-  const [sections, setSections] = useState<Array<ISection>>([
-    { ...sampleSection, id: `${Math.random() * 100}` },
-  ]);
+  const [sections, setSections] = useState<Array<ISection>>([]);
 
   function handleChangeSection(id: string, data: any) {
     setSections(
