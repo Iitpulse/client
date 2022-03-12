@@ -334,6 +334,28 @@ const SubSection: React.FC<{
           }}
           options={subSectionTypes}
         />
+        <CustomInputSection
+          value={subSection.totalQuestions}
+          label="Total Questions"
+          type="number"
+          inputProps={{ min: 1 }}
+          onChange={(e: any) =>
+            setSubSection(subSection.id, {
+              totalQuestions: parseInt(e.target.value),
+            })
+          }
+        />
+        <CustomInputSection
+          value={subSection.toBeAttempted}
+          label="Questions To be Attempted"
+          type="number"
+          inputProps={{ min: 1 }}
+          onChange={(e: any) =>
+            setSubSection(subSection.id, {
+              toBeAttempted: parseInt(e.target.value),
+            })
+          }
+        />
       </div>
     </div>
   );
