@@ -20,7 +20,7 @@ const sampleSection = {
   id: "", // PT_SE_PHY123
   name: "",
   exam: "",
-  subject: "",
+  subject: "physics",
   subSections: [], // Nesting toBeAttempted
   totalQuestions: 1,
   toBeAttempted: 1,
@@ -33,7 +33,6 @@ const sampleSubSection = {
   type: "",
   totalQuestions: 1,
   toBeAttempted: 1,
-  questions: [],
 };
 
 const Pattern = () => {

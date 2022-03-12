@@ -1,8 +1,8 @@
-import closeIcon from '../../assets/icons/close-circle.svg';
-import avatar from '../../assets/images/profilePlaceholder.svg';
-import phone from '../../assets/icons/phone.svg';
-import mail from '../../assets/icons/mail.svg';
-import styles from './UserProfile.module.scss';
+import closeIcon from "../../assets/icons/close-circle.svg";
+import avatar from "../../assets/images/profilePlaceholder.svg";
+import phone from "../../assets/icons/phone.svg";
+import mail from "../../assets/icons/mail.svg";
+import styles from "./UserProfile.module.scss";
 interface UserProfileProps {
   onClickEdit: () => void;
   onClickDelete: () => void;
@@ -13,19 +13,14 @@ const UserProfile = () => {
   return (
     <>
       <div className={styles.container}>
-        <div className={styles.headerContainer}>
-          <p>Student Details</p>
-          <img src={closeIcon} alt='close icon' className={styles.closeIcon} />
-        </div>
-
         <div className={styles.userDetails}>
           <p className={styles.id}>IITP_ST_01</p>
-          <img src={avatar} alt='Avatar' className={styles.profile} />
+          <img src={avatar} alt="Avatar" className={styles.profile} />
           <p className={styles.name}>Anurag Pal</p>
           <p className={styles.code}>TLP31</p>
           <div className={styles.iconWrapper}>
-            <img src={phone} alt='phone' />
-            <img src={mail} alt='mail' />
+            <img src={phone} alt="phone" />
+            <img src={mail} alt="mail" />
           </div>
 
           <p className={styles.class}>class 12th</p>
