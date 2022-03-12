@@ -9,12 +9,17 @@
       color: black;
     }
   }
+
+  .boldLarge {
+    font-weight: 600;
+    font-size: 1.5rem;
+  }
   .top {
     @extend .flexRow;
     width: 100%;
     margin-top: 3rem;
-    margin-bottom: 2rem;
-    h1 {
+    margin-bottom: 1.5rem;
+    h2 {
       margin-bottom: 0;
     }
     align-items: center;
@@ -32,11 +37,30 @@
   }
   .subjectCard {
     width: 250px;
-    height: 200px;
     padding: 1rem;
-    border: 2px solid rgb(209, 206, 206);
+    background-color: white;
+    border-radius: 10px;
+    .subjectName {
+      color: var(--clr-success);
+      font-weight: 600;
+      margin-bottom: 2rem;
+    }
+  }
+  .boldSmall {
+    font-weight: 600;
+    color: rgb(66, 66, 66);
   }
   .cards {
     @extend .flexRow;
+    margin: 2rem 0;
   }
+  .basicInfo {
+    @extend .flexRow;
+    margin: 1rem 0;
+  }
+  // .circularProgress {
+  //   border-radius: 50%;
+  //   width: 100px;
+  //   height: 100px;
+  // }
 }
