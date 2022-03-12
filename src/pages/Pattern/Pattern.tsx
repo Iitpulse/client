@@ -20,7 +20,7 @@ const sampleSection = {
   id: "", // PT_SE_PHY123
   name: "",
   exam: "",
-  subject: "physics",
+  subject: "",
   subSections: [], // Nesting toBeAttempted
   totalQuestions: 1,
   toBeAttempted: 1,
@@ -56,7 +56,12 @@ const Pattern = () => {
   function handleClickAddNew() {
     setSections([
       ...sections,
-      { ...sampleSection, id: `${Math.random() * 100}` },
+      {
+        ...sampleSection,
+        id: `${Math.random() * 100}`,
+        exam,
+        subject: "physics",
+      },
     ]);
   }
 
@@ -168,7 +173,7 @@ const Section: React.FC<{
       ...section,
       subSections: [
         ...section.subSections,
-        { ...sampleSubSection, id: `${Math.random() * 100}` },
+        { ...sampleSubSection, id: `${Math.random() * 100}`, type: "single" },
       ],
     });
   }
