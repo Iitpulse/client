@@ -14,7 +14,7 @@ const PrivateRoute: React.FC<Props> = ({
 }) => {
   const { currentUser } = useContext(AuthContext);
 
-  if (!currentUser && !localStorage.getItem("token")) {
+  if (currentUser && !localStorage.getItem("token")) {
     return <Navigate to="/login" />;
   }
 

@@ -7,3 +7,4 @@ export { default as Batches } from "./Batches/Batches";
 export { default as Questions } from "./Questions/Questions";
 export { default as Pattern } from "./Pattern/Pattern";
 export { default as Login } from "./Login/Login";
+export { default as Results } from "./Results/Results";
