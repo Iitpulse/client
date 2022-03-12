@@ -75,7 +75,10 @@ const Pattern = () => {
           .toUpperCase()}`,
         name,
         exam,
-        sections,
+        sections: sections.map((sec) => ({
+          ...sec,
+          exam,
+        })),
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
         createdBy: {
