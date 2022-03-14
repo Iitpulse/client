@@ -12,7 +12,7 @@ import {
   StyledMUISelect,
 } from "./components";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
-import { IQuestionObjective } from "../../utils/interfaces";
+import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
 
@@ -54,17 +54,17 @@ export const chapters = [
   },
 ];
 
-export const topicOptions = [
-  { name: `Coulomb's law`, value: "coulombsLaw" },
-  { name: "Organic", value: "organic" },
-  { name: "Hydrocarbons", value: "hydrocarbons" },
-  { name: "Probability", value: "probability" },
-  { name: "Tangets", value: "tangets" },
-  { name: "Ideal Gas Equation", value: "idealGasEquation" },
-  { name: "Dual Nature", value: "dualNature" },
-  { name: "Normals", value: "normals" },
-  { name: `Newton's Law of Motion`, value: "newtonsLawofMotion" },
-];
+// export const topicOptions = [
+//   { name: `Coulomb's law`, value: "coulombsLaw" },
+//   { name: "Organic", value: "organic" },
+//   { name: "Hydrocarbons", value: "hydrocarbons" },
+//   { name: "Probability", value: "probability" },
+//   { name: "Tangets", value: "tangets" },
+//   { name: "Ideal Gas Equation", value: "idealGasEquation" },
+//   { name: "Dual Nature", value: "dualNature" },
+//   { name: "Normals", value: "normals" },
+//   { name: `Newton's Law of Motion`, value: "newtonsLawofMotion" },
+// ];
 
 export const difficultyLevels = [
   { name: "Easy", value: "easy" },
@@ -94,7 +94,7 @@ export const examList = [
 ];
 
 const Questions = () => {
-  const [id, setId] = useState<string>("QM_ABC123");
+  // const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<string>>([]);
   const [type, setType] = useState<string>("objective");
   const [subject, setSubject] = useState<string>("");
@@ -109,6 +109,8 @@ const Questions = () => {
     userType: "operator",
     id: "",
   });
+  const [chapterOptions, setChapterOptions] = useState([]);
+  const [topicOptions, setTopicOptions] = useState([]);
   const [data, setData] = useState<any>({});
 
   const { currentUser } = useContext(AuthContext);
@@ -126,43 +128,101 @@ const Questions = () => {
   //   });
   // });
 
+  useEffect(() => {
+    if (subject?.length) {
+      console.log(subject);
+      axios
+        .get(`http://localhost:5001/subject/chapter/`, {
+          params: {
+            subject,
+          },
+        })
+        .then((res) => {
+          console.log({ res });
+          if (res.data) {
+            setChapterOptions(res.data);
+            setTopicOptions(res.data[0].topics);
+          }
+        });
+    }
+  }, [subject]);
+
+  useEffect(() => {
+    if (currentUser)
+      setUploadedBy({ userType: currentUser?.userType, id: currentUser?.id });
+  }, [currentUser]);
+
   async function handleSubmitQuestion() {
     if (currentUser) {
-      if (data.type === "single" || data.type === "multiple") {
-        const finalQuestion: IQuestionObjective = {
-          id,
-          type: data.type,
-          subject,
-          chapters,
-          topics,
-          difficulty,
-          source,
-          uploadedBy: {
-            userType: currentUser?.userType,
-            id: currentUser.id,
-          },
-          en: {
-            question: data.en.question,
-            options: data.en.options,
-            solution: data.en.solution,
-          },
-          hi: {
-            question: data.hi.question,
-            options: data.hi.options,
-            solution: data.hi.solution,
-          },
-          correctAnswers: data.correctAnswers,
-          createdAt: new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-          isProofRead: false,
-        };
-        console.log({ finalQuestion });
-        const res = await axios.post(
-          "http://localhost:5001/mcq/new",
-          finalQuestion
-        );
+      let questionCore = {
+        id: Date.now().toString(),
+        type: data.type,
+        subject,
+        chapters,
+        topics,
+        difficulty,
+        source,
+        createdAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
+        isProofRead: false,
+        uploadedBy: {
+          userType: currentUser?.userType,
+          id: currentUser.id,
+        },
+      };
+      switch (data.type) {
+        case "single":
+        case "multiple":
+          {
+            const finalQuestion: IQuestionObjective = {
+              ...questionCore,
+              en: {
+                question: data.en.question,
+                options: data.en.options,
+                solution: data.en.solution,
+              },
+              hi: {
+                question: data.hi.question,
+                options: data.hi.options,
+                solution: data.hi.solution,
+              },
+              correctAnswers: getCorrectAnswers(data.en.options),
+            };
+            console.log({ finalQuestion });
+            const res = await axios.post(
+              "http://localhost:5001/mcq/new",
+              finalQuestion
+            );
 
-        console.log({ res });
+            console.log({ res });
+          }
+          break;
+        case "integer":
+          {
+            const finalQuestion: IQuestionInteger = {
+              ...questionCore,
+              en: {
+                question: data.en.question,
+                solution: data.en.solution,
+              },
+              hi: {
+                question: data.hi.question,
+                solution: data.hi.solution,
+              },
+              correctAnswers: data.correctAnswers,
+            };
+
+            console.log({ finalQuestion });
+            const res = await axios.post(
+              "http://localhost:5001/numerical/new",
+              finalQuestion
+            );
+
+            console.log({ res });
+          }
+          break;
+        default:
+          return;
       }
     }
   }
@@ -171,13 +231,6 @@ const Questions = () => {
     <div className={styles.container}>
       <form>
         <div className={styles.inputFields}>
-          <StyledMUITextField
-            id="id"
-            disabled
-            label="Id"
-            value={id}
-            variant="outlined"
-          />
           <StyledMUISelect
             label={"Type"}
             options={questionTypes}
@@ -197,15 +250,21 @@ const Questions = () => {
           />
           <MUIChipsAutocomplete
             label="Chapter(s)"
-            options={chapters.map((chapter) => ({
-              name: chapter,
-              value: chapter,
+            options={chapterOptions?.map((chapter: any) => ({
+              name: chapter.name,
+              value: chapter.name,
             }))}
+            disabled={Boolean(!chapterOptions?.length)}
             onChange={setChapters}
           />
           <MUIChipsAutocomplete
             label="Topics"
-            options={topicOptions}
+            options={
+              topicOptions.map((topic) => ({
+                name: topic,
+                value: topic,
+              })) || []
+            }
             onChange={setTopics}
           />
           <StyledMUISelect
@@ -221,7 +280,7 @@ const Questions = () => {
           />
           <StyledMUITextField
             id="uploadedBy"
-            value={uploadedBy}
+            value={uploadedBy.id}
             label="Uploaded By"
             disabled
             variant="outlined"
@@ -230,7 +289,7 @@ const Questions = () => {
       </form>
       {/* <hr /> */}
       <section className={styles.main}>
-        {getQuestionFromType(type, id, setData)}
+        {getQuestionFromType(type, setData)}
       </section>
       <div>
         <Button onClick={handleSubmitQuestion}>Submit</Button>
@@ -255,19 +314,21 @@ const Questions = () => {
 
 export default Questions;
 
-function getQuestionFromType(
-  type: string,
-  id: string,
-  setData: (data: any) => void
-) {
+function getQuestionFromType(type: string, setData: (data: any) => void) {
   switch (type) {
     case "objective":
-      return <Objective id={id} setData={setData} />;
+      return <Objective setData={setData} />;
     case "integer":
-      return <Integer id={id} setData={setData} />;
+      return <Integer setData={setData} />;
     case "paragraph":
-      return <Paragraph id={id} setData={setData} />;
+      return <Paragraph setData={setData} />;
     case "matrix":
-      return <MatrixMatch id={id} setData={setData} />;
+      return <MatrixMatch setData={setData} />;
   }
+}
+
+function getCorrectAnswers(options: any) {
+  return options
+    .filter((option: any) => option.isCorrectAnswer)
+    .map((option: any) => option.id);
 }

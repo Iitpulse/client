@@ -56,6 +56,7 @@ interface MUIAutocompleteProps {
     name: string;
     value: string;
   }>;
+  disabled?: boolean;
 }
 
 export const MUIChipsAutocomplete = (props: MUIAutocompleteProps) => {
@@ -70,6 +71,7 @@ export const MUIChipsAutocomplete = (props: MUIAutocompleteProps) => {
           })
         )
       }
+      disabled={props.disabled}
       options={props.options}
       getOptionLabel={(option) => option.name}
       filterSelectedOptions

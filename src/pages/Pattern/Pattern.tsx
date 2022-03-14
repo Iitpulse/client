@@ -1,6 +1,10 @@
 import React, { HTMLInputTypeAttribute, useContext, useState } from "react";
 import styles from "./Pattern.module.scss";
-import { Sidebar, NotificationCard } from "../../components";
+import {
+  Sidebar,
+  NotificationCard,
+  MUISimpleAutocomplete,
+} from "../../components";
 import { StyledMUITextField } from "../Users/components";
 import { IPattern, ISection, ISubSection } from "../../utils/interfaces";
 import clsx from "clsx";
@@ -41,6 +45,24 @@ const Pattern = () => {
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
+  const examOptions = [
+    {
+      id: "JEE MAINS",
+      name: "JEE Mains",
+      value: "JEE MAINS",
+    },
+    {
+      id: "JEE ADVANCED",
+      name: "JEE Advanced",
+      value: "JEE ADVANCED",
+    },
+    {
+      id: "NEETUG",
+      name: "NEET",
+      value: "NEETUG",
+    },
+  ];
+
   const [sections, setSections] = useState<Array<ISection>>([]);
 
   function handleChangeSection(id: string, data: any) {
@@ -57,7 +79,7 @@ const Pattern = () => {
       {
         ...sampleSection,
         id: `${Math.random() * 100}`,
-        exam,
+        exam: exam,
         subject: "physics",
       },
     ]);
@@ -74,10 +96,10 @@ const Pattern = () => {
           .replace(/ /g, "")
           .toUpperCase()}`,
         name,
-        exam,
+        exam: exam,
         sections: sections.map((sec) => ({
           ...sec,
-          exam,
+          exam: exam,
         })),
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
@@ -105,10 +127,11 @@ const Pattern = () => {
             label="Name"
             onChange={(e: any) => setName(e.target.value)}
           />
-          <StyledMUITextField
-            value={exam}
+          <MUISimpleAutocomplete
             label="Exam"
-            onChange={(e: any) => setExam(e.target.value)}
+            onChange={setExam}
+            options={examOptions}
+            value={exam}
           />
         </div>
         <div className={styles.sections}>

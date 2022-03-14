@@ -16,51 +16,52 @@ import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
 import clsx from "clsx";
+import { generateOptions, getOptionID } from "../utils";
 
 interface Props {
-  id: string;
   setData: (data: any) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Paragraph: React.FC<Props> = ({ id }) => {
+const Paragraph: React.FC<Props> = ({ setData }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
   const [paragraph, setParagraph] = useState("");
-  const [questions, setQuestions] = useState([
-    {
-      en: {
-        question: "",
-        options: [...Array(4).fill({ id, value: "", isCorrectAnswer: false })],
-        solution: "",
+
+  const [questions, setQuestions] = useState(() => {
+    let tempOptions = generateOptions("single", 4);
+    return [
+      {
+        en: {
+          question: "",
+          options: tempOptions,
+          solution: "",
+        },
+        hi: {
+          question: "",
+          options: tempOptions,
+          solution: "",
+        },
       },
-      hi: {
-        question: "",
-        options: [...Array(4).fill({ id, value: "", isCorrectAnswer: false })],
-        solution: "",
-      },
-    },
-  ]);
+    ];
+  });
 
   function handlChangeQuestionsCount(type: "increment" | "decrement") {
     if (type === "increment") {
+      let tempOptions = generateOptions("single", 4);
       setQuestions([
         ...questions,
         {
           en: {
             question: "",
-            options: [
-              ...Array(4).fill({ id, value: "", isCorrectAnswer: false }),
-            ],
+            options: tempOptions,
             solution: "",
           },
           hi: {
             question: "",
-            options: [
-              ...Array(4).fill({ id, value: "", isCorrectAnswer: false }),
-            ],
+            options: tempOptions,
             solution: "",
           },
         },
@@ -129,7 +130,7 @@ const Paragraph: React.FC<Props> = ({ id }) => {
         <hr />
         <br />
         {questions.map((_, i) => (
-          <Question currentLanguage={currentLanguage} id={id} idx={i + 1} />
+          <Question currentLanguage={currentLanguage} idx={i + 1} />
         ))}
       </section>
     </section>
@@ -140,28 +141,26 @@ export default Paragraph;
 
 const Question: React.FC<{
   currentLanguage: "en" | "hi";
-  id: string;
   idx: number;
-}> = ({ currentLanguage, id, idx }) => {
+}> = ({ currentLanguage, idx }) => {
   const [tab, setTab] = useState(0);
   const [optionsCount, setOptionsCount] = useState(4);
   const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
 
-  const [values, setValues] = useState<any>({
-    en: {
-      question: "",
-      options: [
-        ...Array(optionsCount).fill({ id, value: "", isCorrectAnswer: false }),
-      ],
-      solution: "",
-    },
-    hi: {
-      question: "",
-      options: [
-        ...Array(optionsCount).fill({ id, value: "", isCorrectAnswer: false }),
-      ],
-      solution: "",
-    },
+  const [values, setValues] = useState<any>(() => {
+    let tempOptions = generateOptions(answerType, 4);
+    return {
+      en: {
+        question: "",
+        options: tempOptions,
+        solution: "",
+      },
+      hi: {
+        question: "",
+        options: tempOptions,
+        solution: "",
+      },
+    };
   });
 
   useEffect(() => {
@@ -174,6 +173,7 @@ const Question: React.FC<{
 
   function handleChaneOptionsCount(type: "increment" | "decrement") {
     if (type === "increment") {
+      let optionId = getOptionID(answerType, optionsCount + 1);
       setOptionsCount((prev) => prev + 1);
       setValues({
         ...values,
@@ -181,14 +181,14 @@ const Question: React.FC<{
           ...values.en,
           options: [
             ...values.en.options,
-            { id, value: "", isCorrectAnswer: false },
+            { id: optionId, value: "", isCorrectAnswer: false },
           ],
         },
         hi: {
           ...values.hi,
           options: [
             ...values.hi.options,
-            { id, value: "", isCorrectAnswer: false },
+            { id: optionId, value: "", isCorrectAnswer: false },
           ],
         },
       });

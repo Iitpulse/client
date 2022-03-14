@@ -9,15 +9,15 @@ import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
 import clsx from "clsx";
+import { generateOptions } from "../utils";
 
 interface Props {
-  id: string;
   setData: (data: any) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const MatrixMatch: React.FC<Props> = ({ id, setData }) => {
+const MatrixMatch: React.FC<Props> = ({ setData }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [tab, setTab] = useState(0);
@@ -26,21 +26,21 @@ const MatrixMatch: React.FC<Props> = ({ id, setData }) => {
   const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
-  const [values, setValues] = useState({
-    en: {
-      question: "",
-      options: [
-        ...Array(optionsCount).fill({ id, value: "", isCorrectAnswer: false }),
-      ],
-      solution: "",
-    },
-    hi: {
-      question: "",
-      options: [
-        ...Array(optionsCount).fill({ id, value: "", isCorrectAnswer: false }),
-      ],
-      solution: "",
-    },
+
+  const [values, setValues] = useState(() => {
+    let tempOptions = generateOptions(answerType, 4);
+    return {
+      en: {
+        question: "",
+        options: tempOptions,
+        solution: "",
+      },
+      hi: {
+        question: "",
+        options: tempOptions,
+        solution: "",
+      },
+    };
   });
   const [rows, setRows] = useState(1);
   const [cols, setCols] = useState(1);
@@ -134,14 +134,14 @@ const MatrixMatch: React.FC<Props> = ({ id, setData }) => {
           ...values.en,
           options: [
             ...values.en.options,
-            { id, value: "", isCorrectAnswer: false },
+            { id: Date.now().toString(), value: "", isCorrectAnswer: false },
           ],
         },
         hi: {
           ...values.hi,
           options: [
             ...values.hi.options,
-            { id, value: "", isCorrectAnswer: false },
+            { id: Date.now().toString(), value: "", isCorrectAnswer: false },
           ],
         },
       });
@@ -360,28 +360,6 @@ const MatrixMatch: React.FC<Props> = ({ id, setData }) => {
     </section>
   );
 };
-
-const StyledMUITextField = styled(TextField)(() => {
-  return {
-    minWidth: "250px",
-    input: {
-      fontSize: "1rem",
-      padding: "1.2rem 1.3rem",
-    },
-    label: {
-      fontSize: "1rem",
-      maxWidth: "none",
-      padding: "0rem 0.5rem",
-      backgroundColor: "white",
-    },
-    ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-    ".MuiFormLabel-filled": {
-      transform: "translate(12px, -9px) scale(0.75)",
-    },
-  };
-});
 
 export default MatrixMatch;
 

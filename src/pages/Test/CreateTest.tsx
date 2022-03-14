@@ -1,6 +1,6 @@
 import styles from "./CreateTest.module.scss";
 import { Button, Sidebar } from "../../components";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   ITest,
   IPattern,
@@ -23,12 +23,48 @@ import {
 import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
 import axios from "axios";
+import { AuthContext } from "../../utils/auth/AuthContext";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
   const { id, name, description, exam, status, validity, sections } = test;
   const [pattern, setPattern] = useState<IPattern | null>(null);
   const [patternOptions, setPatternOptions] = useState([]);
+
+  const { currentUser } = useContext(AuthContext);
+
+  const examOptions = [
+    {
+      id: "JEE_MAINS",
+      name: "JEE MAINS",
+      value: "JEE_MAINS",
+    },
+    {
+      id: "JEE_ADVANCED",
+      name: "JEE ADVANCED",
+      value: "JEE_ADVANCED",
+    },
+    {
+      id: "NEETUG",
+      name: "NEET",
+      value: "NEETUG",
+    },
+  ];
+
+  const statusOptions = [
+    {
+      name: "Ongoing",
+      value: "ongoing",
+    },
+    {
+      name: "Active",
+      value: "active",
+    },
+    {
+      name: "Inactive",
+      value: "inactive",
+    },
+  ];
 
   function onChangeInput(e: any) {
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -45,24 +81,81 @@ const CreateTest = () => {
   }, [pattern]);
 
   useEffect(() => {
-    let fetchData = async () => {
-      let response = await axios.get("http://localhost:5002/pattern/");
+    let fetchData = async (examName: string) => {
+      let response = await axios.get(
+        "http://localhost:5002/pattern/pattern/exam",
+        {
+          params: {
+            exam: examName,
+          },
+        }
+      );
+      console.log({ response });
       setPatternOptions(response.data);
     };
-    fetchData();
-  }, []);
+    if (test.exam?.name) {
+      fetchData(test.exam.name);
+    } else {
+      setPatternOptions([]);
+    }
+  }, [test]);
+
+  function handleClickSubmit() {
+    if (currentUser) {
+      let finalTest = {
+        ...test,
+        createdBy: {
+          id: currentUser.id,
+          userType: currentUser.userType,
+        },
+        createdAt: new Date().toISOString(),
+        modfiedAt: new Date().toISOString(),
+      };
+      console.log({ finalTest });
+    }
+  }
+
+  // function handleAddQuestion(
+  //   sectionId: string,
+  //   subSectionId: string,
+  //   question: any
+  // ) {
+  //   let newTest = { ...test };
+  //   newTest.sections.forEach((section: ISection) => {
+  //     if (section.id === sectionId) {
+  //       section.subSections.forEach((subSection: ISubSection) => {
+  //         if (subSection.id === subSectionId) {
+  //           subSection.questions[question.id] = question;
+  //         }
+  //       });
+  //     }
+  //   });
+  //   setTest(newTest);
+  // }
+
+  function handleUpdateSection(sectionId: string, data: any) {
+    setTest((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => {
+        if (section.id === sectionId) {
+          return { ...section, ...data };
+        }
+        return section;
+      }),
+    }));
+  }
 
   return (
     <>
       <div className={styles.container}>
         <div className={styles.inputFields}>
-          <StyledMUITextField
+          {/* <StyledMUITextField
             id="id"
             label="Id"
             value={id}
             variant="outlined"
             onChange={onChangeInput}
-          />
+          /> */}
           <StyledMUITextField
             id="name"
             label="Name"
@@ -77,49 +170,71 @@ const CreateTest = () => {
             variant="outlined"
             onChange={onChangeInput}
           />
-          <StyledMUITextField
-            id="exam"
+          <MUISimpleAutocomplete
             label="Exam"
-            value={exam.fullName}
-            variant="outlined"
-            onChange={onChangeInput}
+            onChange={(val: any) => {
+              console.log({ val });
+              onChangeInput({ target: { id: "exam", value: val } });
+            }}
+            options={examOptions}
+            value={{ name: test.exam?.name, value: test.exam?.name }}
           />
-          <StyledMUITextField
-            id="status"
+          <MUISimpleAutocomplete
             label="Status"
-            value={status}
-            variant="outlined"
-            onChange={onChangeInput}
+            onChange={(val: any) =>
+              onChangeInput({ target: { id: "status", value: val.name } })
+            }
+            options={statusOptions}
+            value={{
+              name: status,
+              value: status,
+            }}
           />
-
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <DateRangePicker
-              startText="Valid From"
-              endText="Valid Till"
-              value={[validity.from, validity.to]}
-              onChange={handleChangeValidity}
-              renderInput={(startProps, endProps) => (
-                <>
-                  <TextField {...startProps} style={{ minWidth: 200 }} />
-                  <Box sx={{ mx: 2 }}> to </Box>
-                  <TextField {...endProps} style={{ minWidth: 200 }} />
-                </>
-              )}
-            />
-          </LocalizationProvider>
+          <div className={styles.dateSelector}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DateRangePicker
+                startText="Valid From"
+                endText="Valid Till"
+                value={[validity.from, validity.to]}
+                onChange={handleChangeValidity}
+                renderInput={(startProps, endProps) => (
+                  <>
+                    <TextField {...startProps} />
+                    <Box sx={{ mx: 2 }}> to </Box>
+                    <TextField {...endProps} />
+                  </>
+                )}
+              />
+            </LocalizationProvider>
+          </div>
           <MUISimpleAutocomplete
             label="Pattern"
             onChange={(val: any) => setPattern(val)}
             options={patternOptions}
+            disabled={!Boolean(patternOptions.length)}
+            value={{
+              name: pattern?.name || "",
+              value: pattern?.name || "",
+            }}
           />
         </div>
-        {sections && (
+        {sections && pattern && (
           <section className={styles.sections}>
             {sections.map((section) => (
-              <Section {...section} key={section.id} />
+              <Section
+                section={section}
+                key={section.id}
+                handleUpdateSection={handleUpdateSection}
+              />
             ))}
           </section>
         )}
+        {!sections.length && (
+          <p style={{ textAlign: "center" }}>
+            Please select a pattern to create Test
+          </p>
+        )}
+        <Button onClick={handleClickSubmit}>Submit Test</Button>
       </div>
       <Sidebar title="Recent Activity">Recent</Sidebar>
     </>
@@ -128,13 +243,23 @@ const CreateTest = () => {
 
 export default CreateTest;
 
-const Section: React.FC<ISection> = ({
-  name,
-  subject,
-  totalQuestions,
-  toBeAttempted,
-  subSections,
-}) => {
+const Section: React.FC<{
+  section: ISection;
+  handleUpdateSection: (sectionId: string, data: any) => void;
+}> = ({ section, handleUpdateSection }) => {
+  const { name, subject, totalQuestions, toBeAttempted, subSections } = section;
+
+  function handleUpdateSubSection(subSectionId: string, data: any) {
+    handleUpdateSection(section.id, {
+      subSections: section.subSections.map((subSection) => {
+        if (subSection.id === subSectionId) {
+          return { ...subSection, ...data };
+        }
+        return subSection;
+      }),
+    });
+  }
+
   return (
     <CustomAccordion className={styles.section}>
       <CustomAccordionSummary>{name}</CustomAccordionSummary>
@@ -159,7 +284,11 @@ const Section: React.FC<ISection> = ({
         </div>
         <div className={styles.subSections}>
           {subSections?.map((subSection: ISubSection) => (
-            <SubSection key={subSection.id} {...subSection} />
+            <SubSection
+              key={subSection.id}
+              subSection={subSection}
+              handleUpdateSubSection={handleUpdateSubSection}
+            />
           ))}
         </div>
       </CustomAccordionDetails>
@@ -167,15 +296,22 @@ const Section: React.FC<ISection> = ({
   );
 };
 
-const SubSection: React.FC<ISubSection> = ({
-  name,
-  description,
-  totalQuestions,
-  toBeAttempted,
-  type,
-}) => {
+const SubSection: React.FC<{
+  subSection: ISubSection;
+  handleUpdateSubSection: (subSectionId: string, data: any) => void;
+}> = ({ subSection, handleUpdateSubSection }) => {
   const [questionModal, setQuestionModal] = useState<boolean>(false);
-  const [questions, setQuestions] = useState([]);
+  const [tempQuestions, setTempQuestions] = useState<any>({});
+  // const [questions, setQuestions] = useState([]);
+  const { name, description, totalQuestions, toBeAttempted, type, questions } =
+    subSection;
+
+  useEffect(() => {
+    console.log({ questions });
+    if (questions) {
+      setTempQuestions(questions);
+    }
+  }, [questions]);
 
   return (
     <div className={styles.subSection}>
@@ -213,16 +349,20 @@ const SubSection: React.FC<ISubSection> = ({
           <Button>Auto Generate</Button>
         </div>
         <div className={styles.questionsList}>
-          {Object.values(questions).map((question: any) => (
-            <Question key={question.id} {...question} />
-          ))}
+          {tempQuestions &&
+            Object.values(tempQuestions)?.map((question: any) => (
+              <Question key={question.id} {...question} />
+            ))}
         </div>
       </div>
       <InsertQuestionModal
         open={questionModal}
         onClose={() => setQuestionModal(false)}
-        questions={questions}
-        setQuestions={(qs: any) => setQuestions(qs)}
+        questions={questions ? Object.values(questions) : []}
+        totalQuestions={totalQuestions ?? 0}
+        setQuestions={(qs: any) =>
+          handleUpdateSubSection(subSection.id, { questions: qs })
+        }
         type="Single"
         subject="Physics"
       />

@@ -1,8 +1,13 @@
+import { TextField } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { MUIChipsAutocomplete } from "../../../components";
+import CustomDialog from "../../../components/CustomDialog/CustomDialog";
 import CustomModal from "../../../components/CustomModal/CustomModal";
+import { StyledMUITextField } from "../../Users/components";
 import styles from "../CreateTest.module.scss";
+import MUISimpleAutocomplete from "./MUISimpleAutocomplete";
+import { Table } from "antd";
 
 interface Props {
   open: boolean;
@@ -10,14 +15,33 @@ interface Props {
   questions: Array<any>;
   setQuestions: (questions: Array<any>) => void;
   subject: string;
+  totalQuestions: number;
   type: string;
 }
+
+const rowSelection = {
+  onChange: (selectedRowKeys: any, selectedRows: any) => {
+    console.log(
+      `selectedRowKeys: ${selectedRowKeys}`,
+      "selectedRows: ",
+      selectedRows
+    );
+  },
+  onSelect: (record: any, selected: any, selectedRows: any) => {
+    console.log(record, selected, selectedRows);
+  },
+  onSelectAll: (selected: any, selectedRows: any, changeRows: any) => {
+    console.log(selected, selectedRows, changeRows);
+  },
+};
 
 const InsertQuestionModal: React.FC<Props> = ({
   open,
   onClose,
   questions,
   setQuestions,
+  totalQuestions,
+  subject,
 }) => {
   const [difficulties, setDifficulties] = useState([]);
   const [chapters, setChapters] = useState([]);
@@ -52,11 +76,19 @@ const InsertQuestionModal: React.FC<Props> = ({
   useEffect(() => {
     if (difficulties?.length) {
       fetchQuestions();
+    } else {
+      setQuestions([]);
     }
   }, [difficulties]);
 
   return (
-    <CustomModal open={open} handleClose={onClose} title="Insert Question">
+    <CustomDialog
+      open={open}
+      handleClose={onClose}
+      actionBtnText="Save"
+      title="Insert Question"
+      onClickActionBtn={() => {}}
+    >
       <div className={styles.insertQuestionModal}>
         <div className={styles.inputFieldsHeader}>
           <MUIChipsAutocomplete
@@ -69,23 +101,76 @@ const InsertQuestionModal: React.FC<Props> = ({
             options={chaptersOptions}
             onChange={setChapters}
           />
+          <TextField label="Subject" disabled value={subject} />
+          <TextField label="Total Questions" disabled value={totalQuestions} />
+          <MUISimpleAutocomplete
+            label="Search Question"
+            // value={search}
+            options={[]}
+            onChange={setSearch}
+          />
+        </div>
+        <div className={styles.questionsTable}>
+          <Table
+            columns={cols}
+            dataSource={questions?.map((question) => ({
+              ...question,
+              key: question.id || question._id,
+            }))}
+            rowSelection={{ ...rowSelection }}
+            scroll={{
+              y: "50vh",
+            }}
+            expandable={{
+              expandedRowRender: (record) => (
+                <div
+                  style={{ margin: "0 auto", width: "70%" }}
+                  className={styles.flexRow}
+                >
+                  {record?.en?.options?.map((option: any, i: number) => (
+                    <div key={i}>
+                      <span>{String.fromCharCode(64 + i + 1)})</span>
+                      <div
+                        dangerouslySetInnerHTML={{ __html: option.value }}
+                      ></div>
+                    </div>
+                  ))}
+                </div>
+              ),
+            }}
+          />
         </div>
       </div>
-      {questions.map((question: any) => (
-        <div className={styles.modalQuestion}>
-          <div
-            key={question.id}
-            dangerouslySetInnerHTML={{ __html: question?.en?.question }}
-          ></div>
-          <div className={styles.options}>
-            {question.en.options.map((option: any) => (
-              <div dangerouslySetInnerHTML={{ __html: option.value }}></div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </CustomModal>
+    </CustomDialog>
   );
 };
 
 export default InsertQuestionModal;
+
+const cols = [
+  {
+    title: "Question",
+    dataIndex: "en",
+    key: "question",
+    render: (en: any) => (
+      <div dangerouslySetInnerHTML={{ __html: en.question }}></div>
+    ),
+  },
+  {
+    title: "Difficulty",
+    dataIndex: "difficulty",
+    key: "difficulty",
+  },
+  {
+    title: "Chapter(s)",
+    dataIndex: "chapters",
+    key: "chapter",
+    render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
+  },
+  {
+    title: "Proof Read?",
+    dataIndex: "isProofRead",
+    key: "isProofRead",
+    render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
+  },
+];

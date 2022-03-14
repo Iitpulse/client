@@ -8,50 +8,67 @@ import { styled } from "@mui/system";
 import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
+import { getOptionID } from "../utils";
 
 interface Props {
-  id: string;
   setData: (data: any) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Integer: React.FC<Props> = ({ id, setData }) => {
+const Integer: React.FC<Props> = ({ setData }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [tab, setTab] = useState(0);
   const [optionsCount, setOptionsCount] = useState(4);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
-  const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
+  const [answerType, setAnswerType] = useState<string>("integer");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
   const [values, setValues] = useState({
     en: {
       question: "",
       options: [
-        ...Array(optionsCount).fill({ id, value: "", isCorrectAnswer: false }),
+        ...Array(optionsCount).fill({
+          id: Date.now().toString(),
+          value: "",
+          isCorrectAnswer: false,
+        }),
       ],
       solution: "",
     },
     hi: {
       question: "",
       options: [
-        ...Array(optionsCount).fill({ id, value: "", isCorrectAnswer: false }),
+        ...Array(optionsCount).fill({
+          id: Date.now().toString(),
+          value: "",
+          isCorrectAnswer: false,
+        }),
       ],
       solution: "",
     },
   });
 
   useEffect(() => {
-    setData({ ...values, type: answerType });
-  }, [values, setData, answerType]);
+    setData({
+      ...values,
+      type: answerType,
+      correctAnswers: {
+        from,
+        to,
+      },
+    });
+  }, [values, setData, answerType, from, to]);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
 
   function handleChangeEditor(id: string, value: string, index?: number) {
+    console.log({ id, value, index });
     if (id === "question" || id === "solution") {
+      console.log({ id, value });
       setValues({
         ...values,
         [currentLanguage]: {
@@ -71,94 +88,6 @@ const Integer: React.FC<Props> = ({ id, setData }) => {
         ),
       },
     });
-  }
-
-  function handleChangeAnswerType(e: any) {
-    setValues({
-      ...values,
-      en: {
-        ...values.en,
-        options: values.en.options.map((option) => ({
-          ...option,
-          isCorrectAnswer: false,
-        })),
-      },
-      hi: {
-        ...values.hi,
-        options: values.hi.options.map((option) => ({
-          ...option,
-          isCorrectAnswer: false,
-        })),
-      },
-    });
-    setAnswerType(e.target.value);
-  }
-
-  function handleChangeCorrectAnswer(e: any, optionIdx: number) {
-    setValues({
-      ...values,
-      en: {
-        ...values.en,
-        options: values.en.options.map(
-          (option, i) =>
-            i === optionIdx
-              ? { ...option, isCorrectAnswer: e.target.checked }
-              : answerType === "single"
-              ? { ...option, isCorrectAnswer: false } // Setting other values to false in case of single correct
-              : option // nothing happens with multiple correct
-        ),
-      },
-      hi: {
-        ...values.hi,
-        options: values.hi.options.map(
-          (option, i) =>
-            i === optionIdx
-              ? { ...option, isCorrectAnswer: e.target.checked }
-              : answerType === "single"
-              ? { ...option, isCorrectAnswer: false } // Setting other values to false in case of single correct
-              : option // nothing happens with multiple correct
-        ),
-      },
-    });
-  }
-
-  function handleChaneOptionsCount(type: "increment" | "decrement") {
-    if (type === "increment") {
-      setOptionsCount((prev) => prev + 1);
-      setValues({
-        ...values,
-        en: {
-          ...values.en,
-          options: [
-            ...values.en.options,
-            { id, value: "", isCorrectAnswer: false },
-          ],
-        },
-        hi: {
-          ...values.hi,
-          options: [
-            ...values.hi.options,
-            { id, value: "", isCorrectAnswer: false },
-          ],
-        },
-      });
-    } else {
-      if (optionsCount > 0) {
-        // Don't allow to decrement below 0
-        setOptionsCount((prev) => prev - 1);
-        setValues({
-          ...values,
-          en: {
-            ...values.en,
-            options: values.en.options.slice(0, optionsCount - 1),
-          },
-          hi: {
-            ...values.hi,
-            options: values.hi.options.slice(0, optionsCount - 1),
-          },
-        });
-      }
-    }
   }
 
   return (
@@ -250,23 +179,7 @@ const Integer: React.FC<Props> = ({ id, setData }) => {
           />
         </div>
       </TabPanel>
-      {values[currentLanguage].options.map((_, index) => (
-        <TabPanel value={tab} index={index + 1} key={index}>
-          <div className={styles.editor}>
-            <ReactQuill
-              theme="snow"
-              value={values[currentLanguage].options[index].value}
-              onChange={(val: string) =>
-                handleChangeEditor("option", val, index)
-              }
-              modules={modules}
-              formats={formats}
-              bounds={styles.editor}
-            />
-          </div>
-        </TabPanel>
-      ))}
-      <TabPanel value={tab} index={values[currentLanguage].options.length + 1}>
+      <TabPanel value={tab} index={1}>
         <div className={styles.editor}>
           <ReactQuill
             theme="snow"
