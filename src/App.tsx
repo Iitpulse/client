@@ -8,12 +8,14 @@ import {
   Pattern,
   Batches,
   Login,
-  CreateTest,Results
+  CreateTest,
+  Results,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
 import TestsContextProvider from "./utils/contexts/TestContext";
 import PrivateRoute from "./utils/auth/PrivateRoute";
+import CreateQuestion from "./pages/Questions/CreateQuestion";
 
 const App = () => {
   return (
@@ -56,6 +58,15 @@ const App = () => {
                 }
               />
               <Route
+                path="/questions/new"
+                element={
+                  <PrivateRoute
+                    component={CreateQuestion}
+                    title="Create New Question"
+                  />
+                }
+              />
+              <Route
                 path="/roles"
                 element={<PrivateRoute component={Roles} title="Roles" />}
               />
@@ -63,7 +74,6 @@ const App = () => {
                 path="/users"
                 element={<PrivateRoute component={Users} title="Users" />}
               />
-              
             </Routes>
           </Router>
         </TestsContextProvider>

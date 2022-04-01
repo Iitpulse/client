@@ -313,6 +313,23 @@ const SubSection: React.FC<{
     }
   }, [questions]);
 
+  async function generateQuestions() {
+    const { data } = await axios.get(`http://localhost:5001/mcq/autogenerate`, {
+      params: {
+        type,
+        difficulties: ["easy"],
+        totalQuestions: subSection.totalQuestions,
+      },
+    });
+    console.table(data);
+    setTempQuestions(data);
+  }
+
+  function handleClickAutoGenerate() {
+    const newQuestions = generateQuestions();
+    setTempQuestions(newQuestions);
+  }
+
   return (
     <div className={styles.subSection}>
       <div className={styles.header}>
@@ -346,7 +363,7 @@ const SubSection: React.FC<{
           >
             + Add Question
           </div>
-          <Button>Auto Generate</Button>
+          <Button onClick={handleClickAutoGenerate}>Auto Generate</Button>
         </div>
         <div className={styles.questionsList}>
           {tempQuestions &&

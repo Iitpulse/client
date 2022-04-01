@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useContext, useEffect } from "react";
 import styles from "./Questions.module.scss";
 import { Sidebar, NotificationCard, Button } from "../../components";
 import "react-quill/dist/quill.snow.css";
@@ -9,16 +9,12 @@ import { StyledMUITextField } from "../Users/components";
 import {
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
-  QuestionsTable,
   StyledMUISelect,
 } from "./components";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
 import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
-import { CSVLink } from "react-csv";
-import { useReactToPrint } from "react-to-print";
-import { useNavigate } from "react-router-dom";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -97,7 +93,7 @@ export const examList = [
   },
 ];
 
-const Questions = () => {
+const CreateQuestion = () => {
   // const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<string>>([]);
   const [type, setType] = useState<string>("objective");
@@ -155,12 +151,6 @@ const Questions = () => {
     if (currentUser)
       setUploadedBy({ userType: currentUser?.userType, id: currentUser?.id });
   }, [currentUser]);
-
-  const tableRef = useRef<any>(null);
-
-  const handlePrint = useReactToPrint({
-    content: () => tableRef.current,
-  });
 
   async function handleSubmitQuestion() {
     if (currentUser) {
@@ -237,20 +227,9 @@ const Questions = () => {
     }
   }
 
-  const [questions, setQuestions] = useState([]);
-
-  useEffect(() => {
-    axios.get(`http://localhost:5001/mcq/questions`).then((res) => {
-      console.log({ res });
-      setQuestions(res.data);
-    });
-  }, []);
-
-  const navigate = useNavigate();
-
   return (
     <div className={styles.container}>
-      {/* <form>
+      <form>
         <div className={styles.inputFields}>
           <StyledMUISelect
             label={"Type"}
@@ -307,30 +286,14 @@ const Questions = () => {
             variant="outlined"
           />
         </div>
-      </form> */}
-      <div className={styles.flexRow}>
-        <Button onClick={() => navigate("/questions/new")}>Add New</Button>
-        <Button onClick={handlePrint}>Print</Button>
-        <CSVLink filename={"Questions.csv"} data={questions}>
-          Export to CSV
-        </CSVLink>
-      </div>
-      <div ref={tableRef}>
-        <QuestionsTable
-          dataSource={questions?.map((question: any) => ({
-            ...question,
-            key: question.id || question._id,
-          }))}
-          height="70vh"
-        />
-      </div>
+      </form>
       {/* <hr /> */}
-      {/* <section className={styles.main}>
+      <section className={styles.main}>
         {getQuestionFromType(type, setData)}
-      </section> */}
-      {/* <div>
+      </section>
+      <div>
         <Button onClick={handleSubmitQuestion}>Submit</Button>
-      </div> */}
+      </div>
       <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
@@ -349,7 +312,7 @@ const Questions = () => {
   );
 };
 
-export default Questions;
+export default CreateQuestion;
 
 function getQuestionFromType(type: string, setData: (data: any) => void) {
   switch (type) {
