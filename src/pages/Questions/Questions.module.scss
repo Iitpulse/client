@@ -39,26 +39,33 @@
 }
 
 .printContainer {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  // position: fixed;
+  // top: 0;
+  // left: 50%;
+  // transform: translateX(-50%);
   background: white;
   z-index: -1;
   pointer-events: none;
   border: 1px solid grey;
-  width: 240mm;
-  height: 297mm;
+  // width: 240mm;
+  overflow-y: auto;
+
+  // height: 297mm;
   @extend .flexRow;
 
   .print {
     position: relative;
-    height: 100%;
-    width: 80%;
+    // height: 100%;
+    width: 100%;
     margin: 0 auto;
-    // padding: 3rem;
+    padding: 3rem;
 
     .printHeader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 150px;
       .upper {
         @extend .flexRow;
         background: rgb(75, 75, 75);
@@ -106,7 +113,7 @@
       }
     }
     .questions {
-      margin-top: 2rem;
+      // margin-top: 2rem;
       .question {
         @extend .flexRow;
         justify-content: flex-start;
@@ -139,6 +146,8 @@
     }
 
     .content {
+      height: calc(270mm - 150px - 100px);
+      margin-top: 150px;
       margin-bottom: 100px;
     }
   }

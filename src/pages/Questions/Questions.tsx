@@ -367,76 +367,75 @@ const PrintTest: React.FC<{
   title: string;
   questions: any[];
 }> = ({ subject, chapter, title, questions }) => {
-  return (
-    <section className={styles.print}>
-      <div className={styles.printHeader}>
-        <div className={styles.upper}>
-          <p>{subject}</p>
-          <p>IOY</p>
-          <p>{chapter}</p>
-        </div>
-        <div className={styles.lower}>
-          <h2>{title}</h2>
-          <p>Date: {new Date().toLocaleDateString()}</p>
-        </div>
-      </div>
-      <div className={styles.content}>
-        <div className={styles.questionsContainer}>
-          <div className={styles.questions}>
-            {questions.map((question: any, i: number) => (
-              <div key={question.id} className={styles.question}>
-                <span>{i + 1}.</span>
-                <div>
-                  <div
-                    dangerouslySetInnerHTML={{ __html: question.en.question }}
-                  ></div>
-                  <Grid container className={styles.options}>
-                    {question.en.options.map((option: any, j: number) => (
-                      <Grid key={j} item md={6}>
-                        <div className={styles.option}>
-                          <span>{String.fromCharCode(97 + j)})</span>
-                          <div
-                            dangerouslySetInnerHTML={{ __html: option.value }}
-                          ></div>
-                        </div>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className={styles.questions}>
-            {questions.map((question: any, i: number) => (
-              <div key={question.id} className={styles.question}>
-                <span>{i + 1}.</span>
-                <div>
-                  <div
-                    dangerouslySetInnerHTML={{ __html: question.en.question }}
-                  ></div>
-                  <Grid container className={styles.options}>
-                    {question.en.options.map((option: any, j: number) => (
-                      <Grid key={j} item md={6} xs={6} lg={6} xl={6}>
-                        <div className={styles.option}>
-                          <span>{String.fromCharCode(97 + j)})</span>
-                          <div
-                            dangerouslySetInnerHTML={{ __html: option.value }}
-                          ></div>
-                        </div>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+  const [pages, setPages] = useState([
+    {
+      count: 0,
+      questions: [],
+    },
+  ]);
 
-      <div className={styles.footer}>
-        <img src={logo} alt="logo" />
-      </div>
-    </section>
+  useEffect(() => {
+    if (questions?.length) {
+    }
+  }, [questions]);
+
+  return (
+    <>
+      {pages.map((page) => (
+        <section className={styles.print}>
+          <div className={styles.printHeader}>
+            <div className={styles.upper}>
+              <p>{subject}</p>
+              <p>IOY</p>
+              <p>{chapter}</p>
+            </div>
+            <div className={styles.lower}>
+              <h2>{title}</h2>
+              <p>Date: {new Date().toLocaleDateString()}</p>
+            </div>
+          </div>
+          <div className={styles.content}>
+            <div className={styles.questionsContainer}>
+              <QuestionsComp questions={[...questions, ...questions]} />
+              <QuestionsComp questions={[...questions, ...questions]} />
+            </div>
+          </div>
+
+          <div className={styles.footer}>
+            <img src={logo} alt="logo" />
+          </div>
+        </section>
+      ))}
+    </>
+  );
+};
+
+const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
+  return (
+    <div className={styles.questions}>
+      {questions.map((question: any, i: number) => (
+        <div key={question.id} className={styles.question}>
+          <span>{i + 1}.</span>
+          <div>
+            <div
+              dangerouslySetInnerHTML={{ __html: question.en.question }}
+            ></div>
+            <Grid container className={styles.options}>
+              {question.en.options.map((option: any, j: number) => (
+                <Grid key={j} item md={6} xs={6} lg={6} xl={6}>
+                  <div className={styles.option}>
+                    <span>{String.fromCharCode(97 + j)})</span>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: option.value }}
+                    ></div>
+                  </div>
+                </Grid>
+              ))}
+            </Grid>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 
