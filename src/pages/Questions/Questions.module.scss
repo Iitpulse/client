@@ -3,6 +3,7 @@
 .container {
   width: 100%;
   padding-bottom: 2rem;
+  position: relative;
   .inputFields {
     margin: 0.5rem 0;
     @extend .flexRow;
@@ -34,5 +35,120 @@
     padding: 1rem 1.5rem;
     border-radius: 10px;
     margin-top: 1rem;
+  }
+}
+
+.printContainer {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  z-index: -1;
+  pointer-events: none;
+  border: 1px solid grey;
+  width: 240mm;
+  height: 297mm;
+  @extend .flexRow;
+
+  .print {
+    position: relative;
+    height: 100%;
+    width: 80%;
+    margin: 0 auto;
+    // padding: 3rem;
+
+    .printHeader {
+      .upper {
+        @extend .flexRow;
+        background: rgb(75, 75, 75);
+        // padding: 1rem;
+        p {
+          color: black;
+          background: white;
+          padding: 0.5rem 2rem;
+          font-size: 1.2rem;
+          margin: 0;
+        }
+      }
+      .lower {
+        @extend .flexRow;
+        margin-top: 1rem;
+        background: rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+        border-bottom: 2px solid black;
+        position: relative;
+        p {
+          position: absolute;
+          top: 0;
+          right: 0;
+          background: white;
+          padding: 0.5rem 2rem;
+          font-size: 1.2rem;
+          font-weight: 600;
+        }
+        h2 {
+          text-align: center;
+          width: 100%;
+          font-weight: 600;
+          color: black;
+        }
+      }
+    }
+    .questionsContainer {
+      @extend .flexRow;
+      > div:nth-child(1) {
+        border-right: 1px solid black;
+        padding-right: 1rem;
+      }
+      > div:nth-child(2) {
+        padding-left: 1rem;
+      }
+    }
+    .questions {
+      margin-top: 2rem;
+      .question {
+        @extend .flexRow;
+        justify-content: flex-start;
+        align-items: flex-start;
+
+        span {
+          font-weight: 600;
+        }
+
+        > div {
+          margin-left: 1rem;
+          * {
+            color: black !important;
+            font-size: 1.1rem;
+          }
+        }
+
+        .options {
+          width: 100%;
+          .option {
+            @extend .flexRow;
+            justify-content: flex-start;
+            align-items: flex-start;
+            > div {
+              margin-left: 1rem;
+            }
+          }
+        }
+      }
+    }
+
+    .content {
+      margin-bottom: 100px;
+    }
+  }
+  .footer {
+    position: absolute;
+    bottom: 0;
+    height: 100px;
+    width: 100%;
+    @extend .flexRow;
+    border-top: 2px solid black;
+    text-align: center;
   }
 }
