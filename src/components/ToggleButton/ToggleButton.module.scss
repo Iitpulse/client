@@ -1,0 +1,45 @@
+@import "../../utils/commons.scss";
+
+.switchPath{
+    user-select: none;
+    width: 56px;
+    height: 26px;
+    background: #CCCECD;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    .circle{
+        width: 23px;
+        height: 19px;
+        background: #FFFFFF;
+        border-radius: 50px;
+        position: absolute;
+        transition: left 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        left: 5px;
+    }
+    .tick{
+        position: absolute;
+        color:#55BC7E;
+    }
+    .cross{
+        position: absolute;
+        color:#CCCECD
+    }
+}
+.switchPath.active{
+    background: #55BC7E;
+    .circle{
+        left: 28px;
+    }
+}
+.switchPath .tick, .switchPath.active .cross{
+    display: none;
+}
+.switchPath.active .tick, .switchPath .cross{
+    display: block;
+}

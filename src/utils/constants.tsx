@@ -115,6 +115,12 @@ export const PERMISSIONS = {
     UPDATE: "UPDATE_PATTERN",
     DELETE: "DELETE_PATTERN",
   },
+  ROLE: {
+    CREATE: "CREATE_ROLE",
+    READ: "READ_ROLE",
+    UPDATE: "UPDATE_ROLE",
+    DELETE: "DELETE_ROLE",
+  },
 };
 
 // export const SAMPLE_TEST = {

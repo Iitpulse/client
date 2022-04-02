@@ -10,18 +10,42 @@ import {
   Login,
   CreateTest,
   Results,
+  EditRole,
+  Error,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
 import TestsContextProvider from "./utils/contexts/TestContext";
 import PrivateRoute from "./utils/auth/PrivateRoute";
-import PermissionContextProvider from "./utils/contexts/PermissionContext";
+import PermissionsContextProvider from "./utils/contexts/PermissionsContext";
+import { usePermission } from "./utils/contexts/PermissionsContext";
+import { PERMISSIONS } from "./utils/constants";
+import { useEffect } from "react";
 
 const App = () => {
+  // const isBatchesPermitted = usePermission(
+  //   PERMISSIONS?.BATCH?.READ ? PERMISSIONS.BATCH.READ : "undefined"
+  // );
+
+  function CheckRouteForPermission(
+    permission: string,
+    Component: any,
+    title: string
+  ) {
+    const isPermitted = usePermission(permission);
+    return isPermitted ? (
+      <PrivateRoute title={title} component={Component} />
+    ) : (
+      <Error />
+    );
+  }
+  // useEffect(() => {
+  //   console.log(isBatchesPermitted);
+  // });
   return (
     <div className={styles.container}>
       <AuthContextProvider>
-        <PermissionContextProvider>
+        <PermissionsContextProvider>
           <TestsContextProvider>
             <Router>
               <Routes>
@@ -33,6 +57,11 @@ const App = () => {
                 <Route
                   path="/batches"
                   element={<PrivateRoute component={Batches} title="Batches" />}
+                  // element={CheckRouteForPermission(
+                  //   PERMISSIONS.BATCH.READ,
+                  //   Batches,
+                  //   "Batches"
+                  // )}
                 />
                 <Route
                   path="/pattern"
@@ -63,13 +92,19 @@ const App = () => {
                   element={<PrivateRoute component={Roles} title="Roles" />}
                 />
                 <Route
+                  path="/roles/:roleName"
+                  element={
+                    <PrivateRoute component={EditRole} title="Edit Role" />
+                  }
+                />
+                <Route
                   path="/users"
                   element={<PrivateRoute component={Users} title="Users" />}
                 />
               </Routes>
             </Router>
           </TestsContextProvider>
-        </PermissionContextProvider>
+        </PermissionsContextProvider>
       </AuthContextProvider>
     </div>
   );

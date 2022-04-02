@@ -19,6 +19,9 @@ import {
 import tickCircle from "../../assets/icons/tick-circle.svg";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
+import { usePermission } from "../../utils/contexts/PermissionsContext";
+import { PERMISSIONS } from "../../utils/constants";
+import { Error } from "../";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -40,6 +43,13 @@ const sampleSubSection = {
 };
 
 const Pattern = () => {
+  const isReadPermitted = usePermission(
+    PERMISSIONS?.PATTERN?.READ ? PERMISSIONS.PATTERN.READ : ""
+  );
+  // const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
+  // const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
+  // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
+
   const { currentUser } = useContext(AuthContext);
 
   const [name, setName] = useState("");
@@ -120,57 +130,63 @@ const Pattern = () => {
 
   return (
     <>
-      <section className={styles.container}>
-        <div className={styles.header}>
-          <StyledMUITextField
-            value={name}
-            label="Name"
-            onChange={(e: any) => setName(e.target.value)}
-          />
-          <MUISimpleAutocomplete
-            label="Exam"
-            onChange={setExam}
-            options={examOptions}
-            value={exam}
-          />
-        </div>
-        <div className={styles.sections}>
-          {sections.map((section, i) => (
-            <Section
-              key={i}
-              section={section}
-              setSection={handleChangeSection}
-              handleDeleteSection={handleDeleteSection}
-              index={i}
-            />
-          ))}
-        </div>
-        <div className={styles.addSection} onClick={handleClickAddNew}>
-          <p>+ Add New Section</p>
-        </div>
-        <Tooltip title="Save Pattern" placement="top">
-          <IconButton
-            className={styles.savePatternBtn}
-            onClick={handleClickSubmit}
-          >
-            <img src={tickCircle} alt="save-pattern" />
-          </IconButton>
-        </Tooltip>
-      </section>
-      <Sidebar title="Recent Activity">
-        {Array(10)
-          .fill(0)
-          .map((_, i) => (
-            <NotificationCard
-              key={i}
-              id="aasdadsd"
-              status={i % 2 === 0 ? "success" : "warning"}
-              title={"New Student Joined-" + i}
-              description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-              createdAt="10 Jan, 2022"
-            />
-          ))}
-      </Sidebar>
+      {isReadPermitted ? (
+        <>
+          <section className={styles.container}>
+            <div className={styles.header}>
+              <StyledMUITextField
+                value={name}
+                label="Name"
+                onChange={(e: any) => setName(e.target.value)}
+              />
+              <MUISimpleAutocomplete
+                label="Exam"
+                onChange={setExam}
+                options={examOptions}
+                value={exam}
+              />
+            </div>
+            <div className={styles.sections}>
+              {sections.map((section, i) => (
+                <Section
+                  key={i}
+                  section={section}
+                  setSection={handleChangeSection}
+                  handleDeleteSection={handleDeleteSection}
+                  index={i}
+                />
+              ))}
+            </div>
+            <div className={styles.addSection} onClick={handleClickAddNew}>
+              <p>+ Add New Section</p>
+            </div>
+            <Tooltip title="Save Pattern" placement="top">
+              <IconButton
+                className={styles.savePatternBtn}
+                onClick={handleClickSubmit}
+              >
+                <img src={tickCircle} alt="save-pattern" />
+              </IconButton>
+            </Tooltip>
+          </section>
+          <Sidebar title="Recent Activity">
+            {Array(10)
+              .fill(0)
+              .map((_, i) => (
+                <NotificationCard
+                  key={i}
+                  id="aasdadsd"
+                  status={i % 2 === 0 ? "success" : "warning"}
+                  title={"New Student Joined-" + i}
+                  description="New student join IIT Pulse Anurag Pal - Dropper Batch"
+                  createdAt="10 Jan, 2022"
+                />
+              ))}
+          </Sidebar>
+        </>
+      ) : (
+        <Error />
+      )}
     </>
   );
 };
