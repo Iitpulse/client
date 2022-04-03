@@ -1,5 +1,5 @@
 import closeIcon from "../../assets/icons/close-circle.svg";
-import avatar from "../../assets/images/profilePlaceholder.svg";
+import avatar from "../../assets/images/profilePlaceholder.jpg";
 import phone from "../../assets/icons/phone.svg";
 import mail from "../../assets/icons/mail.svg";
 import styles from "./UserProfile.module.scss";
