@@ -19,13 +19,13 @@ const MenuDrawer = (props: MenuDrawerProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
-    // Close the menu drawer if width is less than 1300px
+    // Close the menu drawer if width is <= 1300px
     setIsCollapsed(window.innerWidth <= 1300);
   }, []);
 
   useLayoutEffect(() => {
     function handleResize() {
-      // Close the menu drawer if width is less than 1300px
+      // Close the menu drawer if width is <= 1300px
       setIsCollapsed(window.innerWidth <= 1300);
     }
 
