@@ -21,6 +21,7 @@ import PermissionsContextProvider from "./utils/contexts/PermissionsContext";
 import { usePermission } from "./utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "./utils/constants";
 import { useEffect } from "react";
+import CreateQuestion from "./pages/Questions/CreateQuestion";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(

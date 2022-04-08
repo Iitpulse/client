@@ -1,3 +1,8 @@
+import { IconButton } from "@mui/material";
+import { Tag } from "antd";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+
 export const USER_TYPES = {
   ADMIN: "admin",
   OPERATOR: "operator",
@@ -197,3 +202,106 @@ export const PERMISSIONS = {
 //   createdAt: new Date().toISOString(),
 //   modifiedAt: new Date().toISOString(),
 // };
+
+export const QUESTION_COLS_ALL = [
+  {
+    title: "ID",
+    dataIndex: "id",
+    key: "id",
+    fixed: "left",
+    width: 100,
+    render: (id: any) => (
+      <p
+        style={{
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {id}
+      </p>
+    ),
+  },
+  {
+    title: "Question",
+    dataIndex: "en",
+    key: "question",
+    width: 300,
+    render: (en: any) => (
+      <div
+        dangerouslySetInnerHTML={{ __html: en.question }}
+        style={{ maxHeight: "50px", overflow: "hidden" }}
+      ></div>
+    ),
+  },
+  {
+    title: "Type",
+    dataIndex: "type",
+    key: "type",
+    width: 100,
+  },
+  {
+    title: "Difficulty",
+    dataIndex: "difficulty",
+    key: "difficulty",
+    width: 100,
+    render: (difficulty: string) => (
+      <Tag
+        color={
+          difficulty === "easy"
+            ? "green"
+            : difficulty === "medium"
+            ? "yellow"
+            : "red"
+        }
+      >
+        {difficulty}
+      </Tag>
+    ),
+  },
+  {
+    title: "Chapter(s)",
+    dataIndex: "chapters",
+    key: "chapter",
+    render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
+    width: 150,
+  },
+  {
+    title: "Proof Read?",
+    dataIndex: "isProofRead",
+    key: "isProofRead",
+    render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
+    width: 100,
+  },
+  {
+    title: "Uploaded By",
+    dataIndex: "uploadedBy",
+    key: "uploadedBy",
+    render: (uploadedBy: any) => (
+      <p>{uploadedBy?.userType?.toUpperCase() || null}</p>
+    ),
+    width: 150,
+  },
+  {
+    title: "Actions",
+    key: "actions",
+    fixed: "right",
+    width: 100,
+    render: () => (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <IconButton>
+          <EditIcon />
+        </IconButton>
+        <IconButton>
+          <DeleteIcon />
+        </IconButton>
+      </div>
+    ),
+  },
+];

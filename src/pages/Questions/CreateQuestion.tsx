@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useContext, useEffect } from "react";
 import styles from "./Questions.module.scss";
 import { Sidebar, NotificationCard, Button } from "../../components";
 import "react-quill/dist/quill.snow.css";
@@ -9,21 +9,12 @@ import { StyledMUITextField } from "../Users/components";
 import {
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
-  QuestionsTable,
   StyledMUISelect,
 } from "./components";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
 import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
-import { usePermission } from "../../utils/contexts/PermissionsContext";
-import { PERMISSIONS } from "../../utils/constants";
-import { Error } from "../";
-import { CSVLink } from "react-csv";
-import { useReactToPrint } from "react-to-print";
-import { useNavigate } from "react-router-dom";
-import { Grid } from "@mui/material";
-import logo from "../../assets/images/logo.svg";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -102,13 +93,7 @@ export const examList = [
   },
 ];
 
-const Questions = () => {
-  const isReadPermitted = usePermission(PERMISSIONS.QUESTION.READ);
-  const isReadGlobalPermitted = usePermission(PERMISSIONS.QUESTION.READ_GLOBAL);
-  const isCreatePermitted = usePermission(PERMISSIONS.QUESTION.CREATE);
-  const isUpdatePermitted = usePermission(PERMISSIONS.QUESTION.UPDATE);
-  const isDeletePermitted = usePermission(PERMISSIONS.QUESTION.DELETE);
-
+const CreateQuestion = () => {
   // const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<string>>([]);
   const [type, setType] = useState<string>("objective");
@@ -166,12 +151,6 @@ const Questions = () => {
     if (currentUser)
       setUploadedBy({ userType: currentUser?.userType, id: currentUser?.id });
   }, [currentUser]);
-
-  const tableRef = useRef<any>(null);
-
-  const handlePrint = useReactToPrint({
-    content: () => tableRef.current,
-  });
 
   async function handleSubmitQuestion() {
     if (currentUser) {
@@ -248,137 +227,9 @@ const Questions = () => {
     }
   }
 
-  const [questions, setQuestions] = useState([]);
-
-  useEffect(() => {
-    axios.get(`http://localhost:5001/mcq/questions`).then((res) => {
-      console.log({ res });
-      setQuestions(res.data);
-    });
-  }, []);
-
-  const navigate = useNavigate();
-
   return (
     <div className={styles.container}>
-      {isReadPermitted ? (
-        <>
-          {isCreatePermitted && (
-            <>
-              <form>
-                <div className={styles.inputFields}>
-                  <StyledMUISelect
-                    label={"Type"}
-                    options={questionTypes}
-                    state={type}
-                    onChange={setType}
-                  />
-                  <MUIChipsAutocomplete
-                    label="Exam(s)"
-                    options={examList}
-                    onChange={setExams}
-                  />
-                  <StyledMUISelect
-                    label={"Subject"}
-                    options={subjects}
-                    state={subject}
-                    onChange={setSubject}
-                  />
-                  <MUIChipsAutocomplete
-                    label="Chapter(s)"
-                    options={chapterOptions?.map((chapter: any) => ({
-                      name: chapter.name,
-                      value: chapter.name,
-                    }))}
-                    disabled={Boolean(!chapterOptions?.length)}
-                    onChange={setChapters}
-                  />
-                  <MUIChipsAutocomplete
-                    label="Topics"
-                    options={
-                      topicOptions.map((topic) => ({
-                        name: topic,
-                        value: topic,
-                      })) || []
-                    }
-                    onChange={setTopics}
-                  />
-                  <StyledMUISelect
-                    label={"Difficulty"}
-                    options={difficultyLevels}
-                    state={difficulty}
-                    onChange={setDifficulty}
-                  />
-                  <MUISimpleAutocomplete
-                    label={"Source"}
-                    options={sources}
-                    onChange={setSource}
-                  />
-                  <StyledMUITextField
-                    id="uploadedBy"
-                    value={uploadedBy.id}
-                    label="Uploaded By"
-                    disabled
-                    variant="outlined"
-                  />
-                </div>
-              </form>
-              {/* <hr /> */}
-              <section className={styles.main}>
-                {getQuestionFromType(type, setData)}
-              </section>
-              <div className={styles.flexRow}>
-                <Button onClick={() => navigate("/questions/new")}>Add New</Button>
-                <Button onClick={handlePrint}>Print</Button>
-                <CSVLink filename={"Questions.csv"} data={questions}>
-                  Export to CSV
-                </CSVLink>
-              </div>
-              <div>
-                <QuestionsTable
-                  dataSource={questions?.map((question: any) => ({
-                    ...question,
-                    key: question.id || question._id,
-                  }))}
-                  height="70vh"
-                />
-              </div>
-              {/* <hr /> */}
-              {/* <section className={styles.main}>
-                {getQuestionFromType(type, setData)}
-              </section> */}
-              {/* <div>
-                <Button onClick={handleSubmitQuestion}>Submit</Button>
-              </div> */}
-              <Sidebar title="Recent Activity">
-                {Array(10)
-                  .fill(0)
-                  .map((_, i) => (
-                    <NotificationCard
-                      key={i}
-                      id="aasdadsd"
-                      status={i % 2 === 0 ? "success" : "warning"}
-                      title={"New Student Joined-" + i}
-                      description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-                      createdAt="10 Jan, 2022"
-                    />
-                  ))}
-              </Sidebar>
-              <div ref={tableRef} className={styles.printContainer}>
-                <PrintTest
-                  subject="Physics"
-                  chapter="Ray Optics"
-                  title="Daily Rapid Test #025"
-                  questions={questions}
-                />
-              </div>
-            </>
-          )}
-        </>
-      ) : (
-        <Error />
-      )}
-      {/* <form>
+      <form>
         <div className={styles.inputFields}>
           <StyledMUISelect
             label={"Type"}
@@ -435,90 +286,33 @@ const Questions = () => {
             variant="outlined"
           />
         </div>
-      </form> */}
-  </div>
-  );
-};
-
-export default Questions;
-
-const PrintTest: React.FC<{
-  subject: string;
-  chapter: string;
-  title: string;
-  questions: any[];
-}> = ({ subject, chapter, title, questions }) => {
-  const [pages, setPages] = useState([
-    {
-      count: 0,
-      questions: [],
-    },
-  ]);
-
-  useEffect(() => {
-    if (questions?.length) {
-    }
-  }, [questions]);
-
-  return (
-    <>
-      {pages.map((page) => (
-        <section className={styles.print}>
-          <div className={styles.printHeader}>
-            <div className={styles.upper}>
-              <p>{subject}</p>
-              <p>IOY</p>
-              <p>{chapter}</p>
-            </div>
-            <div className={styles.lower}>
-              <h2>{title}</h2>
-              <p>Date: {new Date().toLocaleDateString()}</p>
-            </div>
-          </div>
-          <div className={styles.content}>
-            <div className={styles.questionsContainer}>
-              <QuestionsComp questions={[...questions, ...questions]} />
-              <QuestionsComp questions={[...questions, ...questions]} />
-            </div>
-          </div>
-
-          <div className={styles.footer}>
-            <img src={logo} alt="logo" />
-          </div>
-        </section>
-      ))}
-    </>
-  );
-};
-
-const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
-  return (
-    <div className={styles.questions}>
-      {questions.map((question: any, i: number) => (
-        <div key={question.id} className={styles.question}>
-          <span>{i + 1}.</span>
-          <div>
-            <div
-              dangerouslySetInnerHTML={{ __html: question.en.question }}
-            ></div>
-            <Grid container className={styles.options}>
-              {question.en.options.map((option: any, j: number) => (
-                <Grid key={j} item md={6} xs={6} lg={6} xl={6}>
-                  <div className={styles.option}>
-                    <span>{String.fromCharCode(97 + j)})</span>
-                    <div
-                      dangerouslySetInnerHTML={{ __html: option.value }}
-                    ></div>
-                  </div>
-                </Grid>
-              ))}
-            </Grid>
-          </div>
-        </div>
-      ))}
+      </form>
+      {/* <hr /> */}
+      <section className={styles.main}>
+        {getQuestionFromType(type, setData)}
+      </section>
+      <div>
+        <Button onClick={handleSubmitQuestion}>Submit</Button>
+      </div>
+      <Sidebar title="Recent Activity">
+        {Array(10)
+          .fill(0)
+          .map((_, i) => (
+            <NotificationCard
+              key={i}
+              id="aasdadsd"
+              status={i % 2 === 0 ? "success" : "warning"}
+              title={"New Student Joined-" + i}
+              description="New student join IIT Pulse Anurag Pal - Dropper Batch"
+              createdAt="10 Jan, 2022"
+            />
+          ))}
+      </Sidebar>
     </div>
   );
 };
+
+export default CreateQuestion;
 
 function getQuestionFromType(type: string, setData: (data: any) => void) {
   switch (type) {

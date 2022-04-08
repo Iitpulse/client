@@ -47,6 +47,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [chapters, setChapters] = useState([]);
   const [topics, setTopics] = useState([]);
   const [search, setSearch] = useState("");
+  const [chaptersOptions, setChaptersOptions] = useState([]);
 
   const difficultyOptions = [
     { name: "Easy", value: "easy" },
@@ -54,11 +55,11 @@ const InsertQuestionModal: React.FC<Props> = ({
     { name: "Hard", value: "hard" },
   ];
 
-  const chaptersOptions = [
-    { name: "Easy", value: "easy" },
-    { name: "Medium", value: "medium" },
-    { name: "Hard", value: "hard" },
-  ];
+  // const chaptersOptions = [
+  //   { name: "Easy", value: "easy" },
+  //   { name: "Medium", value: "medium" },
+  //   { name: "Hard", value: "hard" },
+  // ];
 
   async function fetchQuestions() {
     const res = await axios.get("http://localhost:5001/mcq/difficulty", {
@@ -80,6 +81,21 @@ const InsertQuestionModal: React.FC<Props> = ({
       setQuestions([]);
     }
   }, [difficulties]);
+
+  useEffect(() => {
+    if (subject) {
+      axios
+        .get(`http://localhost:5001/mcq/chapter/`, {
+          params: {
+            subject,
+          },
+        })
+        .then((res) => {
+          console.log({ res });
+          setChaptersOptions(res.data);
+        });
+    }
+  }, [subject]);
 
   return (
     <CustomDialog
