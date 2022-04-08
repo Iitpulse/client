@@ -16,6 +16,9 @@ import MatrixMatch from "./MatrixMatch/MatrixMatch";
 import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
+import { usePermission } from "../../utils/contexts/PermissionsContext";
+import { PERMISSIONS } from "../../utils/constants";
+import { Error } from "../";
 import { CSVLink } from "react-csv";
 import { useReactToPrint } from "react-to-print";
 import { useNavigate } from "react-router-dom";
@@ -100,6 +103,12 @@ export const examList = [
 ];
 
 const Questions = () => {
+  const isReadPermitted = usePermission(PERMISSIONS.QUESTION.READ);
+  const isReadGlobalPermitted = usePermission(PERMISSIONS.QUESTION.READ_GLOBAL);
+  const isCreatePermitted = usePermission(PERMISSIONS.QUESTION.CREATE);
+  const isUpdatePermitted = usePermission(PERMISSIONS.QUESTION.UPDATE);
+  const isDeletePermitted = usePermission(PERMISSIONS.QUESTION.DELETE);
+
   // const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<string>>([]);
   const [type, setType] = useState<string>("objective");
@@ -252,6 +261,123 @@ const Questions = () => {
 
   return (
     <div className={styles.container}>
+      {isReadPermitted ? (
+        <>
+          {isCreatePermitted && (
+            <>
+              <form>
+                <div className={styles.inputFields}>
+                  <StyledMUISelect
+                    label={"Type"}
+                    options={questionTypes}
+                    state={type}
+                    onChange={setType}
+                  />
+                  <MUIChipsAutocomplete
+                    label="Exam(s)"
+                    options={examList}
+                    onChange={setExams}
+                  />
+                  <StyledMUISelect
+                    label={"Subject"}
+                    options={subjects}
+                    state={subject}
+                    onChange={setSubject}
+                  />
+                  <MUIChipsAutocomplete
+                    label="Chapter(s)"
+                    options={chapterOptions?.map((chapter: any) => ({
+                      name: chapter.name,
+                      value: chapter.name,
+                    }))}
+                    disabled={Boolean(!chapterOptions?.length)}
+                    onChange={setChapters}
+                  />
+                  <MUIChipsAutocomplete
+                    label="Topics"
+                    options={
+                      topicOptions.map((topic) => ({
+                        name: topic,
+                        value: topic,
+                      })) || []
+                    }
+                    onChange={setTopics}
+                  />
+                  <StyledMUISelect
+                    label={"Difficulty"}
+                    options={difficultyLevels}
+                    state={difficulty}
+                    onChange={setDifficulty}
+                  />
+                  <MUISimpleAutocomplete
+                    label={"Source"}
+                    options={sources}
+                    onChange={setSource}
+                  />
+                  <StyledMUITextField
+                    id="uploadedBy"
+                    value={uploadedBy.id}
+                    label="Uploaded By"
+                    disabled
+                    variant="outlined"
+                  />
+                </div>
+              </form>
+              {/* <hr /> */}
+              <section className={styles.main}>
+                {getQuestionFromType(type, setData)}
+              </section>
+              <div className={styles.flexRow}>
+                <Button onClick={() => navigate("/questions/new")}>Add New</Button>
+                <Button onClick={handlePrint}>Print</Button>
+                <CSVLink filename={"Questions.csv"} data={questions}>
+                  Export to CSV
+                </CSVLink>
+              </div>
+              <div>
+                <QuestionsTable
+                  dataSource={questions?.map((question: any) => ({
+                    ...question,
+                    key: question.id || question._id,
+                  }))}
+                  height="70vh"
+                />
+              </div>
+              {/* <hr /> */}
+              {/* <section className={styles.main}>
+                {getQuestionFromType(type, setData)}
+              </section> */}
+              {/* <div>
+                <Button onClick={handleSubmitQuestion}>Submit</Button>
+              </div> */}
+              <Sidebar title="Recent Activity">
+                {Array(10)
+                  .fill(0)
+                  .map((_, i) => (
+                    <NotificationCard
+                      key={i}
+                      id="aasdadsd"
+                      status={i % 2 === 0 ? "success" : "warning"}
+                      title={"New Student Joined-" + i}
+                      description="New student join IIT Pulse Anurag Pal - Dropper Batch"
+                      createdAt="10 Jan, 2022"
+                    />
+                  ))}
+              </Sidebar>
+              <div ref={tableRef} className={styles.printContainer}>
+                <PrintTest
+                  subject="Physics"
+                  chapter="Ray Optics"
+                  title="Daily Rapid Test #025"
+                  questions={questions}
+                />
+              </div>
+            </>
+          )}
+        </>
+      ) : (
+        <Error />
+      )}
       {/* <form>
         <div className={styles.inputFields}>
           <StyledMUISelect
@@ -310,52 +436,7 @@ const Questions = () => {
           />
         </div>
       </form> */}
-      <div className={styles.flexRow}>
-        <Button onClick={() => navigate("/questions/new")}>Add New</Button>
-        <Button onClick={handlePrint}>Print</Button>
-        <CSVLink filename={"Questions.csv"} data={questions}>
-          Export to CSV
-        </CSVLink>
-      </div>
-      <div>
-        <QuestionsTable
-          dataSource={questions?.map((question: any) => ({
-            ...question,
-            key: question.id || question._id,
-          }))}
-          height="70vh"
-        />
-      </div>
-      {/* <hr /> */}
-      {/* <section className={styles.main}>
-        {getQuestionFromType(type, setData)}
-      </section> */}
-      {/* <div>
-        <Button onClick={handleSubmitQuestion}>Submit</Button>
-      </div> */}
-      <Sidebar title="Recent Activity">
-        {Array(10)
-          .fill(0)
-          .map((_, i) => (
-            <NotificationCard
-              key={i}
-              id="aasdadsd"
-              status={i % 2 === 0 ? "success" : "warning"}
-              title={"New Student Joined-" + i}
-              description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-              createdAt="10 Jan, 2022"
-            />
-          ))}
-      </Sidebar>
-      <div ref={tableRef} className={styles.printContainer}>
-        <PrintTest
-          subject="Physics"
-          chapter="Ray Optics"
-          title="Daily Rapid Test #025"
-          questions={questions}
-        />
-      </div>
-    </div>
+  </div>
   );
 };
 

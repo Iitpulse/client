@@ -1,1 +1,32 @@
 @import "../../utils/commons.scss";
+
+.roles{
+    background-color: white;
+    padding:2rem 1.5rem;
+    width: 100%;
+    .tableHeader{
+        display:flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .tableContent{
+        a{
+            width: 100% !important;
+            display: flex;
+            padding:1rem 0;
+            align-items: center;
+            p{
+                margin: 0;
+            }
+            .member{
+                display: flex;
+                align-items: center;
+                margin-left: auto;
+                margin-right: 40%;
+                >img{
+                    padding-right:1rem;
+                }
+            }
+        }
+    }
+}
