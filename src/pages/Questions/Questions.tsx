@@ -151,6 +151,9 @@ const Questions = () => {
           params: {
             subject,
           },
+          headers: {
+            "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",
+          },
         })
         .then((res) => {
           console.log({ res });
@@ -251,10 +254,16 @@ const Questions = () => {
   const [questions, setQuestions] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:5001/mcq/questions`).then((res) => {
-      console.log({ res });
-      setQuestions(res.data);
-    });
+    axios
+      .get(`http://localhost:5001/mcq/questions`, {
+        headers: {
+          "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",
+        },
+      })
+      .then((res) => {
+        console.log({ res });
+        setQuestions(res.data);
+      });
   }, []);
 
   const navigate = useNavigate();
@@ -265,7 +274,7 @@ const Questions = () => {
         <>
           {isCreatePermitted && (
             <>
-              <form>
+              {/* <form>
                 <div className={styles.inputFields}>
                   <StyledMUISelect
                     label={"Type"}
@@ -322,13 +331,15 @@ const Questions = () => {
                     variant="outlined"
                   />
                 </div>
-              </form>
+              </form> */}
               {/* <hr /> */}
-              <section className={styles.main}>
+              {/* <section className={styles.main}>
                 {getQuestionFromType(type, setData)}
-              </section>
+              </section> */}
               <div className={styles.flexRow}>
-                <Button onClick={() => navigate("/questions/new")}>Add New</Button>
+                <Button onClick={() => navigate("/questions/new")}>
+                  Add New
+                </Button>
                 <Button onClick={handlePrint}>Print</Button>
                 <CSVLink filename={"Questions.csv"} data={questions}>
                   Export to CSV
@@ -436,7 +447,7 @@ const Questions = () => {
           />
         </div>
       </form> */}
-  </div>
+    </div>
   );
 };
 
