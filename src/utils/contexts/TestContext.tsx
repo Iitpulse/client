@@ -32,7 +32,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
       const res = await axios.get("http://localhost:5002/test", {
         headers: {
           "Content-Type": "application/json",
-          "x-access-token": localStorage.getItem("token") || "",
+          "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",
         },
       });
       if (res.data?.length > 0) {

@@ -7,10 +7,24 @@ import { Link } from "react-router-dom";
 import add from "../../assets/icons/add.svg";
 import member from "../../assets/icons/member.svg";
 import kebabMenu from "../../assets/icons/kebabMenu.svg";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import AddNewRole from "./AddNewRole";
 
 const Roles = () => {
   const isReadPermitted = usePermission(PERMISSIONS.BATCH.READ);
   console.log(isReadPermitted);
+  const [roles, setRoles] = useState([]);
+  const [newRoleModal, setNewRoleModal] = useState(false);
+
+  useEffect(() => {
+    async function getRoles() {
+      const response = await axios.get("http://localhost:5000/roles/all");
+      setRoles(response.data);
+    }
+    getRoles();
+  }, []);
+
   return (
     <>
       {isReadPermitted ? (
@@ -19,10 +33,20 @@ const Roles = () => {
             <div className={styles.tableHeader}>
               <h4>Roles</h4>
               <h4>Members</h4>
-              <img src={add} alt="" />
+              <img src={add} alt="" onClick={() => setNewRoleModal(true)} />
             </div>
             <div className={styles.tableContent}>
-              <Link to="/roles/teacher">
+              {roles.map((role: any) => (
+                <Link to={`/roles/${role.id}`}>
+                  <p>Teacher</p>{" "}
+                  <div className={styles.member}>
+                    <img src={member} alt="Member" />
+                    <p>{role.members?.length}</p>
+                  </div>
+                  <img src={kebabMenu} alt="Kebab Menu" />
+                </Link>
+              ))}
+              {/* <Link to="/roles/teacher">
                 <p>Teacher</p>{" "}
                 <div className={styles.member}>
                   <img src={member} alt="Member" />
@@ -65,7 +89,7 @@ const Roles = () => {
                   <p>34</p>
                 </div>{" "}
                 <img src={kebabMenu} alt="Kebab Menu" />
-              </Link>
+              </Link> */}
             </div>
           </div>
           <Sidebar title="Recent Activity">
@@ -82,6 +106,10 @@ const Roles = () => {
                 />
               ))}
           </Sidebar>
+          <AddNewRole
+            open={newRoleModal}
+            handleClose={() => setNewRoleModal(false)}
+          />
         </>
       ) : (
         <Error />

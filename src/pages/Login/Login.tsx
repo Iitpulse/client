@@ -29,6 +29,7 @@ const Login = () => {
         email: decoded.email,
         userType: decoded.userType,
         instituteId: decoded.instituteId,
+        permissions: decoded.permissions,
       });
       localStorage.setItem("token", response.data.token);
       navigate("/");

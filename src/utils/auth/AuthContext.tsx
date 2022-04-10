@@ -1,5 +1,5 @@
 import { useState, createContext, useEffect } from "react";
-import { decodeToken } from "react-jwt";
+import { decodeToken, isExpired } from "react-jwt";
 import { ICurrentUser, IAuthContext } from "../interfaces";
 
 interface ProviderProps {
@@ -20,11 +20,18 @@ const AuthContextProvider = (props: ProviderProps) => {
     const user = localStorage.getItem("token");
     if (user) {
       let decoded = decodeToken(user) as any;
+      console.log({ decoded });
+      if (isExpired(user)) {
+        localStorage.removeItem("token");
+        setCurrentUser(null);
+        return;
+      }
       setCurrentUser({
         email: decoded.email,
         id: decoded.id,
         userType: decoded.userType,
         instituteId: decoded.instituteId,
+        permissions: decoded.permissions,
       });
     }
   }, []);

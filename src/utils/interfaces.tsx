@@ -3,6 +3,7 @@ export interface ICurrentUser {
   email: string;
   userType: string;
   instituteId: string;
+  permissions: { [key: string]: { from: string; to: string } };
 }
 
 export interface IAuthContext {

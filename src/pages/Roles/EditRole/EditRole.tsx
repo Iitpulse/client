@@ -1,18 +1,25 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { Tabs, Tab } from "@mui/material";
+import { Tabs, Tab, Stack } from "@mui/material";
 import styles from "./EditRole.module.scss";
 import { usePermission } from "../../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../../utils/constants";
 import { Error } from "../../";
-import { Sidebar, NotificationCard, ToggleButton } from "../../../components";
+import {
+  Sidebar,
+  NotificationCard,
+  ToggleButton,
+  Button,
+} from "../../../components";
 import clsx from "clsx";
+import axios from "axios";
 
 const EditRole = () => {
   const { roleName } = useParams();
   const [tab, setTab] = useState(0);
   const [permissionInformation, setPermissionInformation] = useState<any>({});
   const [permissions, setPermissions] = useState<any>([]);
+  const [allowedPermisions, setAllowedPermissions] = useState<any>([]);
   const isReadPermitted = usePermission(PERMISSIONS?.ROLE?.READ);
   interface TabPanelProps {
     children?: React.ReactNode;
@@ -207,17 +214,58 @@ const EditRole = () => {
   useEffect(() => {
     getRoleInformation(roleName);
   }, [roleName]);
+
   useEffect(() => {
     if (permissionInformation?.permission)
       setPermissions(Object.keys(permissionInformation.permission));
     console.log(permissionInformation);
   }, [permissionInformation]);
+
+  function handleChangePermission(idx: number, checked: boolean) {
+    console.log({ idx, checked });
+    if (checked) {
+      setAllowedPermissions([...allowedPermisions, idx]);
+    } else {
+      setAllowedPermissions(
+        allowedPermisions.filter((item: any) => item !== idx)
+      );
+    }
+  }
+
+  async function handleClickUpdate() {
+    let newPerms = {};
+
+    allowedPermisions
+      .map((idx: number) => permissions[idx])
+      .forEach((perm: any) => {
+        newPerms = {
+          ...newPerms,
+          [perm]: {
+            from: new Date().toISOString(),
+            to: new Date(
+              new Date().setDate(new Date().getDate() + 365)
+            ).toISOString(),
+          },
+        };
+      });
+
+    const res = await axios.post("http://localhost:5000/roles/update", {
+      id: `ROLE_${roleName?.toUpperCase()}`,
+      permissions: newPerms,
+    });
+
+    console.log({ res });
+  }
+
   return (
     <>
       {isReadPermitted ? (
         <>
           <div className={styles.editRole}>
-            {roleName}
+            <div className={styles.flexRow}>
+              <p>{roleName}</p>
+              <Button onClick={handleClickUpdate}>Update</Button>
+            </div>
             <br />
             <Tabs value={tab} onChange={handleChangeTab}>
               <Tab label="Permissions" />
@@ -229,11 +277,14 @@ const EditRole = () => {
                   return (
                     <div key={index}>
                       <Permission
+                        idx={index}
                         name={permission}
                         description={
                           permissionInformation.permission[permission]
                             .description
                         }
+                        allowedPermissions={allowedPermisions}
+                        handleChangePermission={handleChangePermission}
                       />
                       {<div className={styles.separationLine}></div>}
                     </div>
@@ -270,19 +321,28 @@ const EditRole = () => {
 };
 
 interface PermissionProps {
+  idx: number;
   name: string;
   description: string;
+  allowedPermissions: number[];
+  handleChangePermission: (idx: number, checked: boolean) => void;
 }
 
-const Permission = (props: PermissionProps) => {
+export const Permission = (props: PermissionProps) => {
+  const { idx, name, description, allowedPermissions, handleChangePermission } =
+    props;
+
   return (
     <div className={styles.permission}>
       <div className={styles.leftContent}>
-        <h4>{props.name}</h4>
+        <h4>{name}</h4>
 
-        <p>{props.description}</p>
+        <p>{description}</p>
       </div>
-      <ToggleButton />
+      <ToggleButton
+        checked={allowedPermissions.includes(idx)}
+        onChange={(checked) => handleChangePermission(idx, checked)}
+      />
     </div>
   );
 };
