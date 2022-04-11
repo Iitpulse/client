@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState, useContext } from "react";
+import { PERMISSIONS } from "../constants";
 
 interface PermissionsType {
   READ_QUESTION?: {
@@ -146,7 +147,8 @@ interface PermissionsType {
 }
 
 interface PermissionsContextType {
-  permissions: PermissionsType;
+  permissions: any;
+  setPermissions: (permissions: any) => void;
 }
 
 export const PermissionsContext = createContext<PermissionsContextType>(
@@ -154,9 +156,7 @@ export const PermissionsContext = createContext<PermissionsContextType>(
 );
 
 const PermissionsContextProvider: React.FC = ({ children }) => {
-  const [permissions, setPermissions] = useState<PermissionsType>(
-    {} as PermissionsType
-  );
+  const [permissions, setPermissions] = useState<any>({});
 
   function getPermissions() {
     return {
@@ -306,10 +306,11 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
   }
 
   useEffect(() => {
-    setPermissions(getPermissions());
+    // setPermissions(flattendPermissions());
   }, []);
+
   return (
-    <PermissionsContext.Provider value={{ permissions }}>
+    <PermissionsContext.Provider value={{ permissions, setPermissions }}>
       {children}
     </PermissionsContext.Provider>
   );
@@ -323,3 +324,14 @@ export const usePermission = (permission: string) => {
 export default PermissionsContextProvider;
 
 const permissionssssss = ["create_questions", "update_questions"];
+
+const flattendPermissions = () => {
+  let final: any = [];
+  console.log({ per: Object.keys(PERMISSIONS) });
+  Object.keys(PERMISSIONS).forEach((item) => {
+    // @ts-ignores
+    final = [...final, ...Object.values(PERMISSIONS[item])];
+  });
+  console.log({ final });
+  return final;
+};

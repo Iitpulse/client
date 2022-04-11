@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { InputField, Modal, Button } from "../../components";
 import styles from "./AddNewRole.module.scss";
 import { PERMISSIONS } from "../../utils/constants";
 import { Permission } from "./EditRole/EditRole";
+import axios from "axios";
+import { AuthContext } from "../../utils/auth/AuthContext";
 
-const flattendPermissions = () => {
+export const flattendPermissions = () => {
   let final: any = [];
   console.log({ per: Object.keys(PERMISSIONS) });
   Object.keys(PERMISSIONS).forEach((item) => {
@@ -22,7 +24,23 @@ const AddNewRole: React.FC<{
   const [name, setName] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState<any>([]);
 
-  async function handleSubmit() {}
+  const { currentUser } = useContext(AuthContext);
+
+  async function handleSubmit() {
+    const res = await axios.post("http://localhost:5000/roles/create", {
+      name,
+      permissions: flattendPermissions().filter((_: any, i: number) =>
+        selectedPermissions.includes(i)
+      ),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: {
+        id: currentUser?.id,
+        userType: currentUser?.userType,
+      },
+    });
+    console.log({ res });
+  }
 
   return (
     <Modal

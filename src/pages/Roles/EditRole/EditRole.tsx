@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { Tabs, Tab, Stack } from "@mui/material";
+import { Tabs, Tab } from "@mui/material";
 import styles from "./EditRole.module.scss";
-import { usePermission } from "../../../utils/contexts/PermissionsContext";
+import {
+  PermissionsContext,
+  usePermission,
+} from "../../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../../utils/constants";
 import { Error } from "../../";
 import {
@@ -20,12 +23,16 @@ const EditRole = () => {
   const [permissionInformation, setPermissionInformation] = useState<any>({});
   const [permissions, setPermissions] = useState<any>([]);
   const [allowedPermisions, setAllowedPermissions] = useState<any>([]);
-  const isReadPermitted = usePermission(PERMISSIONS?.ROLE?.READ);
+  const isReadPermitted = usePermission(PERMISSIONS?.ROLE?.UPDATE);
+
+  const { permissions: rolePermissions } = useContext(PermissionsContext);
+
   interface TabPanelProps {
     children?: React.ReactNode;
     index: number;
     value: number;
   }
+
   function TabPanel(props: TabPanelProps) {
     const { children, value, index, ...other } = props;
 
@@ -216,6 +223,14 @@ const EditRole = () => {
   }, [roleName]);
 
   useEffect(() => {
+    if (rolePermissions && roleName) {
+      let perms = rolePermissions[roleName];
+      console.log(rolePermissions, perms);
+      setAllowedPermissions(perms.map((_: any) => permissions.indexOf(_)));
+    }
+  }, [rolePermissions, roleName, permissions]);
+
+  useEffect(() => {
     if (permissionInformation?.permission)
       setPermissions(Object.keys(permissionInformation.permission));
     console.log(permissionInformation);
@@ -233,24 +248,25 @@ const EditRole = () => {
   }
 
   async function handleClickUpdate() {
-    let newPerms = {};
+    let newPerms = allowedPermisions.map((idx: number) => permissions[idx]);
+    console.log({ newPerms });
 
-    allowedPermisions
-      .map((idx: number) => permissions[idx])
-      .forEach((perm: any) => {
-        newPerms = {
-          ...newPerms,
-          [perm]: {
-            from: new Date().toISOString(),
-            to: new Date(
-              new Date().setDate(new Date().getDate() + 365)
-            ).toISOString(),
-          },
-        };
-      });
+    // allowedPermisions
+    //   .map((idx: number) => permissions[idx])
+    //   .forEach((perm: any) => {
+    //     newPerms = {
+    //       ...newPerms,
+    //       [perm]: {
+    //         from: new Date().toISOString(),
+    //         to: new Date(
+    //           new Date().setDate(new Date().getDate() + 365)
+    //         ).toISOString(),
+    //       },
+    //     };
+    //   });
 
     const res = await axios.post("http://localhost:5000/roles/update", {
-      id: `ROLE_${roleName?.toUpperCase()}`,
+      id: roleName,
       permissions: newPerms,
     });
 
@@ -259,7 +275,7 @@ const EditRole = () => {
 
   return (
     <>
-      {isReadPermitted ? (
+      {true || isReadPermitted ? (
         <>
           <div className={styles.editRole}>
             <div className={styles.flexRow}>
