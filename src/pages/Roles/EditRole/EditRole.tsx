@@ -225,8 +225,9 @@ const EditRole = () => {
   useEffect(() => {
     if (rolePermissions && roleName) {
       let perms = rolePermissions[roleName];
-      console.log(rolePermissions, perms);
-      setAllowedPermissions(perms.map((_: any) => permissions.indexOf(_)));
+      if (perms) {
+        setAllowedPermissions(perms.map((_: any) => permissions.indexOf(_)));
+      }
     }
   }, [rolePermissions, roleName, permissions]);
 

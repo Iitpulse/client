@@ -1,3 +1,4 @@
+import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
 import { PERMISSIONS } from "../constants";
 
@@ -149,6 +150,7 @@ interface PermissionsType {
 interface PermissionsContextType {
   permissions: any;
   setPermissions: (permissions: any) => void;
+  roles: any;
 }
 
 export const PermissionsContext = createContext<PermissionsContextType>(
@@ -157,6 +159,7 @@ export const PermissionsContext = createContext<PermissionsContextType>(
 
 const PermissionsContextProvider: React.FC = ({ children }) => {
   const [permissions, setPermissions] = useState<any>({});
+  const [roles, setRoles] = useState<any>([]);
 
   function getPermissions() {
     return {
@@ -306,11 +309,20 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
   }
 
   useEffect(() => {
-    // setPermissions(flattendPermissions());
+    async function getRoles() {
+      const response = await axios.get("http://localhost:5000/roles/all");
+      setRoles(response.data);
+      let perms: any = {};
+      response.data.forEach((role: any) => {
+        perms[role.id] = role.permissions;
+      });
+      setPermissions(perms);
+    }
+    getRoles();
   }, []);
 
   return (
-    <PermissionsContext.Provider value={{ permissions, setPermissions }}>
+    <PermissionsContext.Provider value={{ permissions, setPermissions, roles }}>
       {children}
     </PermissionsContext.Provider>
   );

@@ -16,25 +16,10 @@ import AddNewRole from "./AddNewRole";
 
 const Roles = () => {
   const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
-  const [roles, setRoles] = useState([]);
+  // const [roles, setRoles] = useState([]);
   const [newRoleModal, setNewRoleModal] = useState(false);
 
-  const { setPermissions } = useContext(PermissionsContext);
-
-  useEffect(() => {
-    async function getRoles() {
-      const response = await axios.get("http://localhost:5000/roles/all");
-      setRoles(response.data);
-      // console.log(response.data);
-      let perms: any = {};
-      response.data.forEach((role: any) => {
-        perms[role.id] = role.permissions;
-      });
-      console.log({ perms });
-      setPermissions(perms);
-    }
-    getRoles();
-  }, []);
+  const { roles } = useContext(PermissionsContext);
 
   return (
     <>
