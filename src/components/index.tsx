@@ -7,4 +7,5 @@ export { default as Sidebar } from "./Sidebar/Sidebar";
 export { default as MenuDrawer } from "./MenuDrawer/MenuDrawer";
 export { default as Modal } from "./Modal/Modal";
 export { default as ToggleButton } from "./ToggleButton/ToggleButton";
+export { default as Navigate } from "./Navigate/Navigate";
 export * from "./CustomMUIComps/CustomMUIComps";

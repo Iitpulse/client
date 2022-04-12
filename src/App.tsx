@@ -12,6 +12,7 @@ import {
   Results,
   EditRole,
   Error,
+  DetailedAnalysis,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -81,6 +82,15 @@ const App = () => {
                 <Route
                   path="/test/result/:testId"
                   element={<PrivateRoute component={Results} title="Results" />}
+                />
+                <Route
+                  path="/test/result/detailed-analysis/:testId"
+                  element={
+                    <PrivateRoute
+                      component={DetailedAnalysis}
+                      title="Detailed Analysis"
+                    />
+                  }
                 />
                 <Route
                   path="/questions"

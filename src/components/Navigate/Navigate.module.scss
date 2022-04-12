@@ -1,0 +1,10 @@
+@import "../../utils/commons.scss";
+.container {
+  cursor: pointer;
+  width: fit-content;
+  color: rgb(143, 140, 140);
+  &:hover {
+    color: black;
+  }
+  margin: 5px 0;
+}

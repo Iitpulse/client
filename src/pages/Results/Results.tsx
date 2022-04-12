@@ -1,7 +1,7 @@
 import styles from "./Results.module.scss";
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
-import { Button, Sidebar, NotificationCard } from "../../components/";
+import { Button, Sidebar, NotificationCard, Navigate } from "../../components/";
 
 const tests = [
   {
@@ -21,12 +21,9 @@ const Results = () => {
   const [currentTest, setCurrentTest] = useState<any>({});
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log(currentTest);
-  });
   function getTest() {
     const [test] = tests.filter((item) => item.id.toString() === testId);
-    return test;
+    setCurrentTest(test);
   }
   function getStatusColor(status: string) {
     if (!status) return;
@@ -44,13 +41,11 @@ const Results = () => {
     return tempResult;
   }
   useEffect(() => {
-    setCurrentTest(getTest());
+    getTest();
   }, [testId]);
   return (
     <div className={styles.container}>
-      <div className={styles.back} onClick={() => navigate("/test")}>
-        Back To Tests
-      </div>
+      <Navigate path={"/test"}>Back To Tests</Navigate>
       <div className={styles.content}>
         <div className={styles.top}>
           <h2>
@@ -79,7 +74,10 @@ const Results = () => {
           <SubjectCard />
           <SubjectCard />
         </div>
-        <Button disabled color="success">
+        <Button
+          onClick={() => navigate("/test/result/detailed-analysis/" + testId)}
+          color="success"
+        >
           View Detailed Analysis
         </Button>
       </div>
