@@ -43,9 +43,7 @@ const sampleSubSection = {
 };
 
 const Pattern = () => {
-  const isReadPermitted = usePermission(
-    PERMISSIONS?.PATTERN?.READ ? PERMISSIONS.PATTERN.READ : ""
-  );
+  const isReadPermitted = usePermission(PERMISSIONS.PATTERN.READ);
   // const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
   // const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
   // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);

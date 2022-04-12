@@ -29,7 +29,7 @@ const Login = () => {
         email: decoded.email,
         userType: decoded.userType,
         instituteId: decoded.instituteId,
-        permissions: decoded.permissions,
+        roles: decoded.roles,
       });
       localStorage.setItem("token", response.data.token);
       navigate("/");

@@ -3,11 +3,23 @@ export interface ICurrentUser {
   email: string;
   userType: string;
   instituteId: string;
-  permissions: { [key: string]: { from: string; to: string } };
+  roles: {
+    [key: string]: {
+      id: string;
+      permissions: string[];
+    };
+  };
 }
 
 export interface IAuthContext {
   currentUser: ICurrentUser | null;
+  roles: {
+    [key: string]: {
+      id: string;
+      permissions: string[];
+    };
+  };
+  setRoles: (roles: any) => void;
   setCurrentUser: React.Dispatch<React.SetStateAction<ICurrentUser | null>>;
 }
 

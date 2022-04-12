@@ -8,6 +8,8 @@ interface ProviderProps {
 
 const defaultAuthContext = {
   currentUser: null,
+  roles: {},
+  setRoles: () => {},
   setCurrentUser: () => {},
 };
 
@@ -15,6 +17,7 @@ export const AuthContext = createContext<IAuthContext>(defaultAuthContext);
 
 const AuthContextProvider = (props: ProviderProps) => {
   const [currentUser, setCurrentUser] = useState<ICurrentUser | null>(null);
+  const [roles, setRoles] = useState<any>({});
 
   useEffect(() => {
     const user = localStorage.getItem("token");
@@ -26,18 +29,31 @@ const AuthContextProvider = (props: ProviderProps) => {
         setCurrentUser(null);
         return;
       }
+      let newRoles: any = {};
+      decoded?.roles?.forEach((role: any) => {
+        newRoles[role] = {
+          id: role,
+          permissions: [],
+        };
+      });
       setCurrentUser({
         email: decoded.email,
         id: decoded.id,
         userType: decoded.userType,
         instituteId: decoded.instituteId,
-        permissions: decoded.permissions,
+        roles: newRoles,
       });
     }
   }, []);
 
+  useEffect(() => {
+    console.log({ roles });
+  }, [roles]);
+
   return (
-    <AuthContext.Provider value={{ currentUser, setCurrentUser }}>
+    <AuthContext.Provider
+      value={{ currentUser, setCurrentUser, roles, setRoles }}
+    >
       {props.children}
     </AuthContext.Provider>
   );

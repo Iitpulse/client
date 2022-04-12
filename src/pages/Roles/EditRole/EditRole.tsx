@@ -16,6 +16,29 @@ import {
 } from "../../../components";
 import clsx from "clsx";
 import axios from "axios";
+import { flattendPermissions } from "../AddNewRole";
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && children}
+    </div>
+  );
+}
 
 const EditRole = () => {
   const { roleName } = useParams();
@@ -27,215 +50,188 @@ const EditRole = () => {
 
   const { permissions: rolePermissions } = useContext(PermissionsContext);
 
-  interface TabPanelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-  }
-
-  function TabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props;
-
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`simple-tabpanel-${index}`}
-        aria-labelledby={`simple-tab-${index}`}
-        {...other}
-      >
-        {value === index && children}
-      </div>
-    );
-  }
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
 
-  function getRoleInformation(roleName: string | undefined) {
-    const response = {
-      id: "ABC123",
-      permission: {
-        READ_QUESTION: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        CREATE_QUESTION: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        UPDATE_QUESTION: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        READ_GLOBAL_QUESTION: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        DELETE_QUESTION: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        READ_USER: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        CREATE_USER: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        UPDATE_USER: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        DELETE_USER: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
+  // function getRoleInformation(roleName: string | undefined) {
+  //   const response = {
+  //     id: "ABC123",
+  //     permission: {
+  //       READ_QUESTION: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       CREATE_QUESTION: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       UPDATE_QUESTION: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       READ_GLOBAL_QUESTION: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       DELETE_QUESTION: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       READ_USER: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       CREATE_USER: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       UPDATE_USER: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       DELETE_USER: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
 
-        READ_BATCH: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        CREATE_BATCH: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        UPDATE_BATCH: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        DELETE_BATCH: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
+  //       READ_BATCH: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       CREATE_BATCH: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       UPDATE_BATCH: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       DELETE_BATCH: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
 
-        READ_PATTERN: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        CREATE_PATTERN: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        UPDATE_PATTERN: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        DELETE_PATTERN: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        READ_SUBJECT: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        CREATE_SUBJECT: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        UPDATE_SUBJECT: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        DELETE_SUBJECT: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        MANAGE_CHAPTER: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        MANAGE_TOPIC: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        READ_TEST: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        READ_GLOBAL_TEST: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        VIEW_RESULT: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        PUBLISH_RESULT: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        EXPORT_RESULT: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        CREATE_TEST: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        UPDATE_TEST: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-        DELETE_TEST: {
-          from: "Date",
-          to: "Date",
-          description: "Allows User to do something",
-        },
-      },
-    };
-    setPermissionInformation(response);
-  }
+  //       READ_PATTERN: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       CREATE_PATTERN: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       UPDATE_PATTERN: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       DELETE_PATTERN: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       READ_SUBJECT: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       CREATE_SUBJECT: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       UPDATE_SUBJECT: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       DELETE_SUBJECT: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       MANAGE_CHAPTER: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       MANAGE_TOPIC: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       READ_TEST: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       READ_GLOBAL_TEST: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       VIEW_RESULT: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       PUBLISH_RESULT: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       EXPORT_RESULT: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       CREATE_TEST: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       UPDATE_TEST: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //       DELETE_TEST: {
+  //         from: "Date",
+  //         to: "Date",
+  //         description: "Allows User to do something",
+  //       },
+  //     },
+  //   };
+  //   setPermissionInformation(response);
+  // }
 
   useEffect(() => {
-    getRoleInformation(roleName);
+    setPermissions(flattendPermissions());
   }, [roleName]);
 
   useEffect(() => {
-    if (rolePermissions && roleName) {
+    if (rolePermissions && roleName && permissions?.length) {
       let perms = rolePermissions[roleName];
       if (perms) {
         setAllowedPermissions(perms.map((_: any) => permissions.indexOf(_)));
       }
     }
   }, [rolePermissions, roleName, permissions]);
-
-  useEffect(() => {
-    if (permissionInformation?.permission)
-      setPermissions(Object.keys(permissionInformation.permission));
-    console.log(permissionInformation);
-  }, [permissionInformation]);
 
   function handleChangePermission(idx: number, checked: boolean) {
     console.log({ idx, checked });
@@ -252,20 +248,6 @@ const EditRole = () => {
     let newPerms = allowedPermisions.map((idx: number) => permissions[idx]);
     console.log({ newPerms });
 
-    // allowedPermisions
-    //   .map((idx: number) => permissions[idx])
-    //   .forEach((perm: any) => {
-    //     newPerms = {
-    //       ...newPerms,
-    //       [perm]: {
-    //         from: new Date().toISOString(),
-    //         to: new Date(
-    //           new Date().setDate(new Date().getDate() + 365)
-    //         ).toISOString(),
-    //       },
-    //     };
-    //   });
-
     const res = await axios.post("http://localhost:5000/roles/update", {
       id: roleName,
       permissions: newPerms,
@@ -276,7 +258,7 @@ const EditRole = () => {
 
   return (
     <>
-      {true || isReadPermitted ? (
+      {true ? (
         <>
           <div className={styles.editRole}>
             <div className={styles.flexRow}>
@@ -290,17 +272,14 @@ const EditRole = () => {
             </Tabs>
             <TabPanel value={tab} index={0}>
               <div className={clsx(styles.tabPanel, styles.permissions)}>
-                {permissions?.map((permission: string, index: number) => {
+                {permissions.map((permission: string, index: number) => {
                   return (
                     <div key={index}>
                       <Permission
                         idx={index}
                         name={permission}
-                        description={
-                          permissionInformation.permission[permission]
-                            .description
-                        }
-                        allowedPermissions={allowedPermisions}
+                        description={"This is description"}
+                        isChecked={allowedPermisions.includes(index)}
                         handleChangePermission={handleChangePermission}
                       />
                       {<div className={styles.separationLine}></div>}
@@ -311,7 +290,9 @@ const EditRole = () => {
             </TabPanel>
             <TabPanel value={tab} index={1}>
               <div className={clsx(styles.tabPanel, styles.managePeople)}>
-                Manage People
+                {rolePermissions[roleName || ""]?.people?.map((person: any) => (
+                  <p>{person?.name}</p>
+                ))}
               </div>
             </TabPanel>
           </div>
@@ -341,13 +322,12 @@ interface PermissionProps {
   idx: number;
   name: string;
   description: string;
-  allowedPermissions: number[];
+  isChecked: boolean;
   handleChangePermission: (idx: number, checked: boolean) => void;
 }
 
 export const Permission = (props: PermissionProps) => {
-  const { idx, name, description, allowedPermissions, handleChangePermission } =
-    props;
+  const { idx, name, description, isChecked, handleChangePermission } = props;
 
   return (
     <div className={styles.permission}>
@@ -357,7 +337,7 @@ export const Permission = (props: PermissionProps) => {
         <p>{description}</p>
       </div>
       <ToggleButton
-        checked={allowedPermissions.includes(idx)}
+        checked={isChecked}
         onChange={(checked) => handleChangePermission(idx, checked)}
       />
     </div>

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
+import { AuthContext } from "../auth/AuthContext";
 import { PERMISSIONS } from "../constants";
 
 interface PermissionsType {
@@ -150,7 +151,7 @@ interface PermissionsType {
 interface PermissionsContextType {
   permissions: any;
   setPermissions: (permissions: any) => void;
-  roles: any;
+  allRoles: any;
 }
 
 export const PermissionsContext = createContext<PermissionsContextType>(
@@ -159,191 +160,52 @@ export const PermissionsContext = createContext<PermissionsContextType>(
 
 const PermissionsContextProvider: React.FC = ({ children }) => {
   const [permissions, setPermissions] = useState<any>({});
-  const [roles, setRoles] = useState<any>([]);
+  const [allRoles, setAllRoles] = useState<any>([]);
 
-  function getPermissions() {
-    return {
-      READ_QUESTION: {
-        from: "Date",
-        to: "Date",
-      },
-      CREATE_QUESTION: {
-        from: "Date",
-        to: "Date",
-      },
-      UPDATE_QUESTION: {
-        from: "Date",
-        to: "Date",
-      },
-      READ_GLOBAL_QUESTION: {
-        from: "Date",
-        to: "Date",
-      },
-      DELETE_QUESTION: {
-        from: "Date",
-        to: "Date",
-      },
-      READ_USER: {
-        from: "Date",
-        to: "Date",
-      },
-      CREATE_USER: {
-        from: "Date",
-        to: "Date",
-      },
-      UPDATE_USER: {
-        from: "Date",
-        to: "Date",
-      },
-      DELETE_USER: {
-        from: "Date",
-        to: "Date",
-      },
-
-      READ_BATCH: {
-        from: "Date",
-        to: "Date",
-      },
-      CREATE_BATCH: {
-        from: "Date",
-        to: "Date",
-      },
-      UPDATE_BATCH: {
-        from: "Date",
-        to: "Date",
-      },
-      DELETE_BATCH: {
-        from: "Date",
-        to: "Date",
-      },
-
-      READ_PATTERN: {
-        from: "Date",
-        to: "Date",
-      },
-      CREATE_PATTERN: {
-        from: "Date",
-        to: "Date",
-      },
-      UPDATE_PATTERN: {
-        from: "Date",
-        to: "Date",
-      },
-      DELETE_PATTERN: {
-        from: "Date",
-        to: "Date",
-      },
-      READ_SUBJECT: {
-        from: "Date",
-        to: "Date",
-      },
-      CREATE_SUBJECT: {
-        from: "Date",
-        to: "Date",
-      },
-      UPDATE_SUBJECT: {
-        from: "Date",
-        to: "Date",
-      },
-      DELETE_SUBJECT: {
-        from: "Date",
-        to: "Date",
-      },
-      MANAGE_CHAPTER: {
-        from: "Date",
-        to: "Date",
-      },
-      MANAGE_TOPIC: {
-        from: "Date",
-        to: "Date",
-      },
-      READ_TEST: {
-        from: "Date",
-        to: "Date",
-      },
-      READ_GLOBAL_TEST: {
-        from: "Date",
-        to: "Date",
-      },
-      VIEW_RESULT: {
-        from: "Date",
-        to: "Date",
-      },
-      PUBLISH_RESULT: {
-        from: "Date",
-        to: "Date",
-      },
-      EXPORT_RESULT: {
-        from: "Date",
-        to: "Date",
-      },
-      CREATE_TEST: {
-        from: "Date",
-        to: "Date",
-      },
-      UPDATE_TEST: {
-        from: "Date",
-        to: "Date",
-      },
-      DELETE_TEST: {
-        from: "Date",
-        to: "Date",
-      },
-      READ_ROLE: {
-        from: "Date",
-        to: "Date",
-      },
-      CREATE_ROLE: {
-        from: "Date",
-        to: "Date",
-      },
-      UPDATE_ROLE: {
-        from: "Date",
-        to: "Date",
-      },
-      DELETE_ROLE: {
-        from: "Date",
-        to: "Date",
-      },
-    };
-  }
+  const { currentUser, setRoles } = useContext(AuthContext);
 
   useEffect(() => {
     async function getRoles() {
       const response = await axios.get("http://localhost:5000/roles/all");
-      setRoles(response.data);
+      setAllRoles(response.data);
       let perms: any = {};
       response.data.forEach((role: any) => {
+        console.log({ role });
         perms[role.id] = role.permissions;
+        if (currentUser?.roles[role.id]) {
+          setRoles((prev: any) => ({
+            ...prev,
+            [role.id]: { id: role.id, permissions: role.permissions },
+          }));
+        }
       });
       setPermissions(perms);
     }
-    getRoles();
-  }, []);
+    if (currentUser) {
+      getRoles();
+    }
+  }, [currentUser]);
 
   return (
-    <PermissionsContext.Provider value={{ permissions, setPermissions, roles }}>
+    <PermissionsContext.Provider
+      value={{ permissions, setPermissions, allRoles }}
+    >
       {children}
     </PermissionsContext.Provider>
   );
 };
 
 export const usePermission = (permission: string) => {
-  const { permissions } = useContext(PermissionsContext);
-  return Object.keys(permissions).includes(permission);
+  const { roles } = useContext(AuthContext);
+  let hasPermission = false;
+  if (roles) {
+    let allValues = Object.values(roles);
+    hasPermission =
+      allValues.findIndex((item: any) =>
+        item.permissions?.includes(permission)
+      ) !== -1;
+  }
+  return hasPermission;
 };
 
 export default PermissionsContextProvider;
-
-const permissionssssss = ["create_questions", "update_questions"];
-
-const flattendPermissions = () => {
-  let final: any = [];
-  console.log({ per: Object.keys(PERMISSIONS) });
-  Object.keys(PERMISSIONS).forEach((item) => {
-    // @ts-ignores
-    final = [...final, ...Object.values(PERMISSIONS[item])];
-  });
-  console.log({ final });
-  return final;
-};

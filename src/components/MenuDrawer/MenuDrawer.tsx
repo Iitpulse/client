@@ -5,7 +5,7 @@ import dropdown from "../../assets/icons/dropdown.svg";
 import collapse from "../../assets/icons/collapse.svg";
 import profilePlaceholder from "../../assets/images/profilePlaceholder.jpg";
 import institutePlaceholder from "../../assets/images/institutePlaceholder.svg";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { IconButton } from "@mui/material";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -497,9 +497,19 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
+  const navigate = useNavigate();
+
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  function handleClickLogout() {
+    setAnchorEl(null);
+    localStorage.removeItem("token");
+    return navigate("/login");
+  }
+
   return (
     <div style={props.style} className={styles.profileOptionsMenuContainer}>
       <IconButton
@@ -521,7 +531,7 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
         }}
       >
         <MenuItem onClick={handleClose}>My account</MenuItem>
-        <MenuItem onClick={handleClose}>Logout</MenuItem>
+        <MenuItem onClick={handleClickLogout}>Logout</MenuItem>
       </Menu>
     </div>
   );

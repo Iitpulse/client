@@ -19,20 +19,24 @@ const Roles = () => {
   // const [roles, setRoles] = useState([]);
   const [newRoleModal, setNewRoleModal] = useState(false);
 
-  const { roles } = useContext(PermissionsContext);
+  const { allRoles } = useContext(PermissionsContext);
 
   return (
     <>
-      {true || hasPermission ? (
+      {hasPermission ? (
         <>
           <div className={styles.roles}>
             <div className={styles.tableHeader}>
               <h4>Roles</h4>
               <h4>Members</h4>
-              <img src={add} alt="" onClick={() => setNewRoleModal(true)} />
+              <img
+                src={add}
+                alt="add-new-role"
+                onClick={() => setNewRoleModal(true)}
+              />
             </div>
             <div className={styles.tableContent}>
-              {roles.map((role: any) => (
+              {allRoles?.map((role: any) => (
                 <Link key={role.id} to={`/roles/${role.id}`}>
                   <p>{role?.name}</p>{" "}
                   <div className={styles.member}>

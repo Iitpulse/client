@@ -8,12 +8,10 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 
 export const flattendPermissions = () => {
   let final: any = [];
-  console.log({ per: Object.keys(PERMISSIONS) });
   Object.keys(PERMISSIONS).forEach((item) => {
     // @ts-ignores
     final = [...final, ...Object.values(PERMISSIONS[item])];
   });
-  console.log({ final });
   return final;
 };
 
@@ -65,7 +63,7 @@ const AddNewRole: React.FC<{
               idx={i}
               description="This is description"
               name={permission}
-              allowedPermissions={selectedPermissions}
+              isChecked={selectedPermissions.includes(i)}
               handleChangePermission={(idx: number, checked: boolean) => {
                 if (checked) {
                   setSelectedPermissions([...selectedPermissions, idx]);
