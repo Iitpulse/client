@@ -8,7 +8,10 @@ import {
 import styles from "./Home.module.scss";
 import { useContext, useState } from "react";
 import { Grid } from "@mui/material";
-import icon from "../../assets/icons/flag.svg";
+import yellowFlag from "../../assets/icons/yellowFlag.svg";
+import blueUsers from "../../assets/icons/blueUsers.svg";
+import redWarning from "../../assets/icons/redWarning.svg";
+import greenCrown from "../../assets/icons/greenCrown.svg";
 import Users from "../../assets/icons/users.svg";
 import monitor from "../../assets/icons/monitor.svg";
 import edit from "../../assets/icons/edit.svg";
@@ -70,7 +73,7 @@ function getVariantClass(variant: "success" | "warning" | "error" | "primary") {
 }
 
 const SubCard = (props: SubCardProps) => {
-  const { title, content, variant } = props;
+  const { title, content, variant, icon } = props;
   return (
     <div className={clsx(styles.wrapper, getVariantClass(variant))}>
       <div className={styles.content}>
@@ -169,25 +172,25 @@ const Home = () => {
                 <SubCard
                   title="Highest Marks"
                   content="302"
-                  icon={icon}
+                  icon={greenCrown}
                   variant="success"
                 />
                 <SubCard
                   title="Average Marks"
                   content="302"
-                  icon={icon}
+                  icon={yellowFlag}
                   variant="warning"
                 />
                 <SubCard
                   title="Lowest Marks"
                   content="302"
-                  icon={icon}
+                  icon={redWarning}
                   variant="error"
                 />
                 <SubCard
                   title="Total Appeared"
                   content="302"
-                  icon={icon}
+                  icon={blueUsers}
                   variant="primary"
                 />
               </div>
@@ -216,9 +219,9 @@ const Home = () => {
                 classes={[styles.instituteDetailsCard]}
               >
                 <div className={styles.instituteDetails}>
-                  <InstituteDetails icon={icon} batch="IOY" value={123} />
-                  <InstituteDetails icon={icon} batch="IOY" value={123} />
-                  <InstituteDetails icon={icon} batch="IOY" value={123} />
+                  <InstituteDetails icon={yellowFlag} batch="IOY" value={123} />
+                  <InstituteDetails icon={yellowFlag} batch="IOY" value={123} />
+                  <InstituteDetails icon={yellowFlag} batch="IOY" value={123} />
                 </div>
               </Card>
             </div>

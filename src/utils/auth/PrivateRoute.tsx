@@ -6,20 +6,17 @@ import { AuthContext } from "./AuthContext";
 interface Props {
   component: React.ComponentType;
   path?: string;
-  title: string;
+  name: string;
 }
-const PrivateRoute: React.FC<Props> = ({
-  component: RouteComponent,
-  title,
-}) => {
+const PrivateRoute: React.FC<Props> = ({ component: RouteComponent, name }) => {
   const { currentUser } = useContext(AuthContext);
 
-  if (!currentUser && !localStorage.getItem("token")) {
+  if (currentUser && !localStorage.getItem("token")) {
     return <Navigate to="/login" />;
   }
 
   return (
-    <MainLayout title={title}>
+    <MainLayout name={name}>
       <RouteComponent />
     </MainLayout>
   );
