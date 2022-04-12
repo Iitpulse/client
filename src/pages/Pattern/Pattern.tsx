@@ -1,6 +1,10 @@
 import React, { HTMLInputTypeAttribute, useContext, useState } from "react";
 import styles from "./Pattern.module.scss";
-import { Sidebar, NotificationCard } from "../../components";
+import {
+  Sidebar,
+  NotificationCard,
+  MUISimpleAutocomplete,
+} from "../../components";
 import { StyledMUITextField } from "../Users/components";
 import { IPattern, ISection, ISubSection } from "../../utils/interfaces";
 import clsx from "clsx";
@@ -14,6 +18,10 @@ import {
 } from "./components/CustomAccordion";
 import tickCircle from "../../assets/icons/tick-circle.svg";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import axios from "axios";
+import { usePermission } from "../../utils/contexts/PermissionsContext";
+import { PERMISSIONS } from "../../utils/constants";
+import { Error } from "../";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -32,18 +40,38 @@ const sampleSubSection = {
   type: "",
   totalQuestions: 1,
   toBeAttempted: 1,
-  questions: [],
 };
 
 const Pattern = () => {
+  const isReadPermitted = usePermission(PERMISSIONS.PATTERN.READ);
+  // const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
+  // const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
+  // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
+
   const { currentUser } = useContext(AuthContext);
 
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
-  const [sections, setSections] = useState<Array<ISection>>([
-    { ...sampleSection, id: `${Math.random() * 100}` },
-  ]);
+  const examOptions = [
+    {
+      id: "JEE MAINS",
+      name: "JEE Mains",
+      value: "JEE MAINS",
+    },
+    {
+      id: "JEE ADVANCED",
+      name: "JEE Advanced",
+      value: "JEE ADVANCED",
+    },
+    {
+      id: "NEETUG",
+      name: "NEET",
+      value: "NEETUG",
+    },
+  ];
+
+  const [sections, setSections] = useState<Array<ISection>>([]);
 
   function handleChangeSection(id: string, data: any) {
     setSections(
@@ -56,7 +84,12 @@ const Pattern = () => {
   function handleClickAddNew() {
     setSections([
       ...sections,
-      { ...sampleSection, id: `${Math.random() * 100}` },
+      {
+        ...sampleSection,
+        id: `${Math.random() * 100}`,
+        exam: exam,
+        subject: "physics",
+      },
     ]);
   }
 
@@ -64,15 +97,18 @@ const Pattern = () => {
     setSections(sections.filter((section) => section.id !== id));
   }
 
-  function handleClickSubmit() {
+  async function handleClickSubmit() {
     if (currentUser) {
       const pattern: IPattern = {
         id: `${currentUser.instituteId}_${name
           .replace(/ /g, "")
           .toUpperCase()}`,
         name,
-        exam,
-        sections,
+        exam: exam,
+        sections: sections.map((sec) => ({
+          ...sec,
+          exam: exam,
+        })),
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
         createdBy: {
@@ -82,61 +118,73 @@ const Pattern = () => {
         usedIn: [],
       };
       console.log({ pattern });
+      const res = await axios.post(
+        "http://localhost:5002/pattern/create",
+        pattern
+      );
+      console.log({ res });
     }
   }
 
   return (
     <>
-      <section className={styles.container}>
-        <div className={styles.header}>
-          <StyledMUITextField
-            value={name}
-            label="Name"
-            onChange={(e: any) => setName(e.target.value)}
-          />
-          <StyledMUITextField
-            value={exam}
-            label="Exam"
-            onChange={(e: any) => setExam(e.target.value)}
-          />
-        </div>
-        <div className={styles.sections}>
-          {sections.map((section, i) => (
-            <Section
-              key={i}
-              section={section}
-              setSection={handleChangeSection}
-              handleDeleteSection={handleDeleteSection}
-              index={i}
-            />
-          ))}
-        </div>
-        <div className={styles.addSection} onClick={handleClickAddNew}>
-          <p>+ Add New Section</p>
-        </div>
-        <Tooltip title="Save Pattern" placement="top">
-          <IconButton
-            className={styles.savePatternBtn}
-            onClick={handleClickSubmit}
-          >
-            <img src={tickCircle} alt="save-pattern" />
-          </IconButton>
-        </Tooltip>
-      </section>
-      <Sidebar title="Recent Activity">
-        {Array(10)
-          .fill(0)
-          .map((_, i) => (
-            <NotificationCard
-              key={i}
-              id="aasdadsd"
-              status={i % 2 === 0 ? "success" : "warning"}
-              title={"New Student Joined-" + i}
-              description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-              createdAt="10 Jan, 2022"
-            />
-          ))}
-      </Sidebar>
+      {isReadPermitted ? (
+        <>
+          <section className={styles.container}>
+            <div className={styles.header}>
+              <StyledMUITextField
+                value={name}
+                label="Name"
+                onChange={(e: any) => setName(e.target.value)}
+              />
+              <MUISimpleAutocomplete
+                label="Exam"
+                onChange={setExam}
+                options={examOptions}
+                value={exam}
+              />
+            </div>
+            <div className={styles.sections}>
+              {sections.map((section, i) => (
+                <Section
+                  key={i}
+                  section={section}
+                  setSection={handleChangeSection}
+                  handleDeleteSection={handleDeleteSection}
+                  index={i}
+                />
+              ))}
+            </div>
+            <div className={styles.addSection} onClick={handleClickAddNew}>
+              <p>+ Add New Section</p>
+            </div>
+            <Tooltip title="Save Pattern" placement="top">
+              <IconButton
+                className={styles.savePatternBtn}
+                onClick={handleClickSubmit}
+              >
+                <img src={tickCircle} alt="save-pattern" />
+              </IconButton>
+            </Tooltip>
+          </section>
+          <Sidebar title="Recent Activity">
+            {Array(10)
+              .fill(0)
+              .map((_, i) => (
+                <NotificationCard
+                  key={i}
+                  id="aasdadsd"
+                  status={i % 2 === 0 ? "success" : "warning"}
+                  title={"New Student Joined-" + i}
+                  description="New student join IIT Pulse Anurag Pal - Dropper Batch"
+                  createdAt="10 Jan, 2022"
+                />
+              ))}
+          </Sidebar>
+        </>
+      ) : (
+        <Error />
+      )}
     </>
   );
 };
@@ -163,7 +211,7 @@ const Section: React.FC<{
       ...section,
       subSections: [
         ...section.subSections,
-        { ...sampleSubSection, id: `${Math.random() * 100}` },
+        { ...sampleSubSection, id: `${Math.random() * 100}`, type: "single" },
       ],
     });
   }
@@ -322,6 +370,28 @@ const SubSection: React.FC<{
             setSubSection(subSection.id, { type: e.target.value });
           }}
           options={subSectionTypes}
+        />
+        <CustomInputSection
+          value={subSection.totalQuestions}
+          label="Total Questions"
+          type="number"
+          inputProps={{ min: 1 }}
+          onChange={(e: any) =>
+            setSubSection(subSection.id, {
+              totalQuestions: parseInt(e.target.value),
+            })
+          }
+        />
+        <CustomInputSection
+          value={subSection.toBeAttempted}
+          label="Questions To be Attempted"
+          type="number"
+          inputProps={{ min: 1 }}
+          onChange={(e: any) =>
+            setSubSection(subSection.id, {
+              toBeAttempted: parseInt(e.target.value),
+            })
+          }
         />
       </div>
     </div>

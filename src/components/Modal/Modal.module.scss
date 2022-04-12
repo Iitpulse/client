@@ -10,9 +10,6 @@
   z-index: 9999;
   animation: scaleAndAlpha 0.3s ease-in-out;
 
-  &.backdrop {
-    background: rgba(0, 0, 0, 0.5);
-  }
   .modal {
     max-width: 70%;
     min-width: 300px;
@@ -34,6 +31,10 @@
     justify-content: center;
     align-items: center;
   }
+}
+
+.backdrop {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 @keyframes scaleAndAlpha {

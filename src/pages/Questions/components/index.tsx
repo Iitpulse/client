@@ -6,11 +6,12 @@ import {
   MenuItem,
   Select,
   InputLabel,
-  Chip,
   Autocomplete,
   SelectChangeEvent,
 } from "@mui/material";
 import { styled } from "@mui/system";
+import { Table } from "antd";
+import { QUESTION_COLS_ALL } from "../../../utils/constants";
 
 interface MUISelectProps {
   label: string;
@@ -56,6 +57,7 @@ interface MUIAutocompleteProps {
     name: string;
     value: string;
   }>;
+  disabled?: boolean;
 }
 
 export const MUIChipsAutocomplete = (props: MUIAutocompleteProps) => {
@@ -70,6 +72,7 @@ export const MUIChipsAutocomplete = (props: MUIAutocompleteProps) => {
           })
         )
       }
+      disabled={props.disabled}
       options={props.options}
       getOptionLabel={(option) => option.name}
       filterSelectedOptions
@@ -164,3 +167,58 @@ const StyledFormControl = styled(FormControl)(() => {
     },
   };
 });
+
+const rowSelection = {
+  onChange: (selectedRowKeys: any, selectedRows: any) => {
+    console.log(
+      `selectedRowKeys: ${selectedRowKeys}`,
+      "selectedRows: ",
+      selectedRows
+    );
+  },
+  onSelect: (record: any, selected: any, selectedRows: any) => {
+    console.log(record, selected, selectedRows);
+  },
+  onSelectAll: (selected: any, selectedRows: any, changeRows: any) => {
+    console.log(selected, selectedRows, changeRows);
+  },
+};
+
+interface QuestionsTableProps {
+  cols?: Array<any>;
+  dataSource: Array<any>;
+  height?: string;
+}
+
+export const QuestionsTable: React.FC<QuestionsTableProps> = ({
+  cols,
+  dataSource,
+  height,
+}) => {
+  return (
+    <Table
+      columns={cols || QUESTION_COLS_ALL}
+      dataSource={dataSource}
+      rowSelection={{ ...rowSelection }}
+      scroll={{
+        y: height || "50vh",
+        x: "100%",
+      }}
+      expandable={{
+        expandedRowRender: (record) => (
+          <div
+            style={{ margin: "0 auto", width: "70%" }}
+            className={styles.flexRow}
+          >
+            {record?.en?.options?.map((option: any, i: number) => (
+              <div key={i}>
+                <span>{String.fromCharCode(64 + i + 1)})</span>
+                <div dangerouslySetInnerHTML={{ __html: option.value }}></div>
+              </div>
+            ))}
+          </div>
+        ),
+      }}
+    />
+  );
+};

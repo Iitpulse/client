@@ -3,12 +3,11 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import logo from "../../assets/images/logo.svg";
 import dropdown from "../../assets/icons/dropdown.svg";
 import collapse from "../../assets/icons/collapse.svg";
-import profilePlaceholder from "../../assets/images/profilePlaceholder.svg";
+import profilePlaceholder from "../../assets/images/profilePlaceholder.jpg";
 import institutePlaceholder from "../../assets/images/institutePlaceholder.svg";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { IconButton } from "@mui/material";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
+import { Menu, MenuItem } from "@mui/material";
 import clsx from "clsx";
 
 interface MenuDrawerProps {
@@ -19,13 +18,13 @@ const MenuDrawer = (props: MenuDrawerProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
-    // Close the menu drawer if width is less than 1300px
+    // Close the menu drawer if width is <= 1300px
     setIsCollapsed(window.innerWidth <= 1300);
   }, []);
 
   useLayoutEffect(() => {
     function handleResize() {
-      // Close the menu drawer if width is less than 1300px
+      // Close the menu drawer if width is <= 1300px
       setIsCollapsed(window.innerWidth <= 1300);
     }
 
@@ -38,11 +37,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
 
   return (
     <div
-      style={
-        isCollapsed
-          ? { width: "fit-content",  padding: "0 1rem" }
-          : {}
-      }
+      style={isCollapsed ? { width: "fit-content", padding: "0 1rem" } : {}}
       className={styles.container}
     >
       <section
@@ -218,6 +213,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
           </div>{" "}
           {isCollapsed || <span>Users</span>}
         </NavLink>
+
         <NavLink
           style={isCollapsed ? { width: "fit-content" } : {}}
           to="/test"
@@ -468,7 +464,7 @@ const Profile = (props: ProfileProps) => {
     <div
       style={
         props.isCollapsed
-          ? { width: "fit-content", flexDirection: "column" ,marginTop:'auto'}
+          ? { width: "fit-content", flexDirection: "column", marginTop: "auto" }
           : {}
       }
       className={styles.profileContainer}
@@ -500,9 +496,19 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
+  const navigate = useNavigate();
+
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  function handleClickLogout() {
+    setAnchorEl(null);
+    localStorage.removeItem("token");
+    return navigate("/login");
+  }
+
   return (
     <div style={props.style} className={styles.profileOptionsMenuContainer}>
       <IconButton
@@ -524,7 +530,7 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
         }}
       >
         <MenuItem onClick={handleClose}>My account</MenuItem>
-        <MenuItem onClick={handleClose}>Logout</MenuItem>
+        <MenuItem onClick={handleClickLogout}>Logout</MenuItem>
       </Menu>
     </div>
   );

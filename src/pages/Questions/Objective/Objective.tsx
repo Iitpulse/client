@@ -15,14 +15,15 @@ import {
 import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
+import { generateOptions, getOptionID } from "../utils";
 
 interface Props {
-  id: string;
+  setData: (data: any) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Objective: React.FC<Props> = ({ id }) => {
+const Objective: React.FC<Props> = ({ setData }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [tab, setTab] = useState(0);
@@ -30,26 +31,25 @@ const Objective: React.FC<Props> = ({ id }) => {
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
   const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
 
-  const [values, setValues] = useState({
-    en: {
-      question: "",
-      options: [
-        ...Array(optionsCount).fill({ id, value: "", isCorrectAnswer: false }),
-      ],
-      solution: "",
-    },
-    hi: {
-      question: "",
-      options: [
-        ...Array(optionsCount).fill({ id, value: "", isCorrectAnswer: false }),
-      ],
-      solution: "",
-    },
+  const [values, setValues] = useState(() => {
+    let tempOptions = generateOptions(answerType, 4);
+    return {
+      en: {
+        question: "",
+        options: tempOptions,
+        solution: "",
+      },
+      hi: {
+        question: "",
+        options: tempOptions,
+        solution: "",
+      },
+    };
   });
 
   useEffect(() => {
-    console.log({ values });
-  }, [values]);
+    setData({ ...values, type: answerType });
+  }, [values, setData, answerType]);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
@@ -129,6 +129,7 @@ const Objective: React.FC<Props> = ({ id }) => {
 
   function handleChaneOptionsCount(type: "increment" | "decrement") {
     if (type === "increment") {
+      let optionId = getOptionID(answerType, optionsCount + 1);
       setOptionsCount((prev) => prev + 1);
       setValues({
         ...values,
@@ -136,14 +137,14 @@ const Objective: React.FC<Props> = ({ id }) => {
           ...values.en,
           options: [
             ...values.en.options,
-            { id, value: "", isCorrectAnswer: false },
+            { id: optionId, value: "", isCorrectAnswer: false },
           ],
         },
         hi: {
           ...values.hi,
           options: [
             ...values.hi.options,
-            { id, value: "", isCorrectAnswer: false },
+            { id: optionId, value: "", isCorrectAnswer: false },
           ],
         },
       });

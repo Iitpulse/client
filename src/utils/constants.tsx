@@ -1,3 +1,8 @@
+import { IconButton } from "@mui/material";
+import { Tag } from "antd";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+
 export const USER_TYPES = {
   ADMIN: "admin",
   OPERATOR: "operator",
@@ -8,6 +13,8 @@ export const USER_TYPES = {
   GUEST_STUDENT: "guest-student",
   GUEST_TEACHER: "guest-teacher",
 };
+
+export const EXAMS = {};
 
 export const top100Films = [
   { title: "The Shawshank Redemption", year: 1994 },
@@ -33,135 +40,13 @@ export const top100Films = [
   },
   { title: "Forrest Gump", year: 1994 },
   { title: "Inception", year: 2010 },
-  {
-    title: "The Lord of the Rings: The Two Towers",
-    year: 2002,
-  },
-  { title: "One Flew Over the Cuckoo's Nest", year: 1975 },
-  { title: "Goodfellas", year: 1990 },
-  { title: "The Matrix", year: 1999 },
-  { title: "Seven Samurai", year: 1954 },
-  {
-    title: "Star Wars: Episode IV - A New Hope",
-    year: 1977,
-  },
-  { title: "City of God", year: 2002 },
-  { title: "Se7en", year: 1995 },
-  { title: "The Silence of the Lambs", year: 1991 },
-  { title: "It's a Wonderful Life", year: 1946 },
-  { title: "Life Is Beautiful", year: 1997 },
-  { title: "The Usual Suspects", year: 1995 },
-  { title: "Léon: The Professional", year: 1994 },
-  { title: "Spirited Away", year: 2001 },
-  { title: "Saving Private Ryan", year: 1998 },
-  { title: "Once Upon a Time in the West", year: 1968 },
-  { title: "American History X", year: 1998 },
-  { title: "Interstellar", year: 2014 },
-  { title: "Casablanca", year: 1942 },
-  { title: "City Lights", year: 1931 },
-  { title: "Psycho", year: 1960 },
-  { title: "The Green Mile", year: 1999 },
-  { title: "The Intouchables", year: 2011 },
-  { title: "Modern Times", year: 1936 },
-  { title: "Raiders of the Lost Ark", year: 1981 },
-  { title: "Rear Window", year: 1954 },
-  { title: "The Pianist", year: 2002 },
-  { title: "The Departed", year: 2006 },
-  { title: "Terminator 2: Judgment Day", year: 1991 },
-  { title: "Back to the Future", year: 1985 },
-  { title: "Whiplash", year: 2014 },
-  { title: "Gladiator", year: 2000 },
-  { title: "Memento", year: 2000 },
-  { title: "The Prestige", year: 2006 },
-  { title: "The Lion King", year: 1994 },
-  { title: "Apocalypse Now", year: 1979 },
-  { title: "Alien", year: 1979 },
-  { title: "Sunset Boulevard", year: 1950 },
-  {
-    title:
-      "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb",
-    year: 1964,
-  },
-  { title: "The Great Dictator", year: 1940 },
-  { title: "Cinema Paradiso", year: 1988 },
-  { title: "The Lives of Others", year: 2006 },
-  { title: "Grave of the Fireflies", year: 1988 },
-  { title: "Paths of Glory", year: 1957 },
-  { title: "Django Unchained", year: 2012 },
-  { title: "The Shining", year: 1980 },
-  { title: "WALL·E", year: 2008 },
-  { title: "American Beauty", year: 1999 },
-  { title: "The Dark Knight Rises", year: 2012 },
-  { title: "Princess Mononoke", year: 1997 },
-  { title: "Aliens", year: 1986 },
-  { title: "Oldboy", year: 2003 },
-  { title: "Once Upon a Time in America", year: 1984 },
-  { title: "Witness for the Prosecution", year: 1957 },
-  { title: "Das Boot", year: 1981 },
-  { title: "Citizen Kane", year: 1941 },
-  { title: "North by Northwest", year: 1959 },
-  { title: "Vertigo", year: 1958 },
-  {
-    title: "Star Wars: Episode VI - Return of the Jedi",
-    year: 1983,
-  },
-  { title: "Reservoir Dogs", year: 1992 },
-  { title: "Braveheart", year: 1995 },
-  { title: "M", year: 1931 },
-  { title: "Requiem for a Dream", year: 2000 },
-  { title: "Amélie", year: 2001 },
-  { title: "A Clockwork Orange", year: 1971 },
-  { title: "Like Stars on Earth", year: 2007 },
-  { title: "Taxi Driver", year: 1976 },
-  { title: "Lawrence of Arabia", year: 1962 },
-  { title: "Double Indemnity", year: 1944 },
-  {
-    title: "Eternal Sunshine of the Spotless Mind",
-    year: 2004,
-  },
-  { title: "Amadeus", year: 1984 },
-  { title: "To Kill a Mockingbird", year: 1962 },
-  { title: "Toy Story 3", year: 2010 },
-  { title: "Logan", year: 2017 },
-  { title: "Full Metal Jacket", year: 1987 },
-  { title: "Dangal", year: 2016 },
-  { title: "The Sting", year: 1973 },
-  { title: "2001: A Space Odyssey", year: 1968 },
-  { title: "Singin' in the Rain", year: 1952 },
-  { title: "Toy Story", year: 1995 },
-  { title: "Bicycle Thieves", year: 1948 },
-  { title: "The Kid", year: 1921 },
-  { title: "Inglourious Basterds", year: 2009 },
-  { title: "Snatch", year: 2000 },
-  { title: "3 Idiots", year: 2009 },
-  { title: "Monty Python and the Holy Grail", year: 1975 },
 ];
 
 export const SAMPLE_TEST = {
   id: "",
   name: "",
   description: "",
-  sections: [
-    {
-      id: "",
-      name: "",
-      exam: "",
-      subject: "",
-      totalQuestions: null,
-      toBeAttempted: null,
-      subSections: [
-        {
-          id: "",
-          name: "",
-          description: "",
-          type: "",
-          totalQuestions: null,
-          toBeAttempted: null,
-          questions: {},
-        },
-      ],
-    },
-  ],
+  sections: [],
   exam: {
     id: "",
     name: "",
@@ -173,20 +58,14 @@ export const SAMPLE_TEST = {
     to: "",
   },
   attemptedBy: {
-    studentsCount: 0,
+    studentsCount: null,
     locations: [],
   },
   result: {
     maxMarks: null,
     averageMarks: null,
     averageCompletionTime: null,
-    students: [
-      {
-        name: "",
-        id: "",
-        marks: null,
-      },
-    ],
+    students: [],
   },
   createdBy: {
     id: "",
@@ -196,3 +75,233 @@ export const SAMPLE_TEST = {
   createdAt: "",
   modifiedAt: "",
 };
+
+export const PERMISSIONS = {
+  QUESTION: {
+    CREATE: "CREATE_QUESTION",
+    READ: "READ_QUESTION",
+    READ_GLOBAL: "READ_GLOBAL_QUESTION",
+    UPDATE: "UPDATE_QUESTION",
+    DELETE: "DELETE_QUESTION",
+  },
+  USER: {
+    CREATE: "CREATE_USER",
+    READ: "READ_USER",
+    UPDATE: "UPDATE_USER",
+    DELETE: "DELETE_USER",
+  },
+  TEST: {
+    CREATE: "CREATE_TEST",
+    READ: "READ_TEST",
+    READ_GLOBAL: "READ_GLOBAL_TEST",
+    UPDATE: "UPDATE_TEST",
+    DELETE: "DELETE_TEST",
+    VIEW_RESULT: "VIEW_RESULT",
+    PUBLISH_RESULT: "PUBLISH_RESULT",
+    EXPORT_RESULT: "EXPORT_RESULT",
+  },
+  BATCH: {
+    CREATE: "CREATE_BATCH",
+    READ: "READ_BATCH",
+    UPDATE: "UPDATE_BATCH",
+    DELETE: "DELETE_BATCH",
+  },
+  SUBJECT: {
+    CREATE: "CREATE_SUBJECT",
+    READ: "READ_SUBJECT",
+    UPDATE: "UPDATE_SUBJECT",
+    DELETE: "DELETE_SUBJECT",
+    MANAGE_CHAPTER: "MANAGE_CHAPTER",
+    MANAGE_TOPIC: "MANAGE_TOPIC",
+  },
+  PATTERN: {
+    CREATE: "CREATE_PATTERN",
+    READ: "READ_PATTERN",
+    UPDATE: "UPDATE_PATTERN",
+    DELETE: "DELETE_PATTERN",
+  },
+  ROLE: {
+    CREATE: "CREATE_ROLE",
+    READ: "READ_ROLE",
+    UPDATE: "UPDATE_ROLE",
+    DELETE: "DELETE_ROLE",
+  },
+};
+
+// export const SAMPLE_TEST = {
+//   id: "IITP_AB123",
+//   name: "Sample Test",
+//   description: "Sample Test Description",
+//   sections: [
+//     {
+//       id: "PT_SE_",
+//       name: "Section",
+//       exam: "JEE Mains",
+//       subject: "Physics",
+//       totalQuestions: 40,
+//       toBeAttempted: 30,
+//       subSections: [
+//         {
+//           id: "PT_SS_MCQ123",
+//           name: "MCQ",
+//           description: "Sample MCQ",
+//           type: "single",
+//           totalQuestions: 40,
+//           toBeAttempted: 30,
+//           questions: {},
+//         },
+//       ],
+//     },
+//   ],
+//   exam: {
+//     id: "JEEMAINS",
+//     name: "JEE_MAINS",
+//     fullName: "JOINT ENTRANCE EXAMINATION MAINS",
+//   },
+//   status: "ongoing",
+//   validity: {
+//     from: new Date("2022-01-01").toISOString(),
+//     to: new Date("2023-12-31").toISOString(),
+//   },
+//   attemptedBy: {
+//     studentsCount: 10,
+//     locations: ["Bangalore", "Mumbai"],
+//   },
+//   result: {
+//     maxMarks: 1,
+//     averageMarks: 0.5,
+//     averageCompletionTime: 30,
+//     students: [
+//       {
+//         name: "John",
+//         id: "ST_AB123",
+//         marks: 1,
+//       },
+//       {
+//         name: "Jane",
+//         id: "ST_AB124",
+//         marks: 1,
+//       },
+//       {
+//         name: "Jack",
+//         id: "ST_AB125",
+//         marks: 1,
+//       },
+//       {
+//         name: "Jill",
+//         id: "ST_AB126",
+//         marks: 1,
+//       },
+//     ],
+//   },
+//   createdBy: {
+//     id: "IITP_TR_AB123",
+//     name: "John",
+//     userType: USER_TYPES.TEACHER,
+//   },
+//   createdAt: new Date().toISOString(),
+//   modifiedAt: new Date().toISOString(),
+// };
+
+export const QUESTION_COLS_ALL = [
+  {
+    title: "ID",
+    dataIndex: "id",
+    key: "id",
+    fixed: "left",
+    width: 100,
+    render: (id: any) => (
+      <p
+        style={{
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {id}
+      </p>
+    ),
+  },
+  {
+    title: "Question",
+    dataIndex: "en",
+    key: "question",
+    width: 300,
+    render: (en: any) => (
+      <div
+        dangerouslySetInnerHTML={{ __html: en.question }}
+        style={{ maxHeight: "50px", overflow: "hidden" }}
+      ></div>
+    ),
+  },
+  {
+    title: "Type",
+    dataIndex: "type",
+    key: "type",
+    width: 100,
+  },
+  {
+    title: "Difficulty",
+    dataIndex: "difficulty",
+    key: "difficulty",
+    width: 100,
+    render: (difficulty: string) => (
+      <Tag
+        color={
+          difficulty === "easy"
+            ? "green"
+            : difficulty === "medium"
+            ? "yellow"
+            : "red"
+        }
+      >
+        {difficulty}
+      </Tag>
+    ),
+  },
+  {
+    title: "Chapter(s)",
+    dataIndex: "chapters",
+    key: "chapter",
+    render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
+    width: 150,
+  },
+  {
+    title: "Proof Read?",
+    dataIndex: "isProofRead",
+    key: "isProofRead",
+    render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
+    width: 100,
+  },
+  {
+    title: "Uploaded By",
+    dataIndex: "uploadedBy",
+    key: "uploadedBy",
+    render: (uploadedBy: any) => (
+      <p>{uploadedBy?.userType?.toUpperCase() || null}</p>
+    ),
+    width: 150,
+  },
+  {
+    title: "Actions",
+    key: "actions",
+    fixed: "right",
+    width: 100,
+    render: () => (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <IconButton>
+          <EditIcon />
+        </IconButton>
+        <IconButton>
+          <DeleteIcon />
+        </IconButton>
+      </div>
+    ),
+  },
+];
