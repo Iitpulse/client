@@ -21,6 +21,9 @@
     "antd": "^4.18.5",
     "axios": "^0.26.0",
     "clsx": "^1.1.1",
+    "docx": "^7.3.0",
+    "file-saver": "^2.0.5",
+    "html-docx-js-typescript": "^0.1.5",
     "jsonwebtoken": "^8.5.1",
     "quill-image-resize-module-react": "^3.0.0",
     "react": "^17.0.2",
@@ -62,6 +65,7 @@
     ]
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.5",
     "@types/react-csv": "^1.1.2",
     "mini-css-extract-plugin": "2.4.5"
   }

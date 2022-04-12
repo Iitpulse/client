@@ -1,18 +1,18 @@
 import styles from "./ToggleButton.module.scss";
 import greenTick from "../../assets/icons/greenTick.svg";
 import greyCross from "../../assets/icons/greyCross.svg";
-import { useState } from "react";
 import clsx from "clsx";
 
-const ToggleSwitch = () => {
-  const [Active, setActive] = useState(false);
+interface Props {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
 
+const ToggleSwitch: React.FC<Props> = ({ checked, onChange }) => {
   return (
     <div
-      onClick={() => {
-        setActive(!Active);
-      }}
-      className={clsx(styles.switchPath, Active ? styles.active : "")}
+      onClick={() => onChange(!checked)}
+      className={clsx(styles.switchPath, checked ? styles.active : "")}
     >
       <div className={clsx(styles.circle)}>
         <img className={styles.tick} src={greenTick} alt="Tick" />

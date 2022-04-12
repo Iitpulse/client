@@ -1,4 +1,7 @@
-import { usePermission } from "../../utils/contexts/PermissionsContext";
+import {
+  PermissionsContext,
+  usePermission,
+} from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
 import { Sidebar, NotificationCard } from "../../components";
@@ -7,65 +10,42 @@ import { Link } from "react-router-dom";
 import add from "../../assets/icons/add.svg";
 import member from "../../assets/icons/member.svg";
 import kebabMenu from "../../assets/icons/kebabMenu.svg";
+import { useContext, useEffect, useState } from "react";
+import axios from "axios";
+import AddNewRole from "./AddNewRole";
 
 const Roles = () => {
-  const isReadPermitted = usePermission(PERMISSIONS.BATCH.READ);
-  console.log(isReadPermitted);
+  const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
+  // const [roles, setRoles] = useState([]);
+  const [newRoleModal, setNewRoleModal] = useState(false);
+
+  const { allRoles } = useContext(PermissionsContext);
+
   return (
     <>
-      {isReadPermitted ? (
+      {hasPermission ? (
         <>
           <div className={styles.roles}>
             <div className={styles.tableHeader}>
               <h4>Roles</h4>
               <h4>Members</h4>
-              <img src={add} alt="" />
+              <img
+                src={add}
+                alt="add-new-role"
+                onClick={() => setNewRoleModal(true)}
+              />
             </div>
             <div className={styles.tableContent}>
-              <Link to="/roles/teacher">
-                <p>Teacher</p>{" "}
-                <div className={styles.member}>
-                  <img src={member} alt="Member" />
-                  <p>34</p>
-                </div>{" "}
-                <img src={kebabMenu} alt="Kebab Menu" />
-              </Link>
-              <br />
-              <Link to="/roles/operator">
-                <p>Operator</p>{" "}
-                <div className={styles.member}>
-                  <img src={member} alt="Member" />
-                  <p>34</p>
-                </div>{" "}
-                <img src={kebabMenu} alt="Kebab Menu" />
-              </Link>
-              <br />
-              <Link to="/roles/manager">
-                <p>Manager</p>{" "}
-                <div className={styles.member}>
-                  <img src={member} alt="Member" />
-                  <p>34</p>
-                </div>{" "}
-                <img src={kebabMenu} alt="Kebab Menu" />
-              </Link>
-              <br />
-              <Link to="/roles/student">
-                <p>Student</p>{" "}
-                <div className={styles.member}>
-                  <img src={member} alt="Member" />
-                  <p>34</p>
-                </div>{" "}
-                <img src={kebabMenu} alt="Kebab Menu" />
-              </Link>
-              <br />
-              <Link to="/roles/admin">
-                <p>Admin</p>{" "}
-                <div className={styles.member}>
-                  <img src={member} alt="Member" />
-                  <p>34</p>
-                </div>{" "}
-                <img src={kebabMenu} alt="Kebab Menu" />
-              </Link>
+              {allRoles?.map((role: any) => (
+                <Link key={role.id} to={`/roles/${role.id}`}>
+                  <p>{role?.name}</p>{" "}
+                  <div className={styles.member}>
+                    <img src={member} alt="Member" />
+                    <p>{role.members?.length}</p>
+                  </div>
+                  <img src={kebabMenu} alt="Kebab Menu" />
+                </Link>
+              ))}
             </div>
           </div>
           <Sidebar title="Recent Activity">
@@ -82,6 +62,10 @@ const Roles = () => {
                 />
               ))}
           </Sidebar>
+          <AddNewRole
+            open={newRoleModal}
+            handleClose={() => setNewRoleModal(false)}
+          />
         </>
       ) : (
         <Error />

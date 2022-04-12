@@ -1,4 +1,11 @@
-import { useState, useContext, useEffect, useRef } from "react";
+import {
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+  DetailedHTMLProps,
+  HTMLAttributes,
+} from "react";
 import styles from "./Questions.module.scss";
 import { Sidebar, NotificationCard, Button } from "../../components";
 import "react-quill/dist/quill.snow.css";
@@ -24,6 +31,9 @@ import { useReactToPrint } from "react-to-print";
 import { useNavigate } from "react-router-dom";
 import { Grid } from "@mui/material";
 import logo from "../../assets/images/logo.svg";
+import { asBlob } from "html-docx-js-typescript";
+import { saveAs } from "file-saver";
+import * as Docx from "docx"; // that is a peer dependency
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -172,9 +182,19 @@ const Questions = () => {
 
   const tableRef = useRef<any>(null);
 
-  const handlePrint = useReactToPrint({
-    content: () => tableRef.current,
-  });
+  // const handlePrint = useReactToPrint({
+  //   content: () => tableRef.current,
+  // });
+  const handlePrint = async () => {
+    const data = await asBlob(tableRef.current.innerHTML, {
+      orientation: "portrait",
+      margins: { top: 100 },
+    });
+    // asBlob(tableRef.current.innerHTML).then((data) => {
+    // @ts-ignore
+    saveAs(data, "file.docx"); // save as docx file
+    // }); // asBlob() return Promise<Blob|Buffer>
+  };
 
   async function handleSubmitQuestion() {
     if (currentUser) {
@@ -375,7 +395,15 @@ const Questions = () => {
                     />
                   ))}
               </Sidebar>
-              <div ref={tableRef} className={styles.printContainer}>
+              <div
+                ref={tableRef}
+                style={
+                  PrintContainerStyles as DetailedHTMLProps<
+                    HTMLAttributes<HTMLDivElement>,
+                    HTMLDivElement
+                  >
+                }
+              >
                 <PrintTest
                   subject="Physics"
                   chapter="Ray Optics"
@@ -474,26 +502,120 @@ const PrintTest: React.FC<{
   return (
     <>
       {pages.map((page) => (
-        <section className={styles.print}>
-          <div className={styles.printHeader}>
-            <div className={styles.upper}>
-              <p>{subject}</p>
-              <p>IOY</p>
-              <p>{chapter}</p>
+        <section
+          style={
+            PrintStyles as DetailedHTMLProps<
+              HTMLAttributes<HTMLDivElement>,
+              HTMLDivElement
+            >
+          }
+        >
+          <div
+            style={
+              PrintHeaderStyles as DetailedHTMLProps<
+                HTMLAttributes<HTMLDivElement>,
+                HTMLDivElement
+              >
+            }
+          >
+            <div
+              style={
+                PrintHeaderUpperStyles as DetailedHTMLProps<
+                  HTMLAttributes<HTMLDivElement>,
+                  HTMLDivElement
+                >
+              }
+            >
+              <p
+                style={
+                  PrintHeaderUpperParaStyles as DetailedHTMLProps<
+                    HTMLAttributes<HTMLDivElement>,
+                    HTMLDivElement
+                  >
+                }
+              >
+                {subject}
+              </p>
+              <p
+                style={
+                  PrintHeaderUpperParaStyles as DetailedHTMLProps<
+                    HTMLAttributes<HTMLDivElement>,
+                    HTMLDivElement
+                  >
+                }
+              >
+                IOY
+              </p>
+              <p
+                style={
+                  PrintHeaderUpperParaStyles as DetailedHTMLProps<
+                    HTMLAttributes<HTMLDivElement>,
+                    HTMLDivElement
+                  >
+                }
+              >
+                {chapter}
+              </p>
             </div>
-            <div className={styles.lower}>
-              <h2>{title}</h2>
-              <p>Date: {new Date().toLocaleDateString()}</p>
+            <div
+              style={
+                PrintHeaderLowerStyles as DetailedHTMLProps<
+                  HTMLAttributes<HTMLDivElement>,
+                  HTMLDivElement
+                >
+              }
+            >
+              <h2
+                style={
+                  PrintHeaderLowerH2Styles as DetailedHTMLProps<
+                    HTMLAttributes<HTMLDivElement>,
+                    HTMLDivElement
+                  >
+                }
+              >
+                {title}
+              </h2>
+              <p
+                style={
+                  PrintHeaderLowerParaStyles as DetailedHTMLProps<
+                    HTMLAttributes<HTMLDivElement>,
+                    HTMLDivElement
+                  >
+                }
+              >
+                Date: {new Date().toLocaleDateString()}
+              </p>
             </div>
           </div>
-          <div className={styles.content}>
-            <div className={styles.questionsContainer}>
+          <div
+            style={
+              PrintQuestionsContentStyles as DetailedHTMLProps<
+                HTMLAttributes<HTMLDivElement>,
+                HTMLDivElement
+              >
+            }
+          >
+            <div
+              style={
+                PrintQuestionsContainerStyles as DetailedHTMLProps<
+                  HTMLAttributes<HTMLDivElement>,
+                  HTMLDivElement
+                >
+              }
+            >
               <QuestionsComp questions={[...questions, ...questions]} />
               <QuestionsComp questions={[...questions, ...questions]} />
             </div>
           </div>
 
-          <div className={styles.footer}>
+          <div
+            style={
+              PrintQuestionsFooterStyles as DetailedHTMLProps<
+                HTMLAttributes<HTMLDivElement>,
+                HTMLDivElement
+              >
+            }
+          >
             <img src={logo} alt="logo" />
           </div>
         </section>
@@ -506,16 +628,43 @@ const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
   return (
     <div className={styles.questions}>
       {questions.map((question: any, i: number) => (
-        <div key={question.id} className={styles.question}>
-          <span>{i + 1}.</span>
-          <div>
+        <div
+          key={question.id}
+          style={
+            PrintQuestionsQuestionStyles as DetailedHTMLProps<
+              HTMLAttributes<HTMLDivElement>,
+              HTMLDivElement
+            >
+          }
+        >
+          <span style={{ fontWeight: 400 }}>{i + 1}.</span>
+          <div
+            style={{
+              marginLeft: "1rem",
+            }}
+          >
             <div
               dangerouslySetInnerHTML={{ __html: question.en.question }}
             ></div>
-            <Grid container className={styles.options}>
+            <Grid
+              container
+              style={
+                PrintQuestionsOptionsStyles as DetailedHTMLProps<
+                  HTMLAttributes<HTMLDivElement>,
+                  HTMLDivElement
+                >
+              }
+            >
               {question.en.options.map((option: any, j: number) => (
                 <Grid key={j} item md={6} xs={6} lg={6} xl={6}>
-                  <div className={styles.option}>
+                  <div
+                    style={
+                      PrintQuestionsOptionStyles as DetailedHTMLProps<
+                        HTMLAttributes<HTMLDivElement>,
+                        HTMLDivElement
+                      >
+                    }
+                  >
                     <span>{String.fromCharCode(97 + j)})</span>
                     <div
                       dangerouslySetInnerHTML={{ __html: option.value }}
@@ -549,3 +698,120 @@ function getCorrectAnswers(options: any) {
     .filter((option: any) => option.isCorrectAnswer)
     .map((option: any) => option.id);
 }
+
+const flexRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+};
+
+const PrintContainerStyles = {
+  background: "white",
+  zIndex: -1,
+  pointerEvents: "none",
+  border: "1px solid grey",
+  // width: 240mm;
+  overflowY: "auto",
+
+  // height: 297mm;
+  ...flexRow,
+};
+
+const PrintStyles = {
+  position: "relative",
+  // height: 100%,
+  width: "100%",
+  margin: "0 auto",
+  padding: "3rem",
+};
+
+const PrintHeaderStyles = {
+  position: "absolute",
+  top: "0",
+  left: "0",
+  width: "100%",
+  height: "150px",
+};
+
+const PrintHeaderUpperStyles = {
+  ...flexRow,
+  background: "rgb(75, 75, 75)",
+};
+
+const PrintHeaderUpperParaStyles = {
+  color: "black",
+  background: "white",
+  padding: "0.5rem 2rem",
+  fontSize: "1.2rem",
+  margin: 0,
+};
+
+const PrintHeaderLowerStyles = {
+  ...flexRow,
+  marginTop: "1rem",
+  background: "rgba(0, 0, 0, 0.1)",
+  padding: "1rem",
+  borderBottom: "2px solid black",
+  position: "relative",
+};
+
+const PrintHeaderLowerParaStyles = {
+  position: "absolute",
+  top: 0,
+  right: 0,
+  background: "white",
+  padding: "0.5rem 2rem",
+  fontSize: "1.2rem",
+  fontWeight: 600,
+};
+
+const PrintHeaderLowerH2Styles = {
+  textAlign: "center",
+  width: "100%",
+  fontWeight: 600,
+  color: "black",
+};
+
+const PrintQuestionsContainerStyles = {
+  ...flexRow,
+  "> div:nth-child(1)": {
+    borderRight: "1px solid black",
+    paddingRight: "1rem",
+  },
+  "> div:nth-child(2)": {
+    paddingLeft: "1rem",
+  },
+};
+
+const PrintQuestionsContentStyles = {
+  height: "calc(270mm - 150px - 100px)",
+  marginTop: "150px",
+  marginBottom: "100px",
+};
+
+const PrintQuestionsQuestionStyles = {
+  display: "flex",
+  justifyContent: "flex-start",
+  alignItems: "flex-start",
+};
+
+const PrintQuestionsOptionsStyles = {
+  width: "100%",
+};
+
+const PrintQuestionsOptionStyles = {
+  display: "flex",
+  justifyContent: "flex-start",
+  alignItems: "flex-start",
+};
+
+const PrintQuestionsFooterStyles = {
+  position: "absolute",
+  bottom: 0,
+  height: "100px",
+  width: "100%",
+  ...flexRow,
+  borderTop: "2px solid black",
+  textAlign: "center",
+  background: "white",
+};
