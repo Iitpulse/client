@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import clsx from "clsx";
 import { Button } from "../../../components";
 import { StyledMUITextField, UserProps } from "../components";
@@ -52,14 +52,25 @@ const Students: React.FC<{
   openModal: boolean;
   handleCloseModal: () => void;
 }> = ({ activeTab, student, openModal, handleCloseModal }) => {
-  const data: DataType[] = Array(100)
-    .fill({
-      key: "IITP_ST_ABC123",
-      id: "IITP_ST_ABC123",
-      name: "Student",
-      branch: "CSE",
-    })
-    .map((item, i) => ({ ...item, id: item.id + i, key: item.id + i }));
+  // const data: DataType[] = Array(100)
+  //   .fill({
+  //     key: "IITP_ST_ABC123",
+  //     id: "IITP_ST_ABC123",
+  //     name: "Student",
+  //     branch: "CSE",
+  //   })
+  //   .map((item, i) => ({ ...item, id: item.id + i, key: item.id + i }));
+
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    async function fetchStudents() {
+      const res = await axios.get("http://localhost:5000/student/");
+      console.log({ res });
+      setData(res.data);
+    }
+    fetchStudents();
+  }, []);
 
   return (
     <div className={styles.container}>

@@ -3,6 +3,9 @@ import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Teachers.module.scss";
 import { Button } from "../../../components";
+import { useContext, useState } from "react";
+import { AuthContext } from "../../../utils/auth/AuthContext";
+import axios from "axios";
 
 const Teachers: React.FC<{
   activeTab: number;
@@ -49,6 +52,46 @@ const Teacher: React.FC<{
     id,
     handleReset,
   } = props.teacher;
+
+  const [values, setValues] = useState({} as any);
+
+  const { currentUser } = useContext(AuthContext);
+
+  function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
+    const { id, value } = e.target;
+    console.log({ id, value });
+    setValues({ ...values, [id]: value });
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    let newValues = { ...values };
+    newValues.parentDetails = {
+      name: newValues.parentName,
+      contact: newValues.parentContact,
+    };
+    delete newValues.parentName;
+    delete newValues.parentContact;
+    newValues.userType = "student";
+    newValues.createdBy = {
+      id: currentUser?.id,
+      userType: currentUser?.userType,
+    };
+    newValues.confirmPassword = newValues.password;
+    newValues.institute = currentUser?.instituteId;
+    newValues.roles = ["ROLE_STUDENT"];
+    newValues.createdAt = new Date().toISOString();
+    newValues.modifiedAt = new Date().toISOString();
+    console.log({ newValues });
+
+    const res = await axios.post(
+      "http://localhost:5000/student/create",
+      newValues
+    );
+    console.log({ res });
+
+    // handleReset();
+  }
 
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
