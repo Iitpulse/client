@@ -1,3 +1,4 @@
+import { useContext, useState } from "react";
 import clsx from "clsx";
 import { Button } from "../../../components";
 import { StyledMUITextField, UserProps } from "../components";
@@ -5,6 +6,8 @@ import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
 import { Table } from "antd";
 import "antd/dist/antd.css";
+import { AuthContext } from "../../../utils/auth/AuthContext";
+import axios from "axios";
 
 const columns = [
   {
@@ -81,113 +84,146 @@ const Student: React.FC<{
   student: UserProps;
   handleCloseModal: () => void;
 }> = (props) => {
-  const {
-    onSubmit,
-    name,
-    setName,
-    email,
-    setEmail,
-    adhaarNumber,
-    setAdhaarNumber,
-    permanentAddress,
-    setPermanentAddress,
-    currentAddress,
-    setCurrentAddress,
-    personalContact,
-    setPersonalContact,
-    emergencyContact,
-    setEmergencyContact,
-    uploadedBy,
-    preparingFor,
-    setPreparingFor,
-    id,
-    handleReset,
-  } = props.student;
+  const { onSubmit, uploadedBy, handleReset } = props.student;
+  const [values, setValues] = useState({} as any);
+
+  const { currentUser } = useContext(AuthContext);
+
+  function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
+    const { id, value } = e.target;
+    console.log({ id, value });
+    setValues({ ...values, [id]: value });
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    let newValues = { ...values };
+    newValues.parentDetails = {
+      name: newValues.parentName,
+      contact: newValues.parentContact,
+    };
+    delete newValues.parentName;
+    delete newValues.parentContact;
+    newValues.userType = "student";
+    newValues.createdBy = {
+      id: currentUser?.id,
+      userType: currentUser?.userType,
+    };
+    newValues.confirmPassword = newValues.password;
+    newValues.institute = currentUser?.instituteId;
+    newValues.roles = ["ROLE_STUDENT"];
+    newValues.createdAt = new Date().toISOString();
+    newValues.modifiedAt = new Date().toISOString();
+    console.log({ newValues });
+
+    const res = await axios.post(
+      "http://localhost:5000/student/create",
+      newValues
+    );
+    console.log({ res });
+
+    // handleReset();
+  }
 
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className={styles.header}>
           <h2>Add a Student</h2>
           <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
         </div>
         <div className={styles.inputFields}>
-          <StyledMUITextField
+          {/* <StyledMUITextField
             id="id"
             disabled
             label="Id"
             value={id}
             variant="outlined"
-          />
+          /> */}
           <StyledMUITextField
             id="name"
             required
             label="Name"
-            value={name}
-            onChange={(e: any) => setName(e.target.value)}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="preparingFor"
-            required
-            value={preparingFor}
-            onChange={(e: any) =>
-              setPreparingFor ? setPreparingFor(e.target.value) : {}
-            }
-            label="Preparing For"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="currentAddress"
-            value={currentAddress}
-            onChange={(e: any) => setCurrentAddress(e.target.value)}
-            label="Current Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="permanentAddress"
-            value={permanentAddress}
-            onChange={(e: any) => setPermanentAddress(e.target.value)}
-            label="Permanent Address"
+            value={values.name}
+            onChange={handleChangeValues}
             variant="outlined"
           />
           <StyledMUITextField
             required
             id="email"
-            value={email}
-            onChange={(e: any) => setEmail(e.target.value)}
+            type="email"
+            value={values.email}
+            onChange={handleChangeValues}
             label="Email"
             variant="outlined"
           />
           <StyledMUITextField
             required
-            id="adhaarNumber"
-            value={adhaarNumber}
-            onChange={(e: any) => setAdhaarNumber(e.target.value)}
-            label="Adhaar Number"
+            id="password"
+            value={values.password}
+            type="password"
+            onChange={handleChangeValues}
+            label="password"
+            variant="outlined"
+          />
+          <StyledMUITextField
+            id="stream"
+            required
+            value={values.stream}
+            onChange={handleChangeValues}
+            label="Stream"
+            variant="outlined"
+          />
+          <StyledMUITextField
+            id="parentName"
+            required
+            value={values.parentName}
+            onChange={handleChangeValues}
+            label="Parent Name"
+            variant="outlined"
+          />
+          <StyledMUITextField
+            id="parentContact"
+            required
+            value={values.parentContact}
+            onChange={handleChangeValues}
+            label="Parent Contact"
+            variant="outlined"
+          />
+          <StyledMUITextField
+            id="school"
+            required
+            value={values.school}
+            onChange={handleChangeValues}
+            label="School"
+            variant="outlined"
+          />
+          <StyledMUITextField
+            id="batch"
+            required
+            value={values.batch}
+            onChange={handleChangeValues}
+            label="Batch"
             variant="outlined"
           />
           <StyledMUITextField
             required
-            id="personalContact"
-            value={personalContact}
-            onChange={(e: any) => setPersonalContact(e.target.value)}
-            label="Personal Contact"
+            className="largeWidthInput"
+            id="address"
+            value={values.address}
+            onChange={handleChangeValues}
+            label="Address"
             variant="outlined"
           />
           <StyledMUITextField
             required
-            id="emergencyContact"
-            value={emergencyContact}
-            onChange={(e: any) => setEmergencyContact(e.target.value)}
-            label="Emergency Contact"
+            id="contact"
+            type="number"
+            value={values.contact}
+            onChange={handleChangeValues}
+            label="Contact"
             variant="outlined"
           />
-
           <StyledMUITextField
             id="uploadedBy"
             className="uploadedBy"
