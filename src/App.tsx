@@ -12,6 +12,7 @@ import {
   Results,
   EditRole,
   Error,
+  DetailedAnalysis,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -28,18 +29,18 @@ const App = () => {
   //   PERMISSIONS?.BATCH?.READ ? PERMISSIONS.BATCH.READ : "undefined"
   // );
 
-  function CheckRouteForPermission(
-    permission: string,
-    Component: any,
-    title: string
-  ) {
-    const isPermitted = usePermission(permission);
-    return isPermitted ? (
-      <PrivateRoute title={title} component={Component} />
-    ) : (
-      <Error />
-    );
-  }
+  // function CheckRouteForPermission(
+  //   permission: string,
+  //   Component: any,
+  //   title: string
+  // ) {
+  //   const isPermitted = usePermission(permission);
+  //   return isPermitted ? (
+  //     <PrivateRoute name={name} component={Component} />
+  //   ) : (
+  //     <Error />
+  //   );
+  // }
   // useEffect(() => {
   //   console.log(isBatchesPermitted);
   // });
@@ -52,12 +53,12 @@ const App = () => {
               <Routes>
                 <Route
                   path="/"
-                  element={<PrivateRoute component={Home} title="Home" />}
+                  element={<PrivateRoute component={Home} name="Home" />}
                 />
                 <Route path="/login" element={<Login />} />
                 <Route
                   path="/batches"
-                  element={<PrivateRoute component={Batches} title="Batches" />}
+                  element={<PrivateRoute component={Batches} name="Batches" />}
                   // element={CheckRouteForPermission(
                   //   PERMISSIONS.BATCH.READ,
                   //   Batches,
@@ -66,41 +67,50 @@ const App = () => {
                 />
                 <Route
                   path="/pattern"
-                  element={<PrivateRoute component={Pattern} title="Pattern" />}
+                  element={<PrivateRoute component={Pattern} name="Pattern" />}
                 />
                 <Route
                   path="/test"
-                  element={<PrivateRoute component={Test} title="Test" />}
+                  element={<PrivateRoute component={Test} name="Test" />}
                 />
                 <Route
                   path="/test/new"
                   element={
-                    <PrivateRoute component={CreateTest} title="Create Test" />
+                    <PrivateRoute component={CreateTest} name="Create Test" />
                   }
                 />
                 <Route
                   path="/test/result/:testId"
-                  element={<PrivateRoute component={Results} title="Results" />}
+                  element={<PrivateRoute component={Results} name="Results" />}
+                />
+                <Route
+                  path="/test/result/detailed-analysis/:testId"
+                  element={
+                    <PrivateRoute
+                      component={DetailedAnalysis}
+                      name="Detailed Analysis"
+                    />
+                  }
                 />
                 <Route
                   path="/questions"
                   element={
-                    <PrivateRoute component={Questions} title="Questions" />
+                    <PrivateRoute component={Questions} name="Questions" />
                   }
                 />
                 <Route
                   path="/roles"
-                  element={<PrivateRoute component={Roles} title="Roles" />}
+                  element={<PrivateRoute component={Roles} name="Roles" />}
                 />
                 <Route
                   path="/roles/:roleName"
                   element={
-                    <PrivateRoute component={EditRole} title="Edit Role" />
+                    <PrivateRoute component={EditRole} name="Edit Role" />
                   }
                 />
                 <Route
                   path="/users"
-                  element={<PrivateRoute component={Users} title="Users" />}
+                  element={<PrivateRoute component={Users} name="Users" />}
                 />
               </Routes>
             </Router>

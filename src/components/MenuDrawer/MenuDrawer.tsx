@@ -7,8 +7,7 @@ import profilePlaceholder from "../../assets/images/profilePlaceholder.jpg";
 import institutePlaceholder from "../../assets/images/institutePlaceholder.svg";
 import { NavLink, useNavigate } from "react-router-dom";
 import { IconButton } from "@mui/material";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
+import { Menu, MenuItem } from "@mui/material";
 import clsx from "clsx";
 
 interface MenuDrawerProps {

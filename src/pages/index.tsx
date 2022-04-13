@@ -10,3 +10,4 @@ export { default as Login } from "./Login/Login";
 export { default as Results } from "./Results/Results";
 export { default as Error } from "./Error/Error";
 export { default as EditRole } from "./Roles/EditRole/EditRole";
+export { default as DetailedAnalysis } from "./DetailedAnalysis/DetailedAnalysis";

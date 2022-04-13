@@ -11,7 +11,7 @@ import { top100Films } from "../utils/constants";
 
 interface Props {
   children: React.ReactNode;
-  title: string;
+  name: string;
   [key: string]: any;
 }
 
@@ -21,7 +21,7 @@ const MainLayout = (props: Props) => {
       <MenuDrawer />
       <section className={styles.mainContainer}>
         <nav>
-          <h3>{props.title}</h3>
+          <h3>{props.name}</h3>
           <div className={styles.actions}>
             <Stack spacing={2}>
               <Autocomplete
