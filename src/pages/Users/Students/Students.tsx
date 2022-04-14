@@ -8,6 +8,9 @@ import { Table } from "antd";
 import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
+import Dropzone from "react-dropzone";
+import { IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 const columns = [
   {
@@ -97,6 +100,7 @@ const Student: React.FC<{
 }> = (props) => {
   const { onSubmit, uploadedBy, handleReset } = props.student;
   const [values, setValues] = useState({} as any);
+  const [openDropzne, setOpenDropzone] = useState(false);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -136,11 +140,28 @@ const Student: React.FC<{
     // handleReset();
   }
 
+  async function handleUploadFile(files: any) {
+    const formData = new FormData();
+    formData.append("file", files[0]);
+    formData.append("name", files[0]?.name);
+
+    const bulkRes = await axios.post(
+      "http://localhost:5000/student/bulk",
+      formData
+    );
+    console.log({ bulkRes });
+  }
+
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <form onSubmit={handleSubmit}>
         <div className={styles.header}>
-          <h2>Add a Student</h2>
+          <div className={styles.flexRow}>
+            <h2>Add a Student</h2>
+            <Button type="button" onClick={() => setOpenDropzone(true)}>
+              Bulk Upload
+            </Button>
+          </div>
           <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
         </div>
         <div className={styles.inputFields}>
@@ -219,15 +240,6 @@ const Student: React.FC<{
           />
           <StyledMUITextField
             required
-            className="largeWidthInput"
-            id="address"
-            value={values.address}
-            onChange={handleChangeValues}
-            label="Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
             id="contact"
             type="number"
             value={values.contact}
@@ -236,14 +248,47 @@ const Student: React.FC<{
             variant="outlined"
           />
           <StyledMUITextField
+            required
+            className="largeWidthInput"
+            id="address"
+            value={values.address}
+            onChange={handleChangeValues}
+            label="Address"
+            variant="outlined"
+          />
+          {/* <StyledMUITextField
             id="uploadedBy"
             className="uploadedBy"
             value={uploadedBy}
             label="Uploaded By"
             disabled
             variant="outlined"
-          />
+          /> */}
         </div>
+        {openDropzne && (
+          <div className={styles.dropzoneContainer}>
+            <div className={styles.close}>
+              <IconButton
+                edge="start"
+                color="inherit"
+                onClick={() => setOpenDropzone(false)}
+                aria-label="close"
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+            <Dropzone onDrop={handleUploadFile}>
+              {({ getRootProps, getInputProps }) => (
+                <section className={styles.dropzone}>
+                  <div {...getRootProps()}>
+                    <input {...getInputProps()} accept=".xlsx," />
+                    <p>Click or drag n drop to upload an excel file</p>
+                  </div>
+                </section>
+              )}
+            </Dropzone>
+          </div>
+        )}
         <div className={styles.buttons}>
           <Button>Submit</Button>
           <Button onClick={handleReset} type="button" color="warning">
