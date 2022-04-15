@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import clsx from "clsx";
-import { Button } from "../../../components";
+import { Button, MUISimpleAutocomplete } from "../../../components";
 import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
@@ -112,6 +112,12 @@ const Student: React.FC<{
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (values.contact?.length !== 10) {
+      return alert("Contact must be 10 digits long");
+    }
+    if (values.parentContact?.length !== 10) {
+      return alert("Parent Contact must be 10 digits long");
+    }
     let newValues = { ...values };
     newValues.parentDetails = {
       name: newValues.parentName,
@@ -217,6 +223,7 @@ const Student: React.FC<{
           <StyledMUITextField
             id="parentContact"
             required
+            type="number"
             value={values.parentContact}
             onChange={handleChangeValues}
             label="Parent Contact"
@@ -247,6 +254,33 @@ const Student: React.FC<{
             label="Contact"
             variant="outlined"
           />
+          <StyledMUITextField
+            required
+            id="dob"
+            type="text"
+            value={values.dob}
+            onChange={handleChangeValues}
+            label="DOB"
+            placeholder="DD/MM/YYYY"
+            variant="outlined"
+          />
+          <div className={styles.singlSelect}>
+            <MUISimpleAutocomplete
+              label="Gender"
+              onChange={(val: any) => {
+                console.log({ val });
+                handleChangeValues({
+                  target: { id: "gender", value: val },
+                } as any);
+              }}
+              options={[
+                { name: "Male", value: "male" },
+                { name: "Female", value: "female" },
+              ]}
+              value={values.gender}
+            />
+          </div>
+
           <StyledMUITextField
             required
             className="largeWidthInput"
