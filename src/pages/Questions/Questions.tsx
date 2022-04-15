@@ -294,68 +294,6 @@ const Questions = () => {
         <>
           {isCreatePermitted && (
             <>
-              {/* <form>
-                <div className={styles.inputFields}>
-                  <StyledMUISelect
-                    label={"Type"}
-                    options={questionTypes}
-                    state={type}
-                    onChange={setType}
-                  />
-                  <MUIChipsAutocomplete
-                    label="Exam(s)"
-                    options={examList}
-                    onChange={setExams}
-                  />
-                  <StyledMUISelect
-                    label={"Subject"}
-                    options={subjects}
-                    state={subject}
-                    onChange={setSubject}
-                  />
-                  <MUIChipsAutocomplete
-                    label="Chapter(s)"
-                    options={chapterOptions?.map((chapter: any) => ({
-                      name: chapter.name,
-                      value: chapter.name,
-                    }))}
-                    disabled={Boolean(!chapterOptions?.length)}
-                    onChange={setChapters}
-                  />
-                  <MUIChipsAutocomplete
-                    label="Topics"
-                    options={
-                      topicOptions.map((topic) => ({
-                        name: topic,
-                        value: topic,
-                      })) || []
-                    }
-                    onChange={setTopics}
-                  />
-                  <StyledMUISelect
-                    label={"Difficulty"}
-                    options={difficultyLevels}
-                    state={difficulty}
-                    onChange={setDifficulty}
-                  />
-                  <MUISimpleAutocomplete
-                    label={"Source"}
-                    options={sources}
-                    onChange={setSource}
-                  />
-                  <StyledMUITextField
-                    id="uploadedBy"
-                    value={uploadedBy.id}
-                    label="Uploaded By"
-                    disabled
-                    variant="outlined"
-                  />
-                </div>
-              </form> */}
-              {/* <hr /> */}
-              {/* <section className={styles.main}>
-                {getQuestionFromType(type, setData)}
-              </section> */}
               <div className={styles.flexRow}>
                 <Button onClick={() => navigate("/questions/new")}>
                   Add New
@@ -365,116 +303,59 @@ const Questions = () => {
                   Export to CSV
                 </CSVLink>
               </div>
-              <div>
-                <QuestionsTable
-                  dataSource={questions?.map((question: any) => ({
-                    ...question,
-                    key: question.id || question._id,
-                  }))}
-                  height="70vh"
-                />
-              </div>
-              {/* <hr /> */}
-              {/* <section className={styles.main}>
-                {getQuestionFromType(type, setData)}
-              </section> */}
-              {/* <div>
-                <Button onClick={handleSubmitQuestion}>Submit</Button>
-              </div> */}
-              <Sidebar title="Recent Activity">
-                {Array(10)
-                  .fill(0)
-                  .map((_, i) => (
-                    <NotificationCard
-                      key={i}
-                      id="aasdadsd"
-                      status={i % 2 === 0 ? "success" : "warning"}
-                      title={"New Student Joined-" + i}
-                      description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-                      createdAt="10 Jan, 2022"
-                    />
-                  ))}
-              </Sidebar>
-              <div
-                ref={tableRef}
-                style={
-                  PrintContainerStyles as DetailedHTMLProps<
-                    HTMLAttributes<HTMLDivElement>,
-                    HTMLDivElement
-                  >
-                }
-              >
-                <PrintTest
-                  subject="Physics"
-                  chapter="Ray Optics"
-                  title="Daily Rapid Test #025"
-                  questions={questions}
-                />
-              </div>
             </>
           )}
+
+          <div>
+            <QuestionsTable
+              dataSource={questions?.map((question: any) => ({
+                ...question,
+                key: question.id || question._id,
+              }))}
+              height="70vh"
+            />
+          </div>
+          {/* <hr /> */}
+          {/* <section className={styles.main}>
+                {getQuestionFromType(type, setData)}
+              </section> */}
+          {/* <div>
+                <Button onClick={handleSubmitQuestion}>Submit</Button>
+              </div> */}
+          <Sidebar title="Recent Activity">
+            {Array(10)
+              .fill(0)
+              .map((_, i) => (
+                <NotificationCard
+                  key={i}
+                  id="aasdadsd"
+                  status={i % 2 === 0 ? "success" : "warning"}
+                  title={"New Student Joined-" + i}
+                  description="New student join IIT Pulse Anurag Pal - Dropper Batch"
+                  createdAt="10 Jan, 2022"
+                />
+              ))}
+          </Sidebar>
+          <div
+            ref={tableRef}
+            style={
+              PrintContainerStyles as DetailedHTMLProps<
+                HTMLAttributes<HTMLDivElement>,
+                HTMLDivElement
+              >
+            }
+          >
+            <PrintTest
+              subject="Physics"
+              chapter="Ray Optics"
+              title="Daily Rapid Test #025"
+              questions={questions}
+            />
+          </div>
         </>
       ) : (
         <Error />
       )}
-      {/* <form>
-        <div className={styles.inputFields}>
-          <StyledMUISelect
-            label={"Type"}
-            options={questionTypes}
-            state={type}
-            onChange={setType}
-          />
-          <MUIChipsAutocomplete
-            label="Exam(s)"
-            options={examList}
-            onChange={setExams}
-          />
-          <StyledMUISelect
-            label={"Subject"}
-            options={subjects}
-            state={subject}
-            onChange={setSubject}
-          />
-          <MUIChipsAutocomplete
-            label="Chapter(s)"
-            options={chapterOptions?.map((chapter: any) => ({
-              name: chapter.name,
-              value: chapter.name,
-            }))}
-            disabled={Boolean(!chapterOptions?.length)}
-            onChange={setChapters}
-          />
-          <MUIChipsAutocomplete
-            label="Topics"
-            options={
-              topicOptions.map((topic) => ({
-                name: topic,
-                value: topic,
-              })) || []
-            }
-            onChange={setTopics}
-          />
-          <StyledMUISelect
-            label={"Difficulty"}
-            options={difficultyLevels}
-            state={difficulty}
-            onChange={setDifficulty}
-          />
-          <MUISimpleAutocomplete
-            label={"Source"}
-            options={sources}
-            onChange={setSource}
-          />
-          <StyledMUITextField
-            id="uploadedBy"
-            value={uploadedBy.id}
-            label="Uploaded By"
-            disabled
-            variant="outlined"
-          />
-        </div>
-      </form> */}
     </div>
   );
 };

@@ -24,6 +24,7 @@ import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
 import { Table } from "antd";
+import { NavLink } from "react-router-dom";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -131,7 +132,9 @@ const Pattern = () => {
         <>
           <section className={styles.container}>
             <div className={styles.header}>
-              <Button>Add New</Button>
+              <NavLink to="/pattern/new">
+                <Button>Add New</Button>
+              </NavLink>
             </div>
             <div className={styles.data}>
               <Table

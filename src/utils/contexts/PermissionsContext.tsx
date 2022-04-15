@@ -175,7 +175,11 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
         if (currentUser?.roles[role.id]) {
           setRoles((prev: any) => ({
             ...prev,
-            [role.id]: { id: role.id, permissions: role.permissions },
+            [role.id]: {
+              id: role.id,
+              permissions: role.permissions,
+              members: role.members,
+            },
           }));
         }
       });

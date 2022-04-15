@@ -16,15 +16,18 @@ const columns = [
   {
     title: "ID",
     dataIndex: "id",
+    width: 50,
     // render: (text: string) => <a>{text}</a>,
   },
   {
     title: "Name",
     dataIndex: "name",
+    width: 200,
   },
   {
     title: "Branch",
     dataIndex: "branch",
+    width: 100,
   },
 ];
 
@@ -70,7 +73,7 @@ const Students: React.FC<{
     async function fetchStudents() {
       const res = await axios.get("http://localhost:5000/student/");
       console.log({ res });
-      setData(res.data);
+      setData(res.data?.map((item: any) => ({ ...item, key: item.id })));
     }
     fetchStudents();
   }, []);
@@ -328,7 +331,11 @@ const Student: React.FC<{
               {({ getRootProps, getInputProps }) => (
                 <section className={styles.dropzone}>
                   <div {...getRootProps()}>
-                    <input {...getInputProps()} accept=".xlsx," />
+                    <input
+                      {...getInputProps()}
+                      accept=".xlsx,"
+                      title="upload"
+                    />
                     <p>
                       {file?.name ||
                         "Click or drag n drop to upload an excel file"}

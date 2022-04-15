@@ -23,6 +23,7 @@ import { usePermission } from "./utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "./utils/constants";
 import { useEffect } from "react";
 import CreatePattern from "./pages/Pattern/CreatePattern";
+import CreateQuestion from "./pages/Questions/CreateQuestion";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(
@@ -105,6 +106,15 @@ const App = () => {
                   path="/questions"
                   element={
                     <PrivateRoute component={Questions} name="Questions" />
+                  }
+                />
+                <Route
+                  path="/questions/new"
+                  element={
+                    <PrivateRoute
+                      component={CreateQuestion}
+                      name="Create Question"
+                    />
                   }
                 />
                 <Route
