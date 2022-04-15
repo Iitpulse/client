@@ -92,26 +92,6 @@ const Pattern = () => {
   ];
   const [sections, setSections] = useState<Array<ISection>>([]);
 
-  function handleChangeSection(id: string, data: any) {
-    setSections(
-      sections.map((section) =>
-        section.id === id ? { ...section, ...data } : section
-      )
-    );
-  }
-
-  function handleClickAddNew() {
-    setSections([
-      ...sections,
-      {
-        ...sampleSection,
-        id: `${Math.random() * 100}`,
-        exam: exam,
-        subject: "physics",
-      },
-    ]);
-  }
-
   function handleDeleteSection(id: string) {
     setSections(sections.filter((section) => section.id !== id));
   }

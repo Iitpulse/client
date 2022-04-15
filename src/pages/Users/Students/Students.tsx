@@ -101,6 +101,7 @@ const Student: React.FC<{
   const { onSubmit, uploadedBy, handleReset } = props.student;
   const [values, setValues] = useState({} as any);
   const [openDropzne, setOpenDropzone] = useState(false);
+  const [file, setFile] = useState(null as any);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -146,16 +147,26 @@ const Student: React.FC<{
     // handleReset();
   }
 
-  async function handleUploadFile(files: any) {
-    const formData = new FormData();
-    formData.append("file", files[0]);
-    formData.append("name", files[0]?.name);
+  async function handleUploadFile() {
+    if (currentUser) {
+      const formData = new FormData();
+      formData.append("file", file);
+      // formData.append("name", file?.name);
+      formData.append(
+        "createdBy",
+        JSON.stringify({
+          id: currentUser?.id,
+          userType: currentUser?.userType,
+        })
+      );
+      console.log({ formData: formData.get("file") });
 
-    const bulkRes = await axios.post(
-      "http://localhost:5000/student/bulk",
-      formData
-    );
-    console.log({ bulkRes });
+      const bulkRes = await axios.post(
+        "http://localhost:5000/student/bulk",
+        formData
+      );
+      console.log({ bulkRes });
+    }
   }
 
   return (
@@ -311,16 +322,28 @@ const Student: React.FC<{
                 <CloseIcon />
               </IconButton>
             </div>
-            <Dropzone onDrop={handleUploadFile}>
+            <Dropzone
+              onDrop={(acceptedFiles: any) => setFile(acceptedFiles[0])}
+            >
               {({ getRootProps, getInputProps }) => (
                 <section className={styles.dropzone}>
                   <div {...getRootProps()}>
                     <input {...getInputProps()} accept=".xlsx," />
-                    <p>Click or drag n drop to upload an excel file</p>
+                    <p>
+                      {file?.name ||
+                        "Click or drag n drop to upload an excel file"}
+                    </p>
                   </div>
                 </section>
               )}
             </Dropzone>
+            <Button
+              type="button"
+              onClick={handleUploadFile}
+              classes={[styles.uploadBtn]}
+            >
+              Upload
+            </Button>
           </div>
         )}
         <div className={styles.buttons}>

@@ -27,6 +27,7 @@
         border: 2px dotted;
         border-radius: 10px;
         @extend .flexRow;
+        cursor: pointer;
       }
       p {
         text-align: center;
@@ -39,6 +40,13 @@
       right: 2rem;
       z-index: 20;
       cursor: pointer;
+    }
+
+    .uploadBtn {
+      position: absolute;
+      bottom: 3rem;
+      right: 2rem;
+      z-index: 20;
     }
   }
   .singlSelect {
