@@ -9,7 +9,7 @@ import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import Dropzone from "react-dropzone";
-import { IconButton } from "@mui/material";
+import { IconButton, LinearProgress } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 const columns = [
@@ -105,6 +105,7 @@ const Student: React.FC<{
   const [values, setValues] = useState({} as any);
   const [openDropzne, setOpenDropzone] = useState(false);
   const [file, setFile] = useState(null as any);
+  const [loading, setLoading] = useState(false);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -152,6 +153,7 @@ const Student: React.FC<{
 
   async function handleUploadFile() {
     if (currentUser) {
+      setLoading(true);
       const formData = new FormData();
       formData.append("file", file);
       // formData.append("name", file?.name);
@@ -162,14 +164,20 @@ const Student: React.FC<{
           userType: currentUser?.userType,
         })
       );
-      console.log({ formData: formData.get("file") });
 
       const bulkRes = await axios.post(
         "http://localhost:5000/student/bulk",
         formData
       );
-      console.log({ bulkRes });
+
+      if (bulkRes.status === 200) {
+        setFile(null);
+        alert("File uploaded successfully");
+      } else {
+        alert("File upload failed");
+      }
     }
+    setLoading(false);
   }
 
   return (
@@ -340,6 +348,11 @@ const Student: React.FC<{
                       {file?.name ||
                         "Click or drag n drop to upload an excel file"}
                     </p>
+                    {loading && (
+                      <div className={styles.progress}>
+                        <LinearProgress />
+                      </div>
+                    )}
                   </div>
                 </section>
               )}
@@ -348,6 +361,7 @@ const Student: React.FC<{
               type="button"
               onClick={handleUploadFile}
               classes={[styles.uploadBtn]}
+              disabled={loading}
             >
               Upload
             </Button>

@@ -58,6 +58,13 @@
       right: 2rem;
       z-index: 20;
     }
+    .progress {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      width: 40%;
+    }
   }
   .singlSelect {
     > div {
