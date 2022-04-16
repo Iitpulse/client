@@ -7,6 +7,28 @@ import { Table } from "antd";
 import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && children}
+    </div>
+  );
+}
+
 const Test = () => {
   const columns = [
     {
@@ -65,27 +87,6 @@ const Test = () => {
     }),
   };
 
-  interface TabPanelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-  }
-
-  function TabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props;
-
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`simple-tabpanel-${index}`}
-        aria-labelledby={`simple-tab-${index}`}
-        {...other}
-      >
-        {value === index && children}
-      </div>
-    );
-  }
   // Transfered above code from above the component to its inside to use navigate funtion inside colums array
 
   const [tab, setTab] = useState(0);

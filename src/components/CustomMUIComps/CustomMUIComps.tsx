@@ -57,26 +57,31 @@ interface MUIAutocompleteProps {
   }>;
 }
 
-export const MUIChipsAutocomplete = (props: MUIAutocompleteProps) => {
+export const MUIChipsAutocomplete: React.FC<MUIAutocompleteProps> = ({
+  options,
+  label,
+  onChange,
+  ...rest
+}) => {
   return (
     <Autocomplete
       multiple
       id="tags-outlined"
       onChange={(_, value) =>
-        props.onChange(
+        onChange(
           value.map((item) => {
             return item.value;
           })
         )
       }
-      options={props.options}
+      options={options}
       getOptionLabel={(option) => option.name}
       filterSelectedOptions
       renderInput={(params) => (
         <TextField
           {...params}
-          label={props.label}
-          placeholder={"Search for " + props.label}
+          label={label}
+          placeholder={"Search for " + label}
         />
       )}
     />

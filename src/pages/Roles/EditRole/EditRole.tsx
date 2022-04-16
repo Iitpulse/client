@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { Tabs, Tab } from "@mui/material";
+import { Tabs, Tab, IconButton } from "@mui/material";
 import styles from "./EditRole.module.scss";
 import {
   PermissionsContext,
@@ -17,6 +17,7 @@ import {
 import clsx from "clsx";
 import axios from "axios";
 import { flattendPermissions } from "../AddNewRole";
+import ClearIcon from "@mui/icons-material/Clear";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -43,12 +44,13 @@ function TabPanel(props: TabPanelProps) {
 const EditRole = () => {
   const { roleName } = useParams();
   const [tab, setTab] = useState(0);
-  const [permissionInformation, setPermissionInformation] = useState<any>({});
   const [permissions, setPermissions] = useState<any>([]);
   const [allowedPermisions, setAllowedPermissions] = useState<any>([]);
   const isReadPermitted = usePermission(PERMISSIONS?.ROLE?.UPDATE);
+  const [members, setMembers] = useState<{ name: string; id: string }[]>([]);
 
-  const { permissions: rolePermissions } = useContext(PermissionsContext);
+  const { permissions: rolePermissions, allRoles } =
+    useContext(PermissionsContext);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
@@ -225,6 +227,14 @@ const EditRole = () => {
   }, [roleName]);
 
   useEffect(() => {
+    if (roleName && allRoles) {
+      setMembers(
+        allRoles.filter((role: any) => role.id === roleName)[0]?.members
+      );
+    }
+  }, [allRoles, roleName]);
+
+  useEffect(() => {
     if (rolePermissions && roleName && permissions?.length) {
       let perms = rolePermissions[roleName];
       if (perms) {
@@ -258,7 +268,7 @@ const EditRole = () => {
 
   return (
     <>
-      {true ? (
+      {isReadPermitted ? (
         <>
           <div className={styles.editRole}>
             <div className={styles.flexRow}>
@@ -290,8 +300,13 @@ const EditRole = () => {
             </TabPanel>
             <TabPanel value={tab} index={1}>
               <div className={clsx(styles.tabPanel, styles.managePeople)}>
-                {rolePermissions[roleName || ""]?.people?.map((person: any) => (
-                  <p>{person?.name}</p>
+                {members?.map((member: any) => (
+                  <div className={styles.flexRow}>
+                    <p>{member?.name}</p>
+                    <IconButton>
+                      <ClearIcon />
+                    </IconButton>
+                  </div>
                 ))}
               </div>
             </TabPanel>
