@@ -258,7 +258,7 @@ const EditRole = () => {
     let newPerms = allowedPermisions.map((idx: number) => permissions[idx]);
     console.log({ newPerms });
 
-    const res = await axios.post("http://localhost:5000/roles/update", {
+    const res = await axios.post("http://localhost:5004/roles/update", {
       id: roleName,
       permissions: newPerms,
     });

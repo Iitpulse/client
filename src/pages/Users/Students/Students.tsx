@@ -71,7 +71,7 @@ const Students: React.FC<{
 
   useEffect(() => {
     async function fetchStudents() {
-      const res = await axios.get("http://localhost:5000/student/");
+      const res = await axios.get("http://localhost:5004/student/");
       console.log({ res });
       setData(res.data?.map((item: any) => ({ ...item, key: item.id })));
     }
@@ -143,7 +143,7 @@ const Student: React.FC<{
     console.log({ newValues });
 
     const res = await axios.post(
-      "http://localhost:5000/student/create",
+      "http://localhost:5004/student/create",
       newValues
     );
     console.log({ res });
@@ -166,7 +166,7 @@ const Student: React.FC<{
       );
 
       const bulkRes = await axios.post(
-        "http://localhost:5000/student/bulk",
+        "http://localhost:5004/student/bulk",
         formData
       );
 

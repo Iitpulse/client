@@ -85,7 +85,7 @@ const Teacher: React.FC<{
     console.log({ newValues });
 
     const res = await axios.post(
-      "http://localhost:5000/student/create",
+      "http://localhost:5004/student/create",
       newValues
     );
     console.log({ res });
