@@ -6,7 +6,7 @@ import {
   PermissionsContext,
   usePermission,
 } from "../../../utils/contexts/PermissionsContext";
-import { PERMISSIONS } from "../../../utils/constants";
+import { APIS, PERMISSIONS } from "../../../utils/constants";
 import { Error } from "../../";
 import {
   Sidebar,
@@ -258,7 +258,7 @@ const EditRole = () => {
     let newPerms = allowedPermisions.map((idx: number) => permissions[idx]);
     console.log({ newPerms });
 
-    const res = await axios.post("http://localhost:5000/roles/update", {
+    const res = await axios.post(`${APIS.USERS_API}/roles/update`, {
       id: roleName,
       permissions: newPerms,
     });

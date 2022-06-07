@@ -11,6 +11,7 @@ import axios from "axios";
 import Dropzone from "react-dropzone";
 import { IconButton, LinearProgress } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { APIS } from "../../../utils/constants";
 
 const columns = [
   {
@@ -71,7 +72,7 @@ const Students: React.FC<{
 
   useEffect(() => {
     async function fetchStudents() {
-      const res = await axios.get("http://localhost:5000/student/");
+      const res = await axios.get(`${APIS.USERS_API}/student/`);
       console.log({ res });
       setData(res.data?.map((item: any) => ({ ...item, key: item.id })));
     }
@@ -142,10 +143,7 @@ const Student: React.FC<{
     newValues.modifiedAt = new Date().toISOString();
     console.log({ newValues });
 
-    const res = await axios.post(
-      "http://localhost:5000/student/create",
-      newValues
-    );
+    const res = await axios.post(`${APIS.USERS_API}/student/create`, newValues);
     console.log({ res });
 
     // handleReset();
@@ -166,7 +164,7 @@ const Student: React.FC<{
       );
 
       const bulkRes = await axios.post(
-        "http://localhost:5000/student/bulk",
+        `${APIS.USERS_API}/student/bulk`,
         formData
       );
 

@@ -3,6 +3,12 @@ import { Tag } from "antd";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+export const APIS = {
+  USERS_API: process.env.USERS_API || "http://localhost:5000",
+  QUESTIONS_API: process.env.QUESTIONS_API || "http://localhost:5001",
+  TESTS_API: process.env.TESTS_API || "http://localhost:5002",
+};
+
 export const USER_TYPES = {
   ADMIN: "admin",
   OPERATOR: "operator",

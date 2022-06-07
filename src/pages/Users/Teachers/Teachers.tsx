@@ -6,6 +6,7 @@ import { Button } from "../../../components";
 import { useContext, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
+import { APIS } from "../../../utils/constants";
 
 const Teachers: React.FC<{
   activeTab: number;
@@ -84,10 +85,7 @@ const Teacher: React.FC<{
     newValues.modifiedAt = new Date().toISOString();
     console.log({ newValues });
 
-    const res = await axios.post(
-      "http://localhost:5000/student/create",
-      newValues
-    );
+    const res = await axios.post(`${APIS.USERS_API}/student/create`, newValues);
     console.log({ res });
 
     // handleReset();

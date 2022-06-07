@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { InputField, Modal, Button } from "../../components";
 import styles from "./AddNewRole.module.scss";
-import { PERMISSIONS } from "../../utils/constants";
+import { APIS, PERMISSIONS } from "../../utils/constants";
 import { Permission } from "./EditRole/EditRole";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
@@ -25,7 +25,7 @@ const AddNewRole: React.FC<{
   const { currentUser } = useContext(AuthContext);
 
   async function handleSubmit() {
-    const res = await axios.post("http://localhost:5000/roles/create", {
+    const res = await axios.post(`${APIS.USERS_API}/roles/create`, {
       name,
       permissions: flattendPermissions().filter((_: any, i: number) =>
         selectedPermissions.includes(i)

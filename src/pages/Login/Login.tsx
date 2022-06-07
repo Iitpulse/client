@@ -5,6 +5,7 @@ import { decodeToken } from "react-jwt";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
+import { APIS } from "../../utils/constants";
 
 const Login = () => {
   const { setCurrentUser } = useContext(AuthContext);
@@ -15,7 +16,7 @@ const Login = () => {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const response = await axios.post("http://localhost:5000/auth/login/", {
+    const response = await axios.post(`${APIS.USERS_API}/auth/login/`, {
       email,
       password,
     });

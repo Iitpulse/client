@@ -1,7 +1,7 @@
 import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
 import { AuthContext } from "../auth/AuthContext";
-import { PERMISSIONS } from "../constants";
+import { APIS, PERMISSIONS } from "../constants";
 
 interface PermissionsType {
   READ_QUESTION?: {
@@ -166,7 +166,7 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     async function getRoles() {
-      const response = await axios.get("http://localhost:5000/roles/all");
+      const response = await axios.get(`${APIS.USERS_API}/roles/all`);
       setAllRoles(response.data);
       let perms: any = {};
       response.data.forEach((role: any) => {
