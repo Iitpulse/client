@@ -4,9 +4,18 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export const APIS = {
-  USERS_API: process.env.USERS_API || "http://localhost:5000",
-  QUESTIONS_API: process.env.QUESTIONS_API || "http://localhost:5001",
-  TESTS_API: process.env.TESTS_API || "http://localhost:5002",
+  USERS_API:
+    "https://iitpulse.in" ||
+    process.env.REACT_APP_USERS_API ||
+    "http://localhost:5000",
+  QUESTIONS_API:
+    "https://questions.iitpulse.in" ||
+    process.env.REACT_APP_QUESTIONS_API ||
+    "http://localhost:5001",
+  TESTS_API:
+    "https://tests.iitpulse.in" ||
+    process.env.REACT_APP_TESTS_API ||
+    "http://localhost:5002",
 };
 
 export const USER_TYPES = {
