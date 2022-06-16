@@ -140,7 +140,15 @@ const Student: React.FC<{
     };
     newValues.confirmPassword = newValues.password;
     newValues.institute = currentUser?.instituteId;
-    newValues.roles = ["ROLE_STUDENT"];
+    newValues.roles = [
+      {
+        id: "ROLE_STUDENT",
+        from: new Date().toISOString(),
+        to: new Date(
+          new Date().setDate(new Date().getDate() + 400)
+        ).toISOString(),
+      },
+    ];
     newValues.createdAt = new Date().toISOString();
     newValues.modifiedAt = new Date().toISOString();
     console.log({ newValues });

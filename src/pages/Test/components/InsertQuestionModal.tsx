@@ -63,7 +63,7 @@ const InsertQuestionModal: React.FC<Props> = ({
 
   async function fetchQuestions() {
     const res = await axios.get(
-      `http://${process.env.REACT_APP_QUESTIONS_API}/mcq/difficulty`,
+      `${process.env.REACT_APP_QUESTIONS_API}/mcq/difficulty`,
       {
         params: {
           difficulties,
@@ -88,7 +88,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   useEffect(() => {
     if (subject) {
       axios
-        .get(`http://${process.env.REACT_APP_QUESTIONS_API}/mcq/chapter/`, {
+        .get(`${process.env.REACT_APP_QUESTIONS_API}/mcq/chapter/`, {
           params: {
             subject,
           },

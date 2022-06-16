@@ -132,7 +132,7 @@ const CreateQuestion = () => {
     if (subject?.length) {
       console.log(subject);
       axios
-        .get(`http://${process.env.REACT_APP_QUESTIONS_API}/subject/chapter/`, {
+        .get(`${process.env.REACT_APP_QUESTIONS_API}/subject/chapter/`, {
           params: {
             subject,
           },
@@ -190,7 +190,7 @@ const CreateQuestion = () => {
             };
             console.log({ finalQuestion });
             const res = await axios.post(
-              `http://${process.env.REACT_APP_QUESTIONS_API}/mcq/new`,
+              `${process.env.REACT_APP_QUESTIONS_API}/mcq/new`,
               finalQuestion
             );
 
@@ -214,7 +214,7 @@ const CreateQuestion = () => {
 
             console.log({ finalQuestion });
             const res = await axios.post(
-              `http://${process.env.REACT_APP_QUESTIONS_API}/numerical/new`,
+              `${process.env.REACT_APP_QUESTIONS_API}/numerical/new`,
               finalQuestion
             );
 
