@@ -31,8 +31,8 @@ const AuthContextProvider = (props: ProviderProps) => {
       }
       let newRoles: any = {};
       decoded?.roles?.forEach((role: any) => {
-        newRoles[role] = {
-          id: role,
+        newRoles[role.id] = {
+          id: role.id,
           permissions: [],
         };
       });
