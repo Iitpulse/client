@@ -16,10 +16,13 @@ const Login = () => {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const response = await axios.post(`${APIS.USERS_API}/auth/login/`, {
-      email,
-      password,
-    });
+    const response = await axios.post(
+      `${process.env.REACT_APP_USERS_API}/auth/login/`,
+      {
+        email,
+        password,
+      }
+    );
 
     console.log({ decoded: decodeToken(response.data.token), response });
 

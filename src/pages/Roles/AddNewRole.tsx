@@ -25,18 +25,21 @@ const AddNewRole: React.FC<{
   const { currentUser } = useContext(AuthContext);
 
   async function handleSubmit() {
-    const res = await axios.post(`${APIS.USERS_API}/roles/create`, {
-      name,
-      permissions: flattendPermissions().filter((_: any, i: number) =>
-        selectedPermissions.includes(i)
-      ),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: {
-        id: currentUser?.id,
-        userType: currentUser?.userType,
-      },
-    });
+    const res = await axios.post(
+      `${process.env.REACT_APP_USERS_API}/roles/create`,
+      {
+        name,
+        permissions: flattendPermissions().filter((_: any, i: number) =>
+          selectedPermissions.includes(i)
+        ),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: {
+          id: currentUser?.id,
+          userType: currentUser?.userType,
+        },
+      }
+    );
     console.log({ res });
   }
 
