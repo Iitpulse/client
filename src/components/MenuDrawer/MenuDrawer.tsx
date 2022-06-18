@@ -31,6 +31,33 @@ const MenuDrawer = (props: MenuDrawerProps) => {
   const hasBatchPermission: boolean = usePermission(PERMISSIONS.BATCH.READ);
   const hasRolePermission: boolean = usePermission(PERMISSIONS.ROLE.READ);
 
+  const [hasPermissions, setHasPermissions] = useState({
+    hasQuestionPermission: false,
+    hasUsersPermission: false,
+    hasTestPermission: false,
+    hasPatternPermission: false,
+    hasBatchPermission: false,
+    hasRolePermission: false,
+  });
+
+  useEffect(() => {
+    setHasPermissions({
+      hasQuestionPermission,
+      hasUsersPermission,
+      hasTestPermission,
+      hasPatternPermission,
+      hasBatchPermission,
+      hasRolePermission,
+    });
+  }, [
+    hasQuestionPermission,
+    hasUsersPermission,
+    hasTestPermission,
+    hasPatternPermission,
+    hasBatchPermission,
+    hasRolePermission,
+  ]);
+
   useEffect(() => {
     // Close the menu drawer if width is <= 1300px
     setIsCollapsed(window.innerWidth <= 1300);
@@ -179,7 +206,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Questions</span>}
           </NavLink>
         )}
-        {hasUsersPermission && (
+        {hasPermissions?.hasUsersPermission && (
           <NavLink
             style={isCollapsed ? { width: "fit-content" } : {}}
             to="/users"
@@ -230,7 +257,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Users</span>}
           </NavLink>
         )}
-        {hasTestPermission && (
+        {hasPermissions?.hasTestPermission && (
           <NavLink
             style={isCollapsed ? { width: "fit-content" } : {}}
             to="/test"
@@ -281,7 +308,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Test</span>}
           </NavLink>
         )}
-        {hasPatternPermission && (
+        {hasPermissions?.hasPatternPermission && (
           <NavLink
             style={isCollapsed ? { width: "fit-content" } : {}}
             to="/pattern"
@@ -359,7 +386,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Pattern</span>}
           </NavLink>
         )}
-        {hasBatchPermission && (
+        {hasPermissions?.hasBatchPermission && (
           <NavLink
             style={isCollapsed ? { width: "fit-content" } : {}}
             to="/batches"
@@ -424,7 +451,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Batches</span>}
           </NavLink>
         )}
-        {hasRolePermission && (
+        {hasPermissions?.hasRolePermission && (
           <NavLink
             to="/roles"
             style={isCollapsed ? { width: "fit-content" } : {}}
