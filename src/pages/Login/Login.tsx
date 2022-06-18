@@ -5,7 +5,8 @@ import { decodeToken } from "react-jwt";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
-import { APIS } from "../../utils/constants";
+import logo from "../../assets/images/logo.svg";
+import { LinearProgress } from "@mui/material";
 
 const Login = () => {
   const { setCurrentUser } = useContext(AuthContext);
@@ -13,35 +14,48 @@ const Login = () => {
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const response = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/auth/login/`,
-      {
-        email,
-        password,
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_USERS_API}/auth/login/`,
+        {
+          email,
+          password,
+        }
+      );
+
+      console.log({ decoded: decodeToken(response.data.token), response });
+
+      if (response.status === 200) {
+        let decoded = decodeToken(response.data.token) as any;
+        setCurrentUser({
+          id: decoded.id,
+          email: decoded.email,
+          userType: decoded.userType,
+          instituteId: decoded.instituteId,
+          roles: decoded.roles,
+        });
+        localStorage.setItem("token", response.data.token);
+        setLoading(false);
+        navigate("/");
+      } else {
       }
-    );
-
-    console.log({ decoded: decodeToken(response.data.token), response });
-
-    if (response.status === 200) {
-      let decoded = decodeToken(response.data.token) as any;
-      setCurrentUser({
-        id: decoded.id,
-        email: decoded.email,
-        userType: decoded.userType,
-        instituteId: decoded.instituteId,
-        roles: decoded.roles,
-      });
-      localStorage.setItem("token", response.data.token);
-      navigate("/");
+    } catch (error: any) {
+      // console.log("True error", error.response);
+      setError(error.response.data.message);
+      setLoading(false);
     }
   }
 
   return (
     <div className={styles.container}>
+      <img src={logo} alt="iitpulse" />
       <form onSubmit={handleSubmit}>
         <InputField
           id="email"
@@ -49,6 +63,7 @@ const Login = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           type="email"
+          disabled={loading}
         />
         <InputField
           id="password"
@@ -56,10 +71,13 @@ const Login = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           type="password"
+          disabled={loading}
         />
-        <Button title="Submit" type="submit">
+        <Button title="Submit" type="submit" disabled={loading}>
           Submit
         </Button>
+        {!loading && error && <span className={styles.error}>{error}</span>}
+        {!error && loading && <LinearProgress className={styles.loading} />}
       </form>
     </div>
   );
