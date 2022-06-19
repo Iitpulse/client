@@ -247,13 +247,9 @@ export interface IUserTeacher {
   name: string;
   email: string;
   password: string;
-  confirmPassword: string;
   contact: number;
   address: string;
   parentDetails: { name: string; contact: number };
-  school: string;
-  batch: string;
-  stream: string;
   institute: string;
   userType: string;
   validity: {
@@ -267,7 +263,7 @@ export interface IUserTeacher {
       to: string;
     }
   ];
-  attemptedTests: [];
+  previousTests: [];
   createdBy: { id: string; userType: string };
   createdAt: string;
   modifiedAt: string;

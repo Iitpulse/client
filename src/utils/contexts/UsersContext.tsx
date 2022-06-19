@@ -7,6 +7,7 @@ interface UsersContextType {
   students: Array<IUserStudent>;
   teachers: Array<IUserTeacher>;
   fetchStudents: (cb?: () => void) => void;
+  fetchTeachers: (cb?: () => void) => void;
 }
 
 export const UsersContext = createContext<UsersContextType>(
@@ -30,14 +31,28 @@ const UsersContextProvider: React.FC = ({ children }) => {
     }
   }
 
+  async function fetchTeachers(cb?: () => void) {
+    const res = await axios.get(`${process.env.REACT_APP_USERS_API}/teacher/`);
+    setTeachers(
+      res?.data?.map((user: IUserTeacher) => ({ ...user, key: user.id }))
+    );
+    console.log({ res });
+    if (cb) {
+      cb();
+    }
+  }
+
   useEffect(() => {
     if (currentUser?.id) {
       fetchStudents();
+      fetchTeachers();
     }
   }, [currentUser]);
 
   return (
-    <UsersContext.Provider value={{ students, teachers, fetchStudents }}>
+    <UsersContext.Provider
+      value={{ students, teachers, fetchStudents, fetchTeachers }}
+    >
       {children}
     </UsersContext.Provider>
   );
