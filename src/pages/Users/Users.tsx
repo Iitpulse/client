@@ -1,7 +1,7 @@
 import { Sidebar, NotificationCard, Button } from "../../components";
 import styles from "./Users.module.scss";
-import { useState } from "react";
-import { Tabs, Tab } from "@mui/material";
+import { useContext, useState } from "react";
+import { Tabs, Tab, IconButton } from "@mui/material";
 import clsx from "clsx";
 import "./Users.css";
 import closeIcon from "../../assets/icons/close-circle.svg";
@@ -13,6 +13,8 @@ import Managers from "./Managers/Managers";
 import Operators from "./Operators/Operators";
 import Admins from "./Admins/Admins";
 import UserProfile from "../../components/UserProfile/UserProfile";
+import CachedIcon from "@mui/icons-material/Cached";
+import { UsersContext } from "../../utils/contexts/UsersContext";
 
 const UserTypesForCards = [
   {
@@ -133,6 +135,24 @@ const Users = () => {
     setOpenModal(false);
   }
 
+  const { fetchStudents } = useContext(UsersContext);
+  const [loading, setLoading] = useState(false);
+
+  function handleClickRefresh() {
+    setLoading(true);
+    switch (tab) {
+      case 0:
+        fetchStudents(() => {
+          setLoading(false);
+        });
+        break;
+      // case 1:
+
+      default:
+        break;
+    }
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -143,7 +163,12 @@ const Users = () => {
           <Tab label="Admins" />
           <Tab label="Managers" />
         </Tabs>
-        <Button onClick={() => setOpenModal(!openModal)}>Add New</Button>
+        <div>
+          <IconButton onClick={handleClickRefresh}>
+            <CachedIcon />
+          </IconButton>
+          <Button onClick={() => setOpenModal(!openModal)}>Add New</Button>
+        </div>
       </div>
       <TabPanel value={tab} index={0}>
         <Students
@@ -151,6 +176,7 @@ const Users = () => {
           activeTab={tab}
           openModal={openModal}
           handleCloseModal={handleCloseModal}
+          loading={loading}
         />
       </TabPanel>
       <TabPanel value={tab} index={1}>
