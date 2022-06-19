@@ -209,3 +209,66 @@ export interface ITestQuestionParagraph extends ITestQuestionCore {
 export interface ITestQuestionMatrix extends ITestQuestionCore {
   correctAnswers: Array<Array<string>>; // OptionIDs
 }
+
+/* Users */
+export interface IUserStudent {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  contact: number;
+  address: string;
+  parentDetails: { name: string; contact: number };
+  school: string;
+  batch: string;
+  stream: string;
+  institute: string;
+  userType: string;
+  validity: {
+    from: string;
+    to: string;
+  };
+  roles: [
+    {
+      id: string;
+      from: string;
+      to: string;
+    }
+  ];
+  attemptedTests: [];
+  createdBy: { id: string; userType: string };
+  createdAt: string;
+  modifiedAt: string;
+}
+
+export interface IUserTeacher {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  contact: number;
+  address: string;
+  parentDetails: { name: string; contact: number };
+  school: string;
+  batch: string;
+  stream: string;
+  institute: string;
+  userType: string;
+  validity: {
+    from: string;
+    to: string;
+  };
+  roles: [
+    {
+      id: string;
+      from: string;
+      to: string;
+    }
+  ];
+  attemptedTests: [];
+  createdBy: { id: string; userType: string };
+  createdAt: string;
+  modifiedAt: string;
+}
