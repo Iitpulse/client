@@ -35,6 +35,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
           "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",
         },
       });
+      console.log({ res });
       if (res.data?.length > 0) {
         console.log({ res });
         dispatch({

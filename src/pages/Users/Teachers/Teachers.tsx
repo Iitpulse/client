@@ -2,24 +2,76 @@ import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Teachers.module.scss";
-import { Button } from "../../../components";
+import { Button, MUISimpleAutocomplete } from "../../../components";
 import { useContext, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import { APIS } from "../../../utils/constants";
+import { Table } from "antd";
+import { rowSelection } from "../Users";
+import { UsersContext } from "../../../utils/contexts/UsersContext";
+
+const columns = [
+  {
+    title: "Name",
+    dataIndex: "name",
+    // width: 50,
+    render: (text: string) => (
+      <span style={{ overflow: "ellipsis" }}>{text}</span>
+    ),
+  },
+  // {
+  //   title: "ID",
+  //   dataIndex: "id",
+  //   width: 50,
+  //   // render: (text: string) => <a>{text}</a>,
+  // },
+  {
+    title: "Gender",
+    dataIndex: "gender",
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+    // width: 200,
+  },
+  // {
+  //   title: "Batch",
+  //   dataIndex: "batch",
+  //   // width: 100,
+  //   render: (text: string) => (
+  //     <span style={{ textTransform: "capitalize" }}> {text}</span>
+  //   ),
+  // },
+  {
+    title: "Contact",
+    dataIndex: "contact",
+    // width: 100,
+  },
+];
 
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
   openModal: boolean;
   handleCloseModal: () => void;
-}> = ({ activeTab, teacher, openModal, handleCloseModal }) => {
+  loading: boolean;
+}> = ({ activeTab, teacher, openModal, handleCloseModal, loading }) => {
+  const [data, setData] = useState([]);
+
+  const { teachers } = useContext(UsersContext);
+
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>Teachers</h1>
-        <Button>Add Teacher</Button>
-      </div>
+      <Table
+        rowSelection={{
+          type: "checkbox",
+          ...rowSelection,
+        }}
+        columns={columns}
+        dataSource={teachers as any}
+        loading={loading}
+      />
       {openModal && activeTab === 1 && (
         <Teacher teacher={teacher} handleCloseModal={handleCloseModal} />
       )}
@@ -33,26 +85,7 @@ const Teacher: React.FC<{
   teacher: UserProps;
   handleCloseModal: () => void;
 }> = (props) => {
-  const {
-    onSubmit,
-    name,
-    setName,
-    email,
-    setEmail,
-    adhaarNumber,
-    setAdhaarNumber,
-    permanentAddress,
-    setPermanentAddress,
-    currentAddress,
-    setCurrentAddress,
-    personalContact,
-    setPersonalContact,
-    emergencyContact,
-    setEmergencyContact,
-    uploadedBy,
-    id,
-    handleReset,
-  } = props.teacher;
+  const { uploadedBy, handleReset } = props.teacher;
 
   const [values, setValues] = useState({} as any);
 
@@ -67,26 +100,31 @@ const Teacher: React.FC<{
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     let newValues = { ...values };
-    newValues.parentDetails = {
-      name: newValues.parentName,
-      contact: newValues.parentContact,
-    };
-    delete newValues.parentName;
-    delete newValues.parentContact;
-    newValues.userType = "student";
+
+    newValues.userType = "teacher";
     newValues.createdBy = {
       id: currentUser?.id,
       userType: currentUser?.userType,
     };
-    newValues.confirmPassword = newValues.password;
     newValues.institute = currentUser?.instituteId;
-    newValues.roles = ["ROLE_STUDENT"];
+    newValues.roles = [
+      {
+        id: "ROLE_TEACHER",
+        from: new Date().toISOString(),
+        to: new Date().toISOString(),
+      },
+    ];
     newValues.createdAt = new Date().toISOString();
     newValues.modifiedAt = new Date().toISOString();
+    newValues.previousTests = [];
+    newValues.validity = {
+      from: new Date().toISOString(),
+      to: new Date().toISOString(),
+    };
     console.log({ newValues });
 
     const res = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/student/create`,
+      `${process.env.REACT_APP_USERS_API}/teacher/create`,
       newValues
     );
     console.log({ res });
@@ -96,78 +134,85 @@ const Teacher: React.FC<{
 
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className={styles.header}>
           <h2>Add a Teacher</h2>
           <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
         </div>
         <div className={styles.inputFields}>
-          <StyledMUITextField
+          {/* <StyledMUITextField
             id="id"
             disabled
             label="Id"
             value={id}
             variant="outlined"
-          />
+          /> */}
           <StyledMUITextField
             id="name"
             required
             label="Name"
-            value={name}
-            onChange={(e: any) => setName(e.target.value)}
+            value={values.name}
+            onChange={handleChangeValues}
             variant="outlined"
           />
 
           <StyledMUITextField
             required
-            className="largeWidthInput"
-            id="currentAddress"
-            value={currentAddress}
-            onChange={(e: any) => setCurrentAddress(e.target.value)}
-            label="Current Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="permanentAddress"
-            value={permanentAddress}
-            onChange={(e: any) => setPermanentAddress(e.target.value)}
-            label="Permanent Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
             id="email"
-            value={email}
-            onChange={(e: any) => setEmail(e.target.value)}
+            value={values.email}
+            onChange={handleChangeValues}
             label="Email"
             variant="outlined"
           />
           <StyledMUITextField
             required
+            id="password"
+            value={values.password}
+            type="password"
+            onChange={handleChangeValues}
+            label="Password"
+            variant="outlined"
+          />
+          {/* <StyledMUITextField
+            required
             id="adhaarNumber"
             value={adhaarNumber}
-            onChange={(e: any) => setAdhaarNumber(e.target.value)}
+            onChange={handleChangeValues}
             label="Adhaar Number"
             variant="outlined"
-          />
+          /> */}
           <StyledMUITextField
             required
-            id="personalContact"
-            value={personalContact}
-            onChange={(e: any) => setPersonalContact(e.target.value)}
-            label="Personal Contact"
+            id="contact"
+            value={values.contact}
+            onChange={handleChangeValues}
+            label="Contact"
             variant="outlined"
           />
-          <StyledMUITextField
+          {/* <StyledMUITextField
             required
             id="emergencyContact"
             value={emergencyContact}
             onChange={(e: any) => setEmergencyContact(e.target.value)}
             label="Emergency Contact"
             variant="outlined"
-          />
+          /> */}
+          <div className={styles.singlSelect}>
+            <MUISimpleAutocomplete
+              label="Gender"
+              onChange={(val: any) => {
+                console.log({ val });
+                handleChangeValues({
+                  target: { id: "gender", value: val },
+                } as any);
+              }}
+              options={[
+                { name: "Male", value: "male" },
+                { name: "Female", value: "female" },
+              ]}
+              value={values.gender}
+            />
+          </div>
 
           <StyledMUITextField
             id="uploadedBy"
@@ -179,10 +224,10 @@ const Teacher: React.FC<{
           />
         </div>
         <div className={styles.buttons}>
-          <Button>Submit</Button>
           <Button onClick={handleReset} type="button" color="warning">
             Reset
           </Button>
+          <Button>Submit</Button>
         </div>
       </form>
     </div>

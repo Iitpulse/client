@@ -16,20 +16,40 @@ import { UsersContext } from "../../../utils/contexts/UsersContext";
 
 const columns = [
   {
-    title: "ID",
-    dataIndex: "id",
-    width: 50,
-    // render: (text: string) => <a>{text}</a>,
+    title: "Name",
+    dataIndex: "name",
+    // width: 50,
+    render: (text: string) => (
+      <span style={{ overflow: "ellipsis" }}>{text}</span>
+    ),
+  },
+  // {
+  //   title: "ID",
+  //   dataIndex: "id",
+  //   width: 50,
+  //   // render: (text: string) => <a>{text}</a>,
+  // },
+  {
+    title: "Gender",
+    dataIndex: "gender",
   },
   {
     title: "Name",
     dataIndex: "name",
-    width: 200,
+    // width: 200,
   },
   {
-    title: "Branch",
-    dataIndex: "branch",
-    width: 100,
+    title: "Batch",
+    dataIndex: "batch",
+    // width: 100,
+    render: (text: string) => (
+      <span style={{ textTransform: "capitalize" }}> {text}</span>
+    ),
+  },
+  {
+    title: "Contact",
+    dataIndex: "contact",
+    // width: 100,
   },
 ];
 
@@ -130,6 +150,9 @@ const Student: React.FC<{
     }
     if (values.parentContact?.length !== 10) {
       return alert("Parent Contact must be 10 digits long");
+    }
+    if (!values.gender) {
+      return alert("Select a gender");
     }
     let newValues = { ...values };
     newValues.parentDetails = {
@@ -384,10 +407,10 @@ const Student: React.FC<{
           </div>
         )}
         <div className={styles.buttons}>
-          <Button>Submit</Button>
           <Button onClick={handleReset} type="button" color="warning">
             Reset
           </Button>
+          <Button>Submit</Button>
         </div>
       </form>
     </div>

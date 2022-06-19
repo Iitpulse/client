@@ -336,7 +336,7 @@ const Questions = () => {
                 />
               ))}
           </Sidebar>
-          <div
+          {/* <div
             ref={tableRef}
             style={
               PrintContainerStyles as DetailedHTMLProps<
@@ -351,7 +351,7 @@ const Questions = () => {
               title="Daily Rapid Test #025"
               questions={questions}
             />
-          </div>
+          </div> */}
         </>
       ) : (
         <Error />
