@@ -15,66 +15,6 @@ import { APIS } from "../../../utils/constants";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../../utils/contexts/CurrentContext";
 
-const columns = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    // width: 50,
-    render: (text: string) => (
-      <span style={{ overflow: "ellipsis" }}>{text}</span>
-    ),
-  },
-  // {
-  //   title: "ID",
-  //   dataIndex: "id",
-  //   width: 50,
-  //   // render: (text: string) => <a>{text}</a>,
-  // },
-  {
-    title: "Gender",
-    dataIndex: "gender",
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    // width: 200,
-  },
-  {
-    title: "Batch",
-    dataIndex: "batch",
-    // width: 100,
-    render: (text: string) => (
-      <span style={{ textTransform: "capitalize" }}> {text}</span>
-    ),
-  },
-  {
-    title: "Contact",
-    dataIndex: "contact",
-    // width: 100,
-  },
-];
-
-interface DataType {
-  key: React.Key;
-  id: string;
-  name: string;
-  branch: string;
-}
-
-const rowSelection = {
-  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-    console.log(
-      `selectedRowKeys: ${selectedRowKeys}`,
-      "selectedRows: ",
-      selectedRows
-    );
-  },
-  getCheckboxProps: (record: DataType) => ({
-    disabled: record.name === "Disabled User", // Column configuration not to be checked
-    name: record.name,
-  }),
-};
-
 const Students: React.FC<{
   activeTab: number;
   student: UserProps;
@@ -89,20 +29,40 @@ const Students: React.FC<{
   }, [selectedUsers]);
   const columns = [
     {
-      title: "ID",
-      dataIndex: "id",
-      width: 50,
-      // render: (text: string) => <a>{text}</a>,
+      title: "Name",
+      dataIndex: "name",
+      // width: 50,
+      render: (text: string) => (
+        <span style={{ overflow: "ellipsis" }}>{text}</span>
+      ),
+    },
+    // {
+    //   title: "ID",
+    //   dataIndex: "id",
+    //   width: 50,
+    //   // render: (text: string) => <a>{text}</a>,
+    // },
+    {
+      title: "Gender",
+      dataIndex: "gender",
     },
     {
       title: "Name",
       dataIndex: "name",
-      width: 200,
+      // width: 200,
     },
     {
-      title: "Branch",
-      dataIndex: "branch",
-      width: 100,
+      title: "Batch",
+      dataIndex: "batch",
+      // width: 100,
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}> {text}</span>
+      ),
+    },
+    {
+      title: "Contact",
+      dataIndex: "contact",
+      // width: 100,
     },
   ];
 
