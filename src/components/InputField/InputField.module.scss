@@ -2,6 +2,7 @@
 
 .container {
   @extend .flexCol;
+  -webkit-user-select: none;
   user-select: none;
   align-items: flex-start;
 

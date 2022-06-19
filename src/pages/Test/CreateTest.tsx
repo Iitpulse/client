@@ -83,7 +83,7 @@ const CreateTest = () => {
   useEffect(() => {
     let fetchData = async (examName: string) => {
       let response = await axios.get(
-        "http://localhost:5002/pattern/pattern/exam",
+        `${process.env.REACT_APP_TESTS_API}/pattern/pattern/exam`,
         {
           params: {
             exam: examName,
@@ -314,13 +314,16 @@ const SubSection: React.FC<{
   }, [questions]);
 
   async function generateQuestions() {
-    const { data } = await axios.get(`http://localhost:5001/mcq/autogenerate`, {
-      params: {
-        type,
-        difficulties: ["easy"],
-        totalQuestions: subSection.totalQuestions,
-      },
-    });
+    const { data } = await axios.get(
+      `${process.env.REACT_APP_QUESTIONS_API}/mcq/autogenerate`,
+      {
+        params: {
+          type,
+          difficulties: ["easy"],
+          totalQuestions: subSection.totalQuestions,
+        },
+      }
+    );
     console.table(data);
     setTempQuestions(data);
   }

@@ -85,7 +85,10 @@ const Teacher: React.FC<{
     newValues.modifiedAt = new Date().toISOString();
     console.log({ newValues });
 
-    const res = await axios.post(`${APIS.USERS_API}/student/create`, newValues);
+    const res = await axios.post(
+      `${process.env.REACT_APP_USERS_API}/student/create`,
+      newValues
+    );
     console.log({ res });
 
     // handleReset();

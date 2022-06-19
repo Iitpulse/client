@@ -29,7 +29,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
 
   useEffect(() => {
     async function fetchTests() {
-      const res = await axios.get("http://localhost:5002/test", {
+      const res = await axios.get(`${process.env.REACT_APP_TESTS_API}/test`, {
         headers: {
           "Content-Type": "application/json",
           "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",

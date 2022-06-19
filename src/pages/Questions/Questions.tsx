@@ -157,7 +157,7 @@ const Questions = () => {
     if (subject?.length) {
       console.log(subject);
       axios
-        .get(`http://localhost:5001/subject/chapter/`, {
+        .get(`${process.env.REACT_APP_QUESTIONS_API}/subject/chapter/`, {
           params: {
             subject,
           },
@@ -234,7 +234,7 @@ const Questions = () => {
             };
             console.log({ finalQuestion });
             const res = await axios.post(
-              "http://localhost:5001/mcq/new",
+              `${process.env.REACT_APP_QUESTIONS_API}/mcq/new`,
               finalQuestion
             );
 
@@ -258,7 +258,7 @@ const Questions = () => {
 
             console.log({ finalQuestion });
             const res = await axios.post(
-              "http://localhost:5001/numerical/new",
+              `${process.env.REACT_APP_QUESTIONS_API}/numerical/new`,
               finalQuestion
             );
 
@@ -275,7 +275,7 @@ const Questions = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5001/mcq/questions`, {
+      .get(`${process.env.REACT_APP_QUESTIONS_API}/mcq/questions`, {
         headers: {
           "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",
         },

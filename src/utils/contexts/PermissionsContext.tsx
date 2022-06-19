@@ -166,7 +166,9 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     async function getRoles() {
-      const response = await axios.get(`${APIS.USERS_API}/roles/all`);
+      const response = await axios.get(
+        `${process.env.REACT_APP_USERS_API}/roles/all`
+      );
       setAllRoles(response.data);
       let perms: any = {};
       response.data.forEach((role: any) => {

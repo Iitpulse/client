@@ -119,7 +119,7 @@ const Pattern = () => {
       };
       console.log({ pattern });
       const res = await axios.post(
-        "http://localhost:5002/pattern/create",
+        `${process.env.REACT_APP_TESTS_API}/pattern/create`,
         pattern
       );
       console.log({ res });

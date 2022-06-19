@@ -72,7 +72,9 @@ const Students: React.FC<{
 
   useEffect(() => {
     async function fetchStudents() {
-      const res = await axios.get(`${APIS.USERS_API}/student/`);
+      const res = await axios.get(
+        `${process.env.REACT_APP_USERS_API}/student/`
+      );
       console.log({ res });
       setData(res.data?.map((item: any) => ({ ...item, key: item.id })));
     }
@@ -138,12 +140,23 @@ const Student: React.FC<{
     };
     newValues.confirmPassword = newValues.password;
     newValues.institute = currentUser?.instituteId;
-    newValues.roles = ["ROLE_STUDENT"];
+    newValues.roles = [
+      {
+        id: "ROLE_STUDENT",
+        from: new Date().toISOString(),
+        to: new Date(
+          new Date().setDate(new Date().getDate() + 400)
+        ).toISOString(),
+      },
+    ];
     newValues.createdAt = new Date().toISOString();
     newValues.modifiedAt = new Date().toISOString();
     console.log({ newValues });
 
-    const res = await axios.post(`${APIS.USERS_API}/student/create`, newValues);
+    const res = await axios.post(
+      `${process.env.REACT_APP_USERS_API}/student/create`,
+      newValues
+    );
     console.log({ res });
 
     // handleReset();
@@ -164,7 +177,7 @@ const Student: React.FC<{
       );
 
       const bulkRes = await axios.post(
-        `${APIS.USERS_API}/student/bulk`,
+        `${process.env.REACT_APP_USERS_API}/student/bulk`,
         formData
       );
 

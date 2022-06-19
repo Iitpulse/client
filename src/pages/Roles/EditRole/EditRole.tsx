@@ -258,10 +258,13 @@ const EditRole = () => {
     let newPerms = allowedPermisions.map((idx: number) => permissions[idx]);
     console.log({ newPerms });
 
-    const res = await axios.post(`${APIS.USERS_API}/roles/update`, {
-      id: roleName,
-      permissions: newPerms,
-    });
+    const res = await axios.post(
+      `${process.env.REACT_APP_USERS_API}/roles/update`,
+      {
+        id: roleName,
+        permissions: newPerms,
+      }
+    );
 
     console.log({ res });
   }
