@@ -186,6 +186,7 @@ const Users = () => {
           activeTab={tab}
           openModal={openModal}
           handleCloseModal={handleCloseModal}
+          loading={loading}
         />
       </TabPanel>
       <TabPanel value={tab} index={2}>
@@ -241,3 +242,24 @@ const Admin = (props: UserProps) => {};
 //----------------------------------------------MUIElements and Styled Components
 
 export default Users;
+
+export interface DataType {
+  key: React.Key;
+  id: string;
+  name: string;
+  branch: string;
+}
+
+export const rowSelection = {
+  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
+    console.log(
+      `selectedRowKeys: ${selectedRowKeys}`,
+      "selectedRows: ",
+      selectedRows
+    );
+  },
+  getCheckboxProps: (record: DataType) => ({
+    disabled: record.name === "Disabled User", // Column configuration not to be checked
+    name: record.name,
+  }),
+};

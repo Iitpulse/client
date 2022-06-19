@@ -6,7 +6,7 @@ import {
   Sidebar,
 } from "../../components";
 import styles from "./Home.module.scss";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Grid } from "@mui/material";
 import yellowFlag from "../../assets/icons/yellowFlag.svg";
 import blueUsers from "../../assets/icons/blueUsers.svg";
@@ -157,6 +157,10 @@ const Home = () => {
 
   const { state } = useContext(TestContext);
   const { tests } = state;
+
+  useEffect(() => {
+    console.log({ tests });
+  }, [tests]);
 
   return (
     <>

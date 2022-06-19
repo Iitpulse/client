@@ -1,5 +1,5 @@
 import styles from "./Batches.module.scss";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Table } from "antd";
 import { useNavigate } from "react-router";
 import { Button, Sidebar } from "../../components";
@@ -9,7 +9,8 @@ import clsx from "clsx";
 import closeIcon from "../../assets/icons/close-circle.svg";
 import { DateRangePicker, LocalizationProvider } from "@mui/lab";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
-import { stringify } from "querystring";
+import axios from "axios";
+import { AuthContext } from "../../utils/auth/AuthContext";
 
 interface DataType {
   key: React.Key;
@@ -62,12 +63,23 @@ const Batches = () => {
   const [isModalRequested, setIsModalRequested] = useState(false);
   const navigate = useNavigate();
 
+  const { currentUser } = useContext(AuthContext);
+
+  useEffect(() => {
+    async function fetchBatch() {
+      const res = await axios.get(
+        `${process.env.REACT_APP_USERS_API}/batch/get`
+      );
+      console.log({ res });
+      setData(res?.data);
+    }
+
+    if (currentUser?.id) {
+      fetchBatch();
+    }
+  }, [currentUser]);
+
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      // render: (text: string) => <a>{text}</a>,
-    },
     {
       title: "Name",
       dataIndex: "name",
@@ -75,7 +87,6 @@ const Batches = () => {
     {
       title: "Exam",
       dataIndex: "exam",
-      render: (exam: any) => exam.fullName,
     },
     {
       title: "Members",
@@ -112,11 +123,17 @@ interface CreateNewBatchProps {
 }
 const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
   const [batch, setBatch] = useState();
-  const [validity, setValidity] = useState({ from: 0, to: 0 });
+  const [validity, setValidity] = useState({
+    from: Date.now(),
+    to: Date.now(),
+  });
   const [values, setValues] = useState({} as any);
   function handleChangeValidity(newValue: any) {
     setValidity({ from: newValue[0], to: newValue[1] });
   }
+
+  const { currentUser } = useContext(AuthContext);
+
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
     console.log({ id, value });
@@ -125,13 +142,40 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     // handleReset();
+    e.preventDefault();
+    const finalData = {
+      id: "IITP_" + Math.floor(Math.random() * 1000000),
+      name: values.batchName,
+      exam: "JEEMAINS",
+      institute: "IITP",
+      validity: {
+        from: new Date(validity.from).toISOString(),
+        to: new Date(validity.to).toISOString(),
+      },
+      createdBy: {
+        userType: currentUser?.userType,
+        id: currentUser?.id,
+      },
+      createdAt: new Date().toISOString(),
+      modifiedAt: new Date().toISOString(),
+      members: [],
+    };
+    const res = await axios.post(
+      `${process.env.REACT_APP_USERS_API}/batch/create`,
+      finalData
+    );
+    if (res.status === 200) {
+      alert("Succesfully Created");
+    }
+    console.log({ res });
   }
+
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <form onSubmit={handleSubmit}>
         <div className={styles.header}>
           <div className={styles.flexRow}>
-            <h2>Add a Student</h2>
+            <h2>Add a Batch</h2>
           </div>
           <img onClick={handleClose} src={closeIcon} alt="Close" />
         </div>

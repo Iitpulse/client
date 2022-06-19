@@ -1,1 +1,10 @@
 @import "../Users.module.scss";
+
+.singlSelect {
+  > div {
+    min-width: 250px;
+    > div > div > div {
+      top: 0;
+    }
+  }
+}

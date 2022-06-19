@@ -23,7 +23,7 @@ const MainLayout = (props: Props) => {
         <nav>
           <h3>{props.name}</h3>
           <div className={styles.actions}>
-            <Stack spacing={2}>
+            {/* <Stack spacing={2}>
               <Autocomplete
                 freeSolo
                 id="free-solo-2-demo"
@@ -45,7 +45,7 @@ const MainLayout = (props: Props) => {
               <div className={styles.imageContainer}>
                 <img src={searchIcon} alt="Search Icon" />
               </div>
-            </Stack>
+            </Stack> */}
             {/* &nbsp; &nbsp; */}
             {/* <IconButton>
               <img src={notificationIcon} alt="notification" />

@@ -15,6 +15,66 @@ import { APIS } from "../../../utils/constants";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../../utils/contexts/CurrentContext";
 
+const columns = [
+  {
+    title: "Name",
+    dataIndex: "name",
+    // width: 50,
+    render: (text: string) => (
+      <span style={{ overflow: "ellipsis" }}>{text}</span>
+    ),
+  },
+  // {
+  //   title: "ID",
+  //   dataIndex: "id",
+  //   width: 50,
+  //   // render: (text: string) => <a>{text}</a>,
+  // },
+  {
+    title: "Gender",
+    dataIndex: "gender",
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+    // width: 200,
+  },
+  {
+    title: "Batch",
+    dataIndex: "batch",
+    // width: 100,
+    render: (text: string) => (
+      <span style={{ textTransform: "capitalize" }}> {text}</span>
+    ),
+  },
+  {
+    title: "Contact",
+    dataIndex: "contact",
+    // width: 100,
+  },
+];
+
+interface DataType {
+  key: React.Key;
+  id: string;
+  name: string;
+  branch: string;
+}
+
+const rowSelection = {
+  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
+    console.log(
+      `selectedRowKeys: ${selectedRowKeys}`,
+      "selectedRows: ",
+      selectedRows
+    );
+  },
+  getCheckboxProps: (record: DataType) => ({
+    disabled: record.name === "Disabled User", // Column configuration not to be checked
+    name: record.name,
+  }),
+};
+
 const Students: React.FC<{
   activeTab: number;
   student: UserProps;
@@ -135,6 +195,9 @@ const Student: React.FC<{
     }
     if (values.parentContact?.length !== 10) {
       return alert("Parent Contact must be 10 digits long");
+    }
+    if (!values.gender) {
+      return alert("Select a gender");
     }
     let newValues = { ...values };
     newValues.parentDetails = {
@@ -389,10 +452,10 @@ const Student: React.FC<{
           </div>
         )}
         <div className={styles.buttons}>
-          <Button>Submit</Button>
           <Button onClick={handleReset} type="button" color="warning">
             Reset
           </Button>
+          <Button>Submit</Button>
         </div>
       </form>
     </div>
