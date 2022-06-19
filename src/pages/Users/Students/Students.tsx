@@ -12,6 +12,7 @@ import Dropzone from "react-dropzone";
 import { IconButton, LinearProgress } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { APIS } from "../../../utils/constants";
+import { UsersContext } from "../../../utils/contexts/UsersContext";
 
 const columns = [
   {
@@ -58,7 +59,8 @@ const Students: React.FC<{
   student: UserProps;
   openModal: boolean;
   handleCloseModal: () => void;
-}> = ({ activeTab, student, openModal, handleCloseModal }) => {
+  loading: boolean;
+}> = ({ activeTab, student, openModal, handleCloseModal, loading }) => {
   // const data: DataType[] = Array(100)
   //   .fill({
   //     key: "IITP_ST_ABC123",
@@ -70,16 +72,18 @@ const Students: React.FC<{
 
   const [data, setData] = useState([]);
 
-  useEffect(() => {
-    async function fetchStudents() {
-      const res = await axios.get(
-        `${process.env.REACT_APP_USERS_API}/student/`
-      );
-      console.log({ res });
-      setData(res.data?.map((item: any) => ({ ...item, key: item.id })));
-    }
-    fetchStudents();
-  }, []);
+  const { students } = useContext(UsersContext);
+
+  // useEffect(() => {
+  //   async function fetchStudents() {
+  //     const res = await axios.get(
+  //       `${process.env.REACT_APP_USERS_API}/student/`
+  //     );
+  //     console.log({ res });
+  //     setData(res.data?.map((item: any) => ({ ...item, key: item.id })));
+  //   }
+  //   fetchStudents();
+  // }, []);
 
   return (
     <div className={styles.container}>
@@ -89,7 +93,8 @@ const Students: React.FC<{
           ...rowSelection,
         }}
         columns={columns}
-        dataSource={data}
+        dataSource={students as any}
+        loading={loading}
       />
       {openModal && activeTab === 0 && (
         <Student student={student} handleCloseModal={handleCloseModal} />
