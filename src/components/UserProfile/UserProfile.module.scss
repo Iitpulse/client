@@ -1,70 +1,19 @@
-.container {
-  // min-width: 250px;
-  max-width: 100%;
-  height: 100%;
-  // padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  //   align-items: center;
-  justify-content: start;
-  // background: #f4f4f4;
-  .headerContainer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.2rem;
-    margin-bottom: 2rem;
-    p {
-      font-size: 1rem;
-    }
-    .closeIcon {
-      width: 25px;
-      cursor: pointer;
-    }
-  }
+@import "../../utils/commons.scss";
 
-  .userDetails {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    .id {
-      font-size: 0.8rem;
-    }
-    .profile {
-      width: 60%;
-      border-radius: 20px;
-      margin: 0.5rem 0;
-    }
-    .name {
-      font-size: 1rem;
-    }
-
-    .code {
-      font-size: 0.8rem;
-      margin: 0.2rem 0 0.8rem 0;
-    }
-
-    .iconWrapper {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-      width: 70px;
-      img {
-        width: 25px;
-      }
-    }
-
-    .wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-      width: 100%;
-    }
-
-    div > .contact {
-      margin: 5px 0 5px 0;
-    }
-  }
+.student{
+ @extend .flexCol;
+ span.id{
+  // text-overflow:ellipsis;
+ }
+ .name{
+  font-size: 1.1rem;
+  font-weight: 500;
+ }
+ .property{
+  font-weight: 600;
+ }
+ .value{
+  font-weight: 400;
+  color:rgb(97, 97, 97);
+ }
 }

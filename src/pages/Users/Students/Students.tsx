@@ -13,46 +13,7 @@ import { IconButton, LinearProgress } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { APIS } from "../../../utils/constants";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
-
-const columns = [
-  {
-    title: "ID",
-    dataIndex: "id",
-    width: 50,
-    // render: (text: string) => <a>{text}</a>,
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    width: 200,
-  },
-  {
-    title: "Branch",
-    dataIndex: "branch",
-    width: 100,
-  },
-];
-
-interface DataType {
-  key: React.Key;
-  id: string;
-  name: string;
-  branch: string;
-}
-
-const rowSelection = {
-  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-    console.log(
-      `selectedRowKeys: ${selectedRowKeys}`,
-      "selectedRows: ",
-      selectedRows
-    );
-  },
-  getCheckboxProps: (record: DataType) => ({
-    disabled: record.name === "Disabled User", // Column configuration not to be checked
-    name: record.name,
-  }),
-};
+import { CurrentContext } from "../../../utils/contexts/CurrentContext";
 
 const Students: React.FC<{
   activeTab: number;
@@ -61,6 +22,52 @@ const Students: React.FC<{
   handleCloseModal: () => void;
   loading: boolean;
 }> = ({ activeTab, student, openModal, handleCloseModal, loading }) => {
+  const { students } = useContext(UsersContext);
+  const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
+  useEffect(() => {
+    console.log({ selectedUsers: selectedUsers });
+  }, [selectedUsers]);
+  const columns = [
+    {
+      title: "ID",
+      dataIndex: "id",
+      width: 50,
+      // render: (text: string) => <a>{text}</a>,
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      width: 200,
+    },
+    {
+      title: "Branch",
+      dataIndex: "branch",
+      width: 100,
+    },
+  ];
+
+  interface DataType {
+    key: React.Key;
+    id: string;
+    name: string;
+    branch: string;
+  }
+
+  const rowSelection = {
+    onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
+      console.log(
+        `selectedRowKeys: ${selectedRowKeys}`,
+        "selectedRows: ",
+        selectedRows
+      );
+      setSelectedUsers(selectedRows);
+    },
+    getCheckboxProps: (record: DataType) => ({
+      disabled: record.name === "Disabled User", // Column configuration not to be checked
+      name: record.name,
+    }),
+  };
+
   // const data: DataType[] = Array(100)
   //   .fill({
   //     key: "IITP_ST_ABC123",
@@ -72,8 +79,6 @@ const Students: React.FC<{
 
   const [data, setData] = useState([]);
 
-  const { students } = useContext(UsersContext);
-
   // useEffect(() => {
   //   async function fetchStudents() {
   //     const res = await axios.get(
@@ -84,7 +89,7 @@ const Students: React.FC<{
   //   }
   //   fetchStudents();
   // }, []);
-
+  console.log(students);
   return (
     <div className={styles.container}>
       <Table
