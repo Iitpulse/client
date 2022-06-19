@@ -197,7 +197,7 @@ const CreateTest = () => {
                 endText="Valid Till"
                 value={[validity.from, validity.to]}
                 onChange={handleChangeValidity}
-                renderInput={(startProps, endProps) => (
+                renderInput={(startProps: any, endProps: any) => (
                   <>
                     <TextField {...startProps} />
                     <Box sx={{ mx: 2 }}> to </Box>
