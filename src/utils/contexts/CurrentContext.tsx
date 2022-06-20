@@ -16,8 +16,8 @@ export const CurrentContext = createContext<CurrentContextType>(
 const CurrentContextProvider: React.FC<ProviderProps> = ({ children }) => {
   const [selectedUsers, setSelectedUsers] = useState<any>([]);
   useEffect(() => {
-    // setSelectedUser({ hello: "hhh" });
-  }, []);
+    console.log(selectedUsers);
+  });
   return (
     <CurrentContext.Provider value={{ selectedUsers, setSelectedUsers }}>
       {children}

@@ -19,7 +19,7 @@ const UserProfile = () => {
     else setUserType("");
   }, [selectedUsers]);
   useEffect(() => {
-    // console.log(userType);
+    // cons ole.log(userType);
   });
   if (userType === "student" && selectedUsers.length > 0) {
     if (selectedUsers.length === 1) {
