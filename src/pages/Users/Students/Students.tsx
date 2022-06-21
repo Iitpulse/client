@@ -45,11 +45,9 @@ const Students: React.FC<{
     {
       title: "Gender",
       dataIndex: "gender",
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-      // width: 200,
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}>{text}</span>
+      ),
     },
     {
       title: "Batch",
@@ -139,6 +137,8 @@ const Student: React.FC<{
   const [openDropzne, setOpenDropzone] = useState(false);
   const [file, setFile] = useState(null as any);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const { currentUser } = useContext(AuthContext);
 
@@ -150,48 +150,57 @@ const Student: React.FC<{
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (values.contact?.length !== 10) {
-      return alert("Contact must be 10 digits long");
-    }
-    if (values.parentContact?.length !== 10) {
-      return alert("Parent Contact must be 10 digits long");
-    }
-    if (!values.gender) {
-      return alert("Select a gender");
-    }
-    let newValues = { ...values };
-    newValues.parentDetails = {
-      name: newValues.parentName,
-      contact: newValues.parentContact,
-    };
-    delete newValues.parentName;
-    delete newValues.parentContact;
-    newValues.userType = "student";
-    newValues.createdBy = {
-      id: currentUser?.id,
-      userType: currentUser?.userType,
-    };
-    newValues.confirmPassword = newValues.password;
-    newValues.institute = currentUser?.instituteId;
-    newValues.roles = [
-      {
-        id: "ROLE_STUDENT",
-        from: new Date().toISOString(),
-        to: new Date(
-          new Date().setDate(new Date().getDate() + 400)
-        ).toISOString(),
-      },
-    ];
-    newValues.createdAt = new Date().toISOString();
-    newValues.modifiedAt = new Date().toISOString();
-    console.log({ newValues });
+    setLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      if (values.contact?.length !== 10) {
+        return alert("Contact must be 10 digits long");
+      }
+      if (values.parentContact?.length !== 10) {
+        return alert("Parent Contact must be 10 digits long");
+      }
+      if (!values.gender) {
+        return alert("Select a gender");
+      }
+      let newValues = { ...values };
+      newValues.parentDetails = {
+        name: newValues.parentName,
+        contact: newValues.parentContact,
+      };
+      delete newValues.parentName;
+      delete newValues.parentContact;
+      newValues.userType = "student";
+      newValues.createdBy = {
+        id: currentUser?.id,
+        userType: currentUser?.userType,
+      };
+      newValues.confirmPassword = newValues.password;
+      newValues.institute = currentUser?.instituteId;
+      newValues.roles = [
+        {
+          id: "ROLE_STUDENT",
+          from: new Date().toISOString(),
+          to: new Date(
+            new Date().setDate(new Date().getDate() + 400)
+          ).toISOString(),
+        },
+      ];
+      newValues.createdAt = new Date().toISOString();
+      newValues.modifiedAt = new Date().toISOString();
+      console.log({ newValues });
 
-    const res = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/student/create`,
-      newValues
-    );
-    console.log({ res });
+      const res = await axios.post(
+        `${process.env.REACT_APP_USERS_API}/student/create`,
+        newValues
+      );
+      console.log({ res });
 
+      setSuccess("Student created successfully");
+    } catch (error: any) {
+      setError(error.response.data.message);
+    }
+    setLoading(false);
     // handleReset();
   }
 
@@ -416,6 +425,11 @@ const Student: React.FC<{
             Reset
           </Button>
           <Button>Submit</Button>
+        </div>
+        <div className={styles.progressError}>
+          {loading && <LinearProgress />}
+          {error && <span className={styles.error}>{error}</span>}
+          {success && <span className={styles.success}>{success}</span>}
         </div>
       </form>
     </div>
