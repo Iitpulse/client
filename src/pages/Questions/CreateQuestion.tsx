@@ -142,7 +142,14 @@ const CreateQuestion = () => {
           if (res.data) {
             setChapterOptions(res.data);
             setTopicOptions(res.data[0].topics);
+          } else {
+            setChapterOptions([]);
+            setTopicOptions([]);
           }
+        })
+        .catch((err) => {
+          setChapterOptions([]);
+          setTopicOptions([]);
         });
     }
   }, [subject]);
@@ -237,16 +244,22 @@ const CreateQuestion = () => {
             state={type}
             onChange={setType}
           />
-          <MUIChipsAutocomplete
-            label="Exam(s)"
-            options={examList}
-            onChange={setExams}
+          <StyledMUISelect
+            label={"Difficulty"}
+            options={difficultyLevels}
+            state={difficulty}
+            onChange={setDifficulty}
           />
           <StyledMUISelect
             label={"Subject"}
             options={subjects}
             state={subject}
             onChange={setSubject}
+          />
+          <MUIChipsAutocomplete
+            label="Exam(s)"
+            options={examList}
+            onChange={setExams}
           />
           <MUIChipsAutocomplete
             label="Chapter(s)"
@@ -266,12 +279,6 @@ const CreateQuestion = () => {
               })) || []
             }
             onChange={setTopics}
-          />
-          <StyledMUISelect
-            label={"Difficulty"}
-            options={difficultyLevels}
-            state={difficulty}
-            onChange={setDifficulty}
           />
           <MUISimpleAutocomplete
             label={"Source"}

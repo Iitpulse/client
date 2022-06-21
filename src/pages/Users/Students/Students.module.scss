@@ -74,4 +74,25 @@
       }
     }
   }
+  .progressError {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    // padding: 1rem 0;
+    span {
+      min-height: 10px;
+      width: 100%;
+    }
+    .error,
+    .success {
+      background: var(--clr-error);
+      color: white;
+      text-align: center;
+      display: block;
+    }
+    .success {
+      background: var(--clr-success);
+    }
+  }
 }
