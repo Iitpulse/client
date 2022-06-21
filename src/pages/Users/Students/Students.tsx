@@ -1,7 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import clsx from "clsx";
 import { Button, MUISimpleAutocomplete } from "../../../components";
-import { StyledMUITextField, UserProps } from "../components";
+import {
+  StyledMUITextField,
+  UserProps,
+  MUICreatableSelect,
+} from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
 import { Table } from "antd";
@@ -9,8 +13,19 @@ import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import Dropzone from "react-dropzone";
-import { IconButton, LinearProgress } from "@mui/material";
+import {
+  IconButton,
+  LinearProgress,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  TextField,
+  Autocomplete,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { createFilterOptions } from "@mui/material/Autocomplete";
 import { APIS } from "../../../utils/constants";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../../utils/contexts/CurrentContext";
@@ -107,7 +122,7 @@ const Students: React.FC<{
   //   }
   //   fetchStudents();
   // }, []);
-  console.log(students);
+
   return (
     <div className={styles.container}>
       <Table
@@ -148,6 +163,17 @@ const Student: React.FC<{
     setValues({ ...values, [id]: value });
   }
 
+  function handleChangeValuesForCreatableSelect(
+    e: React.ChangeEvent<HTMLInputElement>,
+    value: any
+  ) {
+    const { id } = e.target;
+    const newId = id.split("-option").shift();
+    setValues({ ...values, [newId ? newId : id]: value });
+  }
+  useEffect(() => {
+    console.log({ values });
+  });
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -232,7 +258,23 @@ const Student: React.FC<{
     }
     setLoading(false);
   }
-
+  let optionsForStream = [
+    { name: "PCM", value: "PCM" },
+    { name: "PCB", value: "PCB" },
+    { name: "PCMB", value: "PCMB" },
+    { name: "Commerce", value: "commerce" },
+    { name: "Arts", value: "arts" },
+  ];
+  let optionsForStandard = [
+    { name: "11th", value: "11" },
+    { name: "12th", value: "12" },
+    { name: "Dropper", value: "13" },
+  ];
+  let optionsForBatch = [
+    { name: "TLP31", value: "TLP31" },
+    { name: "IOY12", value: "IOY12" },
+    { name: "SAB12", value: "SAB12" },
+  ];
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <form onSubmit={handleSubmit}>
@@ -276,17 +318,24 @@ const Student: React.FC<{
             value={values.password}
             type="password"
             onChange={handleChangeValues}
-            label="password"
+            label="Password"
             variant="outlined"
           />
-          <StyledMUITextField
+          <MUICreatableSelect
             id="stream"
-            required
             value={values.stream}
-            onChange={handleChangeValues}
+            onChange={handleChangeValuesForCreatableSelect}
+            options={optionsForStream}
             label="Stream"
-            variant="outlined"
           />
+          <MUICreatableSelect
+            id="standard"
+            value={values.standard}
+            onChange={handleChangeValuesForCreatableSelect}
+            options={optionsForStandard}
+            label="Standard"
+          />
+
           <StyledMUITextField
             id="parentName"
             required
@@ -312,13 +361,12 @@ const Student: React.FC<{
             label="School"
             variant="outlined"
           />
-          <StyledMUITextField
+          <MUICreatableSelect
             id="batch"
-            required
             value={values.batch}
-            onChange={handleChangeValues}
+            onChange={handleChangeValuesForCreatableSelect}
+            options={optionsForBatch}
             label="Batch"
-            variant="outlined"
           />
           <StyledMUITextField
             required
@@ -351,6 +399,7 @@ const Student: React.FC<{
               options={[
                 { name: "Male", value: "male" },
                 { name: "Female", value: "female" },
+                { name: "Other", value: "other" },
               ]}
               value={values.gender}
             />
@@ -359,10 +408,19 @@ const Student: React.FC<{
           <StyledMUITextField
             required
             className="largeWidthInput"
-            id="address"
-            value={values.address}
+            id="currentAddress"
+            value={values.currentAddress}
             onChange={handleChangeValues}
-            label="Address"
+            label="Current Address"
+            variant="outlined"
+          />
+          <StyledMUITextField
+            required
+            className="largeWidthInput"
+            id="permanentAddress"
+            value={values.permanentAddress}
+            onChange={handleChangeValues}
+            label="Permanent Address"
             variant="outlined"
           />
           {/* <StyledMUITextField
@@ -437,3 +495,150 @@ const Student: React.FC<{
 };
 
 //----------------------------------------------User Type: Student
+
+interface FilmOptionType {
+  inputValue?: string;
+  title: string;
+  year?: number;
+}
+const filter = createFilterOptions<FilmOptionType>();
+const top100Films: readonly FilmOptionType[] = [
+  { title: "The Shawshank Redemption", year: 1994 },
+  { title: "The Godfather", year: 1972 },
+  { title: "The Godfather: Part II", year: 1974 },
+  { title: "The Dark Knight", year: 2008 },
+  { title: "12 Angry Men", year: 1957 },
+  { title: "Schindler's List", year: 1993 },
+  { title: "Pulp Fiction", year: 1994 },
+];
+
+const MUICreatableSelect123 = () => {
+  const [value, setValue] = useState<FilmOptionType | null>(null);
+  const [open, toggleOpen] = useState(false);
+
+  const handleClose = () => {
+    setDialogValue({
+      title: "",
+      year: "",
+    });
+    toggleOpen(false);
+  };
+
+  const [dialogValue, setDialogValue] = useState({
+    title: "",
+    year: "",
+  });
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setValue({
+      title: dialogValue.title,
+      year: parseInt(dialogValue.year, 10),
+    });
+    handleClose();
+  };
+  return (
+    <div className={styles.creatableSelect}>
+      <Autocomplete
+        value={value}
+        onChange={(event, newValue) => {
+          console.log({ newValue });
+          if (typeof newValue === "string") {
+            // timeout to avoid instant validation of the dialog's form.
+            setTimeout(() => {
+              toggleOpen(true);
+              setDialogValue({
+                title: newValue,
+                year: "",
+              });
+            });
+          } else if (newValue && newValue.inputValue) {
+            toggleOpen(true);
+            setDialogValue({
+              title: newValue.inputValue,
+              year: "",
+            });
+          } else {
+            setValue(newValue);
+          }
+        }}
+        filterOptions={(options, params) => {
+          const filtered = filter(options, params);
+          // console.log({ params });
+          if (params.inputValue !== "") {
+            filtered.push({
+              inputValue: params.inputValue,
+              title: `Add "${params.inputValue}"`,
+            });
+          }
+
+          return filtered;
+        }}
+        id="free-solo-dialog-demo"
+        options={top100Films}
+        getOptionLabel={(option) => {
+          // e.g value selected with enter, right from the input
+          if (typeof option === "string") {
+            return option;
+          }
+          if (option.inputValue) {
+            return option.inputValue;
+          }
+          return option.title;
+        }}
+        selectOnFocus
+        clearOnBlur
+        handleHomeEndKeys
+        renderOption={(props, option) => <li {...props}>{option.title}</li>}
+        sx={{ width: 300 }}
+        freeSolo
+        renderInput={(params) => (
+          <TextField {...params} label="Free solo dialog" />
+        )}
+      />
+      <Dialog open={open} onClose={handleClose}>
+        <form onSubmit={handleSubmit}>
+          <DialogTitle>Add a new film</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Did you miss any film in our list? Please, add it!
+            </DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="name"
+              value={dialogValue.title}
+              onChange={(event) =>
+                setDialogValue({
+                  ...dialogValue,
+                  title: event.target.value,
+                })
+              }
+              label="title"
+              type="text"
+              variant="standard"
+            />
+            <TextField
+              margin="dense"
+              id="name"
+              value={dialogValue.year}
+              onChange={(event) =>
+                setDialogValue({
+                  ...dialogValue,
+                  year: event.target.value,
+                })
+              }
+              label="year"
+              type="number"
+              variant="standard"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button type="submit">Add</Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </div>
+  );
+};
