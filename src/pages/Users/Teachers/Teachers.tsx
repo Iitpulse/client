@@ -129,6 +129,12 @@ const Teacher: React.FC<{
     );
     console.log({ res });
 
+    if (res.status === 200) {
+      return alert("Succesfully created user");
+    } else {
+      return alert("Some error occured");
+    }
+
     // handleReset();
   }
 

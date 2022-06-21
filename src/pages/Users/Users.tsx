@@ -16,6 +16,8 @@ import UserProfile from "../../components/UserProfile/UserProfile";
 import CachedIcon from "@mui/icons-material/Cached";
 import { UsersContext } from "../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../utils/contexts/CurrentContext";
+import DownloadIcon from "@mui/icons-material/Download";
+import { CSVLink } from "react-csv";
 
 const UserTypesForCards = [
   {
@@ -154,6 +156,8 @@ const Users = () => {
     }
   }
 
+  const { students } = useContext(UsersContext);
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -165,6 +169,12 @@ const Users = () => {
           <Tab label="Managers" />
         </Tabs>
         <div>
+          <IconButton onClick={handleClickRefresh}>
+            <DownloadIcon />
+            <CSVLink filename={"Questions.csv"} data={students}>
+              Export to CSV
+            </CSVLink>
+          </IconButton>
           <IconButton onClick={handleClickRefresh}>
             <CachedIcon />
           </IconButton>
