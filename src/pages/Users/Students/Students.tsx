@@ -29,6 +29,7 @@ import { createFilterOptions } from "@mui/material/Autocomplete";
 import { APIS } from "../../../utils/constants";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../../utils/contexts/CurrentContext";
+import AddUserModal from "../components/AddUserModal";
 
 const Students: React.FC<{
   activeTab: number;
@@ -276,9 +277,32 @@ const Student: React.FC<{
     { name: "SAB12", value: "SAB12" },
   ];
   return (
-    <div className={clsx(styles.studentContainer, styles.modal)}>
+    // <div className={clsx(styles.studentContainer, styles.modal)}>
+    <AddUserModal
+      headerChildren={
+        <>
+          <Button type="button" onClick={() => setOpenDropzone(true)}>
+            Bulk Upload
+          </Button>
+        </>
+      }
+      classes={[styles.studentContainer]}
+      loading={loading}
+      error={error}
+      success={success}
+      title="Add a Student"
+      actionBtns={
+        <>
+          <Button onClick={handleReset} type="button" color="warning">
+            Reset
+          </Button>
+          <Button>Submit</Button>
+        </>
+      }
+      handleCloseModal={props.handleCloseModal}
+    >
       <form onSubmit={handleSubmit}>
-        <div className={styles.header}>
+        {/* <div className={styles.header}>
           <div className={styles.flexRow}>
             <h2>Add a Student</h2>
             <Button type="button" onClick={() => setOpenDropzone(true)}>
@@ -286,7 +310,7 @@ const Student: React.FC<{
             </Button>
           </div>
           <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
-        </div>
+        </div> */}
         <div className={styles.inputFields}>
           {/* <StyledMUITextField
             id="id"
@@ -432,65 +456,49 @@ const Student: React.FC<{
             variant="outlined"
           /> */}
         </div>
-        {openDropzne && (
-          <div className={styles.dropzoneContainer}>
-            <div className={styles.close}>
-              <IconButton
-                edge="start"
-                color="inherit"
-                onClick={() => setOpenDropzone(false)}
-                aria-label="close"
-              >
-                <CloseIcon />
-              </IconButton>
-            </div>
-            <Dropzone
-              onDrop={(acceptedFiles: any) => setFile(acceptedFiles[0])}
-            >
-              {({ getRootProps, getInputProps }) => (
-                <section className={styles.dropzone}>
-                  <div {...getRootProps()}>
-                    <input
-                      {...getInputProps()}
-                      accept=".xlsx,"
-                      title="upload"
-                    />
-                    <p>
-                      {file?.name ||
-                        "Click or drag n drop to upload an excel file"}
-                    </p>
-                    {loading && (
-                      <div className={styles.progress}>
-                        <LinearProgress />
-                      </div>
-                    )}
-                  </div>
-                </section>
-              )}
-            </Dropzone>
-            <Button
-              type="button"
-              onClick={handleUploadFile}
-              classes={[styles.uploadBtn]}
-              disabled={loading}
-            >
-              Upload
-            </Button>
-          </div>
-        )}
-        <div className={styles.buttons}>
-          <Button onClick={handleReset} type="button" color="warning">
-            Reset
-          </Button>
-          <Button>Submit</Button>
-        </div>
-        <div className={styles.progressError}>
-          {loading && <LinearProgress />}
-          {error && <span className={styles.error}>{error}</span>}
-          {success && <span className={styles.success}>{success}</span>}
-        </div>
       </form>
-    </div>
+      {openDropzne && (
+        <div className={styles.dropzoneContainer}>
+          <div className={styles.close}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => setOpenDropzone(false)}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+          </div>
+          <Dropzone onDrop={(acceptedFiles: any) => setFile(acceptedFiles[0])}>
+            {({ getRootProps, getInputProps }) => (
+              <section className={styles.dropzone}>
+                <div {...getRootProps()}>
+                  <input {...getInputProps()} accept=".xlsx," title="upload" />
+                  <p>
+                    {file?.name ||
+                      "Click or drag n drop to upload an excel file"}
+                  </p>
+                  {loading && (
+                    <div className={styles.progress}>
+                      <LinearProgress />
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+          </Dropzone>
+          <Button
+            type="button"
+            onClick={handleUploadFile}
+            classes={[styles.uploadBtn]}
+            disabled={loading}
+          >
+            Upload
+          </Button>
+        </div>
+      )}
+    </AddUserModal>
+    // </div>
   );
 };
 

@@ -10,6 +10,7 @@ import { APIS } from "../../../utils/constants";
 import { Table } from "antd";
 import { rowSelection } from "../Users";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
+import AddUserModal from "../components/AddUserModal";
 
 const columns = [
   {
@@ -140,46 +141,62 @@ const Teacher: React.FC<{
 
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
-      <form onSubmit={handleSubmit}>
-        <div className={styles.header}>
+      <AddUserModal
+        title="Add a Teacher"
+        actionBtns={
+          <>
+            <Button onClick={handleReset} type="button" color="warning">
+              Reset
+            </Button>
+            <Button>Submit</Button>
+          </>
+        }
+        classes={[styles.studentContainer]}
+        // loading={loading}
+        // success={succ}
+        // error={error}
+        handleCloseModal={props.handleCloseModal}
+      >
+        <form onSubmit={handleSubmit}>
+          {/* <div className={styles.header}>
           <h2>Add a Teacher</h2>
           <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
-        </div>
-        <div className={styles.inputFields}>
-          {/* <StyledMUITextField
+        </div> */}
+          <div className={styles.inputFields}>
+            {/* <StyledMUITextField
             id="id"
             disabled
             label="Id"
             value={id}
             variant="outlined"
           /> */}
-          <StyledMUITextField
-            id="name"
-            required
-            label="Name"
-            value={values.name}
-            onChange={handleChangeValues}
-            variant="outlined"
-          />
+            <StyledMUITextField
+              id="name"
+              required
+              label="Name"
+              value={values.name}
+              onChange={handleChangeValues}
+              variant="outlined"
+            />
 
-          <StyledMUITextField
-            required
-            id="email"
-            value={values.email}
-            onChange={handleChangeValues}
-            label="Email"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="password"
-            value={values.password}
-            type="password"
-            onChange={handleChangeValues}
-            label="Password"
-            variant="outlined"
-          />
-          {/* <StyledMUITextField
+            <StyledMUITextField
+              required
+              id="email"
+              value={values.email}
+              onChange={handleChangeValues}
+              label="Email"
+              variant="outlined"
+            />
+            <StyledMUITextField
+              required
+              id="password"
+              value={values.password}
+              type="password"
+              onChange={handleChangeValues}
+              label="Password"
+              variant="outlined"
+            />
+            {/* <StyledMUITextField
             required
             id="adhaarNumber"
             value={adhaarNumber}
@@ -187,15 +204,15 @@ const Teacher: React.FC<{
             label="Adhaar Number"
             variant="outlined"
           /> */}
-          <StyledMUITextField
-            required
-            id="contact"
-            value={values.contact}
-            onChange={handleChangeValues}
-            label="Contact"
-            variant="outlined"
-          />
-          {/* <StyledMUITextField
+            <StyledMUITextField
+              required
+              id="contact"
+              value={values.contact}
+              onChange={handleChangeValues}
+              label="Contact"
+              variant="outlined"
+            />
+            {/* <StyledMUITextField
             required
             id="emergencyContact"
             value={emergencyContact}
@@ -203,39 +220,40 @@ const Teacher: React.FC<{
             label="Emergency Contact"
             variant="outlined"
           /> */}
-          <div className={styles.singlSelect}>
-            <MUISimpleAutocomplete
-              label="Gender"
-              onChange={(val: any) => {
-                console.log({ val });
-                handleChangeValues({
-                  target: { id: "gender", value: val },
-                } as any);
-              }}
-              options={[
-                { name: "Male", value: "male" },
-                { name: "Female", value: "female" },
-              ]}
-              value={values.gender}
+            <div className={styles.singlSelect}>
+              <MUISimpleAutocomplete
+                label="Gender"
+                onChange={(val: any) => {
+                  console.log({ val });
+                  handleChangeValues({
+                    target: { id: "gender", value: val },
+                  } as any);
+                }}
+                options={[
+                  { name: "Male", value: "male" },
+                  { name: "Female", value: "female" },
+                ]}
+                value={values.gender}
+              />
+            </div>
+
+            <StyledMUITextField
+              id="uploadedBy"
+              className="uploadedBy"
+              value={uploadedBy}
+              label="Uploaded By"
+              disabled
+              variant="outlined"
             />
           </div>
-
-          <StyledMUITextField
-            id="uploadedBy"
-            className="uploadedBy"
-            value={uploadedBy}
-            label="Uploaded By"
-            disabled
-            variant="outlined"
-          />
-        </div>
-        <div className={styles.buttons}>
+          {/* <div className={styles.buttons}>
           <Button onClick={handleReset} type="button" color="warning">
             Reset
           </Button>
           <Button>Submit</Button>
-        </div>
-      </form>
+        </div> */}
+        </form>
+      </AddUserModal>
     </div>
   );
 };
