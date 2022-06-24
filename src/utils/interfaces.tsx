@@ -268,3 +268,31 @@ export interface IUserTeacher {
   createdAt: string;
   modifiedAt: string;
 }
+
+export interface IUserAdmin {
+  id: string; // INSTITUTE_ID_AD_ABCDEF123
+  name: string;
+  email: string;
+  password: string;
+  contact: number;
+  institute: string;
+  gender: string;
+  validity: {
+    from: string;
+    to: string;
+  };
+  userType: string;
+  createdAt: string;
+  modifiedAt: string;
+  createdBy: {
+    userType: string;
+    id: string;
+  };
+  roles: [
+    {
+      id: String;
+      from: String;
+      to: String;
+    }
+  ];
+}

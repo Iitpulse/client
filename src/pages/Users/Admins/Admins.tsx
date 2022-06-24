@@ -3,6 +3,45 @@ import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Admins.module.scss";
 import { Button } from "../../../components";
+import { Table } from "antd";
+import { rowSelection } from "../Users";
+
+const columns = [
+  {
+    title: "Name",
+    dataIndex: "name",
+    // width: 50,
+    render: (text: string) => (
+      <span style={{ overflow: "ellipsis" }}>{text}</span>
+    ),
+  },
+  // {
+  //   title: "ID",
+  //   dataIndex: "id",
+  //   width: 50,
+  //   // render: (text: string) => <a>{text}</a>,
+  // },
+  {
+    title: "Gender",
+    dataIndex: "gender",
+    render: (text: string) => (
+      <span style={{ textTransform: "capitalize" }}>{text}</span>
+    ),
+  },
+  {
+    title: "Batch",
+    dataIndex: "batch",
+    // width: 100,
+    render: (text: string) => (
+      <span style={{ textTransform: "capitalize" }}> {text}</span>
+    ),
+  },
+  {
+    title: "Contact",
+    dataIndex: "contact",
+    // width: 100,
+  },
+];
 
 const Admins: React.FC<{
   activeTab: number;
@@ -10,12 +49,19 @@ const Admins: React.FC<{
   openModal: boolean;
   handleCloseModal: () => void;
 }> = ({ activeTab, admin, openModal, handleCloseModal }) => {
+  const data: any = [];
+
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>Admins</h1>
-        <Button>Add Amin</Button>
-      </div>
+      <Table
+        rowSelection={{
+          type: "checkbox",
+          ...rowSelection,
+        }}
+        columns={columns}
+        dataSource={data}
+        loading={false}
+      />
       {openModal && activeTab === 3 && (
         <Admin admin={admin} handleCloseModal={handleCloseModal} />
       )}

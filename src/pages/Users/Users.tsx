@@ -164,8 +164,8 @@ const Users = () => {
         <Tabs value={tab} onChange={handleChangeTab}>
           <Tab label="Students" />
           <Tab label="Teachers" />
-          <Tab label="Operators" />
           <Tab label="Admins" />
+          <Tab label="Operators" />
           <Tab label="Managers" />
         </Tabs>
         <div>
@@ -200,6 +200,14 @@ const Users = () => {
         />
       </TabPanel>
       <TabPanel value={tab} index={2}>
+        <Admins
+          admin={admin}
+          activeTab={tab}
+          openModal={openModal}
+          handleCloseModal={handleCloseModal}
+        />
+      </TabPanel>
+      <TabPanel value={tab} index={3}>
         <Operators
           operator={operator}
           activeTab={tab}
@@ -208,14 +216,6 @@ const Users = () => {
         />
       </TabPanel>
 
-      <TabPanel value={tab} index={3}>
-        <Admins
-          admin={admin}
-          activeTab={tab}
-          openModal={openModal}
-          handleCloseModal={handleCloseModal}
-        />
-      </TabPanel>
       <TabPanel value={tab} index={4}>
         <Managers
           manager={manager}

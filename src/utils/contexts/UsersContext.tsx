@@ -1,13 +1,15 @@
 import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
 import { AuthContext } from "../auth/AuthContext";
-import { IUserStudent, IUserTeacher } from "../interfaces";
+import { IUserStudent, IUserTeacher, IUserAdmin } from "../interfaces";
 
 interface UsersContextType {
   students: Array<IUserStudent>;
   teachers: Array<IUserTeacher>;
+  admins: Array<IUserAdmin>;
   fetchStudents: (cb?: () => void) => void;
   fetchTeachers: (cb?: () => void) => void;
+  fetchAdmins: (cb?: () => void) => void;
 }
 
 export const UsersContext = createContext<UsersContextType>(
@@ -17,7 +19,7 @@ export const UsersContext = createContext<UsersContextType>(
 const UsersContextProvider: React.FC = ({ children }) => {
   const [students, setStudents] = useState<Array<IUserStudent>>([]);
   const [teachers, setTeachers] = useState<Array<IUserTeacher>>([]);
-  const [admins, setAdmins] = useState<Array<IUserStudent>>([]);
+  const [admins, setAdmins] = useState<Array<IUserAdmin>>([]);
   const [operator, setOperator] = useState<Array<IUserTeacher>>([]);
   const { currentUser } = useContext(AuthContext);
 
@@ -42,16 +44,35 @@ const UsersContextProvider: React.FC = ({ children }) => {
     }
   }
 
+  async function fetchAdmins(cb?: () => void) {
+    const res = await axios.get(`${process.env.REACT_APP_USERS_API}/admin/`);
+    setAdmins(
+      res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
+    );
+    console.log({ res });
+    if (cb) {
+      cb();
+    }
+  }
+
   useEffect(() => {
     if (currentUser?.id) {
       fetchStudents();
       fetchTeachers();
+      fetchAdmins();
     }
   }, [currentUser]);
 
   return (
     <UsersContext.Provider
-      value={{ students, teachers, fetchStudents, fetchTeachers }}
+      value={{
+        students,
+        teachers,
+        admins,
+        fetchStudents,
+        fetchTeachers,
+        fetchAdmins,
+      }}
     >
       {children}
     </UsersContext.Provider>
