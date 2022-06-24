@@ -14,9 +14,9 @@
 
     nav {
       z-index: 100;
-      -ms-user-select: all;
-      -webkit-user-select: all;
-      user-select: all;
+      -ms-user-select: auto;
+      -webkit-user-select: auto;
+      user-select: auto;
       @extend .flexRow;
       position: -webkit-sticky;
       position: sticky;
