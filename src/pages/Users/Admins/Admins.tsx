@@ -48,7 +48,8 @@ const Admins: React.FC<{
   admin: UserProps;
   openModal: boolean;
   handleCloseModal: () => void;
-}> = ({ activeTab, admin, openModal, handleCloseModal }) => {
+  loading: boolean;
+}> = ({ activeTab, admin, openModal, handleCloseModal, loading }) => {
   const data: any = [];
 
   return (
@@ -60,7 +61,7 @@ const Admins: React.FC<{
         }}
         columns={columns}
         dataSource={data}
-        loading={false}
+        loading={loading}
       />
       {openModal && activeTab === 3 && (
         <Admin admin={admin} handleCloseModal={handleCloseModal} />

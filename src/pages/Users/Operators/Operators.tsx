@@ -3,19 +3,66 @@ import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Operators.module.scss";
 import { Button } from "../../../components";
+import { Table } from "antd";
+import { rowSelection } from "../Users";
+
+const columns = [
+  {
+    title: "Name",
+    dataIndex: "name",
+    // width: 50,
+    render: (text: string) => (
+      <span style={{ overflow: "ellipsis" }}>{text}</span>
+    ),
+  },
+  // {
+  //   title: "ID",
+  //   dataIndex: "id",
+  //   width: 50,
+  //   // render: (text: string) => <a>{text}</a>,
+  // },
+  {
+    title: "Gender",
+    dataIndex: "gender",
+    render: (text: string) => (
+      <span style={{ textTransform: "capitalize" }}>{text}</span>
+    ),
+  },
+  {
+    title: "Batch",
+    dataIndex: "batch",
+    // width: 100,
+    render: (text: string) => (
+      <span style={{ textTransform: "capitalize" }}> {text}</span>
+    ),
+  },
+  {
+    title: "Contact",
+    dataIndex: "contact",
+    // width: 100,
+  },
+];
 
 const Operators: React.FC<{
   activeTab: number;
   operator: UserProps;
   openModal: boolean;
   handleCloseModal: () => void;
-}> = ({ activeTab, operator, openModal, handleCloseModal }) => {
+  loading: boolean;
+}> = ({ activeTab, operator, openModal, handleCloseModal, loading }) => {
+  const data: any = [];
+
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>Operators</h1>
-        <Button>Add Operator</Button>
-      </div>
+      <Table
+        rowSelection={{
+          type: "checkbox",
+          ...rowSelection,
+        }}
+        columns={columns}
+        dataSource={data as any}
+        loading={loading}
+      />
       {openModal && activeTab === 2 && (
         <Operator operator={operator} handleCloseModal={handleCloseModal} />
       )}

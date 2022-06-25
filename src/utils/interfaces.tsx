@@ -296,3 +296,54 @@ export interface IUserAdmin {
     }
   ];
 }
+
+export interface IUserOperator {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  contact: number;
+  address: string;
+  institute: string;
+  gender: string;
+  userType: string;
+  validity: {
+    from: string;
+    to: string;
+  };
+  roles: [
+    {
+      id: string;
+      from: string;
+      to: string;
+    }
+  ];
+  createdBy: string;
+  createdAt: string;
+  modifiedAt: string;
+}
+
+export interface IUserManager {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  contact: number;
+  institute: string;
+  gender: string;
+  validity: {
+    from: string;
+    to: string;
+  };
+  userType: string;
+  roles: [
+    {
+      id: string;
+      from: string;
+      to: string;
+    }
+  ];
+  createdBy: string;
+  createdAt: string;
+  modifiedAt: string;
+}

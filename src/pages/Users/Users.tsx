@@ -83,50 +83,28 @@ const defaultValue = {
 };
 
 const Users = () => {
-  // For Modal
-  // const id = "IITP_TT_ABC12334";
-  // const uploadedBy = "John Doe";
-  // const [name, setName] = useState<string>("");
-  // const [email, setEmail] = useState<string>("");
-  // const [preparingFor, setPreparingFor] = useState<string>("");
-  // const [adhaarNumber, setAdhaarNumber] = useState<string>("");
-  // const [personalContact, setPersonalContact] = useState<string>("");
-  // const [emergencyContact, setEmergencyContact] = useState<string>("");
-  // const [currentAddress, setCurrentAddress] = useState<string>("");
-  // const [permanentAddress, setPermanentAddress] = useState<string>("");
-
   const [student, setStudent] = useState<any>(defaultValue);
   const [admin, setAdmin] = useState<any>(defaultValue);
   const [manager, setManager] = useState<any>(defaultValue);
   const [teacher, setTeacher] = useState<any>(defaultValue);
   const [operator, setOperator] = useState<any>(defaultValue);
+  const [csvData, setCsvData] = useState<any>([]);
 
   //For Option Menu
   const [selectedUserType, setSelectedUserType] = useState<string>("");
   const [openModal, setOpenModal] = useState<boolean>(false);
 
-  function submitHandler(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    //BEFORE SUBMITTING MAKE SURE that you don't send values that are Empty string which are not the part of their respective form
+  // function submitHandler(e: React.FormEvent<HTMLFormElement>) {
+  //   e.preventDefault();
+  // }
 
-    //After Submitting the form
-    // setName("");
-    // setEmail("");
-    // setPreparingFor("");
-    // setAdhaarNumber("");
-    // setPermanentAddress("");
-    // setCurrentAddress("");
-    // setEmergencyContact("");
-    // setPersonalContact("");
-  }
-
-  function handleReset() {
-    setStudent(defaultValue);
-    setAdmin(defaultValue);
-    setManager(defaultValue);
-    setTeacher(defaultValue);
-    setOperator(defaultValue);
-  }
+  // function handleReset() {
+  //   setStudent(defaultValue);
+  //   setAdmin(defaultValue);
+  //   setManager(defaultValue);
+  //   setTeacher(defaultValue);
+  //   setOperator(defaultValue);
+  // }
 
   const [tab, setTab] = useState(0);
 
@@ -156,7 +134,28 @@ const Users = () => {
     }
   }
 
-  const { students } = useContext(UsersContext);
+  const { students, teachers, admins, operators, managers } =
+    useContext(UsersContext);
+
+  function onClickDownloadCSV() {
+    switch (tab) {
+      case 0:
+        setCsvData(students);
+        break;
+      case 1:
+        setCsvData(teachers);
+        break;
+      case 2:
+        setCsvData(admins);
+        break;
+      case 3:
+        setCsvData(operators);
+        break;
+      case 4:
+        setCsvData(managers);
+        break;
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -170,9 +169,14 @@ const Users = () => {
         </Tabs>
         <div>
           <IconButton onClick={handleClickRefresh}>
-            <DownloadIcon />
-            <CSVLink filename={"Questions.csv"} data={students}>
-              Export to CSV
+            <CSVLink
+              filename={"Questions.csv"}
+              data={csvData}
+              // asyncOnClick={true}
+              onClick={onClickDownloadCSV}
+            >
+              <DownloadIcon />
+              {/* Export to CSV */}
             </CSVLink>
           </IconButton>
           <IconButton onClick={handleClickRefresh}>
@@ -205,6 +209,7 @@ const Users = () => {
           activeTab={tab}
           openModal={openModal}
           handleCloseModal={handleCloseModal}
+          loading={loading}
         />
       </TabPanel>
       <TabPanel value={tab} index={3}>
@@ -213,6 +218,7 @@ const Users = () => {
           activeTab={tab}
           openModal={openModal}
           handleCloseModal={handleCloseModal}
+          loading={loading}
         />
       </TabPanel>
 
@@ -222,6 +228,7 @@ const Users = () => {
           activeTab={tab}
           openModal={openModal}
           handleCloseModal={handleCloseModal}
+          loading={loading}
         />
       </TabPanel>
 
