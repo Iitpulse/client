@@ -18,6 +18,7 @@ import { UsersContext } from "../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../utils/contexts/CurrentContext";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CSVLink } from "react-csv";
+import { flattenUserStudents } from "../../utils";
 
 const UserTypesForCards = [
   {
@@ -140,7 +141,7 @@ const Users = () => {
   function onClickDownloadCSV() {
     switch (tab) {
       case 0:
-        setCsvData(students);
+        setCsvData(flattenUserStudents(students));
         break;
       case 1:
         setCsvData(teachers);
@@ -172,8 +173,12 @@ const Users = () => {
             <CSVLink
               filename={"Questions.csv"}
               data={csvData}
-              // asyncOnClick={true}
-              onClick={onClickDownloadCSV}
+              asyncOnClick={true}
+              onClick={(event: any, done: any) => {
+                onClickDownloadCSV();
+                console.log(csvData);
+                done();
+              }}
             >
               <DownloadIcon />
               {/* Export to CSV */}
