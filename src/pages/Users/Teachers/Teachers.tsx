@@ -3,53 +3,19 @@ import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Teachers.module.scss";
 import { Button, MUISimpleAutocomplete } from "../../../components";
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import { APIS } from "../../../utils/constants";
-import { Table } from "antd";
-import { rowSelection } from "../Users";
+import { Input, Space, Table, Button as AntButton } from "antd";
+import { DataType, rowSelection } from "../Users";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import AddUserModal from "../components/AddUserModal";
-
-const columns = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    // width: 50,
-    render: (text: string) => (
-      <span style={{ overflow: "ellipsis" }}>{text}</span>
-    ),
-  },
-  // {
-  //   title: "ID",
-  //   dataIndex: "id",
-  //   width: 50,
-  //   // render: (text: string) => <a>{text}</a>,
-  // },
-  {
-    title: "Gender",
-    dataIndex: "gender",
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    // width: 200,
-  },
-  // {
-  //   title: "Batch",
-  //   dataIndex: "batch",
-  //   // width: 100,
-  //   render: (text: string) => (
-  //     <span style={{ textTransform: "capitalize" }}> {text}</span>
-  //   ),
-  // },
-  {
-    title: "Contact",
-    dataIndex: "contact",
-    // width: 100,
-  },
-];
+import { SearchOutlined } from "@mui/icons-material";
+import Highlighter from "react-highlight-words";
+// import type { InputRef } from 'antd';
+import type { ColumnsType, ColumnType } from "antd/lib/table";
+import type { FilterConfirmProps } from "antd/lib/table/interface";
 
 const Teachers: React.FC<{
   activeTab: number;
@@ -58,7 +24,155 @@ const Teachers: React.FC<{
   handleCloseModal: () => void;
   loading: boolean;
 }> = ({ activeTab, teacher, openModal, handleCloseModal, loading }) => {
-  const [data, setData] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef<any>(null);
+
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: any
+  ) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters();
+    setSearchText("");
+  };
+
+  const getColumnSearchProps = (dataIndex: any): ColumnType<DataType> => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+    }) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() =>
+            handleSearch(selectedKeys as string[], confirm, dataIndex)
+          }
+          style={{ marginBottom: 8, display: "block" }}
+        />
+        <Space>
+          <AntButton
+            type="primary"
+            onClick={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </AntButton>
+          <AntButton
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </AntButton>
+          <AntButton
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false });
+              setSearchText((selectedKeys as string[])[0]);
+              setSearchedColumn(dataIndex);
+            }}
+          >
+            Filter
+          </AntButton>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
+    ),
+    onFilter: (value: any, record: any) =>
+      record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes((value as string).toLowerCase()),
+    onFilterDropdownVisibleChange: (visible: boolean) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: (text: string) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ) : (
+        text
+      ),
+  });
+
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      // width: 50,
+      render: (text: string) => (
+        <span style={{ overflow: "ellipsis" }}>{text}</span>
+      ),
+      ...getColumnSearchProps("name"),
+    },
+    // {
+    //   title: "ID",
+    //   dataIndex: "id",
+    //   width: 50,
+    //   // render: (text: string) => <a>{text}</a>,
+    // },
+    {
+      title: "Gender",
+      dataIndex: "gender",
+      filters: [
+        {
+          text: "Male",
+          value: "male",
+        },
+        {
+          text: "Female",
+          value: "female",
+        },
+      ],
+      onFilter: (value: any, record: any) =>
+        record.gender?.indexOf(value) === 0,
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      // width: 200,
+    },
+    // {
+    //   title: "Batch",
+    //   dataIndex: "batch",
+    //   // width: 100,
+    //   render: (text: string) => (
+    //     <span style={{ textTransform: "capitalize" }}> {text}</span>
+    //   ),
+    // },
+    {
+      title: "Contact",
+      dataIndex: "contact",
+      // width: 100,
+    },
+  ];
 
   const { teachers } = useContext(UsersContext);
 

@@ -117,7 +117,13 @@ const Users = () => {
     setOpenModal(false);
   }
 
-  const { fetchStudents } = useContext(UsersContext);
+  const {
+    fetchStudents,
+    fetchTeachers,
+    fetchAdmins,
+    fetchManagers,
+    fetchOperators,
+  } = useContext(UsersContext);
   const [loading, setLoading] = useState(false);
 
   function handleClickRefresh() {
@@ -128,8 +134,26 @@ const Users = () => {
           setLoading(false);
         });
         break;
-      // case 1:
-
+      case 1:
+        fetchTeachers(() => {
+          setLoading(false);
+        });
+        break;
+      case 2:
+        fetchAdmins(() => {
+          setLoading(false);
+        });
+        break;
+      case 3:
+        fetchManagers(() => {
+          setLoading(false);
+        });
+        break;
+      case 4:
+        fetchOperators(() => {
+          setLoading(false);
+        });
+        break;
       default:
         break;
     }
