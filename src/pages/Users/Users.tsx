@@ -110,6 +110,7 @@ const Users = () => {
   const [tab, setTab] = useState(0);
 
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    setOpenModal(false);
     setTab(newValue);
   };
 

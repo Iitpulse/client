@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { Button, MUISimpleAutocomplete } from "../../../components";
 import {
@@ -8,7 +8,7 @@ import {
 } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
-import { Table } from "antd";
+import { Input, Space, Table, Button as AntButton } from "antd";
 import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
@@ -30,6 +30,10 @@ import { APIS } from "../../../utils/constants";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../../utils/contexts/CurrentContext";
 import AddUserModal from "../components/AddUserModal";
+import { ColumnType } from "antd/lib/table";
+import { FilterConfirmProps } from "antd/lib/table/interface";
+import { SearchOutlined } from "@ant-design/icons";
+import Highlighter from "react-highlight-words";
 
 const Students: React.FC<{
   activeTab: number;
@@ -43,6 +47,105 @@ const Students: React.FC<{
   useEffect(() => {
     console.log({ selectedUsers: selectedUsers });
   }, [selectedUsers]);
+
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef<any>(null);
+
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: any
+  ) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters();
+    setSearchText("");
+  };
+
+  const getColumnSearchProps = (dataIndex: any): ColumnType<DataType> => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+    }) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() =>
+            handleSearch(selectedKeys as string[], confirm, dataIndex)
+          }
+          style={{ marginBottom: 8, display: "block" }}
+        />
+        <Space>
+          <AntButton
+            type="primary"
+            onClick={() =>
+              handleSearch(selectedKeys as string[], confirm, dataIndex)
+            }
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </AntButton>
+          <AntButton
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </AntButton>
+          <AntButton
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false });
+              setSearchText((selectedKeys as string[])[0]);
+              setSearchedColumn(dataIndex);
+            }}
+          >
+            Filter
+          </AntButton>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
+    ),
+    onFilter: (value: any, record: any) =>
+      record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes((value as string).toLowerCase()),
+    onFilterDropdownVisibleChange: (visible: boolean) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: (text: string) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ) : (
+        text
+      ),
+  });
+
   const columns = [
     {
       title: "Name",
@@ -51,6 +154,7 @@ const Students: React.FC<{
       render: (text: string) => (
         <span style={{ overflow: "ellipsis" }}>{text}</span>
       ),
+      ...getColumnSearchProps("name"),
     },
     // {
     //   title: "ID",
@@ -61,10 +165,27 @@ const Students: React.FC<{
     {
       title: "Gender",
       dataIndex: "gender",
-      render: (text: string) => (
-        <span style={{ textTransform: "capitalize" }}>{text}</span>
-      ),
+      filters: [
+        {
+          text: "Male",
+          value: "male",
+        },
+        {
+          text: "Female",
+          value: "female",
+        },
+      ],
+      onFilter: (value: any, record: any) =>
+        record.gender?.indexOf(value) === 0,
     },
+    // {
+    //   title: "Batch",
+    //   dataIndex: "batch",
+    //   // width: 100,
+    //   render: (text: string) => (
+    //     <span style={{ textTransform: "capitalize" }}> {text}</span>
+    //   ),
+    // },
     {
       title: "Batch",
       dataIndex: "batch",
@@ -111,7 +232,7 @@ const Students: React.FC<{
   //   })
   //   .map((item, i) => ({ ...item, id: item.id + i, key: item.id + i }));
 
-  const [data, setData] = useState([]);
+  // const [data, setData] = useState([]);
 
   // useEffect(() => {
   //   async function fetchStudents() {

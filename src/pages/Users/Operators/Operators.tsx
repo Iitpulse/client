@@ -63,7 +63,7 @@ const Operators: React.FC<{
         dataSource={data as any}
         loading={loading}
       />
-      {openModal && activeTab === 2 && (
+      {openModal && activeTab === 3 && (
         <Operator operator={operator} handleCloseModal={handleCloseModal} />
       )}
     </div>

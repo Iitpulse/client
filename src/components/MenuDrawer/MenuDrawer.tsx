@@ -10,7 +10,10 @@ import { IconButton } from "@mui/material";
 import { Menu, MenuItem } from "@mui/material";
 import clsx from "clsx";
 import { PERMISSIONS } from "../../utils/constants";
-import { usePermission } from "../../utils/contexts/PermissionsContext";
+import {
+  PermissionsContext,
+  usePermission,
+} from "../../utils/contexts/PermissionsContext";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { ReactComponent as HomeIcon } from "../../assets/icons/home.svg";
 import { ReactComponent as QuestionsIcon } from "../../assets/icons/questions.svg";
@@ -293,6 +296,8 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
     setAnchorEl(event.currentTarget);
   };
 
+  const { resetPermissions } = useContext(PermissionsContext);
+
   const navigate = useNavigate();
 
   const handleClose = () => {
@@ -301,6 +306,7 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
 
   function handleClickLogout() {
     setAnchorEl(null);
+    resetPermissions();
     localStorage.removeItem("token");
     return navigate("/login");
   }

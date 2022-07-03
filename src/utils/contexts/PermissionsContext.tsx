@@ -152,6 +152,7 @@ interface PermissionsContextType {
   permissions: any;
   setPermissions: (permissions: any) => void;
   allRoles: any;
+  resetPermissions: () => void;
 }
 
 export const PermissionsContext = createContext<PermissionsContextType>(
@@ -163,6 +164,10 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
   const [allRoles, setAllRoles] = useState<any>([]);
 
   const { currentUser, setRoles } = useContext(AuthContext);
+
+  function resetPermissions() {
+    setPermissions({});
+  }
 
   useEffect(() => {
     async function getRoles() {
@@ -194,7 +199,7 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
 
   return (
     <PermissionsContext.Provider
-      value={{ permissions, setPermissions, allRoles }}
+      value={{ permissions, setPermissions, allRoles, resetPermissions }}
     >
       {children}
     </PermissionsContext.Provider>
