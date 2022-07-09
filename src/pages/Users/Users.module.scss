@@ -49,24 +49,29 @@
     form {
       display: flex;
       justify-content: center;
-      flex-direction: column;
       background-color: #f3f3f9;
       height: fit-content;
-      border-radius: 10px;
       width: -moz-fit-content;
       width: fit-content;
       max-width: 900px;
       padding: 2rem;
-
+      position: relative;
+      .inputFields > div {
+        margin-left: 0 !important;
+       width:100% !important;
+       >div{
+        padding-right: 16px;
+       }
+      }
       .inputFields {
         width: -moz-fit-content;
         width: fit-content;
         justify-content: space-between;
         display: flex;
         flex-wrap: wrap;
-        > * {
-          margin: 0.5rem 1rem;
-        }
+        overflow-y: auto;
+        
+        
       }
       button {
         margin: 1rem;

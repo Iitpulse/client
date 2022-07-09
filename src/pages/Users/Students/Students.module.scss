@@ -14,11 +14,21 @@
   }
 
   form {
-    position: relative;
-    overflow: hidden;
     display: flex;
-    justify-content: center;
-    flex-direction: column;
+      justify-content: center;
+      background-color: #f3f3f9;
+      height: fit-content;
+      width: -moz-fit-content;
+      width: fit-content;
+      max-width: 900px;
+      position: relative;
+    .inputFields > div {
+      margin-left: 0 !important;
+     width:100% !important;
+     >div{
+      padding-right: 16px;
+     }
+    }
   }
 
   .dropzoneContainer {

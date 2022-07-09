@@ -15,7 +15,6 @@ import { useEffect, useState } from "react";
 
 export const StyledMUITextField = styled(TextField)(() => {
   return {
-    minWidth: "250px",
     input: {
       fontSize: "1rem",
       padding: "1.2rem 1.3rem",
@@ -201,7 +200,7 @@ export const MUICreatableSelect: React.FC<MUICreatableSelectProps> = ({
           </DialogContent>
           <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>
-            <Button type="submit">Add</Button>
+            <Button>Add</Button>
           </DialogActions>
         </form>
       </Dialog>
