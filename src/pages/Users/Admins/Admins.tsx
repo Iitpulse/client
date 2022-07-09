@@ -3,6 +3,8 @@ import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Admins.module.scss";
 import { Button } from "../../../components";
+import { Grid } from "@mui/material";
+import axios from "axios";
 import { Input, Space, Table, Button as AntButton } from "antd";
 import { DataType, rowSelection } from "../Users";
 import { useContext, useRef, useState } from "react";
@@ -10,6 +12,13 @@ import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { ColumnType } from "antd/lib/table";
+import { AuthContext } from "../../../utils/auth/AuthContext";
+import AddUserModal from "../components/AddUserModal";
+
+import {
+  MUIChipsAutocomplete,
+  MUISimpleAutocomplete,
+} from "../../../components";
 import { FilterConfirmProps } from "antd/lib/table/interface";
 
 const Admins: React.FC<{
@@ -180,117 +189,239 @@ export default Admins;
 const Admin: React.FC<{ admin: UserProps; handleCloseModal: () => void }> = (
   props
 ) => {
-  const {
-    onSubmit,
-    name,
-    setName,
-    email,
-    setEmail,
-    adhaarNumber,
-    setAdhaarNumber,
-    permanentAddress,
-    setPermanentAddress,
-    currentAddress,
-    setCurrentAddress,
-    personalContact,
-    setPersonalContact,
-    emergencyContact,
-    setEmergencyContact,
-    uploadedBy,
-    id,
-    handleReset,
-  } = props.admin;
+  const { uploadedBy, handleReset } = props.admin;
+  const [values, setValues] = useState({} as any);
+  const [roles, setRoles] = useState("");
+  const { currentUser } = useContext(AuthContext);
 
+  function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
+    const { id, value } = e.target;
+    console.log({ id, value });
+    setValues({ ...values, [id]: value });
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    let newValues = { ...values };
+
+    newValues.userType = "teacher";
+    newValues.createdBy = {
+      id: currentUser?.id,
+      userType: currentUser?.userType,
+    };
+    newValues.institute = currentUser?.instituteId;
+    newValues.roles = [
+      {
+        id: "ROLE_TEACHER",
+        from: new Date().toISOString(),
+        to: new Date().toISOString(),
+      },
+    ];
+    newValues.createdAt = new Date().toISOString();
+    newValues.modifiedAt = new Date().toISOString();
+    newValues.previousTests = [];
+    newValues.validity = {
+      from: new Date().toISOString(),
+      to: new Date().toISOString(),
+    };
+    console.log({ newValues });
+
+    const res = await axios.post(
+      `${process.env.REACT_APP_USERS_API}/teacher/create`,
+      newValues
+    );
+    console.log({ res });
+
+    if (res.status === 200) {
+      return alert("Succesfully created user");
+    } else {
+      return alert("Some error occured");
+    }
+
+    // handleReset();
+  }
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
-      <form onSubmit={onSubmit}>
-        <div className={styles.header}>
-          <h2>Add an Admin</h2>
-          <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
-        </div>
-        <div className={styles.inputFields}>
-          <StyledMUITextField
-            id="id"
-            disabled
-            label="Id"
-            value={id}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="name"
-            required
-            label="Name"
-            value={name}
-            onChange={(e: any) => setName(e.target.value)}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="currentAddress"
-            value={currentAddress}
-            onChange={(e: any) => setCurrentAddress(e.target.value)}
-            label="Current Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="permanentAddress"
-            value={permanentAddress}
-            onChange={(e: any) => setPermanentAddress(e.target.value)}
-            label="Permanent Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="email"
-            value={email}
-            onChange={(e: any) => setEmail(e.target.value)}
-            label="Email"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="adhaarNumber"
-            value={adhaarNumber}
-            onChange={(e: any) => setAdhaarNumber(e.target.value)}
-            label="Adhaar Number"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="personalContact"
-            value={personalContact}
-            onChange={(e: any) => setPersonalContact(e.target.value)}
-            label="Personal Contact"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="emergencyContact"
-            value={emergencyContact}
-            onChange={(e: any) => setEmergencyContact(e.target.value)}
-            label="Emergency Contact"
-            variant="outlined"
-          />
+      <AddUserModal
+        title="Add an Admin"
+        actionBtns={
+          <>
+            <Button onClick={handleReset} type="button" color="warning">
+              Reset
+            </Button>
+            <Button>Submit</Button>
+          </>
+        }
+        classes={[styles.studentContainer]}
+        // loading={loading}
+        // success={succ}
+        // error={error}
+        handleCloseModal={props.handleCloseModal}
+      >
+        <form onSubmit={handleSubmit}>
+          <div className={styles.inputFields}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  id="name"
+                  required
+                  label="Name"
+                  value={values.name}
+                  onChange={handleChangeValues}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="email"
+                  type="email"
+                  value={values.email}
+                  onChange={handleChangeValues}
+                  label="Email"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="password"
+                  value={values.password}
+                  type="password"
+                  onChange={handleChangeValues}
+                  label="Password"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="dob"
+                  type="text"
+                  value={values.dob}
+                  onChange={handleChangeValues}
+                  label="DOB"
+                  placeholder="DD/MM/YYYY"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="aadhaar"
+                  type="text"
+                  value={values.aadhaar}
+                  onChange={handleChangeValues}
+                  label="Aadhaar Number"
+                  placeholder="Enter Aadhaar Number"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="contact"
+                  type="number"
+                  value={values.contact}
+                  onChange={handleChangeValues}
+                  label="Contact"
+                  variant="outlined"
+                />
+              </Grid>
 
-          <StyledMUITextField
-            id="uploadedBy"
-            className="uploadedBy"
-            value={uploadedBy}
-            label="Uploaded By"
-            disabled
-            variant="outlined"
-          />
-        </div>
-        <div className={styles.buttons}>
-          <Button>Submit</Button>
-          <Button onClick={handleReset} type="button" color="warning">
-            Reset
-          </Button>
-        </div>
-      </form>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <MUISimpleAutocomplete
+                  label="Gender"
+                  onChange={(val: any) => {
+                    console.log({ val });
+                    handleChangeValues({
+                      target: { id: "gender", value: val },
+                    } as any);
+                  }}
+                  options={[
+                    { name: "Male", value: "male" },
+                    { name: "Female", value: "female" },
+                    { name: "Other", value: "other" },
+                  ]}
+                  value={values.gender}
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="city"
+                  type="text"
+                  value={values.city}
+                  onChange={handleChangeValues}
+                  label="City"
+                  placeholder="Enter a City"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="state"
+                  type="text"
+                  value={values.state}
+                  onChange={handleChangeValues}
+                  label="State"
+                  placeholder="Enter a State"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="emergencyContact"
+                  type="number"
+                  value={values.emergencyContact}
+                  onChange={handleChangeValues}
+                  label="Emergency Contact"
+                  variant="outlined"
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={12} lg={12} xl={8}>
+                <MUIChipsAutocomplete
+                  label="Role(s)"
+                  options={[
+                    { name: "Student", value: "student" },
+                    { name: "Admin", value: "admin" },
+                    { name: "Operator", value: "operator" },
+                    { name: "Manager", value: "manager" },
+                    { name: "Teacher", value: "teacher" },
+                  ]}
+                  onChange={setRoles}
+                />
+              </Grid>
+              <Grid item xs={12} md={12} lg={12} xl={8}>
+                <StyledMUITextField
+                  required
+                  className="largeWidthInput"
+                  id="currentAddress"
+                  value={values.currentAddress}
+                  onChange={handleChangeValues}
+                  label="Current Address"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={12} lg={12} xl={8}>
+                <StyledMUITextField
+                  required
+                  className="largeWidthInput"
+                  id="permanentAddress"
+                  value={values.permanentAddress}
+                  onChange={handleChangeValues}
+                  label="Permanent Address"
+                  variant="outlined"
+                />
+              </Grid>
+            </Grid>
+          </div>
+        </form>
+      </AddUserModal>
     </div>
   );
 };
