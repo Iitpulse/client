@@ -84,9 +84,6 @@ export const MUICreatableSelect: React.FC<MUICreatableSelectProps> = ({
 }) => {
   // const [value, setValue] = useState<DropdownOptionType | null>(null);
   const [open, toggleOpen] = useState(false);
-  useEffect(() => {
-    console.log({ value });
-  });
   const handleClose = () => {
     setDialogValue({
       name: "",

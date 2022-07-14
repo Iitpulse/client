@@ -4,6 +4,9 @@ import {
   Button,
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
+  Sidebar,
+  UserProfile,
+  Modal,
 } from "../../../components";
 import {
   StyledMUITextField,
@@ -38,13 +41,12 @@ const Students: React.FC<{
 }> = ({ activeTab, student, openModal, handleCloseModal, loading }) => {
   const { students } = useContext(UsersContext);
   const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
-  useEffect(() => {
-    console.log({ selectedUsers: selectedUsers });
-  }, [selectedUsers]);
 
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<any>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleSearch = (
     selectedKeys: string[],
@@ -204,11 +206,6 @@ const Students: React.FC<{
 
   const rowSelection = {
     onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-      console.log(
-        `selectedRowKeys: ${selectedRowKeys}`,
-        "selectedRows: ",
-        selectedRows
-      );
       setSelectedUsers(selectedRows);
     },
     getCheckboxProps: (record: DataType) => ({
@@ -251,19 +248,53 @@ const Students: React.FC<{
         loading={loading}
       />
       {openModal && activeTab === 0 && (
-        <Student student={student} handleCloseModal={handleCloseModal} />
+        <Student
+          title="Add a Student"
+          student={student}
+          handleCloseModal={handleCloseModal}
+        />
       )}
+      {isEditModalOpen && (
+        <Student
+          title="Edit a Student"
+          edit={{ values: selectedUsers[0] }}
+          handleCloseModal={() => setIsEditModalOpen(false)}
+        />
+      )}
+
+      <Modal
+        title="Are you sure you want to delete this user?"
+        hideCloseIcon={true}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      >
+        <div className={clsx(styles.modalButtons, styles.actionButtons)}>
+          <Button color="error">Delete</Button>
+          <Button onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+        </div>
+      </Modal>
+
+      <Sidebar title="Recent Activity">
+        <UserProfile
+          handleEditModal={() => setIsEditModalOpen(true)}
+          handleDeleteModal={() => setIsDeleteModalOpen(true)}
+        />
+      </Sidebar>
     </div>
   );
 };
 
 export default Students;
 
-const Student: React.FC<{
-  student: UserProps;
+export const Student: React.FC<{
+  student?: UserProps;
+  title?: string;
   handleCloseModal: () => void;
+  edit?: {
+    values: any;
+  };
 }> = (props) => {
-  const { onSubmit, uploadedBy } = props.student;
+  const { onSubmit, uploadedBy } = { ...props.student };
   const [values, setValues] = useState({} as any);
   const [openDropzne, setOpenDropzone] = useState(false);
   const [file, setFile] = useState(null as any);
@@ -276,17 +307,17 @@ const Student: React.FC<{
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
-    console.log({ id, value });
     setValues({ ...values, [id]: value });
   }
+  useEffect(() => {
+    if (props.edit) {
+      setValues(props.edit.values);
+    }
+  });
 
   function handleReset() {
-    console.log(values);
     setValues({});
   }
-  useEffect(() => {
-    console.log(values);
-  }, [values]);
   function handleChangeValuesForCreatableSelect(
     e: React.ChangeEvent<HTMLInputElement>,
     value: any
@@ -295,9 +326,6 @@ const Student: React.FC<{
     const newId = id.split("-option").shift();
     setValues({ ...values, [newId ? newId : id]: value });
   }
-  useEffect(() => {
-    console.log({ values });
-  });
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -338,13 +366,12 @@ const Student: React.FC<{
       ];
       newValues.createdAt = new Date().toISOString();
       newValues.modifiedAt = new Date().toISOString();
-      console.log({ newValues });
 
       const res = await axios.post(
         `${process.env.REACT_APP_USERS_API}/student/create`,
         newValues
       );
-      console.log({ res });
+      // console.log({ res });
 
       setSuccess("Student created successfully");
     } catch (error: any) {
@@ -404,22 +431,33 @@ const Student: React.FC<{
     <AddUserModal
       headerChildren={
         <>
-          <Button type="button" onClick={() => setOpenDropzone(true)}>
-            Bulk Upload
-          </Button>
+          {props.edit ? (
+            ""
+          ) : (
+            <Button type="button" onClick={() => setOpenDropzone(true)}>
+              Bulk Upload
+            </Button>
+          )}
         </>
       }
       classes={[styles.studentContainer]}
       loading={loading}
       error={error}
       success={success}
-      title="Add a Student"
+      title={props.title || "Add a Student"}
       actionBtns={
         <>
-          <Button onClick={handleReset} type="button" color="warning">
-            Reset
-          </Button>
-          <Button>Submit</Button>
+          {props.edit ? (
+            <Button>Update</Button>
+          ) : (
+            <>
+              <Button>Submit</Button>
+
+              <Button onClick={handleReset} type="button" color="warning">
+                Reset
+              </Button>
+            </>
+          )}
         </>
       }
       handleCloseModal={props.handleCloseModal}
@@ -481,7 +519,6 @@ const Student: React.FC<{
               <MUISimpleAutocomplete
                 label="Gender"
                 onChange={(val: any) => {
-                  console.log({ val });
                   handleChangeValues({
                     target: { id: "gender", value: val },
                   } as any);

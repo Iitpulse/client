@@ -2,7 +2,11 @@
 
 .container {
   // margin-top: 1rem;
-
+    .modalButtons.actionButtons{
+      width: 100%;
+      @extend .flexRow;
+      justify-content: space-between;
+    }
   h2 {
     margin: 0;
   }

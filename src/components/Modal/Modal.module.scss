@@ -9,7 +9,7 @@
   left: 0;
   z-index: 9999;
   animation: scaleAndAlpha 0.3s ease-in-out;
-
+  background-color: rgba($color: #000000, $alpha: 0.3);
   .modal {
     max-width: 70%;
     min-width: 300px;
@@ -18,12 +18,19 @@
     overflow-x: hidden;
     // width: fit-content;
     background: white;
-    padding: 1rem;
-    border-radius: 0.2rem;
+    padding:2rem ;
+    border-radius: 15px;
 
     .header {
       @extend .flexRow;
-      justify-content: space-between;
+      justify-content: space-between; 
+      margin-bottom: 1rem;
+      h3{
+        margin:0;
+      }
+      button{
+        margin-left: 4rem;
+      }
     }
   }
   &.modalOpen {

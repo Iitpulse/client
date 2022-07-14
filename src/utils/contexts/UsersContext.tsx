@@ -49,7 +49,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
     setTeachers(
       res?.data?.map((user: IUserTeacher) => ({ ...user, key: user.id }))
     );
-    console.log({ res });
+    // console.log({ res });
     if (cb) {
       cb();
     }
@@ -60,7 +60,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
     setManagers(
       res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
     );
-    console.log({ res });
+    // console.log({ res });
     if (cb) {
       cb();
     }
@@ -71,7 +71,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
     setOperators(
       res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
     );
-    console.log({ res });
+    // console.log({ res });
     if (cb) {
       cb();
     }
@@ -82,7 +82,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
     setManagers(
       res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
     );
-    console.log({ res });
+    // console.log({ res });
     if (cb) {
       cb();
     }

@@ -261,10 +261,10 @@ const Users = () => {
           loading={loading}
         />
       </TabPanel>
-
+      {/*       
       <Sidebar title="Recent Activity">
-        <UserProfile />
-      </Sidebar>
+          <UserProfile />
+        </Sidebar> */}
     </div>
   );
 };

@@ -2,9 +2,11 @@ import { useEffect, useRef } from "react";
 import clsx from "clsx";
 import styles from "./Modal.module.scss";
 import closeIcon from "../../assets/icons/close-circle.svg";
+import { IconButton } from "@mui/material";
 
 interface ModalProps {
   isOpen: boolean;
+  hideCloseIcon?: boolean;
   title: string;
   backdrop?: boolean;
   children: React.ReactNode;
@@ -18,6 +20,7 @@ const Modal: React.FC<ModalProps> = ({
   title,
   backdrop,
   children,
+  hideCloseIcon,
   footer,
   onClose,
   backdropClose = true,
@@ -41,7 +44,13 @@ const Modal: React.FC<ModalProps> = ({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h3>{title}</h3>
-          <img src={closeIcon} alt="close-modal" onClick={onClose} />
+          {hideCloseIcon ? (
+            ""
+          ) : (
+            <IconButton>
+              <img src={closeIcon} alt="close-modal" onClick={onClose} />
+            </IconButton>
+          )}
         </div>
         <div className={styles.content}>{children}</div>
         {footer && <div className={styles.footer}>{footer}</div>}
