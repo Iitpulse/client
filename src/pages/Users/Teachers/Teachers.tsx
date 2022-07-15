@@ -15,12 +15,13 @@ import { Input, Space, Table, Button as AntButton } from "antd";
 import { DataType, rowSelection } from "../Users";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import AddUserModal from "../components/AddUserModal";
-import { SearchOutlined } from "@mui/icons-material";
+
 import Highlighter from "react-highlight-words";
 // import type { InputRef } from 'antd';
 import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
 import { Grid } from "@mui/material";
+import { SearchOutlined } from "@ant-design/icons";
 
 const Teachers: React.FC<{
   activeTab: number;
@@ -131,18 +132,22 @@ const Teachers: React.FC<{
     {
       title: "Name",
       dataIndex: "name",
-      // width: 50,
+      width: 200,
       render: (text: string) => (
-        <span style={{ overflow: "ellipsis" }}>{text}</span>
+        <span style={{ overflow: "ellipsis", minWidth: "300px" }}>{text}</span>
       ),
       ...getColumnSearchProps("name"),
     },
-    // {
-    //   title: "ID",
-    //   dataIndex: "id",
-    //   width: 50,
-    //   // render: (text: string) => <a>{text}</a>,
-    // },
+    {
+      title: "Email",
+      dataIndex: "email",
+      ...getColumnSearchProps("email"),
+    },
+    {
+      title: "Contact",
+      dataIndex: "contact",
+      ...getColumnSearchProps("contact"),
+    },
     {
       title: "Gender",
       dataIndex: "gender",
@@ -160,8 +165,15 @@ const Teachers: React.FC<{
         record.gender?.indexOf(value) === 0,
     },
     {
-      title: "Name",
-      dataIndex: "name",
+      title: "Institute",
+      dataIndex: "institute",
+      ...getColumnSearchProps("institute"),
+
+      // width: 200,
+    },
+    {
+      title: "Subject",
+      dataIndex: "subject",
       // width: 200,
     },
     // {
@@ -173,9 +185,20 @@ const Teachers: React.FC<{
     //   ),
     // },
     {
-      title: "Contact",
-      dataIndex: "contact",
+      title: "Valid From",
+      dataIndex: "validity",
       // width: 100,
+      render: (obj: any) => (
+        <span>{new Date(obj.from).toLocaleDateString()}</span>
+      ),
+    },
+    {
+      title: "Valid Till",
+      dataIndex: "validity",
+      // width: 100,
+      render: (obj: any) => (
+        <span>{new Date(obj.to).toLocaleDateString()}</span>
+      ),
     },
   ];
 
@@ -191,6 +214,7 @@ const Teachers: React.FC<{
         columns={columns}
         dataSource={teachers as any}
         loading={loading}
+        scroll={{ x: 100 }}
       />
       {openModal && activeTab === 1 && (
         <Teacher teacher={teacher} handleCloseModal={handleCloseModal} />

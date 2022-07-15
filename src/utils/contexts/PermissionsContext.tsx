@@ -153,6 +153,7 @@ interface PermissionsContextType {
   setPermissions: (permissions: any) => void;
   allRoles: any;
   resetPermissions: () => void;
+  hasPermissions: any;
 }
 
 export const PermissionsContext = createContext<PermissionsContextType>(
@@ -162,6 +163,15 @@ export const PermissionsContext = createContext<PermissionsContextType>(
 const PermissionsContextProvider: React.FC = ({ children }) => {
   const [permissions, setPermissions] = useState<any>({});
   const [allRoles, setAllRoles] = useState<any>([]);
+
+  const [hasPermissions, setHasPermissions] = useState({
+    hasQuestionPermission: false,
+    hasUsersPermission: false,
+    hasTestPermission: false,
+    hasPatternPermission: false,
+    hasBatchPermission: false,
+    hasRolePermission: false,
+  });
 
   const { currentUser, setRoles } = useContext(AuthContext);
 
@@ -176,6 +186,7 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
       );
       setAllRoles(response.data);
       let perms: any = {};
+      let hPerms: any = {};
       response.data.forEach((role: any) => {
         perms[role.id] = role.permissions;
         if (currentUser?.roles[role.id]) {
@@ -187,9 +198,29 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
               members: role.members,
             },
           }));
+          console.log(role.permissions);
+          if (role.permissions.includes(PERMISSIONS.QUESTION.READ)) {
+            hPerms = { ...hPerms, hasQuestionPermission: true };
+          }
+          if (role.permissions.includes(PERMISSIONS.USER.READ)) {
+            hPerms = { ...hPerms, hasUsersPermission: true };
+          }
+          if (role.permissions.includes(PERMISSIONS.TEST.READ)) {
+            hPerms = { ...hPerms, hasTestPermission: true };
+          }
+          if (role.permissions.includes(PERMISSIONS.PATTERN.READ)) {
+            hPerms = { ...hPerms, hasPatternPermission: true };
+          }
+          if (role.permissions.includes(PERMISSIONS.BATCH.READ)) {
+            hPerms = { ...hPerms, hasBatchPermission: true };
+          }
+          if (role.permissions.includes(PERMISSIONS.ROLE.READ)) {
+            hPerms = { ...hPerms, hasRolePermission: true };
+          }
         }
       });
       setPermissions(perms);
+      setHasPermissions(hPerms);
     }
     if (currentUser) {
       getRoles();
@@ -198,7 +229,13 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
 
   return (
     <PermissionsContext.Provider
-      value={{ permissions, setPermissions, allRoles, resetPermissions }}
+      value={{
+        permissions,
+        setPermissions,
+        allRoles,
+        resetPermissions,
+        hasPermissions,
+      }}
     >
       {children}
     </PermissionsContext.Provider>
