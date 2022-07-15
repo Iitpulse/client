@@ -156,12 +156,16 @@ const Students: React.FC<{
       ),
       ...getColumnSearchProps("name"),
     },
-    // {
-    //   title: "ID",
-    //   dataIndex: "id",
-    //   width: 50,
-    //   // render: (text: string) => <a>{text}</a>,
-    // },
+    {
+      title: "Contact",
+      dataIndex: "contact",
+      ...getColumnSearchProps("contact"),
+    },
+    {
+      title: "School",
+      dataIndex: "school",
+      ...getColumnSearchProps("school"),
+    },
     {
       title: "Gender",
       dataIndex: "gender",
@@ -193,11 +197,34 @@ const Students: React.FC<{
       render: (text: string) => (
         <span style={{ textTransform: "capitalize" }}> {text}</span>
       ),
+      ...getColumnSearchProps("batch"),
     },
     {
-      title: "Contact",
-      dataIndex: "contact",
+      title: "Class",
+      dataIndex: "class",
       // width: 100,
+    },
+    {
+      title: "City",
+      dataIndex: "city",
+      // width: 100,
+      ...getColumnSearchProps("city"),
+    },
+    {
+      title: "Valid From",
+      dataIndex: "validity",
+      // width: 100,
+      render: (obj: any) => (
+        <span>{new Date(obj.from).toLocaleDateString()}</span>
+      ),
+    },
+    {
+      title: "Valid Till",
+      dataIndex: "validity",
+      // width: 100,
+      render: (obj: any) => (
+        <span>{new Date(obj.to).toLocaleDateString()}</span>
+      ),
     },
   ];
 
@@ -255,6 +282,7 @@ const Students: React.FC<{
         columns={columns}
         dataSource={students as any}
         loading={loading}
+        scroll={{ x: 200 }}
       />
       {openModal && activeTab === 0 && (
         <Student student={student} handleCloseModal={handleCloseModal} />

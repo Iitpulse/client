@@ -9,8 +9,10 @@ interface ProviderProps {
 const defaultAuthContext = {
   currentUser: null,
   roles: {},
+  loading: true,
   setRoles: () => {},
   setCurrentUser: () => {},
+  setLoading: () => {},
 };
 
 export const AuthContext = createContext<IAuthContext>(defaultAuthContext);
@@ -18,6 +20,7 @@ export const AuthContext = createContext<IAuthContext>(defaultAuthContext);
 const AuthContextProvider = (props: ProviderProps) => {
   const [currentUser, setCurrentUser] = useState<ICurrentUser | null>(null);
   const [roles, setRoles] = useState<any>({});
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const user = localStorage.getItem("token");
@@ -52,7 +55,14 @@ const AuthContextProvider = (props: ProviderProps) => {
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, setCurrentUser, roles, setRoles }}
+      value={{
+        currentUser,
+        setCurrentUser,
+        roles,
+        setRoles,
+        loading,
+        setLoading,
+      }}
     >
       {props.children}
     </AuthContext.Provider>

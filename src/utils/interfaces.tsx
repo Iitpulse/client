@@ -19,8 +19,10 @@ export interface IAuthContext {
       permissions: string[];
     };
   };
+  loading: boolean;
   setRoles: (roles: any) => void;
   setCurrentUser: React.Dispatch<React.SetStateAction<ICurrentUser | null>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface ITestTable {

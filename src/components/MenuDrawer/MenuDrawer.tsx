@@ -32,41 +32,47 @@ const MenuDrawer = (props: MenuDrawerProps) => {
 
   const { currentUser } = useContext(AuthContext);
 
-  const hasQuestionPermission: boolean = usePermission(
-    PERMISSIONS.QUESTION.READ
-  );
-  const hasUsersPermission: boolean = usePermission(PERMISSIONS.USER.READ);
-  const hasTestPermission: boolean = usePermission(PERMISSIONS.TEST.READ);
-  const hasPatternPermission: boolean = usePermission(PERMISSIONS.PATTERN.READ);
-  const hasBatchPermission: boolean = usePermission(PERMISSIONS.BATCH.READ);
-  const hasRolePermission: boolean = usePermission(PERMISSIONS.ROLE.READ);
+  const { hasPermissions } = useContext(PermissionsContext);
 
-  const [hasPermissions, setHasPermissions] = useState({
-    hasQuestionPermission: false,
-    hasUsersPermission: false,
-    hasTestPermission: false,
-    hasPatternPermission: false,
-    hasBatchPermission: false,
-    hasRolePermission: false,
-  });
+  // const hasQuestionPermission: boolean = usePermission(
+  //   PERMISSIONS.QUESTION.READ
+  // );
+  // const hasUsersPermission: boolean = usePermission(PERMISSIONS.USER.READ);
+  // const hasTestPermission: boolean = usePermission(PERMISSIONS.TEST.READ);
+  // const hasPatternPermission: boolean = usePermission(PERMISSIONS.PATTERN.READ);
+  // const hasBatchPermission: boolean = usePermission(PERMISSIONS.BATCH.READ);
+  // const hasRolePermission: boolean = usePermission(PERMISSIONS.ROLE.READ);
+
+  // const [hasPermissions, setHasPermissions] = useState({
+  //   hasQuestionPermission: false,
+  //   hasUsersPermission: false,
+  //   hasTestPermission: false,
+  //   hasPatternPermission: false,
+  //   hasBatchPermission: false,
+  //   hasRolePermission: false,
+  // });
+
+  // useEffect(() => {
+  //   setHasPermissions({
+  //     hasQuestionPermission,
+  //     hasUsersPermission,
+  //     hasTestPermission,
+  //     hasPatternPermission,
+  //     hasBatchPermission,
+  //     hasRolePermission,
+  //   });
+  // }, [
+  //   hasQuestionPermission,
+  //   hasUsersPermission,
+  //   hasTestPermission,
+  //   hasPatternPermission,
+  //   hasBatchPermission,
+  //   hasRolePermission,
+  // ]);
 
   useEffect(() => {
-    setHasPermissions({
-      hasQuestionPermission,
-      hasUsersPermission,
-      hasTestPermission,
-      hasPatternPermission,
-      hasBatchPermission,
-      hasRolePermission,
-    });
-  }, [
-    hasQuestionPermission,
-    hasUsersPermission,
-    hasTestPermission,
-    hasPatternPermission,
-    hasBatchPermission,
-    hasRolePermission,
-  ]);
+    console.log({ hasPermissions });
+  }, [hasPermissions]);
 
   useEffect(() => {
     // Close the menu drawer if width is <= 1300px
