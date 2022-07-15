@@ -188,7 +188,6 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
       let perms: any = {};
       let hPerms: any = {};
       response.data.forEach((role: any) => {
-        console.log({ role });
         perms[role.id] = role.permissions;
         if (currentUser?.roles[role.id]) {
           setRoles((prev: any) => ({

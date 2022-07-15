@@ -2,7 +2,11 @@ import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Teachers.module.scss";
-import { Button, MUISimpleAutocomplete } from "../../../components";
+import {
+  Button,
+  MUIChipsAutocomplete,
+  MUISimpleAutocomplete,
+} from "../../../components";
 import { useContext, useRef, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
@@ -16,6 +20,7 @@ import Highlighter from "react-highlight-words";
 // import type { InputRef } from 'antd';
 import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
+import { Grid } from "@mui/material";
 import { SearchOutlined } from "@ant-design/icons";
 
 const Teachers: React.FC<{
@@ -227,7 +232,7 @@ const Teacher: React.FC<{
   const { uploadedBy, handleReset } = props.teacher;
 
   const [values, setValues] = useState({} as any);
-
+  const [roles, setRoles] = useState("");
   const { currentUser } = useContext(AuthContext);
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
@@ -296,60 +301,167 @@ const Teacher: React.FC<{
         handleCloseModal={props.handleCloseModal}
       >
         <form onSubmit={handleSubmit}>
-          {/* <div className={styles.header}>
-          <h2>Add a Teacher</h2>
-          <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
-        </div> */}
           <div className={styles.inputFields}>
-            {/* <StyledMUITextField
-            id="id"
-            disabled
-            label="Id"
-            value={id}
-            variant="outlined"
-          /> */}
-            <StyledMUITextField
-              id="name"
-              required
-              label="Name"
-              value={values.name}
-              onChange={handleChangeValues}
-              variant="outlined"
-            />
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  id="name"
+                  required
+                  label="Name"
+                  value={values.name}
+                  onChange={handleChangeValues}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="email"
+                  type="email"
+                  value={values.email}
+                  onChange={handleChangeValues}
+                  label="Email"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="password"
+                  value={values.password}
+                  type="password"
+                  onChange={handleChangeValues}
+                  label="Password"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="dob"
+                  type="text"
+                  value={values.dob}
+                  onChange={handleChangeValues}
+                  label="DOB"
+                  placeholder="DD/MM/YYYY"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="aadhaar"
+                  type="text"
+                  value={values.aadhaar}
+                  onChange={handleChangeValues}
+                  label="Aadhaar Number"
+                  placeholder="Enter Aadhaar Number"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="contact"
+                  type="number"
+                  value={values.contact}
+                  onChange={handleChangeValues}
+                  label="Contact"
+                  variant="outlined"
+                />
+              </Grid>
 
-            <StyledMUITextField
-              required
-              id="email"
-              value={values.email}
-              onChange={handleChangeValues}
-              label="Email"
-              variant="outlined"
-            />
-            <StyledMUITextField
-              required
-              id="password"
-              value={values.password}
-              type="password"
-              onChange={handleChangeValues}
-              label="Password"
-              variant="outlined"
-            />
-            {/* <StyledMUITextField
-            required
-            id="adhaarNumber"
-            value={adhaarNumber}
-            onChange={handleChangeValues}
-            label="Adhaar Number"
-            variant="outlined"
-          /> */}
-            <StyledMUITextField
-              required
-              id="contact"
-              value={values.contact}
-              onChange={handleChangeValues}
-              label="Contact"
-              variant="outlined"
-            />
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <MUISimpleAutocomplete
+                  label="Gender"
+                  onChange={(val: any) => {
+                    console.log({ val });
+                    handleChangeValues({
+                      target: { id: "gender", value: val },
+                    } as any);
+                  }}
+                  options={[
+                    { name: "Male", value: "male" },
+                    { name: "Female", value: "female" },
+                    { name: "Other", value: "other" },
+                  ]}
+                  value={values.gender}
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="city"
+                  type="text"
+                  value={values.city}
+                  onChange={handleChangeValues}
+                  label="City"
+                  placeholder="Enter a City"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="state"
+                  type="text"
+                  value={values.state}
+                  onChange={handleChangeValues}
+                  label="State"
+                  placeholder="Enter a State"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={4} lg={4} xl={3}>
+                <StyledMUITextField
+                  required
+                  id="emergencyContact"
+                  type="number"
+                  value={values.emergencyContact}
+                  onChange={handleChangeValues}
+                  label="Emergency Contact"
+                  variant="outlined"
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={12} lg={12} xl={8}>
+                <MUIChipsAutocomplete
+                  label="Role(s)"
+                  options={[
+                    { name: "Student", value: "student" },
+                    { name: "Admin", value: "admin" },
+                    { name: "Operator", value: "operator" },
+                    { name: "Manager", value: "manager" },
+                    { name: "Teacher", value: "teacher" },
+                  ]}
+                  onChange={setRoles}
+                />
+              </Grid>
+              <Grid item xs={12} md={12} lg={12} xl={8}>
+                <StyledMUITextField
+                  required
+                  className="largeWidthInput"
+                  id="currentAddress"
+                  value={values.currentAddress}
+                  onChange={handleChangeValues}
+                  label="Current Address"
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={12} lg={12} xl={8}>
+                <StyledMUITextField
+                  required
+                  className="largeWidthInput"
+                  id="permanentAddress"
+                  value={values.permanentAddress}
+                  onChange={handleChangeValues}
+                  label="Permanent Address"
+                  variant="outlined"
+                />
+              </Grid>
+            </Grid>
+
             {/* <StyledMUITextField
             required
             id="emergencyContact"
@@ -358,31 +470,6 @@ const Teacher: React.FC<{
             label="Emergency Contact"
             variant="outlined"
           /> */}
-            <div className={styles.singlSelect}>
-              <MUISimpleAutocomplete
-                label="Gender"
-                onChange={(val: any) => {
-                  console.log({ val });
-                  handleChangeValues({
-                    target: { id: "gender", value: val },
-                  } as any);
-                }}
-                options={[
-                  { name: "Male", value: "male" },
-                  { name: "Female", value: "female" },
-                ]}
-                value={values.gender}
-              />
-            </div>
-
-            <StyledMUITextField
-              id="uploadedBy"
-              className="uploadedBy"
-              value={uploadedBy}
-              label="Uploaded By"
-              disabled
-              variant="outlined"
-            />
           </div>
           {/* <div className={styles.buttons}>
           <Button onClick={handleReset} type="button" color="warning">

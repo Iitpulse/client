@@ -92,8 +92,6 @@ export const MUISimpleAutocomplete = (props: MUIAutocompleteProps) => {
   return (
     <Autocomplete
       className={styles.something}
-      disablePortal
-      id="combo-box-demo"
       options={props.options}
       onChange={(_, value) => props.onChange(value?.value || "")}
       getOptionLabel={(option) => option.name || ""}

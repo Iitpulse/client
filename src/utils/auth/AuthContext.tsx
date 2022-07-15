@@ -26,7 +26,7 @@ const AuthContextProvider = (props: ProviderProps) => {
     const user = localStorage.getItem("token");
     if (user) {
       let decoded = decodeToken(user) as any;
-      console.log({ decoded });
+      // console.log({ decoded });
       if (isExpired(user)) {
         localStorage.removeItem("token");
         setCurrentUser(null);
@@ -50,7 +50,7 @@ const AuthContextProvider = (props: ProviderProps) => {
   }, []);
 
   useEffect(() => {
-    console.log({ roles });
+    // console.log({ roles });
   }, [roles]);
 
   return (

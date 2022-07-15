@@ -1,6 +1,13 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import { Button, MUISimpleAutocomplete } from "../../../components";
+import {
+  Button,
+  MUIChipsAutocomplete,
+  MUISimpleAutocomplete,
+  Sidebar,
+  UserProfile,
+  Modal,
+} from "../../../components";
 import {
   StyledMUITextField,
   UserProps,
@@ -13,17 +20,7 @@ import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import Dropzone from "react-dropzone";
-import {
-  IconButton,
-  LinearProgress,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  TextField,
-  Autocomplete,
-} from "@mui/material";
+import { IconButton, LinearProgress, Grid } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { createFilterOptions } from "@mui/material/Autocomplete";
 import { APIS } from "../../../utils/constants";
@@ -44,13 +41,12 @@ const Students: React.FC<{
 }> = ({ activeTab, student, openModal, handleCloseModal, loading }) => {
   const { students } = useContext(UsersContext);
   const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
-  useEffect(() => {
-    console.log({ selectedUsers: selectedUsers });
-  }, [selectedUsers]);
 
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<any>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleSearch = (
     selectedKeys: string[],
@@ -237,11 +233,6 @@ const Students: React.FC<{
 
   const rowSelection = {
     onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-      console.log(
-        `selectedRowKeys: ${selectedRowKeys}`,
-        "selectedRows: ",
-        selectedRows
-      );
       setSelectedUsers(selectedRows);
     },
     getCheckboxProps: (record: DataType) => ({
@@ -285,34 +276,76 @@ const Students: React.FC<{
         scroll={{ x: 200 }}
       />
       {openModal && activeTab === 0 && (
-        <Student student={student} handleCloseModal={handleCloseModal} />
+        <Student
+          title="Add a Student"
+          student={student}
+          handleCloseModal={handleCloseModal}
+        />
       )}
+      {isEditModalOpen && (
+        <Student
+          title="Edit a Student"
+          edit={{ values: selectedUsers[0] }}
+          handleCloseModal={() => setIsEditModalOpen(false)}
+        />
+      )}
+
+      <Modal
+        title="Are you sure you want to delete this user?"
+        hideCloseIcon={true}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      >
+        <div className={clsx(styles.modalButtons, styles.actionButtons)}>
+          <Button color="error">Delete</Button>
+          <Button onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+        </div>
+      </Modal>
+
+      <Sidebar title="Recent Activity">
+        <UserProfile
+          handleEditModal={() => setIsEditModalOpen(true)}
+          handleDeleteModal={() => setIsDeleteModalOpen(true)}
+        />
+      </Sidebar>
     </div>
   );
 };
 
 export default Students;
 
-const Student: React.FC<{
-  student: UserProps;
+export const Student: React.FC<{
+  student?: UserProps;
+  title?: string;
   handleCloseModal: () => void;
+  edit?: {
+    values: any;
+  };
 }> = (props) => {
-  const { onSubmit, uploadedBy, handleReset } = props.student;
+  const { onSubmit, uploadedBy } = { ...props.student };
   const [values, setValues] = useState({} as any);
   const [openDropzne, setOpenDropzone] = useState(false);
   const [file, setFile] = useState(null as any);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [roles, setRoles] = useState("");
 
   const { currentUser } = useContext(AuthContext);
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
-    console.log({ id, value });
     setValues({ ...values, [id]: value });
   }
+  useEffect(() => {
+    if (props.edit) {
+      setValues(props.edit.values);
+    }
+  });
 
+  function handleReset() {
+    setValues({});
+  }
   function handleChangeValuesForCreatableSelect(
     e: React.ChangeEvent<HTMLInputElement>,
     value: any
@@ -321,9 +354,6 @@ const Student: React.FC<{
     const newId = id.split("-option").shift();
     setValues({ ...values, [newId ? newId : id]: value });
   }
-  useEffect(() => {
-    console.log({ values });
-  });
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -364,13 +394,12 @@ const Student: React.FC<{
       ];
       newValues.createdAt = new Date().toISOString();
       newValues.modifiedAt = new Date().toISOString();
-      console.log({ newValues });
 
       const res = await axios.post(
         `${process.env.REACT_APP_USERS_API}/student/create`,
         newValues
       );
-      console.log({ res });
+      // console.log({ res });
 
       setSuccess("Student created successfully");
     } catch (error: any) {
@@ -430,172 +459,245 @@ const Student: React.FC<{
     <AddUserModal
       headerChildren={
         <>
-          <Button type="button" onClick={() => setOpenDropzone(true)}>
-            Bulk Upload
-          </Button>
+          {props.edit ? (
+            ""
+          ) : (
+            <Button type="button" onClick={() => setOpenDropzone(true)}>
+              Bulk Upload
+            </Button>
+          )}
         </>
       }
       classes={[styles.studentContainer]}
       loading={loading}
       error={error}
       success={success}
-      title="Add a Student"
+      title={props.title || "Add a Student"}
       actionBtns={
         <>
-          <Button onClick={handleReset} type="button" color="warning">
-            Reset
-          </Button>
-          <Button>Submit</Button>
+          {props.edit ? (
+            <Button>Update</Button>
+          ) : (
+            <>
+              <Button>Submit</Button>
+
+              <Button onClick={handleReset} type="button" color="warning">
+                Reset
+              </Button>
+            </>
+          )}
         </>
       }
       handleCloseModal={props.handleCloseModal}
     >
       <form onSubmit={handleSubmit}>
-        {/* <div className={styles.header}>
-          <div className={styles.flexRow}>
-            <h2>Add a Student</h2>
-            <Button type="button" onClick={() => setOpenDropzone(true)}>
-              Bulk Upload
-            </Button>
-          </div>
-          <img onClick={props.handleCloseModal} src={closeIcon} alt="Close" />
-        </div> */}
         <div className={styles.inputFields}>
-          {/* <StyledMUITextField
-            id="id"
-            disabled
-            label="Id"
-            value={id}
-            variant="outlined"
-          /> */}
-          <StyledMUITextField
-            id="name"
-            required
-            label="Name"
-            value={values.name}
-            onChange={handleChangeValues}
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="email"
-            type="email"
-            value={values.email}
-            onChange={handleChangeValues}
-            label="Email"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="password"
-            value={values.password}
-            type="password"
-            onChange={handleChangeValues}
-            label="Password"
-            variant="outlined"
-          />
-          <MUICreatableSelect
-            id="stream"
-            value={values.stream}
-            onChange={handleChangeValuesForCreatableSelect}
-            options={optionsForStream}
-            label="Stream"
-          />
-          <MUICreatableSelect
-            id="standard"
-            value={values.standard}
-            onChange={handleChangeValuesForCreatableSelect}
-            options={optionsForStandard}
-            label="Standard"
-          />
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                id="name"
+                required
+                label="Name"
+                value={values.name}
+                onChange={handleChangeValues}
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                required
+                id="email"
+                type="email"
+                value={values.email}
+                onChange={handleChangeValues}
+                label="Email"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                required
+                id="password"
+                value={values.password}
+                type="password"
+                onChange={handleChangeValues}
+                label="Password"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <MUICreatableSelect
+                id="stream"
+                value={values.stream}
+                onChange={handleChangeValuesForCreatableSelect}
+                options={optionsForStream}
+                label="Stream"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <MUICreatableSelect
+                id="standard"
+                value={values.standard}
+                onChange={handleChangeValuesForCreatableSelect}
+                options={optionsForStandard}
+                label="Standard"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <MUISimpleAutocomplete
+                label="Gender"
+                onChange={(val: any) => {
+                  handleChangeValues({
+                    target: { id: "gender", value: val },
+                  } as any);
+                }}
+                options={[
+                  { name: "Male", value: "male" },
+                  { name: "Female", value: "female" },
+                  { name: "Other", value: "other" },
+                ]}
+                value={values.gender}
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                required
+                id="dob"
+                type="text"
+                value={values.dob}
+                onChange={handleChangeValues}
+                label="DOB"
+                placeholder="DD/MM/YYYY"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                id="school"
+                required
+                value={values.school}
+                onChange={handleChangeValues}
+                label="School"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                required
+                id="aadhaar"
+                type="text"
+                value={values.aadhaar}
+                onChange={handleChangeValues}
+                label="Aadhaar Number"
+                placeholder="Enter Aadhaar Number"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <MUICreatableSelect
+                id="batch"
+                value={values.batch}
+                onChange={handleChangeValuesForCreatableSelect}
+                options={optionsForBatch}
+                label="Batch"
+              />
+            </Grid>
 
-          <StyledMUITextField
-            id="parentName"
-            required
-            value={values.parentName}
-            onChange={handleChangeValues}
-            label="Parent Name"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="parentContact"
-            required
-            type="number"
-            value={values.parentContact}
-            onChange={handleChangeValues}
-            label="Parent Contact"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            id="school"
-            required
-            value={values.school}
-            onChange={handleChangeValues}
-            label="School"
-            variant="outlined"
-          />
-          <MUICreatableSelect
-            id="batch"
-            value={values.batch}
-            onChange={handleChangeValuesForCreatableSelect}
-            options={optionsForBatch}
-            label="Batch"
-          />
-          <StyledMUITextField
-            required
-            id="contact"
-            type="number"
-            value={values.contact}
-            onChange={handleChangeValues}
-            label="Contact"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            id="dob"
-            type="text"
-            value={values.dob}
-            onChange={handleChangeValues}
-            label="DOB"
-            placeholder="DD/MM/YYYY"
-            variant="outlined"
-          />
-          <div className={styles.singlSelect}>
-            <MUISimpleAutocomplete
-              label="Gender"
-              onChange={(val: any) => {
-                console.log({ val });
-                handleChangeValues({
-                  target: { id: "gender", value: val },
-                } as any);
-              }}
-              options={[
-                { name: "Male", value: "male" },
-                { name: "Female", value: "female" },
-                { name: "Other", value: "other" },
-              ]}
-              value={values.gender}
-            />
-          </div>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                required
+                id="city"
+                type="text"
+                value={values.city}
+                onChange={handleChangeValues}
+                label="City"
+                placeholder="Enter a City"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                required
+                id="state"
+                type="text"
+                value={values.state}
+                onChange={handleChangeValues}
+                label="State"
+                placeholder="Enter a State"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                id="parentName"
+                required
+                value={values.parentName}
+                onChange={handleChangeValues}
+                label="Parent Name"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                id="parentContact"
+                required
+                type="number"
+                value={values.parentContact}
+                onChange={handleChangeValues}
+                label="Parent Contact"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={4} lg={4} xl={3}>
+              <StyledMUITextField
+                required
+                id="contact"
+                type="number"
+                value={values.contact}
+                onChange={handleChangeValues}
+                label="Contact"
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={12} lg={12} xl={8}>
+              <MUIChipsAutocomplete
+                label="Role(s)"
+                options={[
+                  { name: "Student", value: "student" },
+                  { name: "Admin", value: "admin" },
+                  { name: "Operator", value: "operator" },
+                  { name: "Manager", value: "manager" },
+                  { name: "Teacher", value: "teacher" },
+                ]}
+                onChange={setRoles}
+              />
+            </Grid>
+            <Grid item xs={12} md={12} lg={12} xl={8}>
+              <StyledMUITextField
+                required
+                className="largeWidthInput"
+                id="currentAddress"
+                value={values.currentAddress}
+                onChange={handleChangeValues}
+                label="Current Address"
+                variant="outlined"
+              />
+            </Grid>
+            <Grid item xs={12} md={12} lg={12} xl={8}>
+              <StyledMUITextField
+                required
+                className="largeWidthInput"
+                id="permanentAddress"
+                value={values.permanentAddress}
+                onChange={handleChangeValues}
+                label="Permanent Address"
+                variant="outlined"
+              />
+            </Grid>
+          </Grid>
 
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="currentAddress"
-            value={values.currentAddress}
-            onChange={handleChangeValues}
-            label="Current Address"
-            variant="outlined"
-          />
-          <StyledMUITextField
-            required
-            className="largeWidthInput"
-            id="permanentAddress"
-            value={values.permanentAddress}
-            onChange={handleChangeValues}
-            label="Permanent Address"
-            variant="outlined"
-          />
           {/* <StyledMUITextField
             id="uploadedBy"
             className="uploadedBy"
@@ -652,150 +754,3 @@ const Student: React.FC<{
 };
 
 //----------------------------------------------User Type: Student
-
-interface FilmOptionType {
-  inputValue?: string;
-  title: string;
-  year?: number;
-}
-const filter = createFilterOptions<FilmOptionType>();
-const top100Films: readonly FilmOptionType[] = [
-  { title: "The Shawshank Redemption", year: 1994 },
-  { title: "The Godfather", year: 1972 },
-  { title: "The Godfather: Part II", year: 1974 },
-  { title: "The Dark Knight", year: 2008 },
-  { title: "12 Angry Men", year: 1957 },
-  { title: "Schindler's List", year: 1993 },
-  { title: "Pulp Fiction", year: 1994 },
-];
-
-const MUICreatableSelect123 = () => {
-  const [value, setValue] = useState<FilmOptionType | null>(null);
-  const [open, toggleOpen] = useState(false);
-
-  const handleClose = () => {
-    setDialogValue({
-      title: "",
-      year: "",
-    });
-    toggleOpen(false);
-  };
-
-  const [dialogValue, setDialogValue] = useState({
-    title: "",
-    year: "",
-  });
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setValue({
-      title: dialogValue.title,
-      year: parseInt(dialogValue.year, 10),
-    });
-    handleClose();
-  };
-  return (
-    <div className={styles.creatableSelect}>
-      <Autocomplete
-        value={value}
-        onChange={(event, newValue) => {
-          console.log({ newValue });
-          if (typeof newValue === "string") {
-            // timeout to avoid instant validation of the dialog's form.
-            setTimeout(() => {
-              toggleOpen(true);
-              setDialogValue({
-                title: newValue,
-                year: "",
-              });
-            });
-          } else if (newValue && newValue.inputValue) {
-            toggleOpen(true);
-            setDialogValue({
-              title: newValue.inputValue,
-              year: "",
-            });
-          } else {
-            setValue(newValue);
-          }
-        }}
-        filterOptions={(options, params) => {
-          const filtered = filter(options, params);
-          // console.log({ params });
-          if (params.inputValue !== "") {
-            filtered.push({
-              inputValue: params.inputValue,
-              title: `Add "${params.inputValue}"`,
-            });
-          }
-
-          return filtered;
-        }}
-        id="free-solo-dialog-demo"
-        options={top100Films}
-        getOptionLabel={(option) => {
-          // e.g value selected with enter, right from the input
-          if (typeof option === "string") {
-            return option;
-          }
-          if (option.inputValue) {
-            return option.inputValue;
-          }
-          return option.title;
-        }}
-        selectOnFocus
-        clearOnBlur
-        handleHomeEndKeys
-        renderOption={(props, option) => <li {...props}>{option.title}</li>}
-        sx={{ width: 300 }}
-        freeSolo
-        renderInput={(params) => (
-          <TextField {...params} label="Free solo dialog" />
-        )}
-      />
-      <Dialog open={open} onClose={handleClose}>
-        <form onSubmit={handleSubmit}>
-          <DialogTitle>Add a new film</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Did you miss any film in our list? Please, add it!
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="name"
-              value={dialogValue.title}
-              onChange={(event) =>
-                setDialogValue({
-                  ...dialogValue,
-                  title: event.target.value,
-                })
-              }
-              label="title"
-              type="text"
-              variant="standard"
-            />
-            <TextField
-              margin="dense"
-              id="name"
-              value={dialogValue.year}
-              onChange={(event) =>
-                setDialogValue({
-                  ...dialogValue,
-                  year: event.target.value,
-                })
-              }
-              label="year"
-              type="number"
-              variant="standard"
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button type="submit">Add</Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-    </div>
-  );
-};

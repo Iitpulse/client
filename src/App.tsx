@@ -26,6 +26,7 @@ import { PERMISSIONS } from "./utils/constants";
 import { useEffect } from "react";
 import CreatePattern from "./pages/Pattern/CreatePattern";
 import CreateQuestion from "./pages/Questions/CreateQuestion";
+import "./App.css";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(

@@ -42,28 +42,53 @@
   }
   .content {
     display: flex;
+
     justify-content: center;
     flex-direction: column;
     background-color: #f3f3f9;
     height: fit-content;
+    max-height: 90vh;
     border-radius: 10px;
     width: -moz-fit-content;
     width: fit-content;
     max-width: 900px;
     padding: 2rem;
     position: relative;
-    overflow: hidden;
+    overflow:auto;
 
     form {
       padding: 0 !important;
+      position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    .inputFields > div {
+      margin-left: 0 !important;
+     width:100% !important;
+     >div{
+      padding-right: 16px;
+     }
+    }
     }
 
     form > div {
       width: -moz-fit-content;
       width: fit-content;
       justify-content: space-between;
-      display: flex;
-      flex-wrap: wrap;
+      overflow-y: auto;
+      overflow-x: hidden;
+      // display: flex;
+      // flex-wrap: wrap;
+    
+      >div>div>div{
+        &>div{
+         min-width: 0;    
+         width: 100% !important;
+        }
+        min-width: 0;
+        width: 100% !important;
+      }
       > * {
         margin: 0.5rem 1rem;
       }
