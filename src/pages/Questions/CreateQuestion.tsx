@@ -1,6 +1,11 @@
 import { useState, useContext, useEffect } from "react";
 import styles from "./Questions.module.scss";
-import { Sidebar, NotificationCard, Button } from "../../components";
+import {
+  Sidebar,
+  NotificationCard,
+  Button,
+  CreatableSelect,
+} from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
 import Integer from "./Integer/Integer";
@@ -97,6 +102,12 @@ const CreateQuestion = () => {
   // const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<string>>([]);
   const [type, setType] = useState<string>("objective");
+
+  const [temp, setTemp] = useState([]);
+  function handleTempAdd(newValue: any) {
+    console.log(newValue);
+  }
+
   const [subject, setSubject] = useState<string>("");
   const [chapters, setChapters] = useState<Array<string>>([]);
   const [topics, setTopics] = useState<Array<string>>([]);
@@ -127,6 +138,9 @@ const CreateQuestion = () => {
   //     uploadedBy,
   //   });
   // });
+  useEffect(() => {
+    console.log({ temp });
+  }, [temp]);
 
   useEffect(() => {
     if (subject?.length) {
@@ -279,6 +293,18 @@ const CreateQuestion = () => {
               })) || []
             }
             onChange={setTopics}
+          />
+          <CreatableSelect
+            onAddModalSubmit={handleTempAdd}
+            multiple
+            options={[
+              { name: "hehe", value: "sdf" },
+              { name: "hehde", value: "sdddf" },
+            ]}
+            setValue={setTemp}
+            value={temp}
+            label={"This is label"}
+            id="kjdkfj"
           />
           <MUISimpleAutocomplete
             label={"Source"}
