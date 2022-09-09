@@ -6,7 +6,7 @@ import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import logo from "../../assets/images/logo.svg";
-import { LinearProgress } from "@mui/material";
+import { LinearProgress, TextField } from "@mui/material";
 
 const Login = () => {
   const { setCurrentUser } = useContext(AuthContext);
@@ -57,7 +57,7 @@ const Login = () => {
     <div className={styles.container}>
       <img src={logo} alt="iitpulse" />
       <form onSubmit={handleSubmit}>
-        <InputField
+        <TextField
           id="email"
           label="Email"
           value={email}
@@ -65,7 +65,7 @@ const Login = () => {
           type="email"
           disabled={loading}
         />
-        <InputField
+        <TextField
           id="password"
           label="Password"
           value={password}
