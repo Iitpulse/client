@@ -70,7 +70,7 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
         <p className={styles.name}>{name}</p>
         <p className={styles.value}>{batch}</p>
         <div className={styles.icons}>
-          <IconButton>
+          <IconButton href={"tel:+91" + contact}>
             <img src={phone} alt="Phone" />
           </IconButton>
           <IconButton

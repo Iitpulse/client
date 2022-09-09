@@ -177,6 +177,9 @@ const Students: React.FC<{
       ],
       onFilter: (value: any, record: any) =>
         record.gender?.indexOf(value) === 0,
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}>{text}</span>
+      ),
     },
     // {
     //   title: "Batch",
@@ -197,7 +200,8 @@ const Students: React.FC<{
     },
     {
       title: "Class",
-      dataIndex: "class",
+      dataIndex: "standard",
+      ...getColumnSearchProps("standard"),
       // width: 100,
     },
     {
@@ -205,6 +209,9 @@ const Students: React.FC<{
       dataIndex: "city",
       // width: 100,
       ...getColumnSearchProps("city"),
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}>{text}</span>
+      ),
     },
     {
       title: "Valid From",
