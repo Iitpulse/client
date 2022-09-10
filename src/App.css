@@ -1,3 +1,6 @@
-.MuiAutocomplete-endAdornment{
-    top:0 !important;
+.MuiAutocomplete-endAdornment {
+  top: 0 !important;
+}
+.ql-editor {
+  white-space: normal !important;
 }

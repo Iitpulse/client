@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Button } from "../../../components";
+import { useEffect, useRef, useState } from "react";
+import { Button, Modal } from "../../../components";
 import styles from "./Objective.module.scss";
 import ReactQuill, { Quill } from "react-quill";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
@@ -11,11 +11,20 @@ import {
   Checkbox,
   FormGroup,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
 import { generateOptions, getOptionID } from "../utils";
+import "katex/dist/katex.min.css";
+// @ts-ignore
+import katex from "katex";
+// @ts-ignore
+import { InlineMath } from "react-katex";
+import { splitAndKeepDelimiters } from "../../../utils";
+import { Bolt, Visibility } from "@mui/icons-material";
+import { ThunderboltOutlined } from "@ant-design/icons";
 
 interface Props {
   setData: (data: any) => void;
@@ -30,6 +39,8 @@ const Objective: React.FC<Props> = ({ setData }) => {
   const [optionsCount, setOptionsCount] = useState(4);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
   const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
+  const [previewHTML, setPreviewHTML] = useState("");
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
   const [values, setValues] = useState(() => {
     let tempOptions = generateOptions(answerType, 4);
@@ -54,6 +65,51 @@ const Objective: React.FC<Props> = ({ setData }) => {
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
+
+  useEffect(() => {
+    if (values[currentLanguage]?.question) {
+      const value = values[currentLanguage].question;
+      console.log({ value });
+      // extract from <p>
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(value, "text/html");
+
+      let pTags = doc.getElementsByTagName("p");
+
+      [...pTags]?.forEach((p) => {
+        const innerHTML = p.innerHTML;
+        // regex extract value between $ and $
+        let regexBoundaries = /\$(.*?)\$/g;
+        let matches = innerHTML.match(regexBoundaries);
+
+        if (matches !== null && matches?.length) {
+          // Reset the innerHTML to avoid duplication of data
+          p.innerHTML = "";
+          let allValues = splitAndKeepDelimiters(innerHTML, matches);
+
+          allValues.forEach((item: any) => {
+            if (item?.length) {
+              if (item.startsWith("$") && item.endsWith("$")) {
+                const withMath = katex.renderToString(item.replace(/\$/g, ""), {
+                  throwOnError: false,
+                });
+                let span = document.createElement("span");
+                span.innerHTML = withMath;
+                p.appendChild(span);
+              } else {
+                let span = document.createElement("span");
+                span.innerHTML = item;
+                p.appendChild(span);
+              }
+            }
+          });
+        }
+      });
+
+      setPreviewHTML(doc.body.innerHTML);
+    }
+  }, [currentLanguage, values]);
 
   function handleChangeEditor(id: string, value: string, index?: number) {
     if (id === "question" || id === "solution") {
@@ -167,6 +223,10 @@ const Objective: React.FC<Props> = ({ setData }) => {
     }
   }
 
+  function handleClickPreview() {
+    setPreviewModalOpen(true);
+  }
+
   return (
     <section className={styles.container}>
       <div className={styles.header}>
@@ -181,6 +241,13 @@ const Objective: React.FC<Props> = ({ setData }) => {
             onChange={(e: any) => setAssertionEnglish(e.target.checked)}
           />
           <label htmlFor="assertionEnglish"></label> */}
+        </div>
+        <div>
+          <Tooltip title="See Preview">
+            <IconButton onClick={handleClickPreview}>
+              <Visibility />
+            </IconButton>
+          </Tooltip>
         </div>
         <div className={styles.languages}>
           <div
@@ -318,8 +385,15 @@ const Objective: React.FC<Props> = ({ setData }) => {
           </FormGroup>
         </div>
       </div>
+      <Modal
+        isOpen={previewModalOpen}
+        title="Preview"
+        onClose={() => setPreviewModalOpen(false)}
+      >
+        <div dangerouslySetInnerHTML={{ __html: previewHTML }}></div>
+      </Modal>
       {/* Just for preview */}
-      {/* <div dangerouslySetInnerHTML={{ __html: values.en.question }}></div> */}
+      {/* <div dangerouslySetInnerHTML={{ __html: previewHTML }}></div> */}
     </section>
   );
 };
