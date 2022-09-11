@@ -2,6 +2,7 @@ import { IconButton } from "@mui/material";
 import { Tag } from "antd";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import RenderWithLatex from "../components/RenderWithLatex/RenderWithLatex";
 
 export const APIS = {
   USERS_API:
@@ -242,17 +243,18 @@ export const QUESTION_COLS_ALL = [
     dataIndex: "en",
     key: "question",
     width: 350,
+    searchable: true,
     render: (en: any) => (
-      <div
-        dangerouslySetInnerHTML={{ __html: en.question }}
-        style={{ maxHeight: "50px", overflow: "hidden" }}
-      ></div>
+      <div style={{ maxHeight: "50px", overflow: "hidden" }}>
+        <RenderWithLatex quillString={en?.question} />
+      </div>
     ),
   },
   {
     title: "Type",
     dataIndex: "type",
     key: "type",
+    searchable: true,
     width: 100,
   },
   {
@@ -278,6 +280,7 @@ export const QUESTION_COLS_ALL = [
     title: "Chapter(s)",
     dataIndex: "chapters",
     key: "chapter",
+    searchable: true,
     render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
     width: 150,
   },

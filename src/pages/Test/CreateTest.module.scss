@@ -75,6 +75,8 @@
     }
     > div:nth-last-child(1) {
       min-width: 400px;
+      flex: 1;
+      width: 100% !important;
     }
   }
   .questionsTable {

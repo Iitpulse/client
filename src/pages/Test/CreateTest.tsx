@@ -24,6 +24,7 @@ import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
@@ -333,6 +334,12 @@ const SubSection: React.FC<{
     setTempQuestions(newQuestions);
   }
 
+  function handleClickSave(rows: Array<any>) {
+    console.log({ rows });
+    handleUpdateSubSection(subSection.id, { questions: rows });
+    setQuestionModal(false);
+  }
+
   return (
     <div className={styles.subSection}>
       <div className={styles.header}>
@@ -385,6 +392,7 @@ const SubSection: React.FC<{
         }
         type="Single"
         subject="Physics"
+        handleClickSave={handleClickSave}
       />
     </div>
   );
@@ -393,10 +401,7 @@ const SubSection: React.FC<{
 const Question: React.FC<ITestQuestionObjective> = ({ en }) => {
   return (
     <div className={styles.questionContainer}>
-      <div
-        dangerouslySetInnerHTML={{ __html: en.question }}
-        className={styles.question}
-      ></div>
+      <RenderWithLatex quillString={en?.question} />
     </div>
   );
 };

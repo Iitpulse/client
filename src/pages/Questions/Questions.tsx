@@ -36,6 +36,7 @@ import { asBlob } from "html-docx-js-typescript";
 import { saveAs } from "file-saver";
 import * as Docx from "docx"; // that is a peer dependency
 import { Visibility } from "@mui/icons-material";
+import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -562,9 +563,7 @@ const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
               marginLeft: "1rem",
             }}
           >
-            <div
-              dangerouslySetInnerHTML={{ __html: question.en.question }}
-            ></div>
+            <RenderWithLatex quillString={question?.en?.question} />
             <Grid
               container
               style={
@@ -585,9 +584,7 @@ const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
                     }
                   >
                     <span>{String.fromCharCode(97 + j)})</span>
-                    <div
-                      dangerouslySetInnerHTML={{ __html: option.value }}
-                    ></div>
+                    <RenderWithLatex quillString={option?.value} />
                   </div>
                 </Grid>
               ))}

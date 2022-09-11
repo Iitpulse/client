@@ -4,3 +4,6 @@
 .ql-editor {
   white-space: normal !important;
 }
+.ant-dropdown {
+  z-index: 10000;
+}
