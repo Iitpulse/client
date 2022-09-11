@@ -136,7 +136,7 @@ const InsertQuestionModal: React.FC<Props> = ({
               ...question,
               key: question.id || question._id,
             }))}
-            setSelectedRows={selectedQuestions}
+            setSelectedRows={setSelectedQuestions}
             // expandable={{
             //   expandedRowRender: (record) => (
             //     <div
