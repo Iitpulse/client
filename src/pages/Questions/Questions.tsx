@@ -331,7 +331,8 @@ const Questions = () => {
                 {
                   title: "Preview",
                   key: "preview",
-                  width: 250,
+                  width: 120,
+                  fixed: "right",
                   render: (text: any, record: any) => (
                     <IconButton
                       onClick={() => {
