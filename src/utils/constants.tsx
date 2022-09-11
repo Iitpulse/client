@@ -241,7 +241,7 @@ export const QUESTION_COLS_ALL = [
     title: "Question",
     dataIndex: "en",
     key: "question",
-    width: 300,
+    width: 350,
     render: (en: any) => (
       <div
         dangerouslySetInnerHTML={{ __html: en.question }}
@@ -286,7 +286,7 @@ export const QUESTION_COLS_ALL = [
     dataIndex: "isProofRead",
     key: "isProofRead",
     render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
-    width: 100,
+    width: 150,
   },
   {
     title: "Uploaded By",
@@ -297,26 +297,26 @@ export const QUESTION_COLS_ALL = [
     ),
     width: 150,
   },
-  {
-    title: "Actions",
-    key: "actions",
-    fixed: "right",
-    width: 100,
-    render: () => (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <IconButton>
-          <EditIcon />
-        </IconButton>
-        <IconButton>
-          <DeleteIcon />
-        </IconButton>
-      </div>
-    ),
-  },
+  // {
+  //   title: "Actions",
+  //   key: "actions",
+  //   fixed: "right",
+  //   width: 100,
+  //   render: () => (
+  //     <div
+  //       style={{
+  //         display: "flex",
+  //         alignItems: "center",
+  //         justifyContent: "space-between",
+  //       }}
+  //     >
+  //       <IconButton>
+  //         <EditIcon />
+  //       </IconButton>
+  //       <IconButton>
+  //         <DeleteIcon />
+  //       </IconButton>
+  //     </div>
+  //   ),
+  // },
 ];

@@ -209,21 +209,21 @@ export const QuestionsTable: React.FC<QuestionsTableProps> = ({
         y: height || "50vh",
         x: "100%",
       }}
-      expandable={{
-        expandedRowRender: (record) => (
-          <div
-            style={{ margin: "0 auto", width: "70%" }}
-            className={styles.flexRow}
-          >
-            {record?.en?.options?.map((option: any, i: number) => (
-              <div key={i}>
-                <span>{String.fromCharCode(64 + i + 1)})</span>
-                <div dangerouslySetInnerHTML={{ __html: option.value }}></div>
-              </div>
-            ))}
-          </div>
-        ),
-      }}
+      // expandable={{
+      //   expandedRowRender: (record) => (
+      //     <div
+      //       style={{ margin: "0 auto", width: "70%" }}
+      //       className={styles.flexRow}
+      //     >
+      //       {record?.en?.options?.map((option: any, i: number) => (
+      //         <div key={i}>
+      //           <span>{String.fromCharCode(64 + i + 1)})</span>
+      //           <div dangerouslySetInnerHTML={{ __html: option.value }}></div>
+      //         </div>
+      //       ))}
+      //     </div>
+      //   ),
+      // }}
     />
   );
 };

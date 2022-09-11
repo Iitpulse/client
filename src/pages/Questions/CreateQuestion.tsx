@@ -20,6 +20,7 @@ import MatrixMatch from "./MatrixMatch/MatrixMatch";
 import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
+import { message } from "antd";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -174,77 +175,85 @@ const CreateQuestion = () => {
   }, [currentUser]);
 
   async function handleSubmitQuestion() {
-    if (currentUser) {
-      let questionCore = {
-        id: Date.now().toString(),
-        type: data.type,
-        subject,
-        chapters,
-        topics,
-        difficulty,
-        source,
-        createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString(),
-        isProofRead: false,
-        uploadedBy: {
-          userType: currentUser?.userType,
-          id: currentUser.id,
-        },
-      };
-      switch (data.type) {
-        case "single":
-        case "multiple":
-          {
-            const finalQuestion: IQuestionObjective = {
-              ...questionCore,
-              en: {
-                question: data.en.question,
-                options: data.en.options,
-                solution: data.en.solution,
-              },
-              hi: {
-                question: data.hi.question,
-                options: data.hi.options,
-                solution: data.hi.solution,
-              },
-              correctAnswers: getCorrectAnswers(data.en.options),
-            };
-            console.log({ finalQuestion });
-            const res = await axios.post(
-              `${process.env.REACT_APP_QUESTIONS_API}/mcq/new`,
-              finalQuestion
-            );
+    try {
+      if (currentUser) {
+        let questionCore = {
+          id: Date.now().toString(),
+          type: data.type,
+          subject,
+          chapters,
+          topics,
+          difficulty,
+          source,
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          isProofRead: false,
+          uploadedBy: {
+            userType: currentUser?.userType,
+            id: currentUser.id,
+          },
+        };
+        switch (data.type) {
+          case "single":
+          case "multiple":
+            {
+              const finalQuestion: IQuestionObjective = {
+                ...questionCore,
+                en: {
+                  question: data.en.question,
+                  options: data.en.options,
+                  solution: data.en.solution,
+                },
+                hi: {
+                  question: data.hi.question,
+                  options: data.hi.options,
+                  solution: data.hi.solution,
+                },
+                correctAnswers: getCorrectAnswers(data.en.options),
+              };
+              console.log({ finalQuestion });
+              const res = await axios.post(
+                `${process.env.REACT_APP_QUESTIONS_API}/mcq/new`,
+                finalQuestion
+              );
 
-            console.log({ res });
-          }
-          break;
-        case "integer":
-          {
-            const finalQuestion: IQuestionInteger = {
-              ...questionCore,
-              en: {
-                question: data.en.question,
-                solution: data.en.solution,
-              },
-              hi: {
-                question: data.hi.question,
-                solution: data.hi.solution,
-              },
-              correctAnswers: data.correctAnswers,
-            };
+              message.success("Question created successfully");
 
-            console.log({ finalQuestion });
-            const res = await axios.post(
-              `${process.env.REACT_APP_QUESTIONS_API}/numerical/new`,
-              finalQuestion
-            );
+              console.log({ res });
+            }
+            break;
+          case "integer":
+            {
+              const finalQuestion: IQuestionInteger = {
+                ...questionCore,
+                en: {
+                  question: data.en.question,
+                  solution: data.en.solution,
+                },
+                hi: {
+                  question: data.hi.question,
+                  solution: data.hi.solution,
+                },
+                correctAnswers: data.correctAnswers,
+              };
 
-            console.log({ res });
-          }
-          break;
-        default:
-          return;
+              console.log({ finalQuestion });
+              const res = await axios.post(
+                `${process.env.REACT_APP_QUESTIONS_API}/numerical/new`,
+                finalQuestion
+              );
+
+              message.success("Question created successfully");
+
+              console.log({ res });
+            }
+            break;
+          default:
+            return;
+        }
       }
+    } catch (error) {
+      message.success("Error" + error);
     }
   }
 

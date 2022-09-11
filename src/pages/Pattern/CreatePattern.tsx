@@ -22,6 +22,7 @@ import axios from "axios";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
+import { message } from "antd";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -98,31 +99,36 @@ const CreatePattern = () => {
   }
 
   async function handleClickSubmit() {
-    if (currentUser) {
-      const pattern: IPattern = {
-        id: `${currentUser.instituteId}_${name
-          .replace(/ /g, "")
-          .toUpperCase()}`,
-        name,
-        exam: exam,
-        sections: sections.map((sec) => ({
-          ...sec,
+    try {
+      if (currentUser) {
+        const pattern: IPattern = {
+          id: `${currentUser.instituteId}_${name
+            .replace(/ /g, "")
+            .toUpperCase()}`,
+          name,
           exam: exam,
-        })),
-        createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString(),
-        createdBy: {
-          userType: currentUser.userType || "",
-          id: currentUser.id || "",
-        },
-        usedIn: [],
-      };
-      console.log({ pattern });
-      const res = await axios.post(
-        `${process.env.REACT_APP_TESTS_API}/pattern/create`,
-        pattern
-      );
-      console.log({ res });
+          sections: sections.map((sec) => ({
+            ...sec,
+            exam: exam,
+          })),
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+          createdBy: {
+            userType: currentUser.userType || "",
+            id: currentUser.id || "",
+          },
+          usedIn: [],
+        };
+        console.log({ pattern });
+        const res = await axios.post(
+          `${process.env.REACT_APP_TESTS_API}/pattern/create`,
+          pattern
+        );
+        message.success("Pattern created successfully");
+        console.log({ res });
+      }
+    } catch (error) {
+      message.error("Error creating pattern");
     }
   }
 

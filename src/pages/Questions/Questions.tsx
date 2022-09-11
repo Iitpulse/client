@@ -16,6 +16,7 @@ import { StyledMUITextField } from "../Users/components";
 import {
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
+  PreviewHTMLModal,
   QuestionsTable,
   StyledMUISelect,
 } from "./components";
@@ -24,16 +25,17 @@ import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
-import { PERMISSIONS } from "../../utils/constants";
+import { PERMISSIONS, QUESTION_COLS_ALL } from "../../utils/constants";
 import { Error } from "../";
 import { CSVLink } from "react-csv";
 import { useReactToPrint } from "react-to-print";
 import { useNavigate } from "react-router-dom";
-import { Grid } from "@mui/material";
+import { Grid, IconButton } from "@mui/material";
 import logo from "../../assets/images/logo.svg";
 import { asBlob } from "html-docx-js-typescript";
 import { saveAs } from "file-saver";
 import * as Docx from "docx"; // that is a peer dependency
+import { Visibility } from "@mui/icons-material";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -272,6 +274,18 @@ const Questions = () => {
   }
 
   const [questions, setQuestions] = useState([]);
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [previewData, setPreviewData] = useState<any>({});
+  const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
+
+  useEffect(() => {
+    if (previewData?.type === "single" || previewData?.type === "multiple") {
+      setQuillStringForPreview(
+        previewData?.en?.question +
+          previewData?.en?.options.map((op: any) => op.value).join("<br>")
+      );
+    }
+  }, [previewData]);
 
   useEffect(() => {
     axios
@@ -312,6 +326,23 @@ const Questions = () => {
                 ...question,
                 key: question.id || question._id,
               }))}
+              cols={[
+                ...QUESTION_COLS_ALL,
+                {
+                  title: "Preview",
+                  key: "preview",
+                  render: (text: any, record: any) => (
+                    <IconButton
+                      onClick={() => {
+                        setPreviewModalVisible(true);
+                        setPreviewData(record);
+                      }}
+                    >
+                      <Visibility />
+                    </IconButton>
+                  ),
+                },
+              ]}
               height="70vh"
             />
           </div>
@@ -336,6 +367,11 @@ const Questions = () => {
                 />
               ))}
           </Sidebar>
+          <PreviewHTMLModal
+            isOpen={previewModalVisible}
+            handleClose={() => setPreviewModalVisible(false)}
+            quillString={quillStringForPreview}
+          />
           {/* <div
             ref={tableRef}
             style={

@@ -1,4 +1,9 @@
-import React, { HTMLInputTypeAttribute, useContext, useState } from "react";
+import React, {
+  HTMLInputTypeAttribute,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import styles from "./Pattern.module.scss";
 import {
   Sidebar,
@@ -64,16 +69,33 @@ const Pattern = () => {
   // const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
   // const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
   // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
+  const [patterns, setPatterns] = useState<IPattern[]>([]);
 
   const { currentUser } = useContext(AuthContext);
 
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
+  useEffect(() => {
+    if (currentUser) {
+      axios
+        .get(`${process.env.REACT_APP_TESTS_API}/pattern/all`, {
+          headers: {
+            "x-access-token": localStorage.getItem("token") ?? "",
+          },
+        })
+        .then((res) => {
+          setPatterns(
+            res.data?.map((item: any) => ({ ...item, key: item._id }))
+          );
+        });
+    }
+  }, [currentUser]);
+
   const columns = [
     {
       title: "ID",
-      dataIndex: "id",
+      dataIndex: "_id",
       // render: (text: string) => <a>{text}</a>,
     },
     {
@@ -83,7 +105,6 @@ const Pattern = () => {
     {
       title: "Exam",
       dataIndex: "exam",
-      render: (exam: any) => exam.fullName,
     },
     {
       title: "Created",
@@ -143,7 +164,7 @@ const Pattern = () => {
                   ...rowSelection,
                 }}
                 columns={columns}
-                dataSource={[]}
+                dataSource={patterns as any}
               />
             </div>
           </section>
