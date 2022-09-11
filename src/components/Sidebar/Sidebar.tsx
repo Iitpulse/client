@@ -11,10 +11,16 @@ interface SidebarProps {
 }
 
 const Sidebar = (props: SidebarProps) => {
-  const [isCollapsed, setCollapsed] = useState(false);
+  const [isCollapsed, setCollapsed] = useState(true);
+  // useEffect(() => {
+  //   localStorage.getItem("sidebarCollapsed") === "true"
+  //     ? setCollapsed(true)
+  //     : setCollapsed(false);
+  // }, []);
   const wrapperRef = useRef<HTMLDivElement>(null);
   function handleCollapse(value: boolean) {
     let root = document.documentElement;
+    // localStorage.setItem("sidebarCollapsed", value.toString());
     root.style.setProperty("--sidebar-width", !value ? "20px" : "300px");
     if (wrapperRef?.current)
       wrapperRef.current.style.display = !value ? "none" : "block";
