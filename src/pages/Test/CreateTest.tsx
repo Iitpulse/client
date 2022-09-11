@@ -234,7 +234,7 @@ const CreateTest = () => {
             Please select a pattern to create Test
           </p>
         )}
-        <Button onClick={handleClickSubmit}>Submit Test</Button>
+        <Button onClick={handleClickSubmit}>Create Test</Button>
       </div>
       <Sidebar title="Recent Activity">Recent</Sidebar>
     </>
