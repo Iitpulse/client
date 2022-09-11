@@ -10,8 +10,13 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import { Table } from "antd";
+import { Spin, Table } from "antd";
 import { QUESTION_COLS_ALL } from "../../../utils/constants";
+import { Modal } from "../../../components";
+import { useEffect, useState } from "react";
+import { splitAndKeepDelimiters } from "../../../utils";
+import "katex/dist/katex.min.css";
+import katex from "katex";
 
 interface MUISelectProps {
   label: string;
@@ -223,9 +228,91 @@ export const QuestionsTable: React.FC<QuestionsTableProps> = ({
   );
 };
 
-// const PreviewHTMLModal = (props: any) => {
+interface PreviewHTMLModalProps {
+  isOpen: boolean;
+  handleClose: () => void;
+  quillString: string;
+}
 
-//   return(
+export const PreviewHTMLModal: React.FC<PreviewHTMLModalProps> = ({
+  isOpen,
+  handleClose,
+  quillString,
+}) => {
+  const [previewHTML, setPreviewHTML] = useState("");
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
-//   )
-// }
+  useEffect(() => {
+    if (isOpen) {
+      setPreviewHTML("");
+      setIsPreviewLoading(true);
+      if (quillString?.length && quillString !== "<p><br></p>") {
+        const value = quillString;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(value, "text/html");
+
+        // extract from all <p> tags
+        let pTags = doc.getElementsByTagName("p");
+
+        [...pTags]?.forEach((p) => {
+          const innerHTML = p.innerHTML;
+          // regex extract value between $ and $
+          let regexBoundaries = /\$(.*?)\$/g;
+          let matches = innerHTML.match(regexBoundaries);
+
+          if (matches !== null && matches?.length) {
+            // Reset the innerHTML to avoid duplication of data
+            p.innerHTML = "";
+
+            // Split the innerHTML by the matches while also keeping the matches
+            let allValues = splitAndKeepDelimiters(innerHTML, matches);
+
+            allValues.forEach((item: any) => {
+              if (item?.length) {
+                if (item.startsWith("$") && item.endsWith("$")) {
+                  const withMath = katex.renderToString(
+                    item.replace(/\$/g, ""),
+                    {
+                      throwOnError: false,
+                    }
+                  );
+                  let span = document.createElement("span");
+                  span.innerHTML = withMath;
+                  p.appendChild(span);
+                } else {
+                  let span = document.createElement("span");
+                  span.innerHTML = item;
+                  p.appendChild(span);
+                }
+              }
+            });
+          }
+        });
+
+        setPreviewHTML(doc.body.innerHTML);
+      } else {
+        setPreviewHTML("");
+      }
+      setIsPreviewLoading(false);
+    }
+  }, [isOpen, quillString]);
+
+  return (
+    <Modal isOpen={isOpen} title="Preview" onClose={handleClose}>
+      {isPreviewLoading ? (
+        <div className={styles.loading}>
+          <Spin />
+        </div>
+      ) : !previewHTML ? (
+        <div>
+          <p>Nothing to preview</p>
+        </div>
+      ) : (
+        <div
+          dangerouslySetInnerHTML={{ __html: previewHTML }}
+          style={{ maxHeight: "550PX", overflowY: "auto", overflowX: "hidden" }}
+        ></div>
+      )}
+    </Modal>
+  );
+};
