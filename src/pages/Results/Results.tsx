@@ -44,42 +44,44 @@ const Results = () => {
     getTest();
   }, [testId]);
   return (
-    <div className={styles.container}>
-      <Navigate path={"/test"}>Back To Tests</Navigate>
-      <div className={styles.content}>
-        <div className={styles.top}>
-          <h2>
-            {currentTest?.name} ({currentTest?.exam?.fullName})
-          </h2>
-          <div className={styles.status}>
-            {currentTest?.status}{" "}
-            <div
-              className={styles.statusColor}
-              style={{ backgroundColor: getStatusColor(currentTest?.status) }}
-            ></div>{" "}
+    <div className={styles.wrapper}>
+      <div className={styles.container}>
+        <Navigate path={"/test"}>Back To Tests</Navigate>
+        <div className={styles.content}>
+          <div className={styles.top}>
+            <h2>
+              {currentTest?.name} ({currentTest?.exam?.fullName})
+            </h2>
+            <div className={styles.status}>
+              {currentTest?.status}{" "}
+              <div
+                className={styles.statusColor}
+                style={{ backgroundColor: getStatusColor(currentTest?.status) }}
+              ></div>{" "}
+            </div>
           </div>
-        </div>
 
-        <div className={styles.basicInfo}>
-          <h3 className={styles.marksObtained}>
-            Marks Obtained :{" "}
-            <span className={styles.boldLarge}>{23 * 3 * 4}/360</span>
-          </h3>
-          <h3 className={styles.totalAttempted}>
-            Attempted : <span className={styles.boldLarge}>{23 * 3}</span>{" "}
-          </h3>
+          <div className={styles.basicInfo}>
+            <h3 className={styles.marksObtained}>
+              Marks Obtained :{" "}
+              <span className={styles.boldLarge}>{23 * 3 * 4}/360</span>
+            </h3>
+            <h3 className={styles.totalAttempted}>
+              Attempted : <span className={styles.boldLarge}>{23 * 3}</span>{" "}
+            </h3>
+          </div>
+          <div className={styles.cards}>
+            <SubjectCard />
+            <SubjectCard />
+            <SubjectCard />
+          </div>
+          <Button
+            onClick={() => navigate("/test/result/detailed-analysis/" + testId)}
+            color="success"
+          >
+            View Detailed Analysis
+          </Button>
         </div>
-        <div className={styles.cards}>
-          <SubjectCard />
-          <SubjectCard />
-          <SubjectCard />
-        </div>
-        <Button
-          onClick={() => navigate("/test/result/detailed-analysis/" + testId)}
-          color="success"
-        >
-          View Detailed Analysis
-        </Button>
       </div>
       <Sidebar title="Recent Activity">
         {Array(10)

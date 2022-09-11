@@ -50,13 +50,6 @@ const MainLayout = (props: Props) => {
             {/* <IconButton>
               <img src={notificationIcon} alt="notification" />
             </IconButton> */}
-            <IconButton className={styles.burgerMenuBtn}>
-              <div className={styles.burger}>
-                <span className={styles.burgerItem}></span>
-                <span className={styles.burgerItem}></span>
-                <span className={styles.burgerItem}></span>
-              </div>
-            </IconButton>
           </div>
         </nav>
         <main className={styles.main}>{props.children}</main>
