@@ -31,6 +31,7 @@ import { ColumnType } from "antd/lib/table";
 import { FilterConfirmProps } from "antd/lib/table/interface";
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
+import { API_USERS } from "../../../utils/api";
 
 const Students: React.FC<{
   activeTab: number;
@@ -402,10 +403,7 @@ export const Student: React.FC<{
       newValues.createdAt = new Date().toISOString();
       newValues.modifiedAt = new Date().toISOString();
 
-      const res = await axios.post(
-        `${process.env.REACT_APP_USERS_API}/student/create`,
-        newValues
-      );
+      const res = await API_USERS().post(`/student/create`, newValues);
       // console.log({ res });
 
       setSuccess("Student created successfully");
@@ -430,10 +428,7 @@ export const Student: React.FC<{
         })
       );
 
-      const bulkRes = await axios.post(
-        `${process.env.REACT_APP_USERS_API}/student/bulk`,
-        formData
-      );
+      const bulkRes = await API_USERS().post(`/student/bulk`, formData);
 
       if (bulkRes.status === 200) {
         setFile(null);

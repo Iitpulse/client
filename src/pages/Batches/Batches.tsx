@@ -11,6 +11,7 @@ import { DateRangePicker, LocalizationProvider } from "@mui/lab";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import { API_USERS } from "../../utils/api";
 
 interface DataType {
   key: React.Key;
@@ -67,9 +68,7 @@ const Batches = () => {
 
   useEffect(() => {
     async function fetchBatch() {
-      const res = await axios.get(
-        `${process.env.REACT_APP_USERS_API}/batch/get`
-      );
+      const res = await API_USERS().get(`/batch/get`);
       console.log({ res });
       setData(res?.data);
     }
@@ -160,10 +159,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
       modifiedAt: new Date().toISOString(),
       members: [],
     };
-    const res = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/batch/create`,
-      finalData
-    );
+    const res = await API_USERS().post(`/batch/create`, finalData);
     if (res.status === 200) {
       alert("Succesfully Created");
     }

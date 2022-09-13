@@ -145,9 +145,15 @@ const CustomTable: React.FC<Props> = ({
     },
     onSelect: (record: any, selected: any, selRows: any) => {
       console.log(record, selected, selRows);
+      if (setSelectedRows) {
+        setSelectedRows(selRows);
+      }
     },
     onSelectAll: (selected: any, selRows: any, changeRows: any) => {
       console.log(selected, selRows, changeRows);
+      if (setSelectedRows) {
+        setSelectedRows(selRows);
+      }
     },
   };
 
@@ -156,7 +162,7 @@ const CustomTable: React.FC<Props> = ({
       dataSource={data}
       columns={cols}
       loading={tableLoading}
-      rowSelection={selectable ? { ...rowSelection } : {}}
+      rowSelection={rowSelection}
       scroll={
         scroll || {
           y: "50vh",

@@ -21,6 +21,7 @@ import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
 import { message } from "antd";
+import { API_QUESTIONS } from "../../utils/api";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -212,10 +213,7 @@ const CreateQuestion = () => {
                 correctAnswers: getCorrectAnswers(data.en.options),
               };
               console.log({ finalQuestion });
-              const res = await axios.post(
-                `${process.env.REACT_APP_QUESTIONS_API}/mcq/new`,
-                finalQuestion
-              );
+              const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
 
               message.success("Question created successfully");
 
@@ -238,8 +236,8 @@ const CreateQuestion = () => {
               };
 
               console.log({ finalQuestion });
-              const res = await axios.post(
-                `${process.env.REACT_APP_QUESTIONS_API}/numerical/new`,
+              const res = await API_QUESTIONS().post(
+                `/numerical/new`,
                 finalQuestion
               );
 

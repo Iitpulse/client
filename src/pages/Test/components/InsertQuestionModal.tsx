@@ -15,8 +15,6 @@ import { API_QUESTIONS } from "../../../utils/api";
 interface Props {
   open: boolean;
   onClose: () => void;
-  questions: Array<any>;
-  setQuestions: (questions: Array<any>) => void;
   subject: string;
   totalQuestions: number;
   type: string;
@@ -42,8 +40,6 @@ const rowSelection = {
 const InsertQuestionModal: React.FC<Props> = ({
   open,
   onClose,
-  questions,
-  setQuestions,
   totalQuestions,
   subject,
   handleClickSave,
@@ -54,6 +50,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [search, setSearch] = useState("");
   const [chaptersOptions, setChaptersOptions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>([]);
+  const [questions, setQuestions] = useState<Array<any>>([]);
 
   const difficultyOptions = [
     { name: "Easy", value: "easy" },
@@ -68,17 +65,23 @@ const InsertQuestionModal: React.FC<Props> = ({
   // ];
 
   async function fetchQuestions() {
-    const res = await API_QUESTIONS().get(`/mcq/all`);
+    // console.log({ subject });
+    const res = await API_QUESTIONS().get(`/mcq/all`, {
+      params: { subject },
+    });
 
-    console.log({ res: res.data, difficulties });
+    // console.log({ res: res.data, difficulties });
     if (res.data?.length) {
       setQuestions(res.data);
     }
   }
 
   useEffect(() => {
-    fetchQuestions();
-  }, []);
+    if (open) {
+      setQuestions([]);
+      fetchQuestions();
+    }
+  }, [open, subject]);
 
   useEffect(() => {
     if (subject) {
@@ -137,23 +140,6 @@ const InsertQuestionModal: React.FC<Props> = ({
               key: question.id || question._id,
             }))}
             setSelectedRows={setSelectedQuestions}
-            // expandable={{
-            //   expandedRowRender: (record) => (
-            //     <div
-            //       style={{ margin: "0 auto", width: "70%" }}
-            //       className={styles.flexRow}
-            //     >
-            //       {record?.en?.options?.map((option: any, i: number) => (
-            //         <div key={i}>
-            //           <span>{String.fromCharCode(64 + i + 1)})</span>
-            //           <div
-            //             dangerouslySetInnerHTML={{ __html: option.value }}
-            //           ></div>
-            //         </div>
-            //       ))}
-            //     </div>
-            //   ),
-            // }}
           />
         </div>
       </div>

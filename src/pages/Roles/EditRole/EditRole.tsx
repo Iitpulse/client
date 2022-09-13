@@ -18,6 +18,7 @@ import clsx from "clsx";
 import axios from "axios";
 import { flattendPermissions } from "../AddNewRole";
 import ClearIcon from "@mui/icons-material/Clear";
+import { API_USERS } from "../../../utils/api";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -258,13 +259,10 @@ const EditRole = () => {
     let newPerms = allowedPermisions.map((idx: number) => permissions[idx]);
     console.log({ newPerms });
 
-    const res = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/roles/update`,
-      {
-        id: roleName,
-        permissions: newPerms,
-      }
-    );
+    const res = await API_USERS().post(`/roles/update`, {
+      id: roleName,
+      permissions: newPerms,
+    });
 
     console.log({ res });
   }

@@ -22,6 +22,7 @@ import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
 import { Grid } from "@mui/material";
 import { SearchOutlined } from "@ant-design/icons";
+import { API_USERS } from "../../../utils/api";
 
 const Teachers: React.FC<{
   activeTab: number;
@@ -267,10 +268,7 @@ const Teacher: React.FC<{
     };
     console.log({ newValues });
 
-    const res = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/teacher/create`,
-      newValues
-    );
+    const res = await API_USERS().post(`/teacher/create`, newValues);
     console.log({ res });
 
     if (res.status === 200) {
