@@ -69,36 +69,64 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
     }
     handleClose();
   };
-
+  React.useEffect(() => {
+    console.log(value);
+  }, [value]);
   return (
     <React.Fragment>
       <Autocomplete
         multiple={multiple}
         value={value}
-        onChange={(event, newValue: any) => {
-          if (typeof newValue === "string") {
-            // timeout to avoid instant validation of the dialog's form.
-            setTimeout(() => {
-              toggleOpen(true);
-              setDialogValue({
-                name: newValue,
-                value: "",
-              });
-            });
-          } else if (
-            newValue &&
-            multiple &&
-            newValue[newValue?.length - 1]?.inputValue
-          ) {
-            toggleOpen(true);
-            setDialogValue({
-              name: newValue[newValue?.length - 1].inputValue,
-              value: "",
-            });
-          } else {
-            setValue(newValue);
-          }
-        }}
+        isOptionEqualToValue={(option: IOptionType, value: IOptionType) =>
+          option.value === value.value
+        }
+        onChange={
+          multiple
+            ? (event, newValue: any) => {
+                if (typeof newValue === "string") {
+                  // timeout to avoid instant validation of the dialog's form.
+                  setTimeout(() => {
+                    toggleOpen(true);
+                    setDialogValue({
+                      name: newValue,
+                      value: "",
+                    });
+                  });
+                } else if (
+                  newValue &&
+                  multiple &&
+                  newValue[newValue?.length - 1]?.inputValue
+                ) {
+                  toggleOpen(true);
+                  setDialogValue({
+                    name: newValue[newValue?.length - 1].inputValue,
+                    value: "",
+                  });
+                } else {
+                  setValue(newValue);
+                }
+              }
+            : (event, newValue: any) => {
+                if (typeof newValue === "string") {
+                  // timeout to avoid instant validation of the dialog's form.
+                  setTimeout(() => {
+                    toggleOpen(true);
+                    setDialogValue({
+                      name: newValue,
+                      value: "",
+                    });
+                  });
+                } else if (newValue && newValue.inputValue) {
+                  toggleOpen(true);
+                  setDialogValue({
+                    name: newValue.inputValue,
+                    value: "",
+                  });
+                } else {
+                  setValue(newValue);
+                }
+              }
+        }
         filterOptions={(options, params) => {
           const filtered = filter(options, params);
 
@@ -129,9 +157,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
         filterSelectedOptions
         renderOption={(props, option) => <li {...props}>{option.name}</li>}
         sx={{ width: width || 300 }}
-        renderInput={(params) => (
-          <TextField {...params} label="Free solo dialog" />
-        )}
+        renderInput={(params) => <TextField {...params} label={label} />}
         {...remaining}
       />
       <Dialog open={open} onClose={handleClose}>

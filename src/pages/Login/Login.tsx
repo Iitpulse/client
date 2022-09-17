@@ -32,12 +32,19 @@ const Login = () => {
 
       if (response.status === 200) {
         let decoded = decodeToken(response.data.token) as any;
+        let newRoles: any = {};
+        decoded?.roles?.forEach((role: any) => {
+          newRoles[role.id] = {
+            id: role.id,
+            permissions: [],
+          };
+        });
         setCurrentUser({
           id: decoded.id,
           email: decoded.email,
           userType: decoded.userType,
           instituteId: decoded.instituteId,
-          roles: decoded.roles,
+          roles: newRoles,
         });
         localStorage.setItem("token", response.data.token);
         setLoading(false);
