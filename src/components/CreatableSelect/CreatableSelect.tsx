@@ -19,6 +19,7 @@ interface ICreatableSelect {
   id: string;
   multiple?: boolean;
   width?: string;
+  disabled?: boolean;
 }
 
 interface IOptionType {
@@ -35,6 +36,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   label,
   id,
   width,
+  disabled,
   onAddModalSubmit,
   ...remaining
 }) => {
@@ -55,7 +57,8 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await onAddModalSubmit(dialogValue);
+    // Pass the actual value later
+    onAddModalSubmit(dialogValue.name);
     if (multiple) {
       setValue((prev: any) => [
         ...prev,
@@ -80,6 +83,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
         isOptionEqualToValue={(option: IOptionType, value: IOptionType) =>
           option.value === value.value
         }
+        disabled={disabled || false}
         onChange={
           multiple
             ? (event, newValue: any) => {
@@ -143,6 +147,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
         options={options}
         getOptionLabel={(option) => {
           // e.g value selected with enter, right from the input
+          console.log({ option });
           if (typeof option === "string") {
             return option;
           }

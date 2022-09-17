@@ -135,7 +135,7 @@ const Questions = () => {
   const [chapters, setChapters] = useState<Array<string>>([]);
   const [topics, setTopics] = useState<Array<string>>([]);
   const [difficulty, setDifficulty] = useState<string>("");
-  const [source, setSource] = useState<Array<IOptionType>>([]);
+  const [source, setSource] = useState<Array<string>>([]);
   const [uploadedBy, setUploadedBy] = useState<{
     userType: string;
     id: string;

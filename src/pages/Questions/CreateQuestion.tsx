@@ -47,7 +47,7 @@ export const chapterOptions = [
   "Sets Relation and Functions",
   "Phenol",
 ];
-export const subjectOptions = ["Physics", "Mathematics", "Chemistry"];
+// export const subjectOptions = ["Physics", "Mathematics", "Chemistry"];
 export const difficultyOptions = ["Easy", "Medium", "Hard"];
 export const examOptions = ["JEE MAINS", "JEE ADVANCED", "NEET UG"];
 export const sourceOptions = ["Bansal Classes", "Allen", "Catalyser"];
@@ -63,7 +63,8 @@ const CreateQuestion = () => {
   const [exams, setExams] = useState<Array<IOptionType>>([]);
   const [type, setType] = useState<string>("objective");
 
-  const [subject, setSubject] = useState<IOptionType>({ name: "", value: "" });
+  const [subjectOptions, setSubjectOptions] = useState([]);
+  const [subject, setSubject] = useState<any>({ name: "", value: "" });
   const [chapters, setChapters] = useState<Array<IOptionType>>([]);
   const [topics, setTopics] = useState<Array<IOptionType>>([]);
   const [difficulty, setDifficulty] = useState<string>("");
@@ -82,12 +83,23 @@ const CreateQuestion = () => {
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
+    if (currentUser) {
+      API_QUESTIONS()
+        .get(`/subject/subjects`)
+        .then((res) => {
+          console.log({ sub: res.data });
+          setSubjectOptions(res.data);
+        });
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
     if (subject?.name?.length) {
       console.log(subject);
-      axios
-        .get(`${process.env.REACT_APP_QUESTIONS_API}/subject/chapter/`, {
+      API_QUESTIONS()
+        .get(`/subject/chapter/`, {
           params: {
-            subject,
+            subject: subject.name,
           },
         })
         .then((res) => {
@@ -105,16 +117,29 @@ const CreateQuestion = () => {
           setTopicOptions([]);
         });
     }
-  }, [subject]);
+  }, [currentUser, subject]);
 
   useEffect(() => {
     if (currentUser)
       setUploadedBy({ userType: currentUser?.userType, id: currentUser?.id });
   }, [currentUser]);
 
-  async function handleAddSubject() {}
+  async function handleAddSubject() {
+    const res = await API_QUESTIONS().post("/subject/create", {
+      subject: subject.name,
+      chapters: [],
+    });
+    console.log({ res });
+  }
   async function handleAddExam() {}
-  async function handleAddChapter() {}
+  async function handleAddChapter(chapter: any) {
+    const res = await API_QUESTIONS().post("/subject/create-chapter", {
+      subject: subject.name,
+      chapter: chapter.name,
+    });
+    console.log({ res });
+    // setChapters(vals);
+  }
   async function handleAddTopic() {}
   async function handleAddSource() {}
 
@@ -230,10 +255,7 @@ const CreateQuestion = () => {
           /> */}
           <CreatableSelect
             onAddModalSubmit={handleAddSubject}
-            options={subjectOptions.map((subject) => ({
-              name: subject,
-              value: subject,
-            }))}
+            options={subjectOptions}
             setValue={setSubject}
             value={subject}
             label={"Subject"}
@@ -254,14 +276,12 @@ const CreateQuestion = () => {
           <CreatableSelect
             multiple
             onAddModalSubmit={handleAddChapter}
-            options={chapterOptions.map((chapter) => ({
-              name: chapter,
-              value: chapter,
-            }))}
+            options={chapterOptions}
             setValue={setChapters}
             value={chapters}
             label={"Chapter(s)"}
             id="Chapters"
+            disabled={!subject?.name?.length}
           />
           {/* <MUIChipsAutocomplete
             label="Exam(s)"
