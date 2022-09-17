@@ -216,7 +216,9 @@ const CreateQuestion = () => {
               const fetchQuestion = async () => {
                 return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
               };
-              const promises = Array(50).fill(fetchQuestion());
+              const promises = Array(50)
+                .fill(null)
+                .map((item: any) => fetchQuestion());
               const res = await Promise.all(promises);
               // const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
 
