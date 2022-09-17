@@ -120,7 +120,7 @@ interface IMarkingScheme {
 interface IQuestionCore {
   id: string; // Q_AB123
   type: string; // single | multiple | integer | paragraph | matrix
-  source: string;
+  sources: Array<string>;
   subject: string;
   chapters: Array<string>;
   topics: Array<string>;

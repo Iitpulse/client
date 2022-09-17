@@ -52,3 +52,10 @@ export function splitAndKeepDelimiters(
     return splitAndKeep(str, separator, method);
   }
 }
+
+export function stringToCamelCase(str: string) {
+  return str
+    .split(" ")
+    .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
+    .join("");
+}

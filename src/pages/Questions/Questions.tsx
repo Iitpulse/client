@@ -115,6 +115,11 @@ export const examList = [
     value: "NEETUG",
   },
 ];
+interface IOptionType {
+  name: string;
+  inputValue?: string;
+  value?: string | number;
+}
 
 const Questions = () => {
   const isReadPermitted = usePermission(PERMISSIONS.QUESTION.READ);
@@ -130,7 +135,7 @@ const Questions = () => {
   const [chapters, setChapters] = useState<Array<string>>([]);
   const [topics, setTopics] = useState<Array<string>>([]);
   const [difficulty, setDifficulty] = useState<string>("");
-  const [source, setSource] = useState<string>("");
+  const [source, setSource] = useState<Array<IOptionType>>([]);
   const [uploadedBy, setUploadedBy] = useState<{
     userType: string;
     id: string;
@@ -209,7 +214,7 @@ const Questions = () => {
         chapters,
         topics,
         difficulty,
-        source,
+        sources: source,
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
         isProofRead: false,

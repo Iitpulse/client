@@ -31,36 +31,6 @@ export const questionTypes = [
   { name: "Matrix Match", value: "matrix" },
 ];
 
-export const subjects = [
-  {
-    name: "Physics",
-    value: "physics",
-  },
-  {
-    name: "Mathematics",
-    value: "mathematics",
-  },
-  {
-    name: "Chemistry",
-    value: "chemistry",
-  },
-];
-
-export const chapters = [
-  {
-    name: "Fluid Mechanics",
-    value: "fluidMechanics",
-  },
-  {
-    name: "Sets Relation and Functions",
-    value: "setsRelationAndFunction",
-  },
-  {
-    name: "Phenol",
-    value: "phenol",
-  },
-];
-
 // export const topicOptions = [
 //   { name: `Coulomb's law`, value: "coulombsLaw" },
 //   { name: "Organic", value: "organic" },
@@ -72,50 +42,32 @@ export const chapters = [
 //   { name: "Normals", value: "normals" },
 //   { name: `Newton's Law of Motion`, value: "newtonsLawofMotion" },
 // ];
-
-export const difficultyLevels = [
-  { name: "Easy", value: "easy" },
-  { name: "Medium", value: "medium" },
-  { name: "Hard", value: "hard" },
+export const chapterOptions = [
+  "Fluid Mechanics",
+  "Sets Relation and Functions",
+  "Phenol",
 ];
+export const subjectOptions = ["Physics", "Mathematics", "Chemistry"];
+export const difficultyOptions = ["Easy", "Medium", "Hard"];
+export const examOptions = ["JEE MAINS", "JEE ADVANCED", "NEET UG"];
+export const sourceOptions = ["Bansal Classes", "Allen", "Catalyser"];
 
-export const sources = [
-  { name: "Bansal Classes", value: "bansalClasses" },
-  { name: "Allen", value: "allen" },
-  { name: "Catalyser", value: "catalyser" },
-];
-
-export const examList = [
-  {
-    name: "JEE MAINS",
-    value: "JEEMains",
-  },
-  {
-    name: "JEE ADVANCED",
-    value: "JEEAdvanced",
-  },
-  {
-    name: "NEET UG",
-    value: "NEETUG",
-  },
-];
+interface IOptionType {
+  name: string;
+  inputValue?: string;
+  value?: string | number;
+}
 
 const CreateQuestion = () => {
   // const [id, setId] = useState<string>("QM_ABC123");
-  const [exams, setExams] = useState<Array<string>>([]);
+  const [exams, setExams] = useState<Array<IOptionType>>([]);
   const [type, setType] = useState<string>("objective");
 
-  const [temp, setTemp] = useState([]);
-  const [tempAnother, setTempAnother] = useState({ name: "", value: "" });
-  function handleTempAdd(newValue: any) {
-    console.log(newValue);
-  }
-
-  const [subject, setSubject] = useState<string>("");
-  const [chapters, setChapters] = useState<Array<string>>([]);
-  const [topics, setTopics] = useState<Array<string>>([]);
+  const [subject, setSubject] = useState<IOptionType>({ name: "", value: "" });
+  const [chapters, setChapters] = useState<Array<IOptionType>>([]);
+  const [topics, setTopics] = useState<Array<IOptionType>>([]);
   const [difficulty, setDifficulty] = useState<string>("");
-  const [source, setSource] = useState<string>("");
+  const [sources, setSources] = useState<Array<IOptionType>>([]);
   const [uploadedBy, setUploadedBy] = useState<{
     userType: string;
     id: string;
@@ -129,24 +81,8 @@ const CreateQuestion = () => {
 
   const { currentUser } = useContext(AuthContext);
 
-  // useEffect(() => {
-  //   console.log({
-  //     id,
-  //     type,
-  //     subject,
-  //     chapter: chapters,
-  //     topics,
-  //     difficulty,
-  //     source,
-  //     uploadedBy,
-  //   });
-  // });
   useEffect(() => {
-    console.log({ temp });
-  }, [temp]);
-
-  useEffect(() => {
-    if (subject?.length) {
+    if (subject?.name?.length) {
       console.log(subject);
       axios
         .get(`${process.env.REACT_APP_QUESTIONS_API}/subject/chapter/`, {
@@ -176,17 +112,23 @@ const CreateQuestion = () => {
       setUploadedBy({ userType: currentUser?.userType, id: currentUser?.id });
   }, [currentUser]);
 
+  async function handleAddSubject() {}
+  async function handleAddExam() {}
+  async function handleAddChapter() {}
+  async function handleAddTopic() {}
+  async function handleAddSource() {}
+
   async function handleSubmitQuestion() {
     try {
       if (currentUser) {
         let questionCore = {
           id: Date.now().toString(),
           type: data.type,
-          subject,
-          chapters,
-          topics,
+          subject: subject?.name,
+          chapters: chapters.map((chapter) => chapter.name),
+          topics: topics.map((topic) => topic.name),
           difficulty,
-          source,
+          sources: sources.map((source) => source.name),
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
           isProofRead: false,
@@ -217,9 +159,7 @@ const CreateQuestion = () => {
               const fetchQuestion = async () => {
                 return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
               };
-              const promises = Array(50)
-                .fill(null)
-                .map((item: any) => fetchQuestion());
+              const promises = Array(50).fill(fetchQuestion());
               const res = await Promise.all(promises);
               // const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
 
@@ -275,22 +215,60 @@ const CreateQuestion = () => {
           />
           <StyledMUISelect
             label={"Difficulty"}
-            options={difficultyLevels}
+            options={difficultyOptions.map((difficulty) => ({
+              name: difficulty,
+              value: difficulty,
+            }))}
             state={difficulty}
             onChange={setDifficulty}
           />
-          <StyledMUISelect
+          {/* <StyledMUISelect
             label={"Subject"}
             options={subjects}
             state={subject}
             onChange={setSubject}
+          /> */}
+          <CreatableSelect
+            onAddModalSubmit={handleAddSubject}
+            options={subjectOptions.map((subject) => ({
+              name: subject,
+              value: subject,
+            }))}
+            setValue={setSubject}
+            value={subject}
+            label={"Subject"}
+            id="subject"
           />
-          <MUIChipsAutocomplete
+          <CreatableSelect
+            multiple
+            onAddModalSubmit={handleAddExam}
+            options={examOptions.map((exam) => ({
+              name: exam,
+              value: exam,
+            }))}
+            setValue={setExams}
+            value={exams}
+            label={"Exam(s)"}
+            id="Exams"
+          />
+          <CreatableSelect
+            multiple
+            onAddModalSubmit={handleAddChapter}
+            options={chapterOptions.map((chapter) => ({
+              name: chapter,
+              value: chapter,
+            }))}
+            setValue={setChapters}
+            value={chapters}
+            label={"Chapter(s)"}
+            id="Chapters"
+          />
+          {/* <MUIChipsAutocomplete
             label="Exam(s)"
             options={examList}
             onChange={setExams}
-          />
-          <MUIChipsAutocomplete
+          /> */}
+          {/* <MUIChipsAutocomplete
             label="Chapter(s)"
             options={chapterOptions?.map((chapter: any) => ({
               name: chapter.name,
@@ -298,8 +276,34 @@ const CreateQuestion = () => {
             }))}
             disabled={Boolean(!chapterOptions?.length)}
             onChange={setChapters}
+          /> */}
+          <CreatableSelect
+            multiple
+            onAddModalSubmit={handleAddTopic}
+            options={
+              topicOptions.map((topic) => ({
+                name: topic,
+                value: topic,
+              })) || []
+            }
+            setValue={setTopics}
+            value={topics}
+            label={"Topic(s)"}
+            id="Topics"
           />
-          <MUIChipsAutocomplete
+          <CreatableSelect
+            multiple
+            onAddModalSubmit={handleAddSource}
+            options={sourceOptions.map((source) => ({
+              name: source,
+              value: source,
+            }))}
+            setValue={setSources}
+            value={sources}
+            label={"Source(s)"}
+            id="Sources"
+          />
+          {/* <MUIChipsAutocomplete
             label="Topics"
             options={
               topicOptions.map((topic) => ({
@@ -308,8 +312,8 @@ const CreateQuestion = () => {
               })) || []
             }
             onChange={setTopics}
-          />
-          <CreatableSelect
+          /> */}
+          {/* <CreatableSelect
             onAddModalSubmit={handleTempAdd}
             multiple
             options={[
@@ -331,12 +335,12 @@ const CreateQuestion = () => {
             value={tempAnother}
             label={"This is label"}
             id="kjdkfj"
-          />
-          <MUISimpleAutocomplete
+          /> */}
+          {/* <MUISimpleAutocomplete
             label={"Source"}
             options={sources}
             onChange={setSource}
-          />
+          /> */}
           <StyledMUITextField
             id="uploadedBy"
             value={uploadedBy.id}
