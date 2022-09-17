@@ -197,7 +197,6 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
               members: role.members,
             },
           }));
-          console.log(role.permissions);
           if (role.permissions.includes(PERMISSIONS.QUESTION.READ)) {
             hPerms = { ...hPerms, hasQuestionPermission: true };
           }

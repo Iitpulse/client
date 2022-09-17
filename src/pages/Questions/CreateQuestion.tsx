@@ -106,6 +106,7 @@ const CreateQuestion = () => {
   const [type, setType] = useState<string>("objective");
 
   const [temp, setTemp] = useState([]);
+  const [tempAnother, setTempAnother] = useState({ name: "", value: "" });
   function handleTempAdd(newValue: any) {
     console.log(newValue);
   }
@@ -310,6 +311,17 @@ const CreateQuestion = () => {
             ]}
             setValue={setTemp}
             value={temp}
+            label={"This is label"}
+            id="kjdkfj"
+          />
+          <CreatableSelect
+            onAddModalSubmit={handleTempAdd}
+            options={[
+              { name: "hehe", value: "sdf" },
+              { name: "hehde", value: "sdddf" },
+            ]}
+            setValue={setTempAnother}
+            value={tempAnother}
             label={"This is label"}
             id="kjdkfj"
           />
