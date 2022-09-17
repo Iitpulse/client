@@ -102,8 +102,9 @@ const CreateTest = () => {
     }
   }, [test]);
 
-  function handleClickSubmit() {
+  async function handleClickSubmit() {
     if (currentUser) {
+      // const id = ``
       let finalTest = {
         ...test,
         createdBy: {
@@ -111,9 +112,11 @@ const CreateTest = () => {
           userType: currentUser.userType,
         },
         createdAt: new Date().toISOString(),
-        modfiedAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
       };
       console.log({ finalTest });
+      let response = await API_TESTS().post(`/test/create`, finalTest);
+      console.log({ response });
     }
   }
 
@@ -340,11 +343,12 @@ const SubSection: React.FC<{
     });
     console.table(data);
     setTempQuestions(data);
+    handleUpdateSubSection(subSection.id, { questions: data });
   }
 
   function handleClickAutoGenerate() {
-    const newQuestions = generateQuestions();
-    setTempQuestions(newQuestions);
+    generateQuestions();
+    // setTempQuestions(newQuestions);
   }
 
   function handleClickSave(rows: Array<any>) {

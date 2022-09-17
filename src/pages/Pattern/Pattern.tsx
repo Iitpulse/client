@@ -79,12 +79,8 @@ const Pattern = () => {
 
   useEffect(() => {
     if (currentUser) {
-      axios
-        .get(`${process.env.REACT_APP_TESTS_API}/pattern/all`, {
-          headers: {
-            "x-access-token": localStorage.getItem("token") ?? "",
-          },
-        })
+      API_TESTS()
+        .get(`/pattern/all`)
         .then((res) => {
           setPatterns(
             res.data?.map((item: any) => ({ ...item, key: item._id }))
