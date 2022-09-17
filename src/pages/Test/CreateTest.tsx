@@ -334,7 +334,7 @@ const SubSection: React.FC<{
     const { data } = await API_QUESTIONS().get(`/mcq/autogenerate`, {
       params: {
         type,
-        difficulties: ["easy"],
+        difficulties: ["easy", "medium"],
         totalQuestions: subSection.totalQuestions,
       },
     });
@@ -411,7 +411,10 @@ const SubSection: React.FC<{
                 },
               ] as Array<any>
             }
-            dataSource={Object.values(tempQuestions)}
+            dataSource={Object.values(tempQuestions)?.map((q: any) => ({
+              ...q,
+              key: q._id,
+            }))}
             selectable={false}
           />
           {/* {tempQuestions &&

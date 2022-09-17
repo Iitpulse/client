@@ -222,7 +222,7 @@ export const PERMISSIONS = {
 export const QUESTION_COLS_ALL = [
   {
     title: "ID",
-    dataIndex: "id",
+    dataIndex: "_id",
     key: "id",
     fixed: "left",
     width: 100,
@@ -282,6 +282,14 @@ export const QUESTION_COLS_ALL = [
     key: "chapter",
     searchable: true,
     render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
+    width: 150,
+  },
+  {
+    title: "Topic(s)",
+    dataIndex: "topics",
+    key: "topic",
+    searchable: true,
+    render: (topics: any) => <p>{topics?.join(", ")}</p>,
     width: 150,
   },
   {
