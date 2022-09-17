@@ -19,6 +19,7 @@ import CustomModal from "../../components/CustomModal/CustomModal";
 import React from "react";
 import { TestContext } from "../../utils/contexts/TestContext";
 import clsx from "clsx";
+import { AUTH_TOKEN } from "../../utils/constants";
 
 interface SubCardProps {
   title: string;
@@ -95,7 +96,7 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
 }) => {
   function handleClickTest() {
     let a = document.createElement("a");
-    let token = localStorage.getItem("token");
+    let token = localStorage.getItem(AUTH_TOKEN);
     a.href = `http://localhost:3001/auth/${token}/${id}`;
     a.target = "_blank";
     a.click();

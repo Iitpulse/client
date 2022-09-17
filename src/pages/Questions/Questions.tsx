@@ -160,13 +160,10 @@ const Questions = () => {
   useEffect(() => {
     if (subject?.length) {
       console.log(subject);
-      axios
-        .get(`${process.env.REACT_APP_QUESTIONS_API}/subject/chapter/`, {
+      API_QUESTIONS()
+        .get(`/subject/chapter/`, {
           params: {
             subject,
-          },
-          headers: {
-            "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",
           },
         })
         .then((res) => {

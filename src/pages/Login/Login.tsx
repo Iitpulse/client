@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 import logo from "../../assets/images/logo.svg";
 import { LinearProgress, TextField } from "@mui/material";
 import { API_USERS } from "../../utils/api";
+import { AUTH_TOKEN } from "../../utils/constants";
 
 const Login = () => {
   const { setCurrentUser } = useContext(AuthContext);
@@ -46,7 +47,7 @@ const Login = () => {
           instituteId: decoded.instituteId,
           roles: newRoles,
         });
-        localStorage.setItem("token", response.data.token);
+        localStorage.setItem(AUTH_TOKEN, response.data.token);
         setLoading(false);
         navigate("/");
       } else {

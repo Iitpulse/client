@@ -9,7 +9,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { IconButton } from "@mui/material";
 import { Menu, MenuItem } from "@mui/material";
 import clsx from "clsx";
-import { PERMISSIONS } from "../../utils/constants";
+import { AUTH_TOKEN, PERMISSIONS } from "../../utils/constants";
 import {
   PermissionsContext,
   usePermission,
@@ -313,7 +313,7 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
   function handleClickLogout() {
     setAnchorEl(null);
     resetPermissions();
-    localStorage.removeItem("token");
+    localStorage.removeItem(AUTH_TOKEN);
     return navigate("/login");
   }
 
