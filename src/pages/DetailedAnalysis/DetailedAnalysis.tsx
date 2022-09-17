@@ -268,15 +268,19 @@ const Question = (props: QuestionProps) => {
         </div>
       </div>
       <div className={styles.right}>
-        <IconButton
-          id="basic-button"
-          aria-controls={open ? "basic-menu" : undefined}
-          aria-haspopup="true"
-          aria-expanded={open ? "true" : undefined}
-          onClick={handleClick}
-        >
-          <img src={kebabMenu} alt="Kebab Menu" />
-        </IconButton>
+        <div className={styles.header}>
+          <Button color="success">View Full Solution</Button>
+          <IconButton
+            id="basic-button"
+            aria-controls={open ? "basic-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={open ? "true" : undefined}
+            onClick={handleClick}
+          >
+            <img src={kebabMenu} alt="Kebab Menu" />
+          </IconButton>
+        </div>
+
         <Menu
           id="basic-menu"
           anchorEl={anchorEl}
@@ -289,10 +293,14 @@ const Question = (props: QuestionProps) => {
           <MenuItem onClick={handleClose}>Report a Problem </MenuItem>
         </Menu>
         <div className={styles.moreInfo}>
-          <p>Time Taken : 130s</p>
-          <p>Average Time Taken : 150s</p>
-          <p>Quickest Response : 10s</p>
-          <p>Attempted By : 65.3%</p>
+          <div className={styles.left}>
+            <p>Time Taken : 130s</p>
+            <p>Average Time Taken : 150s</p>
+          </div>
+          <div className={styles.right}>
+            <p>Quickest Response : 10s</p>
+            <p>Attempted By : 65.3%</p>
+          </div>
         </div>
         <div className={styles.optionPercentageWrapper}>
           <div className={styles.optionPercentageContainer}>

@@ -128,20 +128,34 @@
       @extend .flexRow;
 
       .right {
+        width: 100%;
         align-self: flex-start;
         position: relative;
         @extend .flexCol;
         padding-left: 1rem;
 
-        button {
-          margin-left: auto !important;
-          position: absolute;
-          right: 0;
-        }
+        // button {
+        //   margin-left: auto !important;
+        //   position: absolute;
+        //   right: 0;
+        // }
         .moreInfo {
-          margin-right: auto;
+          width: 100%;
+          @extend .flexRow;
+          flex-wrap: wrap;
+          // margin-right: auto;
           p {
             margin: 5px 0;
+            font-size: 0.9rem;
+          }
+          .left,
+          .right {
+            @extend .flexCol;
+            align-items: flex-start;
+            width: -moz-fit-content;
+            width: fit-content;
+            margin-right: 1rem;
+            padding: 0;
           }
         }
         .optionPercentageWrapper {

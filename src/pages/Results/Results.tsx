@@ -2,6 +2,8 @@ import styles from "./Results.module.scss";
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { Button, Sidebar, NotificationCard, Navigate } from "../../components/";
+import { CircularProgress as MUICircularProgress, styled } from "@mui/material";
+import timer from "../../assets/icons/timer.svg";
 
 const tests = [
   {
@@ -14,8 +16,41 @@ const tests = [
 ];
 const tempResult = {
   testId: 1,
+  subjects: [
+    {
+      name: "Physics",
+      marksObtained: 48,
+      maxMarks: 120,
+      totalQuestions: 30,
+      attempted: 17,
+      correct: 13,
+      maxTime: "1:00:00",
+    },
+    {
+      name: "Chemistry",
+      marksObtained: 75,
+      maxMarks: 120,
+      totalQuestions: 30,
+      attempted: 25,
+      correct: 20,
+      maxTime: "1:00:00",
+    },
+    {
+      name: "Maths",
+      marksObtained: 110,
+      totalQuestions: 30,
+      maxMarks: 120,
+      attempted: 23,
+      correct: 21,
+      maxTime: "1:00:00",
+    },
+  ],
 };
 
+const colors = ["#55bc7e", "#f8ba1c", "#fc5f5f", "#61b4f1"];
+function roundToOne(num: number) {
+  return Number(num).toFixed(1);
+}
 const Results = () => {
   const { testId } = useParams();
   const [currentTest, setCurrentTest] = useState<any>({});
@@ -40,48 +75,63 @@ const Results = () => {
   function getResult() {
     return tempResult;
   }
+
   useEffect(() => {
     getTest();
   }, [testId]);
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.container}>
-        <Navigate path={"/test"}>Back To Tests</Navigate>
-        <div className={styles.content}>
-          <div className={styles.top}>
-            <h2>
-              {currentTest?.name} ({currentTest?.exam?.fullName})
-            </h2>
-            <div className={styles.status}>
-              {currentTest?.status}{" "}
-              <div
-                className={styles.statusColor}
-                style={{ backgroundColor: getStatusColor(currentTest?.status) }}
-              ></div>{" "}
-            </div>
+    <div className={styles.container}>
+      <Navigate path={"/test"}>Back To Tests</Navigate>
+      <div className={styles.content}>
+        <div className={styles.top}>
+          <h2>
+            {currentTest?.name} ({currentTest?.exam?.fullName})
+          </h2>
+          <div className={styles.status}>
+            {currentTest?.status}{" "}
+            <div
+              className={styles.statusColor}
+              style={{ backgroundColor: getStatusColor(currentTest?.status) }}
+            ></div>{" "}
           </div>
-
-          <div className={styles.basicInfo}>
-            <h3 className={styles.marksObtained}>
-              Marks Obtained :{" "}
-              <span className={styles.boldLarge}>{23 * 3 * 4}/360</span>
-            </h3>
-            <h3 className={styles.totalAttempted}>
-              Attempted : <span className={styles.boldLarge}>{23 * 3}</span>{" "}
-            </h3>
-          </div>
-          <div className={styles.cards}>
-            <SubjectCard />
-            <SubjectCard />
-            <SubjectCard />
-          </div>
-          <Button
-            onClick={() => navigate("/test/result/detailed-analysis/" + testId)}
-            color="success"
-          >
-            View Detailed Analysis
-          </Button>
         </div>
+
+        <div className={styles.basicInfo}>
+          <h3 className={styles.marksObtained}>
+            Marks Obtained :{" "}
+            <span className={styles.boldLarge}>
+              {tempResult?.subjects.reduce((acc: number, item: any) => {
+                acc += item.marksObtained;
+                return acc;
+              }, 0)}
+              /
+              {tempResult?.subjects.reduce((acc: number, item: any) => {
+                acc += item.maxMarks;
+                return acc;
+              }, 0)}
+            </span>
+          </h3>
+          <h3 className={styles.totalAttempted}>
+            Attempted :{" "}
+            <span className={styles.boldLarge}>
+              {tempResult?.subjects.reduce((acc: number, item: any) => {
+                acc += item.attempted;
+                return acc;
+              }, 0)}
+            </span>{" "}
+          </h3>
+        </div>
+        <div className={styles.cards}>
+          {tempResult?.subjects?.map((item: any, index: number) => (
+            <SubjectCard color={colors[index % 4]} {...item} />
+          ))}
+        </div>
+        <Button
+          onClick={() => navigate("/test/result/detailed-analysis/" + testId)}
+          color="primary"
+        >
+          View Detailed Analysis
+        </Button>
       </div>
       <Sidebar title="Recent Activity">
         {Array(10)
@@ -101,33 +151,81 @@ const Results = () => {
   );
 };
 
-interface ISubjectCard {}
+interface ISubjectCard {
+  color: string;
+  name: string;
+  marksObtained: number;
+  maxMarks: number;
+  attempted: number;
+  correct: number;
+  maxTime: string;
+  totalQuestions: number;
+}
 
-const SubjectCard = (props: ISubjectCard) => {
+const SubjectCard: React.FC<ISubjectCard> = ({
+  color,
+  name,
+  marksObtained,
+  maxMarks,
+  attempted,
+  correct,
+  maxTime,
+  totalQuestions,
+}) => {
   return (
     <div className={styles.subjectCard}>
-      <h3 className={styles.subjectName}>Physics</h3>
-      <p>
-        Marks Obtained : <span className={styles.boldSmall}>{23 * 4}</span>
-      </p>
-      <p>
-        Attempted : <span className={styles.boldSmall}>23/30</span>
-      </p>{" "}
+      <h3 style={{ color }} className={styles.subjectName}>
+        {name}
+      </h3>
+      <div className={styles.mid}>
+        <div className={styles.left}>
+          <h2 className={styles.marks}>
+            {marksObtained}/{maxMarks}
+          </h2>
+          <div className={styles.time}>
+            <img src={timer} alt="Time" />
+            <p>{maxTime}</p>
+          </div>
+          <p className={styles.accuracy}>
+            Accuracy:
+            <span className={styles.highlight}>
+              {roundToOne((correct / attempted) * 100)}%
+            </span>
+          </p>
+        </div>
+        <CircularProgress
+          color={color}
+          progress={(marksObtained / maxMarks) * 100}
+        />
+      </div>
       <div className={styles.moreInfo}>
         <p>
-          Correct : <span className={styles.boldSmall}> 23</span>
+          Attempted :<span className={styles.highlight}>{attempted}</span>{" "}
         </p>
         <p>
-          Incorrect : <span className={styles.boldSmall}>0</span>
+          Correct :<span className={styles.highlight}>{correct}</span>{" "}
         </p>
         <p>
-          Accuracy : <span className={styles.boldSmall}>100%</span>
-        </p>
-        <p>
-          Time Elapsed : <span className={styles.boldSmall}>1:00:00</span>
+          Incorrect :
+          <span className={styles.highlight}>{attempted - correct}</span>{" "}
         </p>
       </div>
-      <div className={styles.circularProgress}></div>
+    </div>
+  );
+};
+
+const CircularProgress: React.FC<{ color: string; progress: number }> = ({
+  progress,
+  color,
+}) => {
+  return (
+    <div className={styles.circularProgress}>
+      <MUICircularProgress
+        sx={{ color }}
+        variant="determinate"
+        value={progress}
+      />
+      <p className={styles.progress}>{roundToOne(progress)}%</p>
     </div>
   );
 };

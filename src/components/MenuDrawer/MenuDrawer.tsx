@@ -238,14 +238,14 @@ const MenuDrawer = (props: MenuDrawerProps) => {
         )}
       </section>
       {isCollapsed || <div className={styles.divider}></div>}
-      {isCollapsed || (
+      {/* {isCollapsed || (
         <section className={styles.instituteInfoContainer}>
           <div className={styles.imageContainer}>
             <img src={institutePlaceholder} alt={institutePlaceholder} />
           </div>
           <span>Institute of Engineering {"&"} Technology, Indore</span>
         </section>
-      )}
+      )} */}
       <div className={styles.divider}></div>
       <Profile
         isCollapsed={isCollapsed}
@@ -269,7 +269,7 @@ const Profile = (props: ProfileProps) => {
     <div
       style={
         props.isCollapsed
-          ? { width: "fit-content", flexDirection: "column", marginTop: "auto" }
+          ? { width: "fit-content", flexDirection: "column" }
           : {}
       }
       className={styles.profileContainer}

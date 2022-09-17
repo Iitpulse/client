@@ -26,6 +26,7 @@
     .status {
       @extend .flexRow;
       justify-content: flex-start;
+      width: -moz-fit-content;
       width: fit-content;
     }
     .statusColor {
@@ -35,15 +36,60 @@
       border-radius: 50%;
     }
   }
+  .cards {
+    @extend .flexRow;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 3rem;
+  }
   .subjectCard {
     width: 250px;
-    padding: 1rem;
+    padding: 1rem 2rem;
     background-color: white;
     border-radius: 10px;
     .subjectName {
       color: var(--clr-success);
       font-weight: 600;
       margin-bottom: 2rem;
+    }
+    .mid {
+      @extend .flexRow;
+      h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.6rem;
+      }
+      p {
+        font-size: 0.9rem;
+
+        span {
+          margin-left: 0.4rem;
+          font-weight: 600;
+          color: var(--clr-txt-dark);
+        }
+      }
+      .time {
+        margin-bottom: 0.4rem;
+        @extend .flexRow;
+        width: -moz-fit-content;
+        width: fit-content;
+        align-items: center;
+      }
+    }
+    .moreInfo {
+      margin-top: 2rem;
+      p {
+        font-size: 1rem;
+        margin: 0.8rem 0;
+        @extend .flexRow;
+        justify-content: space-between;
+        span {
+          font-weight: 600;
+          color: var(--clr-txt-dark);
+        }
+      }
     }
   }
   .boldSmall {
@@ -63,4 +109,18 @@
   //   width: 100px;
   //   height: 100px;
   // }
+}
+.circularProgress {
+  position: relative;
+  @extend .flexRow;
+  justify-content: center;
+  width: -moz-fit-content;
+  width: fit-content;
+  > :first-child {
+    position: absolute;
+    transform: rotate(270deg) scale(1.5) !important;
+  }
+  p {
+    font-size: 0.8rem;
+  }
 }
