@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import { splitAndKeepDelimiters } from "../../../utils";
 import "katex/dist/katex.min.css";
 import katex from "katex";
+import CustomTable from "../../../components/CustomTable/CustomTable";
 
 interface MUISelectProps {
   label: string;
@@ -201,10 +202,9 @@ export const QuestionsTable: React.FC<QuestionsTableProps> = ({
   height,
 }) => {
   return (
-    <Table
+    <CustomTable
       columns={cols || QUESTION_COLS_ALL}
       dataSource={dataSource}
-      rowSelection={{ ...rowSelection }}
       scroll={{
         y: height || "50vh",
         x: "100%",

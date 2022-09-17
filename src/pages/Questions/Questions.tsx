@@ -36,6 +36,8 @@ import { asBlob } from "html-docx-js-typescript";
 import { saveAs } from "file-saver";
 import * as Docx from "docx"; // that is a peer dependency
 import { Visibility } from "@mui/icons-material";
+import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
+import { API_QUESTIONS } from "../../utils/api";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -235,10 +237,7 @@ const Questions = () => {
               correctAnswers: getCorrectAnswers(data.en.options),
             };
             console.log({ finalQuestion });
-            const res = await axios.post(
-              `${process.env.REACT_APP_QUESTIONS_API}/mcq/new`,
-              finalQuestion
-            );
+            const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
 
             console.log({ res });
           }
@@ -259,8 +258,8 @@ const Questions = () => {
             };
 
             console.log({ finalQuestion });
-            const res = await axios.post(
-              `${process.env.REACT_APP_QUESTIONS_API}/numerical/new`,
+            const res = await API_QUESTIONS().post(
+              `/numerical/new`,
               finalQuestion
             );
 
@@ -288,12 +287,8 @@ const Questions = () => {
   }, [previewData]);
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_QUESTIONS_API}/mcq/questions`, {
-        headers: {
-          "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",
-        },
-      })
+    API_QUESTIONS()
+      .get(`/mcq/all`)
       .then((res) => {
         console.log({ res });
         setQuestions(res.data);
@@ -562,9 +557,7 @@ const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
               marginLeft: "1rem",
             }}
           >
-            <div
-              dangerouslySetInnerHTML={{ __html: question.en.question }}
-            ></div>
+            <RenderWithLatex quillString={question?.en?.question} />
             <Grid
               container
               style={
@@ -585,9 +578,7 @@ const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
                     }
                   >
                     <span>{String.fromCharCode(97 + j)})</span>
-                    <div
-                      dangerouslySetInnerHTML={{ __html: option.value }}
-                    ></div>
+                    <RenderWithLatex quillString={option?.value} />
                   </div>
                 </Grid>
               ))}

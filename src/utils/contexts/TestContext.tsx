@@ -3,6 +3,7 @@ import { TEST_ACTION, TEST_ACTION_TYPES } from "../actions";
 import { ITest } from "../interfaces";
 import TestReducer from "../reducers/TestReducer";
 import axios from "axios";
+import { API_TESTS } from "../api";
 
 interface ProviderProps {
   children: React.ReactNode;
@@ -29,12 +30,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
 
   useEffect(() => {
     async function fetchTests() {
-      const res = await axios.get(`${process.env.REACT_APP_TESTS_API}/test`, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-access-token": `Bearer ${localStorage.getItem("token")}` || "",
-        },
-      });
+      const res = await API_TESTS().get(`/test`, {});
       console.log({ res });
       if (res.data?.length > 0) {
         console.log({ res });

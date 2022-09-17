@@ -15,6 +15,7 @@ import {
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
 } from "../../../components";
+import { API_USERS } from "../../../utils/api";
 
 const columns = [
   {
@@ -123,10 +124,7 @@ const Manager: React.FC<{
     };
     console.log({ newValues });
 
-    const res = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/teacher/create`,
-      newValues
-    );
+    const res = await API_USERS().post(`/teacher/create`, newValues);
     console.log({ res });
 
     if (res.status === 200) {

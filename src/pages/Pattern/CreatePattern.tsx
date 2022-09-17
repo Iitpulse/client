@@ -23,6 +23,7 @@ import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
 import { message } from "antd";
+import { API_TESTS } from "../../utils/api";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -120,10 +121,7 @@ const CreatePattern = () => {
           usedIn: [],
         };
         console.log({ pattern });
-        const res = await axios.post(
-          `${process.env.REACT_APP_TESTS_API}/pattern/create`,
-          pattern
-        );
+        const res = await API_TESTS().post(`/pattern/create`, pattern);
         message.success("Pattern created successfully");
         console.log({ res });
       }

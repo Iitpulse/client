@@ -1,5 +1,6 @@
 import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
+import { API_USERS } from "../api";
 import { AuthContext } from "../auth/AuthContext";
 import {
   IUserStudent,
@@ -35,7 +36,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
   const { currentUser } = useContext(AuthContext);
 
   async function fetchStudents(cb?: () => void) {
-    const res = await axios.get(`${process.env.REACT_APP_USERS_API}/student/`);
+    const res = await API_USERS().get(`/student/`);
     setStudents(
       res?.data?.map((user: IUserStudent) => ({ ...user, key: user.id }))
     );
@@ -45,7 +46,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
   }
 
   async function fetchTeachers(cb?: () => void) {
-    const res = await axios.get(`${process.env.REACT_APP_USERS_API}/teacher/`);
+    const res = await API_USERS().get(`/teacher/`);
     setTeachers(
       res?.data?.map((user: IUserTeacher) => ({ ...user, key: user.id }))
     );
@@ -56,7 +57,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
   }
 
   async function fetchAdmins(cb?: () => void) {
-    const res = await axios.get(`${process.env.REACT_APP_USERS_API}/admin/`);
+    const res = await API_USERS().get(`/admin/`);
     setManagers(
       res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
     );
@@ -67,7 +68,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
   }
 
   async function fetchOperators(cb?: () => void) {
-    const res = await axios.get(`${process.env.REACT_APP_USERS_API}/operator/`);
+    const res = await API_USERS().get(`/operator/`);
     setOperators(
       res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
     );
@@ -78,7 +79,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
   }
 
   async function fetchManagers(cb?: () => void) {
-    const res = await axios.get(`${process.env.REACT_APP_USERS_API}/manager/`);
+    const res = await API_USERS().get(`/manager/`);
     setManagers(
       res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
     );

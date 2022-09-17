@@ -8,12 +8,12 @@ import {
   ISubSection,
   ITestQuestionObjective,
 } from "../../utils/interfaces";
-import { SAMPLE_TEST } from "../../utils/constants";
+import { QUESTION_COLS_ALL, SAMPLE_TEST } from "../../utils/constants";
 import { StyledMUITextField } from "../Users/components";
 import DateRangePicker from "@mui/lab/DateRangePicker";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
-import { TextField } from "@mui/material";
+import { IconButton, TextField } from "@mui/material";
 import { Box } from "@mui/system";
 import {
   CustomAccordion,
@@ -24,6 +24,11 @@ import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
+import { API_QUESTIONS, API_TESTS } from "../../utils/api";
+import CustomTable from "../../components/CustomTable/CustomTable";
+import { Visibility } from "@mui/icons-material";
+import { PreviewHTMLModal } from "../Questions/components";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
@@ -82,14 +87,11 @@ const CreateTest = () => {
 
   useEffect(() => {
     let fetchData = async (examName: string) => {
-      let response = await axios.get(
-        `${process.env.REACT_APP_TESTS_API}/pattern/pattern/exam`,
-        {
-          params: {
-            exam: examName,
-          },
-        }
-      );
+      let response = await API_TESTS().get(`/pattern/pattern/exam`, {
+        params: {
+          exam: examName,
+        },
+      });
       console.log({ response });
       setPatternOptions(response.data);
     };
@@ -288,6 +290,7 @@ const Section: React.FC<{
               key={subSection.id}
               subSection={subSection}
               handleUpdateSubSection={handleUpdateSubSection}
+              subject={subject}
             />
           ))}
         </div>
@@ -299,12 +302,26 @@ const Section: React.FC<{
 const SubSection: React.FC<{
   subSection: ISubSection;
   handleUpdateSubSection: (subSectionId: string, data: any) => void;
-}> = ({ subSection, handleUpdateSubSection }) => {
+  subject: string;
+}> = ({ subSection, handleUpdateSubSection, subject }) => {
   const [questionModal, setQuestionModal] = useState<boolean>(false);
   const [tempQuestions, setTempQuestions] = useState<any>({});
   // const [questions, setQuestions] = useState([]);
   const { name, description, totalQuestions, toBeAttempted, type, questions } =
     subSection;
+
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [previewData, setPreviewData] = useState<any>({} as any);
+  const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
+
+  useEffect(() => {
+    if (previewData?.type === "single" || previewData?.type === "multiple") {
+      setQuillStringForPreview(
+        previewData?.en?.question +
+          previewData?.en?.options.map((op: any) => op.value).join("<br>")
+      );
+    }
+  }, [previewData]);
 
   useEffect(() => {
     console.log({ questions });
@@ -314,16 +331,13 @@ const SubSection: React.FC<{
   }, [questions]);
 
   async function generateQuestions() {
-    const { data } = await axios.get(
-      `${process.env.REACT_APP_QUESTIONS_API}/mcq/autogenerate`,
-      {
-        params: {
-          type,
-          difficulties: ["easy"],
-          totalQuestions: subSection.totalQuestions,
-        },
-      }
-    );
+    const { data } = await API_QUESTIONS().get(`/mcq/autogenerate`, {
+      params: {
+        type,
+        difficulties: ["easy"],
+        totalQuestions: subSection.totalQuestions,
+      },
+    });
     console.table(data);
     setTempQuestions(data);
   }
@@ -331,6 +345,12 @@ const SubSection: React.FC<{
   function handleClickAutoGenerate() {
     const newQuestions = generateQuestions();
     setTempQuestions(newQuestions);
+  }
+
+  function handleClickSave(rows: Array<any>) {
+    console.log({ rows });
+    handleUpdateSubSection(subSection.id, { questions: rows });
+    setQuestionModal(false);
   }
 
   return (
@@ -369,22 +389,53 @@ const SubSection: React.FC<{
           <Button onClick={handleClickAutoGenerate}>Auto Generate</Button>
         </div>
         <div className={styles.questionsList}>
-          {tempQuestions &&
+          <CustomTable
+            columns={
+              [
+                ...QUESTION_COLS_ALL,
+                {
+                  title: "Preview",
+                  key: "preview",
+                  width: 120,
+                  fixed: "right",
+                  render: (text: any, record: any) => (
+                    <IconButton
+                      onClick={() => {
+                        setPreviewModalVisible(true);
+                        setPreviewData(record);
+                      }}
+                    >
+                      <Visibility />
+                    </IconButton>
+                  ),
+                },
+              ] as Array<any>
+            }
+            dataSource={Object.values(tempQuestions)}
+            selectable={false}
+          />
+          {/* {tempQuestions &&
             Object.values(tempQuestions)?.map((question: any) => (
               <Question key={question.id} {...question} />
-            ))}
+            ))} */}
         </div>
       </div>
       <InsertQuestionModal
         open={questionModal}
         onClose={() => setQuestionModal(false)}
-        questions={questions ? Object.values(questions) : []}
+        // questions={questions ? Object.values(questions) : []}
         totalQuestions={totalQuestions ?? 0}
-        setQuestions={(qs: any) =>
-          handleUpdateSubSection(subSection.id, { questions: qs })
-        }
+        // setQuestions={(qs: any) =>
+        //   handleUpdateSubSection(subSection.id, { questions: qs })
+        // }
         type="Single"
-        subject="Physics"
+        subject={subject}
+        handleClickSave={handleClickSave}
+      />
+      <PreviewHTMLModal
+        isOpen={previewModalVisible}
+        handleClose={() => setPreviewModalVisible(false)}
+        quillString={quillStringForPreview}
       />
     </div>
   );
@@ -393,10 +444,7 @@ const SubSection: React.FC<{
 const Question: React.FC<ITestQuestionObjective> = ({ en }) => {
   return (
     <div className={styles.questionContainer}>
-      <div
-        dangerouslySetInnerHTML={{ __html: en.question }}
-        className={styles.question}
-      ></div>
+      <RenderWithLatex quillString={en?.question} />
     </div>
   );
 };

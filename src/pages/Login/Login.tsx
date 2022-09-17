@@ -7,6 +7,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import logo from "../../assets/images/logo.svg";
 import { LinearProgress, TextField } from "@mui/material";
+import { API_USERS } from "../../utils/api";
 
 const Login = () => {
   const { setCurrentUser } = useContext(AuthContext);
@@ -22,13 +23,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_USERS_API}/auth/login/`,
-        {
-          email,
-          password,
-        }
-      );
+      const response = await API_USERS().post(`/auth/login/`, {
+        email,
+        password,
+      });
 
       console.log({ decoded: decodeToken(response.data.token), response });
 

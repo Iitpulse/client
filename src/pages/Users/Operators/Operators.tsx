@@ -14,6 +14,7 @@ import {
 } from "../../../components";
 import AddUserModal from "../components/AddUserModal";
 import { AuthContext } from "../../../utils/auth/AuthContext";
+import { API_USERS } from "../../../utils/api";
 
 const columns = [
   {
@@ -122,10 +123,7 @@ const Operator: React.FC<{
     };
     console.log({ newValues });
 
-    const res = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/teacher/create`,
-      newValues
-    );
+    const res = await API_USERS().post(`/teacher/create`, newValues);
     console.log({ res });
 
     if (res.status === 200) {

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
+import { API_USERS } from "../api";
 import { AuthContext } from "../auth/AuthContext";
 import { APIS, PERMISSIONS } from "../constants";
 
@@ -181,9 +182,7 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     async function getRoles() {
-      const response = await axios.get(
-        `${process.env.REACT_APP_USERS_API}/roles/all`
-      );
+      const response = await API_USERS().get(`/roles/all`);
       setAllRoles(response.data);
       let perms: any = {};
       let hPerms: any = {};

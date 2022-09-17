@@ -20,6 +20,7 @@ import {
   MUISimpleAutocomplete,
 } from "../../../components";
 import { FilterConfirmProps } from "antd/lib/table/interface";
+import { API_USERS } from "../../../utils/api";
 
 const Admins: React.FC<{
   activeTab: number;
@@ -226,10 +227,7 @@ const Admin: React.FC<{ admin: UserProps; handleCloseModal: () => void }> = (
     };
     console.log({ newValues });
 
-    const res = await axios.post(
-      `${process.env.REACT_APP_USERS_API}/teacher/create`,
-      newValues
-    );
+    const res = await API_USERS().post(`/teacher/create`, newValues);
     console.log({ res });
 
     if (res.status === 200) {
