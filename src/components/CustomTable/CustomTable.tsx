@@ -165,7 +165,7 @@ const CustomTable: React.FC<Props> = ({
       rowSelection={rowSelection}
       scroll={
         scroll || {
-          y: "50vh",
+          y: "40vh",
           x: "100vw",
         }
       }

@@ -340,7 +340,7 @@ const Questions = () => {
                   ),
                 },
               ]}
-              height="70vh"
+              height="60vh"
             />
           </div>
           {/* <hr /> */}
