@@ -214,7 +214,12 @@ const CreateQuestion = () => {
                 correctAnswers: getCorrectAnswers(data.en.options),
               };
               console.log({ finalQuestion });
-              const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
+              const fetchQuestion = async () => {
+                return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
+              };
+              const promises = Array(50).fill(fetchQuestion());
+              const res = await Promise.all(promises);
+              // const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
 
               message.success("Question created successfully");
 
