@@ -1,6 +1,12 @@
 import styles from "./DetailedAnalysis.module.scss";
 import { useParams } from "react-router";
-import { Button, Sidebar, NotificationCard, Navigate } from "../../components/";
+import {
+  Button,
+  Sidebar,
+  NotificationCard,
+  Navigate,
+  Modal,
+} from "../../components/";
 import { useEffect, useState } from "react";
 import { Tab, Tabs, Menu, MenuItem, IconButton } from "@mui/material";
 import calendar from "../../assets/icons/calendar.svg";
@@ -11,47 +17,53 @@ import greenCrown from "../../assets/icons/greenCrown.svg";
 import kebabMenu from "../../assets/icons/kebabMenu.svg";
 import clsx from "clsx";
 import { style } from "@mui/system";
+import { result } from "../../utils/";
 
-const results = [
-  {
-    id: 1,
-    testId: 1,
-    name: "Sample Test",
-    exam: { fullName: "JEE MAINS" },
-    createdAt: "22/01/2032",
-    status: "Ongoing",
-    type: "Part Syllabus",
-    duration: 180,
-    scheduledFor: [
-      "11 Jan 9:00 AM - 12:00 PM",
-      "13 Jan 10:00 AM - 1:00 PM",
-      "13 Jan 2:00 PM - 5:00 PM",
-    ],
-    maxMarks: 360,
-    highestMarks: 233,
-    totalQuestions: 90,
-    totalStudentAppeared: 393,
-    averageMarks: 148.2,
-    averagePercentageAccuracy: 56.8,
-    languages: [
-      { id: "abc123", name: "English" },
-      { id: "abc456", name: "Hindi" },
-    ],
-  },
-];
+// const results = [
+//   {
+//     id: 1,
+//     testId: 1,
+//     name: "Sample Test",
+//     exam: { fullName: "JEE MAINS" },
+//     createdAt: "22/01/2032",
+//     status: "Ongoing",
+//     type: "Part Syllabus",
+//     duration: 180,
+//     scheduledFor: [
+//       "11 Jan 9:00 AM - 12:00 PM",
+//       "13 Jan 10:00 AM - 1:00 PM",
+//       "13 Jan 2:00 PM - 5:00 PM",
+//     ],
+//     maxMarks: 360,
+//     highestMarks: 233,
+//     totalQuestions: 90,
+//     totalStudentAppeared: 393,
+//     averageMarks: 148.2,
+//     averagePercentageAccuracy: 56.8,
+//     languages: [
+//       { id: "abc123", name: "English" },
+//       { id: "abc456", name: "Hindi" },
+//     ],
+//   },
+// ];
+function roundOffToOneDecimal(num: number) {
+  return Math.round(num * 10) / 10;
+}
 
 const DetailedAnalysis = () => {
   const { testId } = useParams();
   const [tab, setTab] = useState(0);
+  const [viewSolQuestionId, setViewSolQuestionId] = useState("");
+  const [isViewSolModalOpen, setIsViewSolModalOpen] = useState(false);
 
   const [currentResult, setCurrentResult] = useState<any>({});
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
-  function getResultInformation(testId: string | undefined) {
-    const [test] = results.filter((item) => item.id.toString() === testId);
 
-    setCurrentResult(test);
+  function getCurrentResult() {
+    // const result = results.find((result) => result.id === parseInt(testId));
+    setCurrentResult(result);
   }
 
   function getStatusColor(status: string) {
@@ -88,8 +100,14 @@ const DetailedAnalysis = () => {
   }
 
   useEffect(() => {
-    getResultInformation(testId);
-  }, [testId]);
+    viewSolQuestionId
+      ? setIsViewSolModalOpen(true)
+      : setIsViewSolModalOpen(false);
+  }, [viewSolQuestionId]);
+
+  useEffect(() => {
+    getCurrentResult();
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -164,17 +182,57 @@ const DetailedAnalysis = () => {
         </div>
         <div className={styles.sectionWiseAnalysis}>
           <Tabs value={tab} onChange={handleChangeTab}>
-            <Tab label="Physics" />
+            {currentResult?.sections?.map((item: any, index: number) => (
+              <Tab label={item?.name} key={index} />
+            ))}
+            {/* <Tab label="Physics" />
             <Tab label="Chemistry" />
-            <Tab label="Mathematics" />
+            <Tab label="Mathematics" /> */}
           </Tabs>
-          <TabPanel value={tab} index={0}>
+          {currentResult?.sections?.map((section: any, index: number) => (
+            <TabPanel value={tab} index={index} key={index}>
+              {section?.questions?.map(
+                (question: any, questionIndex: number) => (
+                  <Question
+                    {...question}
+                    attemptedBy={roundOffToOneDecimal(
+                      (question?.totalStudentAttempted /
+                        section?.totalStudentAppeared) *
+                        100
+                    )}
+                    setIsViewSolModalOpen={setIsViewSolModalOpen}
+                    setViewSolQuestionId={setViewSolQuestionId}
+                    key={questionIndex}
+                    count={questionIndex + 1}
+                  />
+                )
+              )}
+            </TabPanel>
+          ))}
+          {/* <TabPanel value={tab} index={0}>
             <div className={styles.questions}>
-              <Question />
+              <Question
+                description={
+                  "Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque quiaccusamus pariatur fugit quod reprehenderit ut non recusandae reiciendis, doloremque dolor alias quis sunt, deserunt accusantium praesentium? Fuga minus ipsa amet obcaecati nesciunt qui. Nulla libero quibusdam itaque iure exercitationem."
+                }
+                count={1}
+                options={[]}
+              />
             </div>
-          </TabPanel>
+          </TabPanel> */}
         </div>
       </div>
+
+      <Modal
+        isOpen={isViewSolModalOpen}
+        title="Solution"
+        onClose={() => {
+          setIsViewSolModalOpen(false);
+          setViewSolQuestionId("");
+        }}
+      >
+        Hello{viewSolQuestionId}
+      </Modal>
       <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
@@ -234,98 +292,152 @@ interface OptionProp {
   selectedBy: 249;
 }
 interface QuestionProps {
-  // id:string,
-  // description:string,
-  // correctAnswer:string,
-  // solution?:string ,
-  // options:OptionProp[]
+  id: string;
+  count: number;
+  description: string;
+  correctOptionIndex: number;
+  solution?: any;
+  options: OptionProp[];
+  setViewSolQuestionId: (value: string) => void;
+  selectedOptionIndex: number;
+  attemptedBy?: number;
+  quickestResponse?: number;
+  averageTimeTaken?: number;
+  timeTaken?: number;
+  totalStudentAttempted?: number;
 }
 const Question = (props: QuestionProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const {
+    id,
+    count,
+    description,
+    options,
+    correctOptionIndex,
+    solution,
+    setViewSolQuestionId,
+    selectedOptionIndex,
+    attemptedBy,
+    quickestResponse,
+    averageTimeTaken,
+    timeTaken,
+    totalStudentAttempted,
+  } = props;
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
     setAnchorEl(null);
   };
-  return (
-    <div className={styles.question}>
-      <div className={styles.left}>
-        <h5>
-          1.) Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque qui
-          accusamus pariatur fugit quod reprehenderit ut non recusandae
-          reiciendis, doloremque dolor alias quis sunt, deserunt accusantium
-          praesentium? Fuga minus ipsa amet obcaecati nesciunt qui. Nulla libero
-          quibusdam itaque iure exercitationem.
-        </h5>
-        <img src="" alt="Some Question Img" />
-        <div className={styles.options}>
-          <p>A. Option A</p>
-          <p>B. Option B</p>
-          <p>C. Option C</p>
-          <p>D. Option D</p>
-        </div>
-      </div>
-      <div className={styles.right}>
-        <div className={styles.header}>
-          <Button color="success">View Full Solution</Button>
-          <IconButton
-            id="basic-button"
-            aria-controls={open ? "basic-menu" : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? "true" : undefined}
-            onClick={handleClick}
-          >
-            <img src={kebabMenu} alt="Kebab Menu" />
-          </IconButton>
-        </div>
 
-        <Menu
-          id="basic-menu"
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          MenuListProps={{
-            "aria-labelledby": "basic-button",
-          }}
-        >
-          <MenuItem onClick={handleClose}>Report a Problem </MenuItem>
-        </Menu>
-        <div className={styles.moreInfo}>
-          <div className={styles.left}>
-            <p>Time Taken : 130s</p>
-            <p>Average Time Taken : 150s</p>
-          </div>
-          <div className={styles.right}>
-            <p>Quickest Response : 10s</p>
-            <p>Attempted By : 65.3%</p>
+  const handleViewSolution = () => {
+    setViewSolQuestionId(id);
+    handleClose();
+  };
+
+  function getOptionStyles(index: number) {
+    if (selectedOptionIndex === index && correctOptionIndex === index) {
+      return clsx(styles.correct, styles.selected, styles.option);
+    } else if (selectedOptionIndex === index) {
+      return clsx(styles.selected, styles.option);
+    } else if (correctOptionIndex === index) {
+      return clsx(styles.correct, styles.option);
+    } else {
+      return clsx(styles.option);
+    }
+  }
+  function getWidthBarStyles(index: number) {
+    if (selectedOptionIndex === index && correctOptionIndex === index) {
+      return clsx(styles.correct, styles.selected, styles.widthBar);
+    } else if (selectedOptionIndex === index) {
+      return clsx(styles.selected, styles.widthBar);
+    } else if (correctOptionIndex === index) {
+      return clsx(styles.correct, styles.widthBar);
+    } else {
+      return clsx(styles.widthBar);
+    }
+  }
+  return (
+    <>
+      <div className={styles.question}>
+        <div className={styles.left}>
+          <h5>
+            {count}.){description}
+          </h5>
+          <div className={styles.options}>
+            {options.map((item: any, index: number) => (
+              <p className={getOptionStyles(index)}>
+                <span>{["A", "B", "C", "D"][index]}.)</span>
+                {item.description}
+              </p>
+            ))}
           </div>
         </div>
-        <div className={styles.optionPercentageWrapper}>
-          <div className={styles.optionPercentageContainer}>
-            <h5>A</h5>
-            <div className={styles.optionPercentage}> </div>
-            <p>55%</p>
+        <div className={styles.right}>
+          <div className={styles.header}>
+            <Button onClick={handleViewSolution} color="success">
+              View Full Solution
+            </Button>
+            <IconButton
+              id="basic-button"
+              aria-controls={open ? "basic-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={open ? "true" : undefined}
+              onClick={handleClick}
+            >
+              <img src={kebabMenu} alt="Kebab Menu" />
+            </IconButton>
           </div>
-          <div className={styles.optionPercentageContainer}>
-            <h5>B</h5>
-            <div className={styles.optionPercentage}> </div>
-            <p>100%</p>
+
+          <Menu
+            id="basic-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            MenuListProps={{
+              "aria-labelledby": "basic-button",
+            }}
+          >
+            <MenuItem onClick={handleClose}>Report a Problem </MenuItem>
+          </Menu>
+          <div className={styles.moreInfo}>
+            <div className={styles.leftMI}>
+              <p>Time Taken : {timeTaken}s</p>
+              <p>Average Time Taken : {averageTimeTaken}s</p>
+            </div>
+            <div className={styles.rightMI}>
+              <p>Quickest Response : {quickestResponse}s</p>
+              <p>Attempted By : {attemptedBy}%</p>
+            </div>
           </div>
-          <div className={styles.optionPercentageContainer}>
-            <h5>C</h5>
-            <div className={styles.optionPercentage}> </div>
-            <p>20%</p>
-          </div>
-          <div className={styles.optionPercentageContainer}>
-            <h5>D</h5>
-            <div className={styles.optionPercentage}> </div>
-            <p>10%</p>
+          <div className={styles.optionPercentageWrapper}>
+            {options.map((option: any, index: number) => {
+              const selectedBy = totalStudentAttempted
+                ? roundOffToOneDecimal(
+                    (option?.totalStudentSelected / totalStudentAttempted) * 100
+                  )
+                : 0;
+              return (
+                <div className={styles.optionPercentageContainer}>
+                  <h5>{["A", "B", "C", "D"][index]}</h5>
+                  <div className={styles.fullWidth}>
+                    <div
+                      style={{ width: selectedBy + "%" }}
+                      className={getWidthBarStyles(index)}
+                    >
+                      {" "}
+                    </div>
+                  </div>
+                  <p>{selectedBy}%</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
-    </div>
+      <div className={styles.horizontalLine}></div>
+    </>
   );
 };
 export default DetailedAnalysis;
