@@ -20,6 +20,7 @@ interface ICreatableSelect {
   multiple?: boolean;
   width?: string;
   disabled?: boolean;
+  chapters?: Array<any>;
 }
 
 interface IOptionType {
@@ -37,10 +38,12 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   id,
   width,
   disabled,
+  chapters,
   onAddModalSubmit,
   ...remaining
 }) => {
   const [open, toggleOpen] = React.useState(false);
+  const [chapter, setChapter] = React.useState<IOptionType>();
 
   const handleClose = () => {
     setDialogValue({
@@ -58,7 +61,14 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Pass the actual value later
-    onAddModalSubmit(dialogValue.name);
+    onAddModalSubmit(
+      chapters?.length
+        ? {
+            chapter: chapter?.name,
+            topic: dialogValue.name,
+          }
+        : dialogValue.name
+    );
     if (multiple) {
       setValue((prev: any) => [
         ...prev,
@@ -72,16 +82,18 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
     }
     handleClose();
   };
+
   React.useEffect(() => {
     console.log(value);
   }, [value]);
+
   return (
     <React.Fragment>
       <Autocomplete
         multiple={multiple}
         value={value}
         isOptionEqualToValue={(option: IOptionType, value: IOptionType) =>
-          option.value === value.value
+          option.name === value.name
         }
         disabled={disabled || false}
         onChange={
@@ -147,7 +159,6 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
         options={options}
         getOptionLabel={(option) => {
           // e.g value selected with enter, right from the input
-          console.log({ option });
           if (typeof option === "string") {
             return option;
           }
@@ -167,11 +178,11 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
       />
       <Dialog open={open} onClose={handleClose}>
         <form onSubmit={handleSubmit}>
-          <DialogTitle>Add a new film</DialogTitle>
+          <DialogTitle>Add a new {label?.replace("(s)", "")}</DialogTitle>
           <DialogContent>
-            <DialogContentText>
+            {/* <DialogContentText>
               Did you miss any film in our list? Please, add it!
-            </DialogContentText>
+            </DialogContentText> */}
             <TextField
               autoFocus
               margin="dense"
@@ -201,6 +212,49 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
               type="text"
               variant="standard"
             />
+            {chapters?.length && (
+              <div style={{ marginTop: "1rem", width: "100%" }}>
+                <Autocomplete
+                  value={chapter}
+                  isOptionEqualToValue={(
+                    option: IOptionType,
+                    value: IOptionType
+                  ) => option.name === value.name}
+                  disabled={disabled || false}
+                  onChange={(event, newValue: any) => {
+                    setChapter(newValue);
+                  }}
+                  filterOptions={(options, params) => {
+                    const filtered = filter(options, params);
+                    return filtered;
+                  }}
+                  id={id}
+                  options={chapters}
+                  getOptionLabel={(option) => {
+                    // e.g value selected with enter, right from the input
+                    console.log({ option });
+                    if (typeof option === "string") {
+                      return option;
+                    }
+                    if (option.inputValue) {
+                      return option.inputValue;
+                    }
+                    return option.name;
+                  }}
+                  selectOnFocus
+                  clearOnBlur
+                  handleHomeEndKeys
+                  filterSelectedOptions
+                  renderOption={(props, option) => (
+                    <li {...props}>{option.name}</li>
+                  )}
+                  sx={{ width: width || "100%" }}
+                  renderInput={(params) => (
+                    <TextField {...params} label={"Chapter"} />
+                  )}
+                />
+              </div>
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>

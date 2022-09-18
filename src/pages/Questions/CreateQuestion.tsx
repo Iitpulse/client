@@ -21,7 +21,7 @@ import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
 import { message } from "antd";
-import { API_QUESTIONS } from "../../utils/api";
+import { API_QUESTIONS, API_TESTS } from "../../utils/api";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -49,7 +49,7 @@ export const chapterOptions = [
 ];
 // export const subjectOptions = ["Physics", "Mathematics", "Chemistry"];
 export const difficultyOptions = ["Easy", "Medium", "Hard"];
-export const examOptions = ["JEE MAINS", "JEE ADVANCED", "NEET UG"];
+// export const examOptions = ["JEE MAINS", "JEE ADVANCED", "NEET UG"];
 export const sourceOptions = ["Bansal Classes", "Allen", "Catalyser"];
 
 interface IOptionType {
@@ -63,7 +63,7 @@ const CreateQuestion = () => {
   const [exams, setExams] = useState<Array<IOptionType>>([]);
   const [type, setType] = useState<string>("objective");
 
-  const [subjectOptions, setSubjectOptions] = useState([]);
+  const [subjectOptions, setSubjectOptions] = useState<any>([]);
   const [subject, setSubject] = useState<any>({ name: "", value: "" });
   const [chapters, setChapters] = useState<Array<IOptionType>>([]);
   const [topics, setTopics] = useState<Array<IOptionType>>([]);
@@ -76,8 +76,9 @@ const CreateQuestion = () => {
     userType: "operator",
     id: "",
   });
-  const [chapterOptions, setChapterOptions] = useState([]);
-  const [topicOptions, setTopicOptions] = useState([]);
+  const [chapterOptions, setChapterOptions] = useState<any>([]);
+  const [topicOptions, setTopicOptions] = useState<any>([]);
+  const [examOptions, setExamOptions] = useState<any>([]);
   const [data, setData] = useState<any>({});
 
   const { currentUser } = useContext(AuthContext);
@@ -90,57 +91,82 @@ const CreateQuestion = () => {
           console.log({ sub: res.data });
           setSubjectOptions(res.data);
         });
+
+      API_TESTS()
+        .get("/exam/all")
+        .then((res) => {
+          setExamOptions(res.data);
+        });
     }
   }, [currentUser]);
 
   useEffect(() => {
-    if (subject?.name?.length) {
-      console.log(subject);
-      API_QUESTIONS()
-        .get(`/subject/chapter/`, {
-          params: {
-            subject: subject.name,
-          },
-        })
-        .then((res) => {
-          console.log({ res });
-          if (res.data) {
-            setChapterOptions(res.data);
-            setTopicOptions(res.data[0].topics);
-          } else {
-            setChapterOptions([]);
-            setTopicOptions([]);
-          }
-        })
-        .catch((err) => {
-          setChapterOptions([]);
-          setTopicOptions([]);
-        });
+    setTopics([]);
+    setChapters([]);
+  }, [subject]);
+
+  useEffect(() => {
+    if (chapters?.length) {
+      let tempTopics: Array<IOptionType> = [];
+      chapters.forEach((chapter: any) => {
+        tempTopics = [...tempTopics, ...chapter.topics];
+      });
+      setTopicOptions(tempTopics);
+    } else {
+      setTopics([]);
     }
-  }, [currentUser, subject]);
+  }, [chapters]);
 
   useEffect(() => {
     if (currentUser)
       setUploadedBy({ userType: currentUser?.userType, id: currentUser?.id });
   }, [currentUser]);
 
-  async function handleAddSubject() {
+  async function handleAddSubject(sub: any) {
+    console.log({ sub });
     const res = await API_QUESTIONS().post("/subject/create", {
-      subject: subject.name,
+      subject: sub,
       chapters: [],
     });
+    setSubjectOptions([...subjectOptions, res.data?.data]);
+  }
+  async function handleAddExam(exam: any) {
+    const res = await API_TESTS().post("/exam/create", {
+      exam,
+    });
+    setExamOptions([...examOptions, res.data?.data]);
     console.log({ res });
   }
-  async function handleAddExam() {}
+
   async function handleAddChapter(chapter: any) {
+    console.log({ chapter, subject });
     const res = await API_QUESTIONS().post("/subject/create-chapter", {
-      subject: subject.name,
-      chapter: chapter.name,
+      subjectId: subject._id,
+      chapter: {
+        name: chapter,
+        topics: [],
+      },
     });
     console.log({ res });
+    setChapterOptions([
+      ...chapterOptions,
+      {
+        name: chapter,
+        topics: [],
+      },
+    ]);
     // setChapters(vals);
   }
-  async function handleAddTopic() {}
+  async function handleAddTopic(topic: any) {
+    console.log({ subject, chapters, topic });
+    const res = await API_QUESTIONS().post("/subject/create-topic", {
+      subjectId: subject._id,
+      chapter: topic.chapter,
+      topic: topic.topic,
+    });
+    setTopicOptions([...topicOptions, topic.topic]);
+    console.log({ res });
+  }
   async function handleAddSource() {}
 
   async function handleSubmitQuestion() {
@@ -264,9 +290,9 @@ const CreateQuestion = () => {
           <CreatableSelect
             multiple
             onAddModalSubmit={handleAddExam}
-            options={examOptions.map((exam) => ({
-              name: exam,
-              value: exam,
+            options={examOptions.map((exam: any) => ({
+              name: exam.name,
+              value: exam.name,
             }))}
             setValue={setExams}
             value={exams}
@@ -276,7 +302,7 @@ const CreateQuestion = () => {
           <CreatableSelect
             multiple
             onAddModalSubmit={handleAddChapter}
-            options={chapterOptions}
+            options={subject?.chapters}
             setValue={setChapters}
             value={chapters}
             label={"Chapter(s)"}
@@ -301,12 +327,14 @@ const CreateQuestion = () => {
             multiple
             onAddModalSubmit={handleAddTopic}
             options={
-              topicOptions.map((topic) => ({
+              topicOptions.map((topic: any) => ({
                 name: topic,
                 value: topic,
               })) || []
             }
+            chapters={subject?.chapters}
             setValue={setTopics}
+            disabled={Boolean(!chapters?.length)}
             value={topics}
             label={"Topic(s)"}
             id="Topics"
