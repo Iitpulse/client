@@ -57,28 +57,28 @@ const CreatePattern = () => {
   // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
 
   const { currentUser } = useContext(AuthContext);
-  const { exams } = useContext(TestContext);
-  const [subjects, setSubjects] = useState([]);
+  const { exams, subjects } = useContext(TestContext);
+  // const [subjects, setSubjects] = useState([]);
 
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
-  useEffect(() => {
-    if (exam) {
-      axios
-        .get(`${API_QUESTIONS}/subject/chapter`, {
-          params: {
-            subject: "Pises ka to bol rahe ho n",
-          },
-        })
-        .then((res) => {
-          setSubjects(res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  }, [exam]);
+  // useEffect(() => {
+  //   if (exam) {
+  //     axios
+  //       .get(`${API_QUESTIONS}/subject/chapter`, {
+  //         params: {
+  //           subject: "Pises ka to bol rahe ho n",
+  //         },
+  //       })
+  //       .then((res) => {
+  //         setSubjects(res.data);
+  //       })
+  //       .catch((err) => {
+  //         console.log(err);
+  //       });
+  //   }
+  // }, [exam]);
 
   const [sections, setSections] = useState<Array<ISection>>([]);
 
@@ -169,6 +169,7 @@ const CreatePattern = () => {
                   setSection={handleChangeSection}
                   handleDeleteSection={handleDeleteSection}
                   index={i}
+                  subjects={subjects}
                 />
               ))}
             </div>
@@ -213,7 +214,8 @@ const Section: React.FC<{
   setSection: (id: string, data: any) => void;
   handleDeleteSection: (id: string) => void;
   index: number;
-}> = ({ section, setSection, handleDeleteSection, index }) => {
+  subjects: Array<any>;
+}> = ({ section, setSection, handleDeleteSection, index, subjects }) => {
   function handleChangeSubSection(id: string, data: any) {
     setSection(section.id, {
       ...section,
@@ -242,12 +244,12 @@ const Section: React.FC<{
     });
   }
 
-  const subjects = [
-    { value: "physics", label: "Physics" },
-    { value: "chemistry", label: "Chemistry" },
-    { value: "maths", label: "Maths" },
-    { value: "Biology", label: "Biology" },
-  ];
+  // const subjects = [
+  //   { value: "physics", label: "Physics" },
+  //   { value: "chemistry", label: "Chemistry" },
+  //   { value: "maths", label: "Maths" },
+  //   { value: "Biology", label: "Biology" },
+  // ];
 
   return (
     <CustomAccordion className={styles.section} defaultExpanded>
@@ -282,7 +284,10 @@ const Section: React.FC<{
             onChange={(e: any) => {
               setSection(section.id, { subject: e.target.value });
             }}
-            options={subjects}
+            options={subjects?.map((subject) => ({
+              label: subject.name,
+              value: subject.name,
+            }))}
           />
           <CustomInputSection
             value={section.totalQuestions}

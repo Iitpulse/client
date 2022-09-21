@@ -266,6 +266,8 @@ const Section: React.FC<{
 }> = ({ section, handleUpdateSection }) => {
   const { name, subject, totalQuestions, toBeAttempted, subSections } = section;
 
+  console.log({ subject });
+
   function handleUpdateSubSection(subSectionId: string, data: any) {
     handleUpdateSection(section.id, {
       subSections: section.subSections.map((subSection) => {
@@ -350,6 +352,7 @@ const SubSection: React.FC<{
       params: {
         type,
         difficulties: ["easy", "medium"],
+        subject,
         totalQuestions: subSection.totalQuestions,
       },
     });

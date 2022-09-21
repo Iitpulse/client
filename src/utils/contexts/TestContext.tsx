@@ -9,7 +9,7 @@ import { TEST_ACTION, TEST_ACTION_TYPES } from "../actions";
 import { ITest } from "../interfaces";
 import TestReducer from "../reducers/TestReducer";
 import axios from "axios";
-import { API_TESTS } from "../api";
+import { API_QUESTIONS, API_TESTS } from "../api";
 import { AuthContext } from "../auth/AuthContext";
 
 interface ProviderProps {
@@ -28,15 +28,18 @@ export const TestContext = createContext<{
   state: ITestContext;
   dispatch: React.Dispatch<TEST_ACTION>;
   exams: Array<any>;
+  subjects: Array<any>;
 }>({
   state: defaultTestContext,
   dispatch: () => {},
   exams: [],
+  subjects: [],
 });
 
 const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(TestReducer, defaultTestContext);
   const [exams, setExams] = useState<any>([]);
+  const [subjects, setsubjects] = useState<any>([]);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -62,12 +65,21 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
         setExams(res.data);
       }
     }
+    async function fetchSubjects() {
+      const res = await API_QUESTIONS().get(`/subject/subjects`);
+      console.log({ res });
+      if (res.data?.length > 0) {
+        console.log({ res });
+        setsubjects(res.data);
+      }
+    }
     fetchTests();
     fetchExams();
+    fetchSubjects();
   }, [currentUser]);
 
   return (
-    <TestContext.Provider value={{ state, dispatch, exams }}>
+    <TestContext.Provider value={{ state, dispatch, exams, subjects }}>
       {children}
     </TestContext.Provider>
   );

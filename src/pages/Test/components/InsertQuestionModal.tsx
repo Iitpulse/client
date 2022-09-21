@@ -96,7 +96,7 @@ const InsertQuestionModal: React.FC<Props> = ({
           setChaptersOptions(
             res.data?.map((chapter: any) => ({
               ...chapter,
-              value: chapter.name?.toLowerCase(),
+              value: chapter.name,
             }))
           );
         });
