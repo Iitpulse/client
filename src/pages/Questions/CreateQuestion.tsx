@@ -50,7 +50,7 @@ export const chapterOptions = [
 // export const subjectOptions = ["Physics", "Mathematics", "Chemistry"];
 export const difficultyOptions = ["Easy", "Medium", "Hard"];
 // export const examOptions = ["JEE MAINS", "JEE ADVANCED", "NEET UG"];
-export const sourceOptions = ["Bansal Classes", "Allen", "Catalyser"];
+// export const sourceOptions = ["Bansal Classes", "Allen", "Catalyser"];
 
 interface IOptionType {
   name: string;
@@ -79,6 +79,7 @@ const CreateQuestion = () => {
   const [chapterOptions, setChapterOptions] = useState<any>([]);
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [examOptions, setExamOptions] = useState<any>([]);
+  const [sourceOptions, setSourceOptions] = useState<any>([]);
   const [data, setData] = useState<any>({});
 
   const { currentUser } = useContext(AuthContext);
@@ -97,6 +98,12 @@ const CreateQuestion = () => {
         .then((res) => {
           setExamOptions(res.data);
         });
+
+      API_QUESTIONS()
+        .get(`/source/all`)
+        .then((res) => {
+          setSourceOptions(res.data);
+        });
     }
   }, [currentUser]);
 
@@ -109,7 +116,9 @@ const CreateQuestion = () => {
     if (chapters?.length) {
       let tempTopics: Array<IOptionType> = [];
       chapters.forEach((chapter: any) => {
-        tempTopics = [...tempTopics, ...chapter.topics];
+        if (chapter.topics) {
+          tempTopics = [...tempTopics, ...chapter.topics];
+        }
       });
       setTopicOptions(tempTopics);
     } else {
@@ -134,7 +143,7 @@ const CreateQuestion = () => {
     const res = await API_TESTS().post("/exam/create", {
       exam,
     });
-    setExamOptions([...examOptions, res.data?.data]);
+    setExamOptions([...examOptions, res.data]);
     console.log({ res });
   }
 
@@ -167,7 +176,13 @@ const CreateQuestion = () => {
     setTopicOptions([...topicOptions, topic.topic]);
     console.log({ res });
   }
-  async function handleAddSource() {}
+  async function handleAddSource(source: string) {
+    const res = await API_QUESTIONS().post("/source/create", {
+      source,
+    });
+    setSourceOptions([...sourceOptions, res.data]);
+    console.log({ res });
+  }
 
   async function handleSubmitQuestion() {
     try {
@@ -210,7 +225,9 @@ const CreateQuestion = () => {
               const fetchQuestion = async () => {
                 return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
               };
-              const promises = Array(50).fill(fetchQuestion());
+              const promises = Array(50)
+                .fill(null)
+                .map(() => fetchQuestion());
               const res = await Promise.all(promises);
               // const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
 
@@ -342,9 +359,9 @@ const CreateQuestion = () => {
           <CreatableSelect
             multiple
             onAddModalSubmit={handleAddSource}
-            options={sourceOptions.map((source) => ({
-              name: source,
-              value: source,
+            options={sourceOptions.map((source: any) => ({
+              name: source?.name,
+              value: source?.name,
             }))}
             setValue={setSources}
             value={sources}

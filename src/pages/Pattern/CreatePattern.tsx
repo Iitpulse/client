@@ -1,4 +1,9 @@
-import React, { HTMLInputTypeAttribute, useContext, useState } from "react";
+import React, {
+  HTMLInputTypeAttribute,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import styles from "./Pattern.module.scss";
 import {
   Sidebar,
@@ -23,7 +28,8 @@ import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
 import { message } from "antd";
-import { API_TESTS } from "../../utils/api";
+import { API_QUESTIONS, API_TESTS } from "../../utils/api";
+import { TestContext } from "../../utils/contexts/TestContext";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -51,27 +57,28 @@ const CreatePattern = () => {
   // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
 
   const { currentUser } = useContext(AuthContext);
+  const { exams } = useContext(TestContext);
+  const [subjects, setSubjects] = useState([]);
 
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
-  const examOptions = [
-    {
-      id: "JEE MAINS",
-      name: "JEE Mains",
-      value: "JEE MAINS",
-    },
-    {
-      id: "JEE ADVANCED",
-      name: "JEE Advanced",
-      value: "JEE ADVANCED",
-    },
-    {
-      id: "NEETUG",
-      name: "NEET",
-      value: "NEETUG",
-    },
-  ];
+  useEffect(() => {
+    if (exam) {
+      axios
+        .get(`${API_QUESTIONS}/subject/chapter`, {
+          params: {
+            subject: "Pises ka to bol rahe ho n",
+          },
+        })
+        .then((res) => {
+          setSubjects(res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [exam]);
 
   const [sections, setSections] = useState<Array<ISection>>([]);
 
@@ -144,7 +151,13 @@ const CreatePattern = () => {
               <MUISimpleAutocomplete
                 label="Exam"
                 onChange={setExam}
-                options={examOptions}
+                options={
+                  exams?.map((exam) => ({
+                    name: exam.name,
+                    value: exam.name,
+                    id: exam._id,
+                  })) || []
+                }
                 value={exam}
               />
             </div>

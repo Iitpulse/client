@@ -93,7 +93,18 @@ const Pattern = () => {
     {
       title: "ID",
       dataIndex: "_id",
-      // render: (text: string) => <a>{text}</a>,
+      render: (text: string) => (
+        <span
+          style={{
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            maxWidth: "50px",
+          }}
+        >
+          {text}
+        </span>
+      ),
     },
     {
       title: "Name",

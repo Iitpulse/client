@@ -86,7 +86,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   useEffect(() => {
     if (subject) {
       API_QUESTIONS()
-        .get(`/mcq/chapter/`, {
+        .get(`/subject/chapter/`, {
           params: {
             subject,
           },

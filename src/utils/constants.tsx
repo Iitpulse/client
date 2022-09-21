@@ -267,9 +267,9 @@ export const QUESTION_COLS_ALL = [
     render: (difficulty: string) => (
       <Tag
         color={
-          difficulty === "easy"
+          difficulty?.toLowerCase() === "easy"
             ? "green"
-            : difficulty === "medium"
+            : difficulty?.toLowerCase() === "medium"
             ? "yellow"
             : "red"
         }
@@ -277,6 +277,14 @@ export const QUESTION_COLS_ALL = [
         {difficulty}
       </Tag>
     ),
+  },
+  {
+    title: "Subject",
+    dataIndex: "subject",
+    key: "chapter",
+    searchable: true,
+    // render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
+    width: 150,
   },
   {
     title: "Chapter(s)",

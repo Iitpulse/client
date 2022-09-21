@@ -29,6 +29,8 @@ import { API_QUESTIONS, API_TESTS } from "../../utils/api";
 import CustomTable from "../../components/CustomTable/CustomTable";
 import { Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
+import { message } from "antd";
+import { TestContext } from "../../utils/contexts/TestContext";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
@@ -37,6 +39,7 @@ const CreateTest = () => {
   const [patternOptions, setPatternOptions] = useState([]);
 
   const { currentUser } = useContext(AuthContext);
+  const { exams } = useContext(TestContext);
 
   const examOptions = [
     {
@@ -104,19 +107,24 @@ const CreateTest = () => {
 
   async function handleClickSubmit() {
     if (currentUser) {
+      try {
+        let finalTest = {
+          ...test,
+          createdBy: {
+            id: currentUser.id,
+            userType: currentUser.userType,
+          },
+          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
+        };
+        console.log({ finalTest });
+        let response = await API_TESTS().post(`/test/create`, finalTest);
+        message.success("Test Created Successfully");
+        console.log({ response });
+      } catch (error: any) {
+        message.error("Error: " + error?.response?.data?.message);
+      }
       // const id = ``
-      let finalTest = {
-        ...test,
-        createdBy: {
-          id: currentUser.id,
-          userType: currentUser.userType,
-        },
-        createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString(),
-      };
-      console.log({ finalTest });
-      let response = await API_TESTS().post(`/test/create`, finalTest);
-      console.log({ response });
     }
   }
 
@@ -181,7 +189,11 @@ const CreateTest = () => {
               console.log({ val });
               onChangeInput({ target: { id: "exam", value: val } });
             }}
-            options={examOptions}
+            options={exams?.map((exam) => ({
+              id: exam._id,
+              name: exam.name,
+              value: exam.name,
+            }))}
             value={{ name: test.exam?.name, value: test.exam?.name }}
           />
           <MUISimpleAutocomplete
