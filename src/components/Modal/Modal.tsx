@@ -44,11 +44,9 @@ const Modal: React.FC<ModalProps> = ({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h3>{title}</h3>
-          {hideCloseIcon ? (
-            ""
-          ) : (
-            <IconButton>
-              <img src={closeIcon} alt="close-modal" onClick={onClose} />
+          {!hideCloseIcon && (
+            <IconButton onClick={onClose}>
+              <img src={closeIcon} alt="close-modal" />
             </IconButton>
           )}
         </div>

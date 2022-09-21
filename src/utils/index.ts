@@ -1,5 +1,7 @@
 import { IUserStudent } from "./interfaces";
 
+export { result } from "./data";
+
 export function flattenUserStudents(students: Array<IUserStudent>): Array<any> {
   return students.map((student: IUserStudent) => {
     let newStudent: any = {
