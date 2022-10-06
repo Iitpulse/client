@@ -21,9 +21,6 @@ import PrivateRoute from "./utils/auth/PrivateRoute";
 import PermissionsContextProvider from "./utils/contexts/PermissionsContext";
 import UsersContextProvider from "./utils/contexts/UsersContext";
 import CurrentContextProvider from "./utils/contexts/CurrentContext";
-import { usePermission } from "./utils/contexts/PermissionsContext";
-import { PERMISSIONS } from "./utils/constants";
-import { useEffect } from "react";
 import CreatePattern from "./pages/Pattern/CreatePattern";
 import CreateQuestion from "./pages/Questions/CreateQuestion";
 import "./App.css";
@@ -81,6 +78,15 @@ const App = () => {
                     />
                     <Route
                       path="/pattern/new"
+                      element={
+                        <PrivateRoute
+                          component={CreatePattern}
+                          name="Create Pattern"
+                        />
+                      }
+                    />
+                    <Route
+                      path="/pattern/edit/:patternId"
                       element={
                         <PrivateRoute
                           component={CreatePattern}

@@ -30,6 +30,8 @@ import { Error } from "../";
 import { message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api";
 import { TestContext } from "../../utils/contexts/TestContext";
+import { useParams } from "react-router";
+import { hasPatternPemissions } from "./utils";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -52,9 +54,13 @@ const sampleSubSection = {
 
 const CreatePattern = () => {
   const isReadPermitted = usePermission(PERMISSIONS.PATTERN.READ);
-  // const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
-  // const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
+  const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
+  const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
+  const [currentPattern, setCurrentPattern] = useState({} as IPattern);
   // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
+
+  // Get patternId from router
+  const { patternId } = useParams();
 
   const { currentUser } = useContext(AuthContext);
   const { exams, subjects } = useContext(TestContext);
@@ -63,22 +69,25 @@ const CreatePattern = () => {
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
 
-  // useEffect(() => {
-  //   if (exam) {
-  //     axios
-  //       .get(`${API_QUESTIONS}/subject/chapter`, {
-  //         params: {
-  //           subject: "Pises ka to bol rahe ho n",
-  //         },
-  //       })
-  //       .then((res) => {
-  //         setSubjects(res.data);
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  // }, [exam]);
+  useEffect(() => {
+    async function fetchPattern() {
+      const res = await API_TESTS().get(`/pattern/single`, {
+        params: {
+          id: patternId,
+        },
+      });
+      setCurrentPattern(res.data);
+    }
+    if (patternId) {
+      fetchPattern();
+    }
+  }, [patternId]);
+
+  useEffect(() => {
+    setName(currentPattern.name);
+    setExam(currentPattern.exam);
+    setSections(currentPattern.sections);
+  }, [currentPattern]);
 
   const [sections, setSections] = useState<Array<ISection>>([]);
 
@@ -139,7 +148,14 @@ const CreatePattern = () => {
 
   return (
     <>
-      {isReadPermitted ? (
+      {hasPatternPemissions(
+        {
+          isReadPermitted,
+          isCreatePermitted,
+          isUpdatePermitted,
+        },
+        patternId
+      ) ? (
         <>
           <section className={styles.container}>
             <div className={styles.header}>

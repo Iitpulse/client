@@ -29,7 +29,7 @@ import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
 import { Table } from "antd";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { API_TESTS } from "../../utils/api";
 
 const sampleSection = {
@@ -94,7 +94,8 @@ const Pattern = () => {
       title: "ID",
       dataIndex: "_id",
       render: (text: string) => (
-        <span
+        <Link
+          to={`/pattern/edit/${text}`}
           style={{
             textOverflow: "ellipsis",
             overflow: "hidden",
@@ -103,7 +104,7 @@ const Pattern = () => {
           }}
         >
           {text}
-        </span>
+        </Link>
       ),
     },
     {
