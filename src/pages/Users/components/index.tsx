@@ -23,7 +23,7 @@ export const StyledMUITextField = styled(TextField)(() => {
       fontSize: "1rem",
       maxWidth: "none",
       padding: "0rem 0.5rem",
-      backgroundColor: " #f3f3f9",
+      backgroundColor: "transparent",
     },
     ".MuiInputLabel-root.Mui-focused": {
       transform: "translate(12px, -9px) scale(0.75)",

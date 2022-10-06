@@ -84,9 +84,11 @@ const CreatePattern = () => {
   }, [patternId]);
 
   useEffect(() => {
-    setName(currentPattern.name);
-    setExam(currentPattern.exam);
-    setSections(currentPattern.sections);
+    if (currentPattern?.name) {
+      setName(currentPattern.name);
+      setExam(currentPattern.exam);
+      setSections(currentPattern.sections);
+    }
   }, [currentPattern]);
 
   const [sections, setSections] = useState<Array<ISection>>([]);
