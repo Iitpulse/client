@@ -97,7 +97,8 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
   function handleClickTest() {
     let a = document.createElement("a");
     let token = localStorage.getItem(AUTH_TOKEN);
-    a.href = `http://localhost:3001/auth/${token}/${id}`;
+    const testLink = process.env.REACT_APP_TEST_PORTAL_URI;
+    a.href = `${testLink}/auth/${token}/${id}`;
     a.target = "_blank";
     a.click();
   }

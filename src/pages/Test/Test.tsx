@@ -99,15 +99,7 @@ const Test = () => {
     setTab(newValue);
   }
 
-  const [data, setData] = useState<any>([
-    {
-      id: 1,
-      name: "Sample Test",
-      exam: { fullName: "JEE MAINS" },
-      createdAt: "22/01/2032",
-      status: "Ongoing",
-    },
-  ]);
+  const [data, setData] = useState<any>([]);
 
   const { state } = useContext(TestContext);
   const { tests } = state;
@@ -116,6 +108,7 @@ const Test = () => {
     if (tests?.length) {
       setData(
         tests.map((test) => ({
+          ...test,
           key: test.id,
           id: test.id,
           name: test.name,

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button, Sidebar, NotificationCard, Navigate } from "../../components/";
 import { CircularProgress as MUICircularProgress, styled } from "@mui/material";
 import timer from "../../assets/icons/timer.svg";
+import { API_TESTS } from "../../utils/api";
 
 const tests = [
   {
@@ -53,13 +54,10 @@ function roundToOne(num: number) {
 }
 const Results = () => {
   const { testId } = useParams();
+  const [headerData, setHeaderData] = useState<any>({} as any);
   const [currentTest, setCurrentTest] = useState<any>({});
   const navigate = useNavigate();
 
-  function getTest() {
-    const [test] = tests.filter((item) => item.id.toString() === testId);
-    setCurrentTest(test);
-  }
   function getStatusColor(status: string) {
     if (!status) return;
     switch (status.toLowerCase()) {
@@ -77,8 +75,22 @@ const Results = () => {
   }
 
   useEffect(() => {
+    async function getTest() {
+      const test = tests.filter((item) => item.id.toString() === testId);
+      setCurrentTest(test);
+    }
+    async function getResult() {
+      const res = API_TESTS().get("/result/student", {
+        params: {
+          testId,
+        },
+      });
+      console.log({ res });
+    }
     getTest();
+    getResult();
   }, [testId]);
+
   return (
     <div className={styles.container}>
       <Navigate path={"/test"}>Back To Tests</Navigate>
