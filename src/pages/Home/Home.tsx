@@ -105,8 +105,8 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
 
   return (
     <div className={styles.listItemContainer} onClick={handleClickTest}>
-      <span className={styles.index}>{index}</span>
-      <p className={styles.title}>{title}</p>
+      
+      <p className={styles.title}><span className={styles.index}>{index}</span> &nbsp; {title}</p>
       <div className={styles.details}>
         <span>{marks} | </span> <span> {durationHours} Hr |</span>
         {mode === "online" ? (
@@ -207,6 +207,7 @@ const Home = () => {
               <Card
                 title="Upcoming Tests"
                 styles={{ display: "flex", flexWrap: "wrap" }}
+                classes={[styles.upcomingTestCard]}
               >
                 {tests?.map((test, i) => (
                   <ListItem
