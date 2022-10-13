@@ -106,7 +106,7 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
   return (
     <div className={styles.listItemContainer} onClick={handleClickTest}>
       
-      <p className={styles.title}><span className={styles.index}>{index}</span> &nbsp; {title}</p>
+      <p className={styles.title}><span className={styles.index}>{index}</span>. &nbsp; {title}</p>
       <div className={styles.details}>
         <span>{marks} | </span> <span> {durationHours} Hr |</span>
         {mode === "online" ? (
