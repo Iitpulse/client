@@ -15,6 +15,7 @@ import greenCrown from "../../assets/icons/greenCrown.svg";
 import Users from "../../assets/icons/users.svg";
 import monitor from "../../assets/icons/monitor.svg";
 import edit from "../../assets/icons/edit.svg";
+import calendarImage from "../../assets/images/calendar.svg";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import React from "react";
 import { TestContext } from "../../utils/contexts/TestContext";
@@ -234,7 +235,9 @@ const Home = () => {
             </div>
           </Grid>
           <Grid item xl={12} md={12} xs={12}>
-            <Card title="Schedule">schedule</Card>
+            <Card title="Schedule" classes={[styles.calendarImageCard]}>
+              <img src={calendarImage} alt="icon" className={styles.calendarImage} />
+            </Card>
           </Grid>
         </Grid>
       </div>
