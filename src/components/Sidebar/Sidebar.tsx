@@ -3,7 +3,7 @@ import { Button } from "../";
 import { IconButton } from "@mui/material";
 import Close from "../../assets/icons/collapse.svg";
 import { useEffect, useRef, useState } from "react";
-
+import notificationIcon from "../../assets/icons/notification.svg";
 interface SidebarProps {
   title: string;
   children: React.ReactNode;
@@ -33,11 +33,12 @@ const Sidebar = (props: SidebarProps) => {
           onClick={handleCollapse(false)}
           className={styles.burgerMenuBtn}
         >
-          <div className={styles.burger}>
+          {/* <div className={styles.burger}>
             <span className={styles.burgerItem}></span>
             <span className={styles.burgerItem}></span>
             <span className={styles.burgerItem}></span>
-          </div>
+          </div> */}
+          <img src={notificationIcon} alt="icon" />
         </IconButton>
       ) : (
         <div ref={wrapperRef} className={styles.container}>
