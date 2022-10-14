@@ -16,8 +16,9 @@ import InputAdornment from "@mui/material/InputAdornment";
 import { Visibility } from "@mui/icons-material";
 import { VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
+import { NULL } from "sass";
 const Login = () => {
-  const { setCurrentUser } = useContext(AuthContext);
+  const { currentUser,setCurrentUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [email, setEmail] = useState<string>("");
@@ -25,6 +26,9 @@ const Login = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
  const [showPassword,setShowPassword]=useState<boolean>(false);
+  if(currentUser!=null){
+    navigate("/",{ replace: true });
+  }
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
