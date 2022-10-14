@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Button, InputField } from "../../components";
 import styles from "./Login.module.scss";
 import { decodeToken } from "react-jwt";
@@ -16,19 +16,24 @@ import InputAdornment from "@mui/material/InputAdornment";
 import { Visibility } from "@mui/icons-material";
 import { VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
-import { NULL } from "sass";
+
 const Login = () => {
-  const { currentUser,setCurrentUser } = useContext(AuthContext);
+  const { currentUser, setCurrentUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
- const [showPassword,setShowPassword]=useState<boolean>(false);
-  if(currentUser!=null){
-    navigate("/",{ replace: true });
-  }
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  useEffect(() => {
+    console.log(currentUser);
+    if (currentUser != null) {
+      navigate("/", { replace: true });
+    }
+  }, [currentUser]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -59,15 +64,14 @@ const Login = () => {
         });
         localStorage.setItem(AUTH_TOKEN, response.data.token);
         setLoading(false);
-        navigate("/",{ replace: true });
+        navigate("/", { replace: true });
       } else {
-        
       }
     } catch (error: any) {
       console.log("True error", error);
-      if(error&&error.response&&error.response.data){
+      if (error?.response?.data) {
         setError(error.response.data.message);
-      }else{
+      } else {
         setError("Network Error");
       }
       setLoading(false);
@@ -85,20 +89,24 @@ const Login = () => {
           onChange={(e) => setEmail(e.target.value)}
           type="email"
           disabled={loading}
-          sx={{ m: 1, width: '42ch' }}
+          sx={{ m: 1, width: "42ch" }}
         />
-           <FormControl sx={{ m: 1,width:'42ch' }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+        <FormControl sx={{ m: 1, width: "42ch" }} variant="outlined">
+          <InputLabel htmlFor="outlined-adornment-password">
+            Password
+          </InputLabel>
           <OutlinedInput
             id="outlined-adornment-password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             endAdornment={
               <InputAdornment position="end">
                 <IconButton
                   aria-label="toggle password visibility"
-                  onClick={()=>{setShowPassword((state)=>!state)}}
+                  onClick={() => {
+                    setShowPassword((state) => !state);
+                  }}
                   edge="end"
                 >
                   {showPassword ? <VisibilityOff /> : <Visibility />}

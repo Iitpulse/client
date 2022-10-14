@@ -38,7 +38,8 @@ import * as Docx from "docx"; // that is a peer dependency
 import { Visibility } from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api";
-
+import PrintIcon from '@mui/icons-material/Print';
+import sheetIcon from "../../assets/icons/sheets.svg";
 export const questionTypes = [
   { name: "Objective", value: "objective" },
   // { name: "Multiple Correct", value: "multiple" },
@@ -146,7 +147,7 @@ const Questions = () => {
   const [chapterOptions, setChapterOptions] = useState([]);
   const [topicOptions, setTopicOptions] = useState([]);
   const [data, setData] = useState<any>({});
-
+  const [loading,setLoading]=useState<boolean>(false);
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -289,13 +290,26 @@ const Questions = () => {
   }, [previewData]);
 
   useEffect(() => {
-    API_QUESTIONS()
-      .get(`/mcq/all`)
-      .then((res) => {
-        console.log({ res });
+
+    async function fetchAllMCQs(){
+setLoading(true);
+try{
+      const res=await  API_QUESTIONS()
+      .get(`/mcq/all`);
+       console.log({ res });
         setQuestions(res.data);
-      });
-  }, []);
+        setLoading(false);
+}catch(err){
+  console.log(err);
+  setLoading(false);
+}
+  
+    }
+      if(currentUser){
+        fetchAllMCQs();
+      }
+      
+  }, [currentUser]);
 
   const navigate = useNavigate();
 
@@ -309,27 +323,32 @@ const Questions = () => {
                 <Button onClick={() => navigate("/questions/new")}>
                   Add New
                 </Button>
-                <Button onClick={handlePrint}>Print</Button>
+                <div>
+                <IconButton  onClick={handlePrint}><PrintIcon/></IconButton>
+                <IconButton >
                 <CSVLink filename={"Questions.csv"} data={questions}>
-                  Export to CSV
+                  <img src={sheetIcon} width="21px" height="21px"/>
                 </CSVLink>
+                </IconButton>
+
+                </div>
               </div>
             </>
           )}
 
           <div>
             <QuestionsTable
+              loading={loading}
               dataSource={questions?.map((question: any) => ({
                 ...question,
                 key: question.id || question._id,
               }))}
               cols={[
-                ...QUESTION_COLS_ALL,
                 {
                   title: "Preview",
                   key: "preview",
                   width: 120,
-                  fixed: "right",
+                  
                   render: (text: any, record: any) => (
                     <IconButton
                       onClick={() => {
@@ -341,6 +360,8 @@ const Questions = () => {
                     </IconButton>
                   ),
                 },
+                ...QUESTION_COLS_ALL,
+                
               ]}
               height="60vh"
             />
