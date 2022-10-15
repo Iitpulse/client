@@ -5,6 +5,7 @@ import {
   NotificationCard,
   Button,
   CreatableSelect,
+  Navigate,
 } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
@@ -273,6 +274,7 @@ const CreateQuestion = () => {
 
   return (
     <div className={styles.container}>
+        <Navigate path={"/questions"}>Back To Questions</Navigate>
       <form>
         <div className={styles.inputFields}>
           <StyledMUISelect
@@ -406,20 +408,20 @@ const CreateQuestion = () => {
             options={sources}
             onChange={setSource}
           /> */}
-          <StyledMUITextField
+          {/* <StyledMUITextField
             id="uploadedBy"
             value={uploadedBy.id}
             label="Uploaded By"
             disabled
             variant="outlined"
-          />
+          /> */}
         </div>
       </form>
       {/* <hr /> */}
       <section className={styles.main}>
         {getQuestionFromType(type, setData)}
       </section>
-      <div>
+      <div style={{textAlign:"end"}}>
         <Button onClick={handleSubmitQuestion}>Submit</Button>
       </div>
       <Sidebar title="Recent Activity">
