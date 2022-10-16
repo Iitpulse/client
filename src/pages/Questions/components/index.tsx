@@ -194,17 +194,20 @@ interface QuestionsTableProps {
   cols?: Array<any>;
   dataSource: Array<any>;
   height?: string;
+  loading?: boolean;
 }
 
 export const QuestionsTable: React.FC<QuestionsTableProps> = ({
   cols,
   dataSource,
   height,
+  loading
 }) => {
   return (
     <CustomTable
       columns={cols || QUESTION_COLS_ALL}
       dataSource={dataSource}
+      loading={loading}
       scroll={{
         y: height || "50vh",
         x: "100%",

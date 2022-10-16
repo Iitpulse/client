@@ -30,7 +30,7 @@ interface MenuDrawerProps {
 const MenuDrawer = (props: MenuDrawerProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser,setCurrentUser } = useContext(AuthContext);
 
   const { hasPermissions } = useContext(PermissionsContext);
 
@@ -303,6 +303,8 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
   };
 
   const { resetPermissions } = useContext(PermissionsContext);
+  const { setCurrentUser } = useContext(AuthContext);
+
 
   const navigate = useNavigate();
 
@@ -313,7 +315,9 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
   function handleClickLogout() {
     setAnchorEl(null);
     resetPermissions();
+    setCurrentUser(null);
     localStorage.removeItem(AUTH_TOKEN);
+
     return navigate("/login");
   }
 

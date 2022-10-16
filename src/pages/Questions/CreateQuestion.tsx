@@ -406,13 +406,13 @@ const CreateQuestion = () => {
             options={sources}
             onChange={setSource}
           /> */}
-          <StyledMUITextField
+          {/* <StyledMUITextField
             id="uploadedBy"
             value={uploadedBy.id}
             label="Uploaded By"
             disabled
             variant="outlined"
-          />
+          /> */}
         </div>
       </form>
       {/* <hr /> */}

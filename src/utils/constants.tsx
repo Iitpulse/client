@@ -222,24 +222,24 @@ export const PERMISSIONS = {
 // };
 
 export const QUESTION_COLS_ALL = [
-  {
-    title: "ID",
-    dataIndex: "_id",
-    key: "id",
-    fixed: "left",
-    width: 100,
-    render: (id: any) => (
-      <p
-        style={{
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {id}
-      </p>
-    ),
-  },
+  // {
+  //   title: "ID",
+  //   dataIndex: "_id",
+  //   key: "id",
+  //   fixed: "left",
+  //   width: 100,
+  //   render: (id: any) => (
+  //     <p
+  //       style={{
+  //         whiteSpace: "nowrap",
+  //         overflow: "hidden",
+  //         textOverflow: "ellipsis",
+  //       }}
+  //     >
+  //       {id}
+  //     </p>
+  //   ),
+  // },
   {
     title: "Question",
     dataIndex: "en",
