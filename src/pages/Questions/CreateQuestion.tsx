@@ -421,7 +421,7 @@ const CreateQuestion = () => {
       <section className={styles.main}>
         {getQuestionFromType(type, setData)}
       </section>
-      <div style={{textAlign:"end"}}>
+      <div className={styles.submitButton} >
         <Button onClick={handleSubmitQuestion}>Submit</Button>
       </div>
       <Sidebar title="Recent Activity">
