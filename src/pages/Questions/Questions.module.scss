@@ -31,7 +31,7 @@
     > div:nth-child(1),
     > div:nth-child(2),
     > div:nth-child(3) {
-      min-width: 100px;
+      min-width: 25%;
     }
     // > div:nth-child(8) {
     //   width: 250px;
@@ -167,4 +167,7 @@
     border-top: 2px solid black;
     text-align: center;
   }
+}
+.submitButton{
+  text-align: end;
 }
