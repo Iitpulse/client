@@ -21,6 +21,7 @@ import React from "react";
 import { TestContext } from "../../utils/contexts/TestContext";
 import clsx from "clsx";
 import { AUTH_TOKEN } from "../../utils/constants";
+import CalendarComponent from "../../components/CalendarComponent/CalendarComponent";
 
 interface SubCardProps {
   title: string;
@@ -106,8 +107,9 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
 
   return (
     <div className={styles.listItemContainer} onClick={handleClickTest}>
-      
-      <p className={styles.title}><span className={styles.index}>{index}</span>. &nbsp; {title}</p>
+      <p className={styles.title}>
+        <span className={styles.index}>{index}</span>. &nbsp; {title}
+      </p>
       <div className={styles.details}>
         <span>{marks} | </span> <span> {durationHours} Hr |</span>
         {mode === "online" ? (
@@ -236,7 +238,8 @@ const Home = () => {
           </Grid>
           <Grid item xl={12} md={12} xs={12}>
             <Card title="Schedule" classes={[styles.calendarImageCard]}>
-              <img src={calendarImage} alt="icon" className={styles.calendarImage} />
+              {/* <img src={calendarImage} alt="icon" className={styles.calendarImage} /> */}
+              <CalendarComponent />
             </Card>
           </Grid>
         </Grid>
