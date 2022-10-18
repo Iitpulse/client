@@ -4,22 +4,31 @@ import clsx from "clsx";
 
 interface CardProps {
   title?: string;
+  showMoreBtn?: boolean;
   actionBtn?: React.ReactNode;
   children: React.ReactNode;
   styles?: React.CSSProperties;
   classes?: Array<string>;
 }
 const Card = (props: CardProps) => {
-  const { title, actionBtn, children, classes } = props;
+  const { title, actionBtn, children, classes, showMoreBtn } = props;
   return (
     <div className={clsx(styles.cardWrapper, classes)}>
-      <div className={styles.header}>
-        <p className={styles.title}>{title}</p>
-        <div className={styles.btn}>
-          {/* {actionBtn} */} More
-          <img src={leftArrow} alt="Left Arrow" className={styles.leftArrow} />
+      {(title || showMoreBtn) && (
+        <div className={styles.header}>
+          <p className={styles.title}>{title}</p>
+          {showMoreBtn && (
+            <div className={styles.btn}>
+              {/* {actionBtn} */} More
+              <img
+                src={leftArrow}
+                alt="Left Arrow"
+                className={styles.leftArrow}
+              />
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       <div className={styles.cardContainer} style={props.styles}>
         {children}

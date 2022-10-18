@@ -58,13 +58,14 @@ const AddNewRole: React.FC<{
           label="Name"
         />
         <div className={styles.permissions}>
-          {flattendPermissions().map((permission: string, i: number) => (
+          {/* {Object.values(PERMISSIONS).map((permission: any, i: number) => (
             <Permission
               key={i}
               idx={i}
-              description="This is description"
-              name={permission}
-              isChecked={selectedPermissions.includes(i)}
+              permissions={permission?.map((item: any, i: number) => ({
+                ...item,
+                isChecked: selectedPermissions.includes(item.name),
+              }))}
               handleChangePermission={(idx: number, checked: boolean) => {
                 if (checked) {
                   setSelectedPermissions([...selectedPermissions, idx]);
@@ -75,7 +76,54 @@ const AddNewRole: React.FC<{
                 }
               }}
             />
-          ))}
+          ))} */}
+          {Object.keys(PERMISSIONS).map(
+            (permissionName: any, index: number) => {
+              return (
+                <div key={index}>
+                  <Permission
+                    permissionName={permissionName}
+                    idx={index}
+                    permissions={Object.values(
+                      // @ts-ignore
+                      PERMISSIONS[permissionName]
+                    )?.map((perm: any, idx: number) => ({
+                      name: perm,
+                      isChecked: selectedPermissions.includes(perm),
+                    }))}
+                    handleChangePermission={(
+                      permissionName: string | Array<string>,
+                      checked: boolean
+                    ) => {
+                      if (checked) {
+                        let newPerms = [];
+                        if (Array.isArray(permissionName)) {
+                          newPerms = [
+                            ...selectedPermissions,
+                            ...permissionName,
+                          ];
+                        } else {
+                          newPerms = [...selectedPermissions, permissionName];
+                        }
+                        setSelectedPermissions(newPerms);
+                      } else {
+                        if (Array.isArray(permissionName)) {
+                          selectedPermissions.filter(
+                            (p: string) => !permissionName.includes(p)
+                          );
+                        } else {
+                          selectedPermissions.filter(
+                            (p: string) => p !== permissionName
+                          );
+                        }
+                      }
+                    }}
+                  />
+                  {<div className={styles.separationLine}></div>}
+                </div>
+              );
+            }
+          )}
         </div>
       </div>
     </Modal>

@@ -1,15 +1,31 @@
 @import "../../../utils/commons.scss";
 
 .editRole {
-  background-color: white;
+  // background-color: white;
   width: 100%;
-  padding: 2rem 1.5rem;
+  // padding: 2rem 1.5rem;
 }
-.tabPanel {
-  padding: 1rem 1rem;
 
-  height: 67vh;
+.tabPanel {
+  padding: 1rem 0;
+  padding-right: 1rem;
+
+  // height: 67vh;
   overflow: auto;
+}
+.permissionsContainer {
+  padding: 0.2rem 0.5rem;
+  > div > div {
+    border: none;
+  }
+}
+.permissionHeader {
+  @extend .flexRow;
+  justify-content: space-between;
+  width: 100%;
+}
+.permissions > div {
+  margin: 1rem 0;
 }
 .permission {
   padding: 0.5rem 0;
