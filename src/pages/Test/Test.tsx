@@ -117,6 +117,7 @@ const Test = () => {
           exam: test.exam,
         }))
       );
+      console.log({ data });
       setLoading(false);
     }
   }, [tests]);

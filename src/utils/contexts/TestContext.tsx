@@ -52,7 +52,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
         dispatch({
           type: TEST_ACTION_TYPES.SET_TEST,
           payload: {
-            test: res.data,
+            tests: res.data,
           },
         });
       }
