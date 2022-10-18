@@ -13,6 +13,7 @@ import kebabMenu from "../../assets/icons/kebabMenu.svg";
 import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import AddNewRole from "./AddNewRole";
+import { IconButton } from "@mui/material";
 
 const Roles = () => {
   const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
@@ -29,11 +30,9 @@ const Roles = () => {
             <div className={styles.tableHeader}>
               <h4>Roles</h4>
               <h4>Members</h4>
-              <img
-                src={add}
-                alt="add-new-role"
-                onClick={() => setNewRoleModal(true)}
-              />
+              <IconButton onClick={() => setNewRoleModal(true)}>
+                <img src={add} alt="add-new-role" />
+              </IconButton>
             </div>
             <div className={styles.tableContent}>
               {allRoles?.map((role: any) => (
