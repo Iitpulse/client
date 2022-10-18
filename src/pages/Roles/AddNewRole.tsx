@@ -6,6 +6,8 @@ import { Permission } from "./EditRole/EditRole";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_USERS } from "../../utils/api";
+import { message } from "antd";
+import { useNavigate } from "react-router";
 
 export const flattendPermissions = () => {
   let final: any = [];
@@ -25,20 +27,32 @@ const AddNewRole: React.FC<{
 
   const { currentUser } = useContext(AuthContext);
 
+  const navigate = useNavigate();
+
   async function handleSubmit() {
-    const res = await API_USERS().post(`/roles/create`, {
-      name,
-      permissions: flattendPermissions().filter((_: any, i: number) =>
-        selectedPermissions.includes(i)
-      ),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: {
-        id: currentUser?.id,
-        userType: currentUser?.userType,
-      },
-    });
-    console.log({ res });
+    const loading = message.loading(`Creating ${name} role for you...`, 0);
+    try {
+      const newRoleRes = await API_USERS().post(`/roles/create`, {
+        name,
+        permissions: flattendPermissions().filter((_: any, i: number) =>
+          selectedPermissions.includes(i)
+        ),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: {
+          id: currentUser?.id,
+          userType: currentUser?.userType,
+        },
+      });
+      loading();
+      message.success(`Role ${name} created successfully`);
+      handleClose();
+      navigate(`/roles/${newRoleRes.data.id || newRoleRes.data._id}`);
+    } catch (error) {
+      loading();
+      message.error(`Error creating role ${name}`);
+      console.log(error);
+    }
   }
 
   return (
@@ -57,26 +71,7 @@ const AddNewRole: React.FC<{
           onChange={(e) => setName(e.target.value)}
           label="Name"
         />
-        <div className={styles.permissions}>
-          {/* {Object.values(PERMISSIONS).map((permission: any, i: number) => (
-            <Permission
-              key={i}
-              idx={i}
-              permissions={permission?.map((item: any, i: number) => ({
-                ...item,
-                isChecked: selectedPermissions.includes(item.name),
-              }))}
-              handleChangePermission={(idx: number, checked: boolean) => {
-                if (checked) {
-                  setSelectedPermissions([...selectedPermissions, idx]);
-                } else {
-                  setSelectedPermissions(
-                    selectedPermissions.filter((p: number) => p !== idx)
-                  );
-                }
-              }}
-            />
-          ))} */}
+        {/* <div className={styles.permissions}>
           {Object.keys(PERMISSIONS).map(
             (permissionName: any, index: number) => {
               return (
@@ -124,7 +119,7 @@ const AddNewRole: React.FC<{
               );
             }
           )}
-        </div>
+        </div> */}
       </div>
     </Modal>
   );

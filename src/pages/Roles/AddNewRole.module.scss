@@ -2,5 +2,14 @@
 
 .container {
   width: 500px;
-  padding: 1rem;
+  padding: 1rem 0;
+  > div {
+    width: 100%;
+    input {
+      width: 100%;
+    }
+  }
+  .permissions {
+    margin-top: 1rem;
+  }
 }
