@@ -340,14 +340,17 @@ const EditRole = () => {
               </div>
             </TabPanel>
             <TabPanel value={tab} index={1}>
+              
               <div className={clsx(styles.tabPanel, styles.managePeople)}>
-                {members?.map((member: any) => (
+                {members?.map((member: any,index:number) => (
+                   <Card key={index} classes={[styles.peopleContainer]}>
                   <div className={styles.flexRow}>
                     <p>{member?.name}</p>
                     <IconButton>
                       <ClearIcon />
                     </IconButton>
                   </div>
+                  </Card>
                 ))}
               </div>
             </TabPanel>
