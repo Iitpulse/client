@@ -33,17 +33,24 @@
     color: #cccecd;
   }
 }
-.switchPath.active {
-  background: #55bc7e;
-  .circle {
-    left: 28px;
+.switchPath {
+  &.active,
+  .partialChecked {
+    background: #55bc7e;
+    .circle {
+      left: 28px;
+    }
+  }
+  &.partialChecked {
+    background: #f5a623;
   }
 }
 .switchPath .tick,
-.switchPath.active .cross {
+.switchPath.active .cross,
+.switchPath.partialChecked .cross {
   display: none;
 }
 .switchPath.active .tick,
-.switchPath .cross {
+.switchPath.partialChecked .tick .switchPath .cross {
   display: block;
 }

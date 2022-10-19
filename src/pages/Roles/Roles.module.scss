@@ -1,32 +1,47 @@
 @import "../../utils/commons.scss";
 
-.roles{
-    background-color: white;
-    padding:2rem 1.5rem;
-    width: 100%;
-    .tableHeader{
-        display:flex;
+.roles {
+  background-color: white;
+  padding: 2rem 1.5rem;
+  width: 100%;
+  border-radius: 10px;
+  .tableHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tableContent {
+    a {
+      width: 100% !important;
+      display: flex;
+      padding: 1rem 0;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      margin: 1rem 0;
+      border-radius: 10px;
+      transition: all 0.2s ease-in-out;
+
+      p {
+        margin: 0;
+      }
+      .member {
+        display: flex;
         align-items: center;
-        justify-content: space-between;
-    }
-    .tableContent{
-        a{
-            width: 100% !important;
-            display: flex;
-            padding:1rem 0;
-            align-items: center;
-            p{
-                margin: 0;
-            }
-            .member{
-                display: flex;
-                align-items: center;
-                margin-left: auto;
-                margin-right: 40%;
-                >img{
-                    padding-right:1rem;
-                }
-            }
+        margin-left: auto;
+        margin-right: 40%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        > img {
+          padding-right: 1rem;
         }
+      }
+      &:hover {
+        background-color: #f5f5f5;
+        padding: 1rem;
+      }
     }
+  }
 }

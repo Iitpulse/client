@@ -7,6 +7,7 @@ import {
   DialogContentText,
   Button,
   Autocomplete,
+  FormHelperText,
 } from "@mui/material";
 import { createFilterOptions } from "@mui/material/Autocomplete";
 import styles from "./index.module.scss";
@@ -201,6 +202,7 @@ export const MUICreatableSelect: React.FC<MUICreatableSelectProps> = ({
           </DialogActions>
         </form>
       </Dialog>
+      <FormHelperText>Helo</FormHelperText>
     </div>
   );
 };

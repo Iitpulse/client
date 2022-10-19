@@ -7,6 +7,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
+import { FormHelperText } from "@mui/material";
 
 const filter = createFilterOptions<IOptionType>();
 
@@ -21,6 +22,7 @@ interface ICreatableSelect {
   width?: string;
   disabled?: boolean;
   chapters?: Array<any>;
+  children?: any;
 }
 
 interface IOptionType {
@@ -40,6 +42,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   disabled,
   chapters,
   onAddModalSubmit,
+  children,
   ...remaining
 }) => {
   const [open, toggleOpen] = React.useState(false);

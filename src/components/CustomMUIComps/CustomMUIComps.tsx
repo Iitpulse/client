@@ -7,6 +7,7 @@ import {
   Chip,
   Autocomplete,
   SelectChangeEvent,
+  FormHelperText,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import styles from "./CustomMUIComps.module.scss";
@@ -51,6 +52,9 @@ interface MUIAutocompleteProps {
   label: string;
   value?: string;
   onChange: any;
+  error?: boolean;
+  helperText?: any;
+
   options: Array<{
     name: string;
     value: string;
@@ -98,6 +102,8 @@ export const MUISimpleAutocomplete = (props: MUIAutocompleteProps) => {
       renderInput={(params) => (
         <TextField
           {...params}
+          {...props}
+          helperText={props?.error && props?.helperText}
           placeholder={"Search for" + props.label}
           label={props.label}
         />

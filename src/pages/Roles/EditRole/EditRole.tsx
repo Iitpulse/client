@@ -13,12 +13,19 @@ import {
   NotificationCard,
   ToggleButton,
   Button,
+  Card,
 } from "../../../components";
 import clsx from "clsx";
 import axios from "axios";
 import { flattendPermissions } from "../AddNewRole";
 import ClearIcon from "@mui/icons-material/Clear";
 import { API_USERS } from "../../../utils/api";
+import {
+  CustomAccordion,
+  CustomAccordionDetails,
+  CustomAccordionSummary,
+} from "../../Pattern/components/CustomAccordion";
+import { message } from "antd";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -45,8 +52,8 @@ function TabPanel(props: TabPanelProps) {
 const EditRole = () => {
   const { roleName } = useParams();
   const [tab, setTab] = useState(0);
-  const [permissions, setPermissions] = useState<any>([]);
-  const [allowedPermisions, setAllowedPermissions] = useState<any>([]);
+  const [permissions, setPermissions] = useState<any>({});
+  const [allowedPermissions, setAllowedPermissions] = useState<any>([]);
   const isReadPermitted = usePermission(PERMISSIONS?.ROLE?.UPDATE);
   const [members, setMembers] = useState<{ name: string; id: string }[]>([]);
 
@@ -224,7 +231,7 @@ const EditRole = () => {
   // }
 
   useEffect(() => {
-    setPermissions(flattendPermissions());
+    setPermissions(PERMISSIONS);
   }, [roleName]);
 
   useEffect(() => {
@@ -236,35 +243,62 @@ const EditRole = () => {
   }, [allRoles, roleName]);
 
   useEffect(() => {
-    if (rolePermissions && roleName && permissions?.length) {
+    if (rolePermissions && roleName) {
       let perms = rolePermissions[roleName];
+      console.log({ perms });
       if (perms) {
-        setAllowedPermissions(perms.map((_: any) => permissions.indexOf(_)));
+        setAllowedPermissions(perms);
       }
     }
   }, [rolePermissions, roleName, permissions]);
 
-  function handleChangePermission(idx: number, checked: boolean) {
-    console.log({ idx, checked });
+  function handleChangePermission(
+    permissionName: string | Array<string>,
+    checked: boolean
+  ) {
+    console.log({ permissionName, checked });
     if (checked) {
-      setAllowedPermissions([...allowedPermisions, idx]);
+      let newPermis = [];
+      if (Array.isArray(permissionName)) {
+        newPermis = [...allowedPermissions, ...permissionName];
+      } else {
+        newPermis = [...allowedPermissions, permissionName];
+      }
+      setAllowedPermissions(newPermis);
     } else {
-      setAllowedPermissions(
-        allowedPermisions.filter((item: any) => item !== idx)
-      );
+      if (Array.isArray(permissionName)) {
+        setAllowedPermissions(
+          allowedPermissions.filter(
+            (perm: any) => !permissionName.includes(perm)
+          )
+        );
+      } else {
+        setAllowedPermissions(
+          allowedPermissions.filter((item: any) => item !== permissionName)
+        );
+      }
     }
   }
 
   async function handleClickUpdate() {
-    let newPerms = allowedPermisions.map((idx: number) => permissions[idx]);
-    console.log({ newPerms });
-
-    const res = await API_USERS().post(`/roles/update`, {
-      id: roleName,
-      permissions: newPerms,
+    const msgLoding = message.loading({
+      content: "Updating Role...",
+      key: "updateRole",
     });
-
-    console.log({ res });
+    try {
+      await API_USERS().post(`/roles/update`, {
+        id: roleName,
+        permissions: allowedPermissions,
+      });
+      msgLoding();
+      message.success({
+        content: "Role Updated Successfully",
+        key: "updateRole",
+      });
+    } catch (error) {
+      msgLoding();
+      message.error({ content: "Error Updating Role", key: "updateRole" });
+    }
   }
 
   return (
@@ -276,27 +310,33 @@ const EditRole = () => {
               <p>{roleName}</p>
               <Button onClick={handleClickUpdate}>Update</Button>
             </div>
-            <br />
-            <Tabs value={tab} onChange={handleChangeTab}>
-              <Tab label="Permissions" />
-              <Tab label="Manage People" />
-            </Tabs>
+            <Card classes={[styles.tabHeaders]}>
+              <Tabs value={tab} onChange={handleChangeTab}>
+                <Tab label="Permissions" />
+                <Tab label="Manage People" />
+              </Tabs>
+            </Card>
             <TabPanel value={tab} index={0}>
               <div className={clsx(styles.tabPanel, styles.permissions)}>
-                {permissions.map((permission: string, index: number) => {
-                  return (
-                    <div key={index}>
-                      <Permission
-                        idx={index}
-                        name={permission}
-                        description={"This is description"}
-                        isChecked={allowedPermisions.includes(index)}
-                        handleChangePermission={handleChangePermission}
-                      />
-                      {<div className={styles.separationLine}></div>}
-                    </div>
-                  );
-                })}
+                {Object.keys(permissions).map(
+                  (permissionName: any, index: number) => {
+                    return (
+                      <Card key={index} classes={[styles.permissionsContainer]}>
+                        <Permission
+                          permissionName={permissionName}
+                          idx={index}
+                          permissions={Object.values(
+                            permissions[permissionName]
+                          )?.map((perm: any, idx: number) => ({
+                            name: perm,
+                            isChecked: allowedPermissions.includes(perm),
+                          }))}
+                          handleChangePermission={handleChangePermission}
+                        />
+                      </Card>
+                    );
+                  }
+                )}
               </div>
             </TabPanel>
             <TabPanel value={tab} index={1}>
@@ -335,28 +375,76 @@ const EditRole = () => {
 };
 
 interface PermissionProps {
+  permissionName: string;
+  permissions: Array<{
+    name: string;
+    isChecked: boolean;
+  }>;
   idx: number;
-  name: string;
-  description: string;
-  isChecked: boolean;
-  handleChangePermission: (idx: number, checked: boolean) => void;
+  handleChangePermission: (
+    permissionName: string | Array<string>,
+    checked: boolean
+  ) => void;
 }
 
 export const Permission = (props: PermissionProps) => {
-  const { idx, name, description, isChecked, handleChangePermission } = props;
+  const { idx, permissionName, permissions, handleChangePermission } = props;
+
+  const [allPermissionsChecked, setAllPermissionsChecked] = useState(false);
+
+  useEffect(() => {
+    setAllPermissionsChecked(permissions.every((perm: any) => perm.isChecked));
+    console.log(permissions.some((perm: any) => perm.isChecked));
+  }, [permissions]);
+
+  function handleChangeAllPermissions(checked: boolean) {
+    setAllPermissionsChecked(checked);
+    handleChangePermission(
+      permissions?.map((item: any) => item.name),
+      checked
+    );
+  }
 
   return (
-    <div className={styles.permission}>
-      <div className={styles.leftContent}>
-        <h4>{name}</h4>
+    <CustomAccordion>
+      <CustomAccordionSummary>
+        <div className={styles.permissionHeader}>
+          <p>{permissionName}</p>
+          <ToggleButton
+            checked={allPermissionsChecked}
+            partial={
+              permissions.some((perm: any) => perm.isChecked) &&
+              !allPermissionsChecked
+            }
+            stopPropagation
+            onChange={(checked) => handleChangeAllPermissions(checked)}
+          />
+        </div>
+      </CustomAccordionSummary>
+      <CustomAccordionDetails>
+        <div className={styles.permissionWrapper}>
+          {permissions.map((permission: any, i: number) => (
+            <div className={styles.permission}>
+              <div className={styles.leftContent}>
+                <h4>
+                  {permission?.name
+                    ?.replace(/_/g, " ")
+                    .replace(permissionName, "")}
+                </h4>
 
-        <p>{description}</p>
-      </div>
-      <ToggleButton
-        checked={isChecked}
-        onChange={(checked) => handleChangePermission(idx, checked)}
-      />
-    </div>
+                {/* <p>{description}</p> */}
+              </div>
+              <ToggleButton
+                checked={permission?.isChecked}
+                onChange={(checked) =>
+                  handleChangePermission(permission?.name, checked)
+                }
+              />
+            </div>
+          ))}
+        </div>
+      </CustomAccordionDetails>
+    </CustomAccordion>
   );
 };
 
