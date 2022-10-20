@@ -37,11 +37,31 @@
         > img {
           padding-right: 1rem;
         }
+        >img:hover{
+          cursor: pointer;
+        }
       }
-      &:hover {
-        background-color: #f5f5f5;
-        padding: 1rem;
-      }
+     
     }
   }
+}
+.memberContainer{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+ 
+         &::before {
+           content: "";
+           transition: all 0.2s ease-in-out;
+           position: absolute;
+           left: 28px;
+           z-index: 0;
+           width: 96%;
+           height: 60px;
+         }
+    
+         &:hover::before {
+           background: #f5f5f5;
+    
+         }
 }

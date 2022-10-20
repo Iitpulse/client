@@ -13,6 +13,8 @@ import kebabMenu from "../../assets/icons/kebabMenu.svg";
 import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import AddNewRole from "./AddNewRole";
+import {  Menu, MenuItem, IconButton } from "@mui/material";
+
 
 const Roles = () => {
   const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
@@ -20,7 +22,14 @@ const Roles = () => {
   const [newRoleModal, setNewRoleModal] = useState(false);
 
   const { allRoles } = useContext(PermissionsContext);
-
+ const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
   return (
     <>
       {hasPermission ? (
@@ -37,14 +46,39 @@ const Roles = () => {
             </div>
             <div className={styles.tableContent}>
               {allRoles?.map((role: any) => (
+                <div className={styles.memberContainer}>
+                  
                 <Link key={role.id} to={`/roles/${role.id}`}>
                   <p>{role?.name}</p>{" "}
                   <div className={styles.member}>
                     <img src={member} alt="Member" />
                     <p>{role.members?.length}</p>
                   </div>
-                  <img src={kebabMenu} alt="Kebab Menu" />
                 </Link>
+                <div>
+                 <IconButton
+              id="basic-button"
+              aria-controls={open ? "basic-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={open ? "true" : undefined}
+              onClick={handleClick}
+            >
+              <img src={kebabMenu} alt="Kebab Menu" />
+            </IconButton>
+
+                </div>
+                <Menu
+            id="basic-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            MenuListProps={{
+              "aria-labelledby": "basic-button",
+            }}
+          >
+            <MenuItem onClick={handleClose}>Report a Problem </MenuItem>
+          </Menu>
+                </div>
               ))}
             </div>
           </div>

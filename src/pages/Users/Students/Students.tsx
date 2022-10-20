@@ -346,41 +346,41 @@ export const Student: React.FC<{
   const [helperTextObj, setHelperTextObj] = useState({
     stream: {
       error: false,
-      helperText: "Please select a stream",
+      helperText: "",
     },
     standard: {
       error: false,
-      helperText: "Please select a standard",
+      helperText: "",
     },
     gender: {
       error: false,
-      helperText: "Please select a gender",
+      helperText: "",
     },
 
     dob: {
       error: false,
-      helperText: "Please enter a valid date",
+      helperText: "",
     },
     batch: {
       error: false,
-      helperText: "Please select a valid batch",
+      helperText: "",
     },
-    role: {
+    roles: {
       error: false,
-      helperText: "Please Select at least one role",
+      helperText: "",
     },
     contact: {
       parent: {
         error: false,
-        helperText: "Please enter a valid contact number",
+        helperText: "",
       },
       personal: {
         error: false,
-        helperText: "Please enter a valid contact number",
+        helperText: "",
       },
     },
   });
-  const [roles, setRoles] = useState("");
+  const [roles, setRoles] = useState([]);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -405,30 +405,113 @@ export const Student: React.FC<{
     const newId = id.split("-option").shift();
     setValues({ ...values, [newId ? newId : id]: value });
   }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     if (!newUserRef.current?.reportValidity()) return;
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
     try {
-      if (values.contact?.length !== 10) {
-        setLoading(false);
-        return alert("Contact must be 10 digits long");
-      }
-      if (values.parentContact?.length !== 10) {
-        setLoading(false);
+      const error = {
+        stream: values.stream ? false : true,
+        standard: values.standard ? false : true,
+        batch: values.batch ? false : true,
+        gender: values.gender ? false : true,
+        roles: values.roles ? false : true,
+        contact: {
+          parent: values.parentContact?.length === 10 ? false : true,
+          personal: values.contact?.length === 10 ? false : true,
+        },
+      };
+      if (
+        error.stream ||
+        error.standard ||
+        error.batch ||
+        error.gender ||
+        error.roles ||
+        error.contact.parent ||
+        error.contact.personal
+      ) {
+        if (error.stream) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            stream: { error: true, helperText: "Please select a Stream" },
+          }));
+        }
 
-        return alert("Parent Contact must be 10 digits long");
+        if (error.standard) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            standard: { error: true, helperText: "Please select a Standard" },
+          }));
+        }
+
+        if (error.batch) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            batch: { error: true, helperText: "Please select a Batch" },
+          }));
+        }
+
+        if (error.roles) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            roles: { error: true, helperText: "Please select a Roles" },
+          }));
+        }
+        if (error.contact.parent) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            contact: {
+              ...prev.contact,
+              parent: {
+                error: true,
+                helperText: "Please enter a valid contact number",
+              },
+            },
+          }));
+        }
+        if (error.contact.personal) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            contact: {
+              ...prev.contact,
+              personal: {
+                error: true,
+                helperText: "Please enter a valid contact number",
+              },
+            },
+          }));
+        }
+        if (error.gender) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            gender: { error: true, helperText: "Please select a Gender" },
+          }));
+        }
+
+        return;
       }
-      if (!values.gender) {
-        setLoading(false);
-        setHelperTextObj((prev) => ({
-          ...prev,
-          gender: { ...prev?.gender, error: true },
-        }));
-        return alert("Select a gender");
-      }
+      setLoading(true);
+      setError("");
+      setSuccess("");
+      // if (values.parentContact?.length !== 10) {
+      //   setLoading(false);
+      //   setHelperTextObj((prev) => ({
+      //     ...prev,
+      //     contact: {
+      //       ...prev.contact,
+      //       parent: { ...prev.contact.parent, error: true },
+      //     },
+      //   }));
+      //   return alert("Parent Contact must be 10 digits long");
+      // }
+      // if (!values.gender) {
+      //   setLoading(false);
+      //   setHelperTextObj((prev) => ({
+      //     ...prev,
+      //     gender: { ...prev?.gender, error: true },
+      //   }));
+      //   return alert("Select a gender");
+      // }
 
       let newValues = { ...values };
       newValues.parentDetails = {
@@ -456,11 +539,11 @@ export const Student: React.FC<{
         },
       ];
       newValues.createdAt = new Date().toISOString();
-      console.log({ values });
+      // console.log({ values });
       newValues.stream = values?.stream?.value;
 
       newValues.modifiedAt = new Date().toISOString();
-      console.log({ newValues });
+      // console.log({ newValues });
       const res = await API_USERS().post(`/student/create`, newValues);
       // console.log({ res });
 
@@ -596,6 +679,8 @@ export const Student: React.FC<{
             <Grid item xs={12} md={4} lg={4} xl={3}>
               <MUICreatableSelect
                 id="stream"
+                error={helperTextObj?.stream?.error}
+                helperText={helperTextObj?.stream?.helperText}
                 value={values.stream}
                 onChange={handleChangeValuesForCreatableSelect}
                 options={optionsForStream}
@@ -606,6 +691,8 @@ export const Student: React.FC<{
               <MUICreatableSelect
                 id="standard"
                 value={values.standard}
+                error={helperTextObj?.standard?.error}
+                helperText={helperTextObj?.standard?.helperText}
                 onChange={handleChangeValuesForCreatableSelect}
                 options={optionsForStandard}
                 label="Standard"
@@ -633,10 +720,8 @@ export const Student: React.FC<{
               <StyledMUITextField
                 required
                 id="dob"
-                error
                 type="date"
                 value={values.dob}
-                helperText="Please Select A Valid DOB"
                 onChange={handleChangeValues}
                 label="DOB"
                 variant="outlined"
@@ -667,6 +752,8 @@ export const Student: React.FC<{
             <Grid item xs={12} md={4} lg={4} xl={3}>
               <MUICreatableSelect
                 id="batch"
+                error={helperTextObj?.batch?.error}
+                helperText={helperTextObj?.batch?.helperText}
                 value={values.batch}
                 onChange={handleChangeValuesForCreatableSelect}
                 options={optionsForBatch}
@@ -713,6 +800,8 @@ export const Student: React.FC<{
                 id="parentContact"
                 required
                 type="number"
+                error={helperTextObj?.contact?.parent?.error}
+                helperText={helperTextObj?.contact?.parent?.helperText}
                 value={values.parentContact}
                 onChange={handleChangeValues}
                 label="Parent Contact"
@@ -724,6 +813,8 @@ export const Student: React.FC<{
                 required
                 id="contact"
                 type="number"
+                error={helperTextObj?.contact?.personal?.error}
+                helperText={helperTextObj?.contact?.personal?.helperText}
                 value={values.contact}
                 onChange={handleChangeValues}
                 label="Contact"
@@ -735,6 +826,7 @@ export const Student: React.FC<{
             <Grid item xs={12} md={12} lg={12} xl={8}>
               <MUIChipsAutocomplete
                 label="Role(s)"
+                value={roles}
                 options={[
                   { name: "Student", value: "student" },
                   { name: "Admin", value: "admin" },
@@ -743,8 +835,9 @@ export const Student: React.FC<{
                   { name: "Teacher", value: "teacher" },
                 ]}
                 onChange={setRoles}
+                error={helperTextObj?.roles?.error}
+                helperText={helperTextObj?.roles?.helperText}
               />
-              <FormHelperText>jdkfjdkjf </FormHelperText>
             </Grid>
             <Grid item xs={12} md={12} lg={12} xl={8}>
               <StyledMUITextField
