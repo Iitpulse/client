@@ -1,7 +1,7 @@
-import styles from "./Results.module.scss";
+import styles from "./Result.module.scss";
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
-import { Button, Sidebar, NotificationCard, Navigate } from "../../components/";
+import { Button, Sidebar, NotificationCard, Navigate } from "../../components";
 import { CircularProgress as MUICircularProgress, styled } from "@mui/material";
 import timer from "../../assets/icons/timer.svg";
 import { API_TESTS } from "../../utils/api";
@@ -52,7 +52,7 @@ const colors = ["#55bc7e", "#f8ba1c", "#fc5f5f", "#61b4f1"];
 function roundToOne(num: number) {
   return Number(num).toFixed(1);
 }
-const Results = () => {
+const Result = () => {
   const { testId } = useParams();
   const [headerData, setHeaderData] = useState<any>({} as any);
   const [currentTest, setCurrentTest] = useState<any>({});
@@ -242,4 +242,4 @@ const CircularProgress: React.FC<{ color: string; progress: number }> = ({
   );
 };
 
-export default Results;
+export default Result;

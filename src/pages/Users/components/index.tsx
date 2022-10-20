@@ -7,6 +7,7 @@ import {
   DialogContentText,
   Button,
   Autocomplete,
+  FormHelperText,
 } from "@mui/material";
 import { createFilterOptions } from "@mui/material/Autocomplete";
 import styles from "./index.module.scss";
@@ -73,6 +74,8 @@ interface MUICreatableSelectProps {
   id: string;
   value: any;
   onChange: any;
+  error?: boolean;
+  helperText?: string;
 }
 
 export const MUICreatableSelect: React.FC<MUICreatableSelectProps> = ({
@@ -81,6 +84,8 @@ export const MUICreatableSelect: React.FC<MUICreatableSelectProps> = ({
   id,
   onChange,
   value,
+  error = false,
+  helperText = "",
 }) => {
   // const [value, setValue] = useState<DropdownOptionType | null>(null);
   const [open, toggleOpen] = useState(false);
@@ -156,7 +161,14 @@ export const MUICreatableSelect: React.FC<MUICreatableSelectProps> = ({
         renderOption={(props, option: any) => <li {...props}>{option.name}</li>}
         sx={{ width: 300 }}
         freeSolo
-        renderInput={(params) => <TextField {...params} label={label} />}
+        renderInput={(params) => (
+          <TextField
+            error={error}
+            helperText={error && helperText}
+            {...params}
+            label={label}
+          />
+        )}
       />
       <Dialog open={open} onClose={handleClose}>
         <form onSubmit={handleSubmit}>

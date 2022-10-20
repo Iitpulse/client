@@ -7,7 +7,7 @@ export { default as Batches } from "./Batches/Batches";
 export { default as Questions } from "./Questions/Questions";
 export { default as Pattern } from "./Pattern/Pattern";
 export { default as Login } from "./Login/Login";
-export { default as Results } from "./Results/Results";
+export { default as Result } from "./Result/Result";
 export { default as Error } from "./Error/Error";
 export { default as EditRole } from "./Roles/EditRole/EditRole";
 export { default as DetailedAnalysis } from "./DetailedAnalysis/DetailedAnalysis";
