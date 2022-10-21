@@ -340,6 +340,10 @@ export const Student: React.FC<{
   const { onSubmit, uploadedBy } = { ...props.student };
   const [values, setValues] = useState({} as any);
   const newUserRef = useRef<HTMLFormElement>(null);
+  const [rolesInfo, setRolesInfo] = useState({
+    options: [],
+    actual: [],
+  });
   const [openDropzne, setOpenDropzone] = useState(false);
   const [file, setFile] = useState(null as any);
   const [loading, setLoading] = useState(false);
@@ -418,7 +422,7 @@ export const Student: React.FC<{
         standard: values.standard ? false : true,
         batch: values.batch ? false : true,
         gender: values.gender ? false : true,
-        roles: roles ? false : true,
+        roles: values.roles?.length > 0 ? false : true,
         contact: {
           parent: values.parentContact?.length === 10 ? false : true,
           personal: values.contact?.length === 10 ? false : true,
@@ -532,16 +536,11 @@ export const Student: React.FC<{
       newValues.institute = currentUser?.instituteId;
       newValues.standard = parseInt(values?.standard?.value);
       newValues.batch = values?.batch?.value;
-      newValues.roles = roles;
-      // newValues.roles = [
-      //   {
-      //     id: "ROLE_STUDENT",
-      //     from: new Date().toISOString(),
-      //     to: new Date(
-      //       new Date().setDate(new Date().getDate() + 400)
-      //     ).toISOString(),
-      //   },
-      // ];
+      newValues.roles = roles?.map((role: any) =>
+        rolesInfo?.actual?.find((roleInfo: any) => {
+          return roleInfo?.id === role?.value;
+        })
+      );
       newValues.createdAt = new Date().toISOString();
       // console.log({ values });
       newValues.stream = values?.stream?.value;
@@ -566,6 +565,9 @@ export const Student: React.FC<{
       );
     }
   }
+  useEffect(() => {
+    setValues((prev: any) => ({ ...prev, roles }));
+  }, [roles]);
   async function handleUploadFile() {
     if (currentUser) {
       setLoading(true);
@@ -608,6 +610,22 @@ export const Student: React.FC<{
     { name: "IOY12", value: "IOY12" },
     { name: "SAB12", value: "SAB12" },
   ];
+
+  useEffect(() => {
+    async function getRolesOption() {
+      const res = await API_USERS().get(`/roles/all`);
+      setRolesInfo((prev: any) => ({
+        ...prev,
+        options: res.data.map((item: any) => ({
+          name: item.name,
+          value: item.id,
+        })),
+        actual: res.data,
+      }));
+    }
+    getRolesOption();
+  }, []);
+
   return (
     // <div className={clsx(styles.studentContainer, styles.modal)}>
     <AddUserModal
@@ -831,13 +849,7 @@ export const Student: React.FC<{
               <MUIChipsAutocomplete
                 label="Role(s)"
                 value={roles}
-                options={[
-                  { name: "Student", value: "student" },
-                  { name: "Admin", value: "admin" },
-                  { name: "Operator", value: "operator" },
-                  { name: "Manager", value: "manager" },
-                  { name: "Teacher", value: "teacher" },
-                ]}
+                options={rolesInfo?.options}
                 onChange={setRoles}
                 error={helperTextObj?.roles?.error}
                 helperText={helperTextObj?.roles?.helperText}

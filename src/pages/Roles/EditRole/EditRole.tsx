@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { Tabs, Tab, IconButton } from "@mui/material";
+import {Modal} from "../../../components";
 import styles from "./EditRole.module.scss";
 import {
   PermissionsContext,
@@ -56,9 +57,12 @@ const EditRole = () => {
   const [allowedPermissions, setAllowedPermissions] = useState<any>([]);
   const isReadPermitted = usePermission(PERMISSIONS?.ROLE?.UPDATE);
   const [members, setMembers] = useState<{ name: string; id: string }[]>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [targetUser,setTargetUser]=useState<any>({name:"",id:""});
 
   const { permissions: rolePermissions, allRoles } =
     useContext(PermissionsContext);
+  console.log("all roles :",allRoles);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
@@ -300,6 +304,27 @@ const EditRole = () => {
       message.error({ content: "Error Updating Role", key: "updateRole" });
     }
   }
+   async function handleClickRemoveUser(member:Object,role:any) {
+    console.log(member,role);
+     const msgLoding = message.loading({
+      content: "Removing User...",
+      key: "removeUser",
+    });
+    try {
+      await API_USERS().post(`/roles/removeMember`, {
+       member,
+       role
+      });
+      msgLoding();
+      message.success({
+        content: "User Removed Successfully",
+        key: "removeUser",
+      });
+    } catch (error) {
+      msgLoding();
+      message.error({ content: "Error Removing User", key: "removeUser" });
+    }
+  }
 
   return (
     <>
@@ -346,13 +371,25 @@ const EditRole = () => {
                    <Card key={index} classes={[styles.peopleContainer]}>
                   <div className={styles.flexRow}>
                     <p>{member?.name}</p>
-                    <IconButton>
+                    <IconButton  onClick={()=>{setTargetUser(member);setIsDeleteModalOpen(true);}}>
                       <ClearIcon />
                     </IconButton>
                   </div>
+               
                   </Card>
                 ))}
               </div>
+                  <Modal
+        title={`Are you sure you want to delete user : ${targetUser.name}?`}
+        hideCloseIcon={true}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      >
+        <div className={clsx(styles.modalButtons, styles.actionButtons)}>
+          <Button color="error" onClick={()=>{console.log("hey"); handleClickRemoveUser(targetUser,roleName)}} >Delete</Button>
+          <Button onClick={() =>{console.log(targetUser,roleName);setTargetUser({name:"",id:""}); setIsDeleteModalOpen(false)}}>Cancel</Button>
+        </div>
+      </Modal>
             </TabPanel>
           </div>
           <Sidebar title="Recent Activity">

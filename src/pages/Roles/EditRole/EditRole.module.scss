@@ -58,3 +58,8 @@
 .managePeople {
   margin: 1rem 0;
 }
+ .modalButtons.actionButtons {
+   width: 100%;
+   @extend .flexRow;
+   justify-content: space-between;
+ }
