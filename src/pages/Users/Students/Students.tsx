@@ -411,13 +411,14 @@ export const Student: React.FC<{
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     if (!newUserRef.current?.reportValidity()) return;
     e.preventDefault();
+    console.log(values);
     try {
       const error = {
         stream: values.stream ? false : true,
         standard: values.standard ? false : true,
         batch: values.batch ? false : true,
         gender: values.gender ? false : true,
-        roles: values.roles ? false : true,
+        roles: roles ? false : true,
         contact: {
           parent: values.parentContact?.length === 10 ? false : true,
           personal: values.contact?.length === 10 ? false : true,
@@ -531,15 +532,16 @@ export const Student: React.FC<{
       newValues.institute = currentUser?.instituteId;
       newValues.standard = parseInt(values?.standard?.value);
       newValues.batch = values?.batch?.value;
-      newValues.roles = [
-        {
-          id: "ROLE_STUDENT",
-          from: new Date().toISOString(),
-          to: new Date(
-            new Date().setDate(new Date().getDate() + 400)
-          ).toISOString(),
-        },
-      ];
+      newValues.roles = roles;
+      // newValues.roles = [
+      //   {
+      //     id: "ROLE_STUDENT",
+      //     from: new Date().toISOString(),
+      //     to: new Date(
+      //       new Date().setDate(new Date().getDate() + 400)
+      //     ).toISOString(),
+      //   },
+      // ];
       newValues.createdAt = new Date().toISOString();
       // console.log({ values });
       newValues.stream = values?.stream?.value;
