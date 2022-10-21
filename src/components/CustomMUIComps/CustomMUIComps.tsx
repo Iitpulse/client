@@ -84,6 +84,9 @@ export const MUIChipsAutocomplete: React.FC<MUIAutocompleteProps> = ({
       }}
       value={value}
       options={options}
+      getOptionDisabled={(option) =>
+        value.map((item: any) => item.name).includes(option.name)
+      }
       getOptionLabel={(option) => option.name}
       renderInput={(params) => (
         <TextField
