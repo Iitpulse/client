@@ -22,6 +22,10 @@
     border: none;
   }
 }
+.peopleContainer{
+  margin: 0.5rem 0rem;
+  padding: 1rem 2rem;
+}
 .permissionHeader {
   @extend .flexRow;
   justify-content: space-between;
@@ -54,3 +58,8 @@
 .managePeople {
   margin: 1rem 0;
 }
+ .modalButtons.actionButtons {
+   width: 100%;
+   @extend .flexRow;
+   justify-content: space-between;
+ }

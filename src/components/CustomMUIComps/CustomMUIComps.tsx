@@ -7,8 +7,10 @@ import {
   Chip,
   Autocomplete,
   SelectChangeEvent,
+  FormHelperText,
 } from "@mui/material";
 import { styled } from "@mui/system";
+import { useEffect } from "react";
 import styles from "./CustomMUIComps.module.scss";
 
 interface MUISelectProps {
@@ -49,8 +51,10 @@ export const MUISelect = (props: MUISelectProps) => {
 
 interface MUIAutocompleteProps {
   label: string;
-  value?: string;
+  value?: any;
   onChange: any;
+  error?: boolean;
+  helperText?: any;
   options: Array<{
     name: string;
     value: string;
@@ -60,26 +64,35 @@ interface MUIAutocompleteProps {
 export const MUIChipsAutocomplete: React.FC<MUIAutocompleteProps> = ({
   options,
   label,
+  value,
   onChange,
+  error = false,
+  helperText = "",
   ...rest
 }) => {
+  useEffect(() => {
+    console.log({ value });
+  });
+
   return (
     <Autocomplete
       multiple
       id="tags-outlined"
-      onChange={(_, value) =>
-        onChange(
-          value.map((item) => {
-            return item.value;
-          })
-        )
-      }
+      onChange={(_, value) => {
+        console.log("change", value);
+        onChange(value);
+      }}
+      value={value}
       options={options}
+      getOptionDisabled={(option) =>
+        value.map((item: any) => item.name).includes(option.name)
+      }
       getOptionLabel={(option) => option.name}
-      filterSelectedOptions
       renderInput={(params) => (
         <TextField
           {...params}
+          error={error}
+          helperText={error && helperText}
           label={label}
           placeholder={"Search for " + label}
         />
@@ -98,6 +111,8 @@ export const MUISimpleAutocomplete = (props: MUIAutocompleteProps) => {
       renderInput={(params) => (
         <TextField
           {...params}
+          {...props}
+          helperText={props?.error && props?.helperText}
           placeholder={"Search for" + props.label}
           label={props.label}
         />

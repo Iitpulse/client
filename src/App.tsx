@@ -9,7 +9,7 @@ import {
   Batches,
   Login,
   CreateTest,
-  Results,
+  Result,
   EditRole,
   Error,
   DetailedAnalysis,
@@ -110,7 +110,7 @@ const App = () => {
                     <Route
                       path="/test/result/:testId"
                       element={
-                        <PrivateRoute component={Results} name="Results" />
+                        <PrivateRoute component={Result} name="Results" />
                       }
                     />
                     <Route
