@@ -108,13 +108,13 @@ const App = () => {
                       }
                     />
                     <Route
-                      path="/test/result/:testId"
+                      path="/test/result/:testName/:testExamName/:testId"
                       element={
                         <PrivateRoute component={Result} name="Results" />
                       }
                     />
                     <Route
-                      path="/test/result/detailed-analysis/:testId"
+                      path="/test/result/detailed-analysis/:testName/:testExamName/:testId"
                       element={
                         <PrivateRoute
                           component={DetailedAnalysis}

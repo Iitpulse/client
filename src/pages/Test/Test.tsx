@@ -43,7 +43,7 @@ const Test = () => {
     {
       title: "Exam",
       dataIndex: "exam",
-      render: (exam: any) => exam.fullName,
+      render: (exam: any) => exam.name,
     },
     {
       title: "Created",
@@ -57,7 +57,11 @@ const Test = () => {
     {
       title: "Actions",
       render: (row: any) => (
-        <Button onClick={() => navigate("/test/result/" + row.id)}>
+        <Button
+          onClick={() =>
+            navigate(`/test/result/${row.name}/${row.exam.name}/${row.id}`)
+          }
+        >
           View Result
         </Button>
       ),

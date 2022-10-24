@@ -6,8 +6,9 @@ import {
   NotificationCard,
   Navigate,
   Modal,
+  Card,
 } from "../../components/";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Tab, Tabs, Menu, MenuItem, IconButton } from "@mui/material";
 import calendar from "../../assets/icons/calendar.svg";
 import yellowFlag from "../../assets/icons/yellowFlag.svg";
@@ -18,6 +19,7 @@ import kebabMenu from "../../assets/icons/kebabMenu.svg";
 import clsx from "clsx";
 import { style } from "@mui/system";
 import { result } from "../../utils/";
+import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 
 // const results = [
 //   {
@@ -50,8 +52,8 @@ function roundOffToOneDecimal(num: number) {
   return Math.round(num * 10) / 10;
 }
 
-const DetailedAnalysis = () => {
-  const { testId } = useParams();
+const DetailedAnalysisMain = () => {
+  const { testId, testName, testExamName } = useParams();
   const [tab, setTab] = useState(0);
   const [viewSolQuestionId, setViewSolQuestionId] = useState("");
   const [isViewSolModalOpen, setIsViewSolModalOpen] = useState(false);
@@ -112,7 +114,9 @@ const DetailedAnalysis = () => {
   return (
     <div className={styles.container}>
       <div className={styles.testDetails}>
-        <Navigate path={"/test/result/" + testId}>Back to Result</Navigate>
+        <Navigate path={`/test/result/${testName}/${testExamName}/${testId}`}>
+          Back to Result
+        </Navigate>
         <div className={styles.topContainer}>
           <div className={styles.topRow}>
             <div className={styles.left}>
@@ -250,14 +254,196 @@ const DetailedAnalysis = () => {
     </div>
   );
 };
+export default DetailedAnalysisMain;
+
+function getStatusColor(status: string) {
+  if (!status) return;
+  switch (status.toLowerCase()) {
+    case "ongoing": {
+      return "var(--clr-success)";
+    }
+
+    default: {
+      return "red";
+    }
+  }
+}
+
+interface IHeaderDetails {
+  name: string;
+  type: string;
+  languages: any[];
+  duration: number;
+  scheduledFor: string[];
+  status: string;
+  highestMarks: number;
+  averageMarks: number;
+  lowestMarks: number;
+  totalAppeared: number;
+}
+
+export const HeaderDetails: React.FC<IHeaderDetails> = ({
+  name,
+  type,
+  languages,
+  duration,
+  scheduledFor,
+  status,
+  highestMarks,
+  averageMarks,
+  lowestMarks,
+  totalAppeared,
+}) => {
+  return (
+    <Card classes={[styles.topContainer]}>
+      <div className={styles.topRow}>
+        <div className={styles.left}>
+          <h2>{name}</h2>
+          <h5>Type : {type}</h5>
+          <h5>
+            Language/s :{" "}
+            {languages
+              ?.map((item: any) => {
+                return item?.name;
+              })
+              .join(", ")}
+          </h5>
+          <h5> Duration(mins) : {duration}</h5>
+        </div>
+        <div className={styles.right}>
+          <img className={styles.calendar} src={calendar} alt="Scheduled For" />
+          <div className={styles.scheduledFor}>
+            Scheduled For :
+            {scheduledFor?.map((item: any, index: number) => (
+              <p key={index}>{item}</p>
+            ))}
+          </div>
+          <div className={styles.status}>
+            {status}{" "}
+            <div
+              className={styles.statusColor}
+              style={{
+                backgroundColor: getStatusColor(status),
+              }}
+            ></div>{" "}
+          </div>
+        </div>
+      </div>
+      <div className={styles.moreInfo}>
+        <SubCard
+          title="Highest Marks"
+          content={highestMarks}
+          icon={greenCrown}
+          variant="success"
+        />
+        <SubCard
+          title="Average Marks"
+          content={averageMarks}
+          icon={yellowFlag}
+          variant="warning"
+        />
+        <SubCard
+          title="Lowest Marks"
+          content={lowestMarks}
+          icon={redWarning}
+          variant="error"
+        />
+        <SubCard
+          title="Total Appeared"
+          content={totalAppeared}
+          icon={blueUsers}
+          variant="primary"
+        />
+      </div>
+    </Card>
+  );
+};
+
+interface IDetailedAnalysis {
+  sections: Array<any>;
+}
+
+export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({ sections }) => {
+  const [tab, setTab] = useState(0);
+  const [viewSolQuestionId, setViewSolQuestionId] = useState("");
+  const [isViewSolModalOpen, setIsViewSolModalOpen] = useState(false);
+
+  interface TabPanelProps {
+    children?: React.ReactNode;
+    index: number;
+    value: number;
+  }
+  function TabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props;
+
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`simple-tabpanel-${index}`}
+        aria-labelledby={`simple-tab-${index}`}
+        {...other}
+      >
+        {value === index && children}
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    viewSolQuestionId
+      ? setIsViewSolModalOpen(true)
+      : setIsViewSolModalOpen(false);
+  }, [viewSolQuestionId]);
+
+  function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
+    setTab(newValue);
+  }
+
+  return (
+    <>
+      <div className={styles.sectionWiseAnalysis}>
+        <Tabs value={tab} onChange={handleChangeTab}>
+          {sections?.map((item: any, index: number) => (
+            <Tab label={item?.name} key={index} />
+          ))}
+        </Tabs>
+        {sections?.map((section: any, index: number) => (
+          <TabPanel value={tab} index={index} key={index}>
+            {section?.subSections?.map(
+              (subSection: any, subsectionIndex: number) => (
+                <SubSection
+                  subSection={subSection}
+                  setIsViewSolModalOpen={setIsViewSolModalOpen}
+                  setViewSolQuestionId={setViewSolQuestionId}
+                  key={subsectionIndex}
+                />
+              )
+            )}
+          </TabPanel>
+        ))}
+      </div>
+
+      <Modal
+        isOpen={isViewSolModalOpen}
+        title="Solution"
+        onClose={() => {
+          setIsViewSolModalOpen(false);
+          setViewSolQuestionId("");
+        }}
+      >
+        Hello{viewSolQuestionId}
+      </Modal>
+    </>
+  );
+};
 
 interface SubCardProps {
   title: string;
   icon: string;
-  content: string;
+  content: string | number;
   variant: "success" | "warning" | "error" | "primary";
 }
-const SubCard = (props: SubCardProps) => {
+export const SubCard = (props: SubCardProps) => {
   const { title, content, variant, icon } = props;
   function getVariantClass(
     variant: "success" | "warning" | "error" | "primary"
@@ -286,6 +472,35 @@ const SubCard = (props: SubCardProps) => {
   );
 };
 
+interface ISubSection {
+  subSection: any;
+  setIsViewSolModalOpen: Dispatch<SetStateAction<boolean>>;
+  setViewSolQuestionId: (id: string) => void;
+}
+
+const SubSection: React.FC<ISubSection> = ({
+  subSection,
+  setIsViewSolModalOpen,
+  setViewSolQuestionId,
+}) => {
+  return (
+    <>
+      {Object.values(subSection?.questions)?.map(
+        (question: any, questionIndex: number) => (
+          <Question
+            {...question}
+            attemptedBy={2}
+            setIsViewSolModalOpen={setIsViewSolModalOpen}
+            setViewSolQuestionId={setViewSolQuestionId}
+            key={question.id}
+            count={questionIndex + 1}
+          />
+        )
+      )}
+    </>
+  );
+};
+
 interface OptionProp {
   id: string;
   value: string;
@@ -294,6 +509,8 @@ interface OptionProp {
 interface QuestionProps {
   id: string;
   count: number;
+  en: any;
+  hi: any;
   description: string;
   correctOptionIndex: number;
   solution?: any;
@@ -303,7 +520,7 @@ interface QuestionProps {
   attemptedBy?: number;
   quickestResponse?: number;
   averageTimeTaken?: number;
-  timeTaken?: number;
+  timeTakenInSeconds?: number;
   totalStudentAttempted?: number;
 }
 const Question = (props: QuestionProps) => {
@@ -312,7 +529,8 @@ const Question = (props: QuestionProps) => {
   const {
     id,
     count,
-    description,
+    en,
+    hi,
     options,
     correctOptionIndex,
     solution,
@@ -321,7 +539,7 @@ const Question = (props: QuestionProps) => {
     attemptedBy,
     quickestResponse,
     averageTimeTaken,
-    timeTaken,
+    timeTakenInSeconds,
     totalStudentAttempted,
   } = props;
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -363,13 +581,14 @@ const Question = (props: QuestionProps) => {
       <div className={styles.question}>
         <div className={styles.left}>
           <h5>
-            {count}.){description}
+            {count}.&nbsp;
+            <RenderWithLatex quillString={en?.question} />
           </h5>
           <div className={styles.options}>
-            {options.map((item: any, index: number) => (
+            {en?.options.map((item: any, index: number) => (
               <p className={getOptionStyles(index)}>
-                <span>{["A", "B", "C", "D"][index]}.)</span>
-                {item.description}
+                <span>{String.fromCharCode(65 + index)}.)</span>&nbsp;
+                <RenderWithLatex quillString={item.value} />
               </p>
             ))}
           </div>
@@ -403,7 +622,7 @@ const Question = (props: QuestionProps) => {
           </Menu>
           <div className={styles.moreInfo}>
             <div className={styles.leftMI}>
-              <p>Time Taken : {timeTaken}s</p>
+              <p>Time Taken : {timeTakenInSeconds?.toFixed(2)}s</p>
               <p>Average Time Taken : {averageTimeTaken}s</p>
             </div>
             <div className={styles.rightMI}>
@@ -412,7 +631,7 @@ const Question = (props: QuestionProps) => {
             </div>
           </div>
           <div className={styles.optionPercentageWrapper}>
-            {options.map((option: any, index: number) => {
+            {en?.options.map((option: any, index: number) => {
               const selectedBy = totalStudentAttempted
                 ? roundOffToOneDecimal(
                     (option?.totalStudentSelected / totalStudentAttempted) * 100
@@ -420,7 +639,7 @@ const Question = (props: QuestionProps) => {
                 : 0;
               return (
                 <div className={styles.optionPercentageContainer}>
-                  <h5>{["A", "B", "C", "D"][index]}</h5>
+                  <h5>{String.fromCharCode(65 + index)}</h5>
                   <div className={styles.fullWidth}>
                     <div
                       style={{ width: selectedBy + "%" }}
@@ -440,4 +659,3 @@ const Question = (props: QuestionProps) => {
     </>
   );
 };
-export default DetailedAnalysis;

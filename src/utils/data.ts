@@ -44,10 +44,7 @@ export const getQuestion = function getNewQuestion() {
   const fourNumberWhoseSumIsTotalStudentAttempted = getFourNumberWhoseSumIs(
     totalStudentAttempted
   );
-  console.log({
-    totalStudentAttempted,
-    fourNumberWhoseSumIsTotalStudentAttempted,
-  });
+
   const question = {
     description:
       " Lorem ipsum dolor sit amet consectetur adipisicing elit Eaque qui accusamus pariatur fugit quod reprehenderit ut nonrecusandae reiciendis, doloremque doloralias quis sunt, deseruntaccusantium praesentium? Fuga minus ipsa amet obcaecati nesciunt qui.Nulla libero quibusdam itaquiure exercitationem.",

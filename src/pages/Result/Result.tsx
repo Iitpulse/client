@@ -1,10 +1,20 @@
 import styles from "./Result.module.scss";
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
-import { Button, Sidebar, NotificationCard, Navigate } from "../../components";
+import {
+  Button,
+  Sidebar,
+  NotificationCard,
+  Navigate,
+  Card,
+} from "../../components";
 import { CircularProgress as MUICircularProgress, styled } from "@mui/material";
 import timer from "../../assets/icons/timer.svg";
 import { API_TESTS } from "../../utils/api";
+import {
+  DetailedAnalysis,
+  HeaderDetails,
+} from "../DetailedAnalysis/DetailedAnalysis";
 
 const tests = [
   {
@@ -56,7 +66,11 @@ const Result = () => {
   const { testId } = useParams();
   const [headerData, setHeaderData] = useState<any>({} as any);
   const [currentTest, setCurrentTest] = useState<any>({});
+  const [finalTest, setFinalTest] = useState<any>({});
+  const [finalSections, setFinalSections] = useState<any>([]);
   const navigate = useNavigate();
+
+  const { testName, testExamName } = useParams();
 
   function getStatusColor(status: string) {
     if (!status) return;
@@ -70,9 +84,6 @@ const Result = () => {
       }
     }
   }
-  function getResult() {
-    return tempResult;
-  }
 
   useEffect(() => {
     async function getTest() {
@@ -80,24 +91,99 @@ const Result = () => {
       setCurrentTest(test);
     }
     async function getResult() {
-      const res = API_TESTS().get("/result/student", {
+      const res = await API_TESTS().get(`/test/result/student`, {
         params: {
           testId,
         },
       });
-      console.log({ res });
+      setFinalTest(res.data);
     }
-    getTest();
+    // getTest();
     getResult();
   }, [testId]);
+
+  /*
+    Listen to all the changes finalTest obj
+  */
+  useEffect(() => {
+    if (finalTest?.id || finalTest?._id) {
+      const { totalMarks, totalTimeTakenInSeconds } = finalTest;
+      let totalCorrect = 0;
+      let totalAttempted = 0;
+      let totalQuestions = 0;
+      let totalIncorrect = 0;
+
+      finalTest.sections.forEach((section: any) => {
+        totalQuestions += section.totalQuestions;
+        let attempted = 0;
+        let correct = 0;
+        let incorrect = 0;
+        let timeTakenInSeconds = 0;
+        let marks = 0;
+
+        section.subSections?.forEach((subSection: any) => {
+          Object.values(subSection?.questions)?.forEach((question: any) => {
+            const { timeTakenInSeconds: qTimeTakenInSeconds } = question;
+
+            // if not null -> Question is attempted
+            if (qTimeTakenInSeconds !== null) {
+              attempted += 1;
+              totalAttempted += 1;
+              marks += question.marks;
+              if (question.marks < 0 && question.wrongAnswers.length) {
+                incorrect += 1;
+                timeTakenInSeconds += qTimeTakenInSeconds;
+                totalIncorrect += 1;
+              } else if (question.marks > 0 && question.correctAnswers.length) {
+                correct += 1;
+                totalCorrect += 1;
+                timeTakenInSeconds += qTimeTakenInSeconds;
+              }
+            }
+            setFinalSections((prev: any) => ({
+              ...prev,
+              [section.id]: {
+                ...section,
+                attempted,
+                correct,
+                incorrect,
+                timeTakenInSeconds,
+                marks,
+              },
+            }));
+          });
+        });
+      });
+      setHeaderData({
+        totalMarks,
+        totalTimeTakenInSeconds,
+        totalCorrect,
+        totalAttempted,
+        totalQuestions,
+        totalIncorrect,
+      });
+    }
+  }, [finalTest]);
 
   return (
     <div className={styles.container}>
       <Navigate path={"/test"}>Back To Tests</Navigate>
+      <HeaderDetails
+        name={testName || ""}
+        type={finalTest?.type || ""}
+        languages={[{ name: "English" }, { name: "Hindi" }]}
+        duration={finalTest?.duration || 90}
+        totalAppeared={finalTest?.totalAppeared || 0}
+        highestMarks={finalTest?.highestMarks || 0}
+        lowestMarks={finalTest?.lowestMarks || 0}
+        averageMarks={finalTest?.averageMarks || 0}
+        status={finalTest?.status || ""}
+        scheduledFor={finalTest?.scheduledFor || []}
+      />
       <div className={styles.content}>
-        <div className={styles.top}>
+        {/* <div className={styles.top}>
           <h2>
-            {currentTest?.name} ({currentTest?.exam?.fullName})
+            {testName || ""} ({testExamName || "NA"})
           </h2>
           <div className={styles.status}>
             {currentTest?.status}{" "}
@@ -106,44 +192,54 @@ const Result = () => {
               style={{ backgroundColor: getStatusColor(currentTest?.status) }}
             ></div>{" "}
           </div>
-        </div>
+        </div> */}
 
-        <div className={styles.basicInfo}>
+        {/* <div className={styles.basicInfo}>
           <h3 className={styles.marksObtained}>
             Marks Obtained :{" "}
             <span className={styles.boldLarge}>
-              {tempResult?.subjects.reduce((acc: number, item: any) => {
-                acc += item.marksObtained;
-                return acc;
-              }, 0)}
-              /
-              {tempResult?.subjects.reduce((acc: number, item: any) => {
-                acc += item.maxMarks;
-                return acc;
-              }, 0)}
+              {headerData?.totalMarks || 0}/{headerData?.totalTestMarks || 0}
             </span>
           </h3>
           <h3 className={styles.totalAttempted}>
             Attempted :{" "}
             <span className={styles.boldLarge}>
-              {tempResult?.subjects.reduce((acc: number, item: any) => {
-                acc += item.attempted;
-                return acc;
-              }, 0)}
+              {headerData?.totalAttempted || 0}/
+              {headerData?.totalQuestions || 0}
             </span>{" "}
           </h3>
-        </div>
+        </div> */}
+        <Card classes={[styles.basicInfo]}>
+          <h3 className={styles.marksObtained}>
+            Marks Obtained :{" "}
+            <span className={styles.boldLarge}>
+              {headerData?.totalMarks || 0}/{headerData?.totalTestMarks || 0}
+            </span>
+          </h3>
+          <h3 className={styles.totalAttempted}>
+            Attempted :{" "}
+            <span className={styles.boldLarge}>
+              {headerData?.totalAttempted || 0}/
+              {headerData?.totalQuestions || 0}
+            </span>{" "}
+          </h3>
+        </Card>
         <div className={styles.cards}>
-          {tempResult?.subjects?.map((item: any, index: number) => (
-            <SubjectCard color={colors[index % 4]} {...item} />
+          {Object.values(finalSections)?.map((item: any, index: number) => (
+            <SubjectCard key={item.id} color={colors[index % 4]} {...item} />
           ))}
         </div>
         <Button
-          onClick={() => navigate("/test/result/detailed-analysis/" + testId)}
+          onClick={() =>
+            navigate(
+              `/test/result/detailed-analysis/${testName}/${testExamName}/${testId}`
+            )
+          }
           color="primary"
         >
           View Detailed Analysis
         </Button>
+        <DetailedAnalysis sections={Object.values(finalSections)} />
       </div>
       <Sidebar title="Recent Activity">
         {Array(10)
@@ -154,7 +250,7 @@ const Result = () => {
               id="aasdadsd"
               status={i % 2 === 0 ? "success" : "warning"}
               title={"New Student Joined-" + i}
-              description="New student join IIT Pulse Anurag Pal - Dropper Batch"
+              description="New student joined IIT Pulse Anurag Pal - Dropper Batch"
               createdAt="10 Jan, 2022"
             />
           ))}
@@ -166,22 +262,24 @@ const Result = () => {
 interface ISubjectCard {
   color: string;
   name: string;
-  marksObtained: number;
+  marks: number;
   maxMarks: number;
   attempted: number;
   correct: number;
+  incorrect: number;
   maxTime: string;
+  timeTakenInSeconds: number;
   totalQuestions: number;
 }
 
 const SubjectCard: React.FC<ISubjectCard> = ({
   color,
   name,
-  marksObtained,
-  maxMarks,
+  marks,
   attempted,
   correct,
-  maxTime,
+  incorrect,
+  timeTakenInSeconds,
   totalQuestions,
 }) => {
   return (
@@ -192,11 +290,11 @@ const SubjectCard: React.FC<ISubjectCard> = ({
       <div className={styles.mid}>
         <div className={styles.left}>
           <h2 className={styles.marks}>
-            {marksObtained}/{maxMarks}
+            {marks}/{360}
           </h2>
           <div className={styles.time}>
             <img src={timer} alt="Time" />
-            <p>{maxTime}</p>
+            <p>{timeTakenInSeconds.toFixed(2)}</p>
           </div>
           <p className={styles.accuracy}>
             Accuracy:
@@ -205,10 +303,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
             </span>
           </p>
         </div>
-        <CircularProgress
-          color={color}
-          progress={(marksObtained / maxMarks) * 100}
-        />
+        <CircularProgress color={color} progress={(marks / 360) * 100} />
       </div>
       <div className={styles.moreInfo}>
         <p>
@@ -218,8 +313,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
           Correct :<span className={styles.highlight}>{correct}</span>{" "}
         </p>
         <p>
-          Incorrect :
-          <span className={styles.highlight}>{attempted - correct}</span>{" "}
+          Incorrect :<span className={styles.highlight}>{incorrect}</span>{" "}
         </p>
       </div>
     </div>
