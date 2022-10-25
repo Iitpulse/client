@@ -32,7 +32,7 @@ import { API_QUESTIONS, API_TESTS } from "../../utils/api";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
 import { hasPatternPemissions } from "./utils";
-
+import AddIcon from "@mui/icons-material/Add";
 const sampleSection = {
   id: "", // PT_SE_PHY123
   name: "",
@@ -433,6 +433,11 @@ const SubSection: React.FC<{
             })
           }
         />
+        <MarkingScheme
+          type={subSection.type}
+          subSectionId={subSection.id}
+          setSubSection={setSubSection}
+        />
       </div>
     </div>
   );
@@ -504,5 +509,76 @@ const CustomSelect: React.FC<ICustomSelectProps> = ({
         ))}
       </select>
     </div>
+  );
+};
+interface IMarkingSchemeProps {
+  subSectionId: string;
+  type: string;
+  setSubSection: (id: string, data: any) => void;
+}
+
+const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
+  subSectionId,
+  type,
+  setSubSection,
+}) => {
+  const [markingSchemeCorrect, setMarkingSchemeCorrect] = useState<
+    Array<number>
+  >([1]);
+  const [markingSchemeIncorrect, setMarkingSchemeIncorrect] =
+    useState<number>(0);
+  const handleAddCorrectInput = () => {
+    setMarkingSchemeCorrect((data: Array<number>) => [...data, 1]);
+  };
+  return (
+    <>
+      <CustomInputSection
+        value={markingSchemeIncorrect}
+        label="Incorrect Marks"
+        type="number"
+        inputProps={{ max: 0 }}
+        onChange={(e: any) => {
+          setSubSection(subSectionId, {
+            markingScheme: {
+              incorrect: parseInt(e.target.value),
+              correct: markingSchemeCorrect,
+            },
+          });
+          setMarkingSchemeIncorrect(parseInt(e.target.value));
+        }}
+      />
+      {markingSchemeCorrect.map((correctMark: number, idx: number) => {
+        return (
+          <CustomInputSection
+            value={correctMark}
+            label={`Correct Marks ${idx + 1}`}
+            type="number"
+            inputProps={{ min: 1 }}
+            onChange={(e: any) => {
+              let correct = [...markingSchemeCorrect];
+              correct[idx] = parseInt(e.target.value);
+              console.log(correct);
+              setSubSection(subSectionId, {
+                markingScheme: {
+                  correct,
+                  incorrect: markingSchemeIncorrect,
+                },
+              });
+              setMarkingSchemeCorrect(correct);
+            }}
+          />
+        );
+      })}
+      {type !== "single" && (
+        <IconButton
+          style={{
+            marginTop: "20px",
+          }}
+          onClick={handleAddCorrectInput}
+        >
+          <AddIcon />
+        </IconButton>
+      )}
+    </>
   );
 };
