@@ -160,7 +160,8 @@ const Home = () => {
     },
   ];
 
-  const { state } = useContext(TestContext);
+  const { state ,recentTest} = useContext(TestContext);
+  console.log("recentTests in home : ",recentTest);
   const { tests } = state;
 
   useEffect(() => {
@@ -176,29 +177,29 @@ const Home = () => {
               title="Recent Test Analysis"
               classes={[styles.recentTestContainer]}
             >
-              <h2>Sunday Test IOY</h2>
+              <h2>{recentTest.name}</h2>
               <div className={styles.data}>
                 <SubCard
                   title="Highest Marks"
-                  content="302"
+                  content={String( recentTest.highestMarks)}
                   icon={greenCrown}
                   variant="success"
                 />
                 <SubCard
                   title="Average Marks"
-                  content="302"
+                  content={String(recentTest.averageMarks)}
                   icon={yellowFlag}
                   variant="warning"
                 />
                 <SubCard
                   title="Lowest Marks"
-                  content="302"
+                  content={String(recentTest.lowestMarks)}
                   icon={redWarning}
                   variant="error"
                 />
                 <SubCard
                   title="Total Appeared"
-                  content="302"
+                  content={String(recentTest.totalAppeared)}
                   icon={blueUsers}
                   variant="primary"
                 />

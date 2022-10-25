@@ -19,9 +19,23 @@ interface ProviderProps {
 export interface ITestContext {
   tests: Array<ITest> | null;
 }
+export interface recenTestContext {
+  highestMarks:Number | string;
+  lowestMarks:Number | string;
+  averageMarks:Number | string;
+  totalAppeared:Number | string;
+  name:string;
+}
 
 const defaultTestContext: ITestContext = {
   tests: null,
+};
+const defaultRecentTestContext: recenTestContext = {
+   highestMarks: "NA",
+  lowestMarks: "NA",
+  averageMarks: "NA",
+  totalAppeared: "NA",
+  name:"NA"
 };
 
 export const TestContext = createContext<{
@@ -29,16 +43,19 @@ export const TestContext = createContext<{
   dispatch: React.Dispatch<TEST_ACTION>;
   exams: Array<any>;
   subjects: Array<any>;
+  recentTest:recenTestContext;
 }>({
   state: defaultTestContext,
   dispatch: () => {},
   exams: [],
   subjects: [],
+  recentTest:defaultRecentTestContext,
 });
 
 const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(TestReducer, defaultTestContext);
   const [exams, setExams] = useState<any>([]);
+  const [recentTest, setRecentTest] = useState<any>(defaultRecentTestContext);
   const [subjects, setsubjects] = useState<any>([]);
 
   const { currentUser } = useContext(AuthContext);
@@ -73,13 +90,29 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
         setsubjects(res.data);
       }
     }
+    async function fetchRecentTest() {
+      const res = await API_TESTS().get(`/test/recent`);
+      console.log("recentTests :", { res });
+     if (res.data?.length > 0) {
+        console.log({ res });
+        const recent={
+          highestMarks:res.data[0].highestMarks??"NA",
+          lowestMarks:res.data[0].lowestMarks??"NA",
+          averageMarks:res.data[0].averageMarks??"NA",
+          totalAppeared:res.data[0].totalAppeared??"NA",
+          name:res.data[0].name,
+        }
+        setRecentTest(recent);
+      }
+    }
     fetchTests();
     fetchExams();
     fetchSubjects();
+    fetchRecentTest();
   }, [currentUser]);
 
   return (
-    <TestContext.Provider value={{ state, dispatch, exams, subjects }}>
+    <TestContext.Provider value={{ state, dispatch, exams, subjects,recentTest }}>
       {children}
     </TestContext.Provider>
   );
