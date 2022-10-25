@@ -71,8 +71,8 @@ const InsertQuestionModal: React.FC<Props> = ({
     });
 
     // console.log({ res: res.data, difficulties });
-    if (res.data?.length) {
-      setQuestions(res.data);
+    if (res.data.data?.length) {
+      setQuestions(res.data.data);
     }
   }
 
