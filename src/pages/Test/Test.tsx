@@ -30,11 +30,24 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const Test = () => {
-  const columns = [
+  const columns: any = [
     {
       title: "ID",
       dataIndex: "id",
-      // render: (text: string) => <a>{text}</a>,
+      width: 100,
+      render: (text: string) => (
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%",
+            display: "inline-block",
+          }}
+        >
+          {text}
+        </span>
+      ),
     },
     {
       title: "Name",
@@ -56,6 +69,7 @@ const Test = () => {
     },
     {
       title: "Actions",
+      fixed: "right",
       render: (row: any) => (
         <Button
           onClick={() =>
@@ -146,6 +160,7 @@ const Test = () => {
             }}
             columns={columns}
             dataSource={data}
+            scroll={{ x: 600, y: 500 }}
           />
         </div>
       </TabPanel>
