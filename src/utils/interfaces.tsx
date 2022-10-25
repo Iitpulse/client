@@ -86,6 +86,11 @@ export interface ISubSection {
   type: string;
   totalQuestions: number | null;
   toBeAttempted: number | null;
+  markingScheme:{
+    correct:Array<number>,
+    incorrect:number
+  }
+
   questions: {};
 }
 
