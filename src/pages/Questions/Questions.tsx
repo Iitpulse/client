@@ -38,7 +38,7 @@ import * as Docx from "docx"; // that is a peer dependency
 import { Visibility } from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api";
-import PrintIcon from '@mui/icons-material/Print';
+import PrintIcon from "@mui/icons-material/Print";
 import sheetIcon from "../../assets/icons/sheets.svg";
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -147,7 +147,8 @@ const Questions = () => {
   const [chapterOptions, setChapterOptions] = useState([]);
   const [topicOptions, setTopicOptions] = useState([]);
   const [data, setData] = useState<any>({});
-  const [loading,setLoading]=useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [totalDocs, setTotalDocs] = useState(1);
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -290,28 +291,46 @@ const Questions = () => {
   }, [previewData]);
 
   useEffect(() => {
-
-    async function fetchAllMCQs(){
-setLoading(true);
-try{
-      const res=await  API_QUESTIONS()
-      .get(`/mcq/all`);
-       console.log({ res });
-        setQuestions(res.data);
+    async function fetchPaginatedMCQs() {
+      setLoading(true);
+      try {
+        const res = await API_QUESTIONS().get(`/mcq/all`, {
+          params: {
+            page: 1,
+          },
+        });
+        setQuestions(res.data.data);
+        setTotalDocs(res.data.totalDocs);
         setLoading(false);
-}catch(err){
-  console.log(err);
-  setLoading(false);
-}
-  
-    }
-      if(currentUser){
-        fetchAllMCQs();
+      } catch (err) {
+        console.log(err);
+        setLoading(false);
       }
-      
+    }
+    if (currentUser) {
+      fetchPaginatedMCQs();
+    }
   }, [currentUser]);
 
   const navigate = useNavigate();
+
+  async function onChangePageOrPageSize(page: number, pageSize: number) {
+    setLoading(true);
+    try {
+      const res = await API_QUESTIONS().get(`/mcq/all`, {
+        params: {
+          page,
+          size: pageSize || 10,
+        },
+      });
+      setQuestions(res.data.data);
+      setTotalDocs(res.data.totalDocs);
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -324,13 +343,14 @@ try{
                   Add New
                 </Button>
                 <div>
-                <IconButton  onClick={handlePrint}><PrintIcon/></IconButton>
-                <IconButton >
-                <CSVLink filename={"Questions.csv"} data={questions}>
-                  <img src={sheetIcon} width="21px" height="21px"/>
-                </CSVLink>
-                </IconButton>
-
+                  <IconButton onClick={handlePrint}>
+                    <PrintIcon />
+                  </IconButton>
+                  <IconButton>
+                    <CSVLink filename={"Questions.csv"} data={questions}>
+                      <img src={sheetIcon} width="21px" height="21px" />
+                    </CSVLink>
+                  </IconButton>
                 </div>
               </div>
             </>
@@ -348,7 +368,7 @@ try{
                   title: "Preview",
                   key: "preview",
                   width: 120,
-                  
+
                   render: (text: any, record: any) => (
                     <IconButton
                       onClick={() => {
@@ -361,9 +381,13 @@ try{
                   ),
                 },
                 ...QUESTION_COLS_ALL,
-                
               ]}
               height="60vh"
+              pagination={{
+                total: totalDocs,
+                onChange: onChangePageOrPageSize,
+                onShowSizeChange: onChangePageOrPageSize,
+              }}
             />
           </div>
           {/* <hr /> */}
