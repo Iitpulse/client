@@ -148,6 +148,8 @@ const Questions = () => {
   const [topicOptions, setTopicOptions] = useState([]);
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
+  const [totalDocs, setTotalDocs] = useState(1);
+  
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -301,12 +303,16 @@ const Questions = () => {
   }, [previewData]);
 
   useEffect(() => {
-    async function fetchAllMCQs() {
+    async function fetchPaginatedMCQs() {
       setLoading(true);
       try {
-        const res = await API_QUESTIONS().get(`/mcq/all`);
-        console.log({ res });
-        setQuestions(res.data);
+        const res = await API_QUESTIONS().get(`/mcq/all`, {
+          params: {
+            page: 1,
+          },
+        });
+        setQuestions(res.data.data);
+        setTotalDocs(res.data.totalDocs);
         setLoading(false);
       } catch (err) {
         console.log(err);
@@ -314,11 +320,29 @@ const Questions = () => {
       }
     }
     if (currentUser) {
-      fetchAllMCQs();
+      fetchPaginatedMCQs();
     }
   }, [currentUser]);
 
   const navigate = useNavigate();
+
+  async function onChangePageOrPageSize(page: number, pageSize: number) {
+    setLoading(true);
+    try {
+      const res = await API_QUESTIONS().get(`/mcq/all`, {
+        params: {
+          page,
+          size: pageSize || 10,
+        },
+      });
+      setQuestions(res.data.data);
+      setTotalDocs(res.data.totalDocs);
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -371,6 +395,11 @@ const Questions = () => {
                 ...QUESTION_COLS_ALL,
               ]}
               height="60vh"
+              pagination={{
+                total: totalDocs,
+                onChange: onChangePageOrPageSize,
+                onShowSizeChange: onChangePageOrPageSize,
+              }}
             />
           </div>
           {/* <hr /> */}

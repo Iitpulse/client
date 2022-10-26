@@ -150,11 +150,12 @@ const Students: React.FC<{
       ),
   });
 
-  const columns = [
+  const columns: any = [
     {
       title: "Name",
       dataIndex: "name",
-      // width: 50,
+      width: 200,
+      fixed: "left",
       render: (text: string) => (
         <span style={{ overflow: "ellipsis" }}>{text}</span>
       ),
@@ -163,16 +164,32 @@ const Students: React.FC<{
     {
       title: "Contact",
       dataIndex: "contact",
+      width: 150,
       ...getColumnSearchProps("contact"),
     },
     {
       title: "School",
       dataIndex: "school",
+      width: 150,
       ...getColumnSearchProps("school"),
+      render: (school: string) => (
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%",
+            display: "inline-block",
+          }}
+        >
+          {school}
+        </span>
+      ),
     },
     {
       title: "Gender",
       dataIndex: "gender",
+      width: 100,
       filters: [
         {
           text: "Male",
@@ -200,7 +217,7 @@ const Students: React.FC<{
     {
       title: "Batch",
       dataIndex: "batch",
-      // width: 100,
+      width: 100,
       render: (text: string) => (
         <span style={{ textTransform: "capitalize" }}> {text}</span>
       ),
@@ -210,12 +227,12 @@ const Students: React.FC<{
       title: "Class",
       dataIndex: "standard",
       ...getColumnSearchProps("standard"),
-      // width: 100,
+      width: 50,
     },
     {
       title: "City",
       dataIndex: "city",
-      // width: 100,
+      width: 100,
       ...getColumnSearchProps("city"),
       render: (text: string) => (
         <span style={{ textTransform: "capitalize" }}>{text}</span>
@@ -224,7 +241,7 @@ const Students: React.FC<{
     {
       title: "Valid From",
       dataIndex: "validity",
-      // width: 100,
+      width: 150,
       render: (obj: any) => (
         <span>{new Date(obj.from).toLocaleDateString()}</span>
       ),
@@ -232,7 +249,7 @@ const Students: React.FC<{
     {
       title: "Valid Till",
       dataIndex: "validity",
-      // width: 100,
+      width: 150,
       render: (obj: any) => (
         <span>{new Date(obj.to).toLocaleDateString()}</span>
       ),
@@ -288,7 +305,7 @@ const Students: React.FC<{
         columns={columns}
         dataSource={students as any}
         loading={loading}
-        scroll={{ x: 200 }}
+        scroll={{ x: 200, y: "50vh" }}
       />
       {openModal && activeTab === 0 && (
         <Student

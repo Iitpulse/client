@@ -200,6 +200,7 @@ interface QuestionsTableProps {
   dataSource: Array<any>;
   height?: string;
   loading?: boolean;
+  pagination?: any;
 }
 
 export const QuestionsTable: React.FC<QuestionsTableProps> = ({
@@ -207,6 +208,7 @@ export const QuestionsTable: React.FC<QuestionsTableProps> = ({
   dataSource,
   height,
   loading,
+  pagination,
 }) => {
   return (
     <CustomTable
@@ -217,6 +219,7 @@ export const QuestionsTable: React.FC<QuestionsTableProps> = ({
         y: height || "50vh",
         x: "100%",
       }}
+      pagination={pagination}
       // expandable={{
       //   expandedRowRender: (record) => (
       //     <div

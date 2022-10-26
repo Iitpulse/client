@@ -12,6 +12,7 @@ interface Props {
   scroll?: any;
   selectedRows?: Array<any>;
   setSelectedRows?: (rows: Array<any>) => void;
+  pagination?: any;
 }
 
 const CustomTable: React.FC<Props> = ({
@@ -21,6 +22,7 @@ const CustomTable: React.FC<Props> = ({
   selectable,
   scroll,
   setSelectedRows,
+  pagination,
 }) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -169,6 +171,7 @@ const CustomTable: React.FC<Props> = ({
           x: "100vw",
         }
       }
+      pagination={pagination}
     />
   );
 };
