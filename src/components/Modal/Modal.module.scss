@@ -1,5 +1,7 @@
 @import "../../utils/commons.scss";
 
+$footerHeight:50px;
+
 .container {
   width: 100vw;
   height: 100vh;
@@ -11,6 +13,7 @@
   animation: scaleAndAlpha 0.3s ease-in-out;
   background-color: rgba($color: #000000, $alpha: 0.3);
   .modal {
+  position: relative;
     max-width: 70%;
     min-width: 300px;
     max-height: 70vh;
@@ -20,8 +23,12 @@
     background: white;
     padding:2rem ;
     border-radius: 15px;
-
+    @extend .flexCol;
+    .content{
+      margin-bottom: $footerHeight;
+    }
     .header {
+      width: 100%;
       @extend .flexRow;
       justify-content: space-between; 
       margin-bottom: 1rem;
@@ -51,4 +58,19 @@
   100% {
     opacity: 1;
   }
+}
+.footer{
+  width: 100%;
+ 
+  padding: 1rem 2rem;
+  @extend .flexRow;
+  justify-content: space-between;
+
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: $footerHeight;
+      background: rgba(0, 0, 0, 0.1);
+
 }

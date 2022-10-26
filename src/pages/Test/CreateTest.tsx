@@ -455,9 +455,12 @@ const SubSection: React.FC<{
         handleClickSave={handleClickSave}
       />
       <PreviewHTMLModal
+        previewData={previewData}
         isOpen={previewModalVisible}
         handleClose={() => setPreviewModalVisible(false)}
         quillString={quillStringForPreview}
+        setQuestions={setTempQuestions}
+        setPreviewData={setPreviewData}
       />
     </div>
   );

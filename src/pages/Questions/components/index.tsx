@@ -8,16 +8,21 @@ import {
   InputLabel,
   Autocomplete,
   SelectChangeEvent,
+  IconButton,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { Spin, Table } from "antd";
 import { QUESTION_COLS_ALL } from "../../../utils/constants";
-import { Modal } from "../../../components";
+import { Modal, ToggleButton } from "../../../components";
 import { useEffect, useState } from "react";
 import { splitAndKeepDelimiters } from "../../../utils";
 import "katex/dist/katex.min.css";
 import katex from "katex";
 import CustomTable from "../../../components/CustomTable/CustomTable";
+import { API_QUESTIONS } from "../../../utils/api";
+import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
+import Delete from "@mui/icons-material/Delete";
+import { DeleteOutline } from "@mui/icons-material";
 
 interface MUISelectProps {
   label: string;
@@ -238,86 +243,87 @@ interface PreviewHTMLModalProps {
   isOpen: boolean;
   handleClose: () => void;
   quillString: string;
+  previewData: {
+    isProofRead: boolean;
+    id: string;
+    type: string;
+  };
+  setPreviewData: any;
+  setQuestions: any;
+}
+interface IToggleProofReadPayload {
+  id: string;
+  isProofRead: boolean;
+  type: string;
 }
 
 export const PreviewHTMLModal: React.FC<PreviewHTMLModalProps> = ({
   isOpen,
   handleClose,
   quillString,
+  previewData,
+  setQuestions,
+  setPreviewData,
 }) => {
   const [previewHTML, setPreviewHTML] = useState("");
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setPreviewHTML("");
-      setIsPreviewLoading(true);
-      if (quillString?.length && quillString !== "<p><br></p>") {
-        const value = quillString;
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(value, "text/html");
-
-        // extract from all <p> tags
-        let pTags = doc.getElementsByTagName("p");
-
-        [...pTags]?.forEach((p) => {
-          const innerHTML = p.innerHTML;
-          // regex extract value between $ and $
-          let regexBoundaries = /\$(.*?)\$/g;
-          let matches = innerHTML.match(regexBoundaries);
-
-          if (matches !== null && matches?.length) {
-            // Reset the innerHTML to avoid duplication of data
-            p.innerHTML = "";
-
-            // Split the innerHTML by the matches while also keeping the matches
-            let allValues = splitAndKeepDelimiters(innerHTML, matches);
-
-            allValues.forEach((item: any) => {
-              if (item?.length) {
-                if (item.startsWith("$") && item.endsWith("$")) {
-                  const withMath = katex.renderToString(
-                    item.replace(/\$/g, ""),
-                    {
-                      throwOnError: false,
-                    }
-                  );
-                  let span = document.createElement("span");
-                  span.innerHTML = withMath;
-                  p.appendChild(span);
-                } else {
-                  let span = document.createElement("span");
-                  span.innerHTML = item;
-                  p.appendChild(span);
-                }
-              }
-            });
-          }
+  const handleToggleProofread = async (checked: any) => {
+    console.log(checked);
+    let obj = { ...previewData, isProofRead: checked };
+    let payload: IToggleProofReadPayload = {
+      id: previewData.id,
+      isProofRead: checked,
+      type: previewData.type,
+    };
+    try {
+      const res = await API_QUESTIONS().patch(`/toggleproofread`, {
+        data: payload,
+      });
+      if (res?.data?.status === "success") {
+        console.log(res);
+        setQuestions((currQues: any) => {
+          let arr = currQues.map((el: any) => {
+            return el.id !== previewData.id ? el : obj;
+          });
+          console.log(arr);
+          return arr;
         });
-
-        setPreviewHTML(doc.body.innerHTML);
-      } else {
-        setPreviewHTML("");
+        setPreviewData(obj);
       }
-      setIsPreviewLoading(false);
+      console.log(previewData);
+    } catch (err) {
+      console.log(err);
     }
-  }, [isOpen, quillString]);
+  };
 
   return (
-    <Modal isOpen={isOpen} title="Preview" onClose={handleClose}>
+    <Modal
+      isOpen={isOpen}
+      title="Preview"
+      onClose={handleClose}
+      footer={
+        <div className={styles.footer}>
+          <div className={styles.toggleButton}>
+            Proof Read
+            <ToggleButton
+              checked={previewData.isProofRead}
+              stopPropagation
+              onChange={(checked: any) => handleToggleProofread(checked)}
+            />
+          </div>
+          <IconButton>
+            <DeleteOutline />
+          </IconButton>
+        </div>
+      }
+    >
       {isPreviewLoading ? (
         <div className={styles.loading}>
           <Spin />
         </div>
-      ) : !previewHTML ? (
-        <div>
-          <p>Nothing to preview</p>
-        </div>
       ) : (
-        <div
-          dangerouslySetInnerHTML={{ __html: previewHTML }}
-          style={{ maxHeight: "550PX", overflowY: "auto", overflowX: "hidden" }}
-        ></div>
+        <RenderWithLatex quillString={quillString} />
       )}
     </Modal>
   );

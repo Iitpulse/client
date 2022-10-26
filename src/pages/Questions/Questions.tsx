@@ -149,6 +149,7 @@ const Questions = () => {
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [totalDocs, setTotalDocs] = useState(1);
+  
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -285,7 +286,18 @@ const Questions = () => {
     if (previewData?.type === "single" || previewData?.type === "multiple") {
       setQuillStringForPreview(
         previewData?.en?.question +
-          previewData?.en?.options.map((op: any) => op.value).join("<br>")
+          previewData?.en?.options
+            .map(
+              (op: any, idx: number) =>
+                `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+                  previewData.correctAnswers.includes(op.id)
+                    ? "rgba(85, 188, 126, 0.3)"
+                    : "transparent"
+                };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+                  idx + 65
+                )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+            )
+            .join("")
       );
     }
   }, [previewData]);
@@ -368,7 +380,7 @@ const Questions = () => {
                   title: "Preview",
                   key: "preview",
                   width: 120,
-
+                  fixed: "left",
                   render: (text: any, record: any) => (
                     <IconButton
                       onClick={() => {
@@ -415,6 +427,9 @@ const Questions = () => {
             isOpen={previewModalVisible}
             handleClose={() => setPreviewModalVisible(false)}
             quillString={quillStringForPreview}
+            previewData={previewData}
+            setQuestions={setQuestions}
+            setPreviewData={setPreviewData}
           />
           {/* <div
             ref={tableRef}
