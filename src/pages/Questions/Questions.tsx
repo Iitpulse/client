@@ -38,7 +38,7 @@ import * as Docx from "docx"; // that is a peer dependency
 import { Visibility } from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api";
-import PrintIcon from '@mui/icons-material/Print';
+import PrintIcon from "@mui/icons-material/Print";
 import sheetIcon from "../../assets/icons/sheets.svg";
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -147,7 +147,7 @@ const Questions = () => {
   const [chapterOptions, setChapterOptions] = useState([]);
   const [topicOptions, setTopicOptions] = useState([]);
   const [data, setData] = useState<any>({});
-  const [loading,setLoading]=useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -284,31 +284,38 @@ const Questions = () => {
     if (previewData?.type === "single" || previewData?.type === "multiple") {
       setQuillStringForPreview(
         previewData?.en?.question +
-          previewData?.en?.options.map((op: any) => op.value).join("<br>")
+          previewData?.en?.options
+            .map(
+              (op: any, idx: number) =>
+                `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+                  previewData.correctAnswers.includes(op.id)
+                    ? "rgba(85, 188, 126, 0.3)"
+                    : "transparent"
+                };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+                  idx + 65
+                )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+            )
+            .join("")
       );
     }
   }, [previewData]);
 
   useEffect(() => {
-
-    async function fetchAllMCQs(){
-setLoading(true);
-try{
-      const res=await  API_QUESTIONS()
-      .get(`/mcq/all`);
-       console.log({ res });
+    async function fetchAllMCQs() {
+      setLoading(true);
+      try {
+        const res = await API_QUESTIONS().get(`/mcq/all`);
+        console.log({ res });
         setQuestions(res.data);
         setLoading(false);
-}catch(err){
-  console.log(err);
-  setLoading(false);
-}
-  
-    }
-      if(currentUser){
-        fetchAllMCQs();
+      } catch (err) {
+        console.log(err);
+        setLoading(false);
       }
-      
+    }
+    if (currentUser) {
+      fetchAllMCQs();
+    }
   }, [currentUser]);
 
   const navigate = useNavigate();
@@ -324,13 +331,14 @@ try{
                   Add New
                 </Button>
                 <div>
-                <IconButton  onClick={handlePrint}><PrintIcon/></IconButton>
-                <IconButton >
-                <CSVLink filename={"Questions.csv"} data={questions}>
-                  <img src={sheetIcon} width="21px" height="21px"/>
-                </CSVLink>
-                </IconButton>
-
+                  <IconButton onClick={handlePrint}>
+                    <PrintIcon />
+                  </IconButton>
+                  <IconButton>
+                    <CSVLink filename={"Questions.csv"} data={questions}>
+                      <img src={sheetIcon} width="21px" height="21px" />
+                    </CSVLink>
+                  </IconButton>
                 </div>
               </div>
             </>
@@ -348,7 +356,7 @@ try{
                   title: "Preview",
                   key: "preview",
                   width: 120,
-                  
+                  fixed: "left",
                   render: (text: any, record: any) => (
                     <IconButton
                       onClick={() => {
@@ -361,7 +369,6 @@ try{
                   ),
                 },
                 ...QUESTION_COLS_ALL,
-                
               ]}
               height="60vh"
             />
@@ -391,6 +398,9 @@ try{
             isOpen={previewModalVisible}
             handleClose={() => setPreviewModalVisible(false)}
             quillString={quillStringForPreview}
+            previewData={previewData}
+            setQuestions={setQuestions}
+            setPreviewData={setPreviewData}
           />
           {/* <div
             ref={tableRef}

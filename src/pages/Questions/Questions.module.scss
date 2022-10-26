@@ -171,3 +171,16 @@
 .submitButton{
   text-align: end;
 }
+.toggleButton{
+  width:150px ;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+}
+.footer{
+  width: 100%;
+  @extend .flexRow;
+  justify-content: space-between;
+}

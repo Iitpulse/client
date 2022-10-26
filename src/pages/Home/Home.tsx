@@ -160,8 +160,8 @@ const Home = () => {
     },
   ];
 
-  const { state ,recentTest} = useContext(TestContext);
-  console.log("recentTests in home : ",recentTest);
+  const { state, recentTest } = useContext(TestContext);
+  console.log("recentTests in home : ", recentTest);
   const { tests } = state;
 
   useEffect(() => {
@@ -181,7 +181,7 @@ const Home = () => {
               <div className={styles.data}>
                 <SubCard
                   title="Highest Marks"
-                  content={String( recentTest.highestMarks)}
+                  content={String(recentTest.highestMarks)}
                   icon={greenCrown}
                   variant="success"
                 />

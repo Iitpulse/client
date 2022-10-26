@@ -50,6 +50,9 @@ const Objective: React.FC<Props> = ({ setData }) => {
         options: tempOptions,
         solution: "",
       },
+      isProofRead: false,
+      id: "",
+      type: "",
     };
   });
 
@@ -354,8 +357,11 @@ const Objective: React.FC<Props> = ({ setData }) => {
       </div>
       <PreviewHTMLModal
         isOpen={previewModalOpen}
+        previewData={values}
         handleClose={() => setPreviewModalOpen(false)}
         quillString={getCurrentHTMLString()}
+        setQuestions={() => {}}
+        setPreviewData={setValues}
       />
       {/* Just for preview */}
       {/* <div dangerouslySetInnerHTML={{ __html: previewHTML }}></div> */}
