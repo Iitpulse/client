@@ -113,19 +113,43 @@ const Test = () => {
 
   const navigate = useNavigate();
 
-  function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
-    setTab(newValue);
-  }
-
   const [data, setData] = useState<any>([]);
 
-  const { state } = useContext(TestContext);
-  const { tests } = state;
+  const { state, fetchTest } = useContext(TestContext);
+  const { ongoingTests, activeTests, inactiveTests, expiredTests } = state;
+
+  function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
+    setTab(newValue);
+    switch (newValue) {
+      case 0:
+        setData([]);
+        setLoading(true);
+        fetchTest("ongoing");
+        break;
+      case 1:
+        setData([]);
+        setLoading(true);
+        fetchTest("active");
+        break;
+      case 2:
+        setData([]);
+        setLoading(true);
+        fetchTest("inactive");
+        break;
+      case 3:
+        setData([]);
+        setLoading(true);
+        fetchTest("expired");
+        break;
+      default:
+        break;
+    }
+  }
 
   useEffect(() => {
-    if (tests?.length) {
+    if (ongoingTests?.length) {
       setData(
-        tests.map((test) => ({
+        ongoingTests.map((test) => ({
           ...test,
           key: test.id,
           id: test.id,
@@ -135,10 +159,78 @@ const Test = () => {
           exam: test.exam,
         }))
       );
-      console.log({ data });
-      setLoading(false);
     }
-  }, [tests]);
+    setLoading(false);
+  }, [ongoingTests]);
+
+  useEffect(() => {
+    setData([]);
+    if (inactiveTests?.length) {
+      setData(
+        inactiveTests.map((test) => ({
+          ...test,
+          key: test.id,
+          id: test.id,
+          name: test.name,
+          createdAt: test.createdAt,
+          status: test.status,
+          exam: test.exam,
+        }))
+      );
+    }
+    setLoading(false);
+  }, [inactiveTests]);
+
+  useEffect(() => {
+    if (inactiveTests?.length) {
+      setData(() =>
+        inactiveTests.map((test) => ({
+          ...test,
+          key: test.id,
+          id: test.id,
+          name: test.name,
+          createdAt: test.createdAt,
+          status: test.status,
+          exam: test.exam,
+        }))
+      );
+    }
+    setLoading(false);
+  }, [inactiveTests]);
+
+  useEffect(() => {
+    if (inactiveTests?.length) {
+      setData(
+        inactiveTests.map((test) => ({
+          ...test,
+          key: test.id,
+          id: test.id,
+          name: test.name,
+          createdAt: test.createdAt,
+          status: test.status,
+          exam: test.exam,
+        }))
+      );
+    }
+    setLoading(false);
+  }, [inactiveTests]);
+
+  useEffect(() => {
+    if (expiredTests?.length) {
+      setData(
+        expiredTests.map((test) => ({
+          ...test,
+          key: test.id,
+          id: test.id,
+          name: test.name,
+          createdAt: test.createdAt,
+          status: test.status,
+          exam: test.exam,
+        }))
+      );
+    }
+    setLoading(false);
+  }, [expiredTests]);
 
   return (
     <div className={styles.container}>
@@ -152,6 +244,45 @@ const Test = () => {
         <Button onClick={() => navigate("/test/new")}>Add New</Button>
       </div>
       <TabPanel value={tab} index={0}>
+        <div className={styles.data}>
+          <Table
+            rowSelection={{
+              type: "checkbox",
+              ...rowSelection,
+            }}
+            columns={columns}
+            dataSource={data}
+            scroll={{ x: 600, y: 500 }}
+          />
+        </div>
+      </TabPanel>
+      <TabPanel value={tab} index={1}>
+        <div className={styles.data}>
+          <Table
+            rowSelection={{
+              type: "checkbox",
+              ...rowSelection,
+            }}
+            columns={columns}
+            dataSource={data}
+            scroll={{ x: 600, y: 500 }}
+          />
+        </div>
+      </TabPanel>
+      <TabPanel value={tab} index={2}>
+        <div className={styles.data}>
+          <Table
+            rowSelection={{
+              type: "checkbox",
+              ...rowSelection,
+            }}
+            columns={columns}
+            dataSource={data}
+            scroll={{ x: 600, y: 500 }}
+          />
+        </div>
+      </TabPanel>
+      <TabPanel value={tab} index={3}>
         <div className={styles.data}>
           <Table
             rowSelection={{

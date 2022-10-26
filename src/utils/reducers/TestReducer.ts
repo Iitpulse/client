@@ -1,18 +1,42 @@
 import { TEST_ACTION, TEST_ACTION_TYPES } from "../actions";
 import { ITestContext } from "../contexts/TestContext";
+import { ITest } from "../interfaces";
 
 export default function TestReducer(
   state: ITestContext,
   action: TEST_ACTION
 ): ITestContext {
-  const { tests } = state;
   const { type, payload } = action;
 
   switch (type) {
-    case TEST_ACTION_TYPES.SET_TEST:
+    case TEST_ACTION_TYPES.SET_ONGOING_TESTS:
       return {
         ...state,
-        tests: payload.tests.map((test: any) => ({
+        ongoingTests: payload.ongoingTests?.map((test: any) => ({
+          ...test,
+          id: test._id,
+        })),
+      };
+    case TEST_ACTION_TYPES.SET_ACTIVE_TESTS:
+      return {
+        ...state,
+        activeTests: payload.activeTests?.map((test: any) => ({
+          ...test,
+          id: test._id,
+        })),
+      };
+    case TEST_ACTION_TYPES.SET_INACTIVE_TESTS:
+      return {
+        ...state,
+        inactiveTests: payload.inactiveTests?.map((test: any) => ({
+          ...test,
+          id: test._id,
+        })),
+      };
+    case TEST_ACTION_TYPES.SET_EXPIRED_TESTS:
+      return {
+        ...state,
+        expiredTests: payload.expiredTests?.map((test: any) => ({
           ...test,
           id: test._id,
         })),

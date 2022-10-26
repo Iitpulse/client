@@ -160,13 +160,13 @@ const Home = () => {
     },
   ];
 
-  const { state ,recentTest} = useContext(TestContext);
-  console.log("recentTests in home : ",recentTest);
-  const { tests } = state;
+  const { state, recentTest } = useContext(TestContext);
+  console.log("recentTests in home : ", recentTest);
+  const { ongoingTests } = state;
 
   useEffect(() => {
-    console.log({ tests });
-  }, [tests]);
+    console.log({ ongoingTests });
+  }, [ongoingTests]);
 
   return (
     <>
@@ -181,7 +181,7 @@ const Home = () => {
               <div className={styles.data}>
                 <SubCard
                   title="Highest Marks"
-                  content={String( recentTest.highestMarks)}
+                  content={String(recentTest.highestMarks)}
                   icon={greenCrown}
                   variant="success"
                 />
@@ -209,11 +209,11 @@ const Home = () => {
           <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
             <div>
               <Card
-                title="Upcoming Tests"
+                title="Ongoing Tests"
                 styles={{ display: "flex", flexWrap: "wrap" }}
                 classes={[styles.upcomingTestCard]}
               >
-                {tests?.map((test, i) => (
+                {ongoingTests?.map((test, i) => (
                   <ListItem
                     key={test.id}
                     id={test.id}

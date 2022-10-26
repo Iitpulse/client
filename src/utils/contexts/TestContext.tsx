@@ -17,25 +17,31 @@ interface ProviderProps {
 }
 
 export interface ITestContext {
-  tests: Array<ITest> | null;
+  ongoingTests: Array<ITest> | null;
+  activeTests: Array<ITest> | null;
+  inactiveTests: Array<ITest> | null;
+  expiredTests: Array<ITest> | null;
 }
 export interface recenTestContext {
-  highestMarks:Number | string;
-  lowestMarks:Number | string;
-  averageMarks:Number | string;
-  totalAppeared:Number | string;
-  name:string;
+  highestMarks: Number | string;
+  lowestMarks: Number | string;
+  averageMarks: Number | string;
+  totalAppeared: Number | string;
+  name: string;
 }
 
 const defaultTestContext: ITestContext = {
-  tests: null,
+  ongoingTests: null,
+  activeTests: null,
+  inactiveTests: null,
+  expiredTests: null,
 };
 const defaultRecentTestContext: recenTestContext = {
-   highestMarks: "NA",
+  highestMarks: "NA",
   lowestMarks: "NA",
   averageMarks: "NA",
   totalAppeared: "NA",
-  name:"NA"
+  name: "NA",
 };
 
 export const TestContext = createContext<{
@@ -43,14 +49,31 @@ export const TestContext = createContext<{
   dispatch: React.Dispatch<TEST_ACTION>;
   exams: Array<any>;
   subjects: Array<any>;
-  recentTest:recenTestContext;
+  recentTest: recenTestContext;
+  fetchTest: (type: "active" | "ongoing" | "inactive" | "expired") => void;
 }>({
   state: defaultTestContext,
   dispatch: () => {},
   exams: [],
   subjects: [],
-  recentTest:defaultRecentTestContext,
+  recentTest: defaultRecentTestContext,
+  fetchTest: () => {},
 });
+
+function getActionTypeFromTestType(type: string) {
+  switch (type) {
+    case "ongoing":
+      return TEST_ACTION_TYPES.SET_ONGOING_TESTS;
+    case "active":
+      return TEST_ACTION_TYPES.SET_ACTIVE_TESTS;
+    case "inactive":
+      return TEST_ACTION_TYPES.SET_INACTIVE_TESTS;
+    case "expired":
+      return TEST_ACTION_TYPES.SET_EXPIRED_TESTS;
+    default:
+      return TEST_ACTION_TYPES.SET_ONGOING_TESTS;
+  }
+}
 
 const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(TestReducer, defaultTestContext);
@@ -60,20 +83,27 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
 
   const { currentUser } = useContext(AuthContext);
 
-  useEffect(() => {
-    async function fetchTests() {
-      const res = await API_TESTS().get(`/test`, {});
+  async function fetchTest(
+    type: "active" | "ongoing" | "inactive" | "expired"
+  ) {
+    const res = await API_TESTS().get(`/test`, {
+      params: {
+        type,
+      },
+    });
+    console.log({ res });
+    if (res.data?.length > 0) {
       console.log({ res });
-      if (res.data?.length > 0) {
-        console.log({ res });
-        dispatch({
-          type: TEST_ACTION_TYPES.SET_TEST,
-          payload: {
-            tests: res.data,
-          },
-        });
-      }
+      dispatch({
+        type: getActionTypeFromTestType(type),
+        payload: {
+          ongoingTests: res.data,
+        },
+      });
     }
+  }
+
+  useEffect(() => {
     async function fetchExams() {
       const res = await API_TESTS().get(`/exam/all`);
       console.log({ res });
@@ -93,26 +123,28 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
     async function fetchRecentTest() {
       const res = await API_TESTS().get(`/test/recent`);
       console.log("recentTests :", { res });
-     if (res.data?.length > 0) {
+      if (res.data?.length > 0) {
         console.log({ res });
-        const recent={
-          highestMarks:res.data[0].highestMarks??"NA",
-          lowestMarks:res.data[0].lowestMarks??"NA",
-          averageMarks:res.data[0].averageMarks??"NA",
-          totalAppeared:res.data[0].totalAppeared??"NA",
-          name:res.data[0].name,
-        }
+        const recent = {
+          highestMarks: res.data[0].highestMarks ?? "NA",
+          lowestMarks: res.data[0].lowestMarks ?? "NA",
+          averageMarks: res.data[0].averageMarks ?? "NA",
+          totalAppeared: res.data[0].totalAppeared ?? "NA",
+          name: res.data[0].name,
+        };
         setRecentTest(recent);
       }
     }
-    fetchTests();
+    fetchTest("ongoing");
     fetchExams();
     fetchSubjects();
     fetchRecentTest();
   }, [currentUser]);
 
   return (
-    <TestContext.Provider value={{ state, dispatch, exams, subjects,recentTest }}>
+    <TestContext.Provider
+      value={{ state, dispatch, exams, subjects, recentTest, fetchTest }}
+    >
       {children}
     </TestContext.Provider>
   );
