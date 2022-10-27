@@ -7,7 +7,7 @@ import {
 } from "../../components";
 import styles from "./Home.module.scss";
 import { useContext, useEffect, useState } from "react";
-import { Grid } from "@mui/material";
+import { Box, Grid, Skeleton } from "@mui/material";
 import yellowFlag from "../../assets/icons/yellowFlag.svg";
 import blueUsers from "../../assets/icons/blueUsers.svg";
 import redWarning from "../../assets/icons/redWarning.svg";
@@ -22,6 +22,8 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import clsx from "clsx";
 import { AUTH_TOKEN } from "../../utils/constants";
 import CalendarComponent from "../../components/CalendarComponent/CalendarComponent";
+import { API_USERS } from "../../utils/api";
+import { AuthContext } from "../../utils/auth/AuthContext";
 
 interface SubCardProps {
   title: string;
@@ -137,34 +139,33 @@ const InstituteDetails = (props: InstituteDetailsProps) => {
 
 const Home = () => {
   const [open, setOpen] = React.useState(false);
+  const [instituteDetailsData, setInstituteDetailsData] = useState({} as any);
   const handleClose = () => setOpen(false);
 
-  const upcomgingTests = [
-    {
-      title: "Sunday Test JEE Advanced",
-      marks: 360,
-      durationHours: 3,
-      mode: "online",
-    },
-    {
-      title: "Sunday Test JEE Mains",
-      marks: 360,
-      durationHours: 3,
-      mode: "offline",
-    },
-    {
-      title: "Sunday Test NEET Dropper",
-      marks: 720,
-      durationHours: 3,
-      mode: "online",
-    },
-  ];
-
   const { state, recentTest } = useContext(TestContext);
+  const { currentUser } = useContext(AuthContext);
   console.log("recentTests in home : ", recentTest);
-  
-  const { ongoingTests } = state;
 
+  const { ongoingTests } = state;
+  useEffect(() => {
+    const fetchInstituteDetails = async () => {
+      console.log({ currentUser });
+      try {
+        const res = await API_USERS().get(`/institute/get`, {
+          params: {
+            _id: currentUser?.instituteId,
+          },
+        });
+        setInstituteDetailsData(res.data);
+        console.log({ "institute details": res });
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    if (currentUser) {
+      fetchInstituteDetails();
+    }
+  }, [currentUser]);
   useEffect(() => {
     console.log({ ongoingTests });
   }, [ongoingTests]);
@@ -225,15 +226,27 @@ const Home = () => {
                     mode="online"
                   />
                 ))}
+                {!ongoingTests && (
+                  <Box sx={{ width: "100%" }}>
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                  </Box>
+                )}
               </Card>
               <Card
                 title="Institute Details"
                 classes={[styles.instituteDetailsCard]}
               >
                 <div className={styles.instituteDetails}>
-                  <InstituteDetails icon={yellowFlag} batch="IOY" value={123} />
-                  <InstituteDetails icon={yellowFlag} batch="IOY" value={123} />
-                  <InstituteDetails icon={yellowFlag} batch="IOY" value={123} />
+                  {instituteDetailsData?.batches?.map((batch: any) => (
+                    <InstituteDetails
+                      icon={yellowFlag}
+                      batch={batch.name}
+                      value={batch.totalStudents}
+                    />
+                  ))}
                 </div>
               </Card>
             </div>

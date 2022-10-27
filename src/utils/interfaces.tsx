@@ -10,9 +10,22 @@ export interface ICurrentUser {
     };
   };
 }
+export interface IUserDetails {
+  _id: string;
+  email: string;
+  userType: string;
+  institute: string;
+  roles: {
+    [key: string]: {
+      id: string;
+      permissions: string[];
+    };
+  };
+}
 
 export interface IAuthContext {
   currentUser: ICurrentUser | null;
+  userDetails: IUserDetails | null;
   roles: {
     [key: string]: {
       id: string;
@@ -86,10 +99,10 @@ export interface ISubSection {
   type: string;
   totalQuestions: number | null;
   toBeAttempted: number | null;
-  markingScheme:{
-    correct:Array<number>,
-    incorrect:number
-  }
+  markingScheme: {
+    correct: Array<number>;
+    incorrect: number;
+  };
 
   questions: {};
 }

@@ -11,7 +11,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import { Spin, Table } from "antd";
+import { message, Spin, Table } from "antd";
 import { QUESTION_COLS_ALL } from "../../../utils/constants";
 import { Modal, ToggleButton } from "../../../components";
 import { useEffect, useState } from "react";
@@ -23,6 +23,8 @@ import { API_QUESTIONS } from "../../../utils/api";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
 import Delete from "@mui/icons-material/Delete";
 import { DeleteOutline } from "@mui/icons-material";
+import CustomPopConfirm from "./../../../components/PopConfirm/CustomPopConfirm";
+import { ConsoleSqlOutlined } from "@ant-design/icons";
 
 interface MUISelectProps {
   label: string;
@@ -296,7 +298,44 @@ export const PreviewHTMLModal: React.FC<PreviewHTMLModalProps> = ({
       console.log(err);
     }
   };
-
+  const handleDeleteQuestion = async () => {
+    const type = previewData.type;
+    let url;
+    switch (type) {
+      case "single":
+      case "multiple":
+        url = "/mcq/delete";
+        break;
+      case "integer":
+        url = "/numerical/delete";
+        break;
+      default:
+        console.log(type);
+    }
+    console.log({ url, type, previewData });
+    if (url) {
+      try {
+        const res = await API_QUESTIONS().delete(url, {
+          data: {
+            id: previewData.id,
+          },
+        });
+        console.log(res);
+        handleClose();
+        message.success("Deleted successfully!");
+        setQuestions((currQues: any) => {
+          let arr = currQues.filter((el: any) => {
+            return el.id !== previewData.id;
+          });
+          console.log(arr);
+          return arr;
+        });
+        console.log(previewData);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
   return (
     <Modal
       isOpen={isOpen}
@@ -312,9 +351,16 @@ export const PreviewHTMLModal: React.FC<PreviewHTMLModalProps> = ({
               onChange={(checked: any) => handleToggleProofread(checked)}
             />
           </div>
-          <IconButton>
-            <DeleteOutline />
-          </IconButton>
+          <CustomPopConfirm
+            title="Are you sure?"
+            okText="Delete"
+            cancelText="No"
+            onConfirm={handleDeleteQuestion}
+          >
+            <IconButton>
+              <DeleteOutline />
+            </IconButton>
+          </CustomPopConfirm>
         </div>
       }
     >
