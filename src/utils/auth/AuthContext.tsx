@@ -1,7 +1,8 @@
 import { useState, createContext, useEffect } from "react";
 import { decodeToken, isExpired } from "react-jwt";
+import { API_USERS } from "../api";
 import { AUTH_TOKEN } from "../constants";
-import { ICurrentUser, IAuthContext } from "../interfaces";
+import { ICurrentUser, IAuthContext, IUserDetails } from "../interfaces";
 
 interface ProviderProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface ProviderProps {
 
 const defaultAuthContext = {
   currentUser: null,
+  userDetails: null,
   roles: {},
   loading: true,
   setRoles: () => {},
@@ -20,11 +22,18 @@ export const AuthContext = createContext<IAuthContext>(defaultAuthContext);
 
 const AuthContextProvider = (props: ProviderProps) => {
   const [currentUser, setCurrentUser] = useState<ICurrentUser | null>(null);
+  const [userDetails, setuserDetails] = useState<IUserDetails | null>(null);
   const [roles, setRoles] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const user = localStorage.getItem(AUTH_TOKEN);
+    async function getUserDetails(id: string) {
+      const res = await API_USERS().get("/student/single", {
+        params: id,
+      });
+      setuserDetails(res.data);
+    }
     if (user) {
       let decoded = decodeToken(user) as any;
       // console.log({ decoded });
@@ -48,6 +57,7 @@ const AuthContextProvider = (props: ProviderProps) => {
         instituteId: decoded.instituteId,
         roles: newRoles,
       });
+      getUserDetails(decoded.id);
     }
   }, []);
 
@@ -62,6 +72,7 @@ const AuthContextProvider = (props: ProviderProps) => {
     <AuthContext.Provider
       value={{
         currentUser,
+        userDetails,
         setCurrentUser,
         roles,
         setRoles,

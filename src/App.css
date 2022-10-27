@@ -14,3 +14,6 @@ input[type="date"]:required:invalid::-webkit-datetime-edit {
 input[type="date"]:focus::-webkit-datetime-edit {
   color: black !important;
 }
+.ant-popconfirm {
+    z-index: 10000;
+}
