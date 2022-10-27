@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import {
   Button,
@@ -433,163 +433,166 @@ export const Student: React.FC<{
     setValues({ ...values, [newId ? newId : id]: value });
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    if (!newUserRef.current?.reportValidity()) return;
-    e.preventDefault();
-    console.log(values);
-    try {
-      const error = {
-        stream: values.stream ? false : true,
-        standard: values.standard ? false : true,
-        batch: values.batch ? false : true,
-        gender: values.gender ? false : true,
-        roles: values.roles?.length > 0 ? false : true,
-        contact: {
-          parent: values.parentContact?.length === 10 ? false : true,
-          personal: values.contact?.length === 10 ? false : true,
-        },
-      };
-      if (
-        error.stream ||
-        error.standard ||
-        error.batch ||
-        error.gender ||
-        error.roles ||
-        error.contact.parent ||
-        error.contact.personal
-      ) {
-        if (error.stream) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            stream: { error: true, helperText: "Please select a Stream" },
-          }));
-        }
-
-        if (error.standard) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            standard: { error: true, helperText: "Please select a Standard" },
-          }));
-        }
-
-        if (error.batch) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            batch: { error: true, helperText: "Please select a Batch" },
-          }));
-        }
-
-        if (error.roles) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            roles: { error: true, helperText: "Please select a Roles" },
-          }));
-        }
-        if (error.contact.parent) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            contact: {
-              ...prev.contact,
-              parent: {
-                error: true,
-                helperText: "Please enter a valid contact number",
-              },
-            },
-          }));
-        }
-        if (error.contact.personal) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            contact: {
-              ...prev.contact,
-              personal: {
-                error: true,
-                helperText: "Please enter a valid contact number",
-              },
-            },
-          }));
-        }
-        if (error.gender) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            gender: { error: true, helperText: "Please select a Gender" },
-          }));
-        }
-
-        return;
-      }
-      setLoading(true);
-      setError("");
-      setSuccess("");
-      // if (values.parentContact?.length !== 10) {
-      //   setLoading(false);
-      //   setHelperTextObj((prev) => ({
-      //     ...prev,
-      //     contact: {
-      //       ...prev.contact,
-      //       parent: { ...prev.contact.parent, error: true },
-      //     },
-      //   }));
-      //   return alert("Parent Contact must be 10 digits long");
-      // }
-      // if (!values.gender) {
-      //   setLoading(false);
-      //   setHelperTextObj((prev) => ({
-      //     ...prev,
-      //     gender: { ...prev?.gender, error: true },
-      //   }));
-      //   return alert("Select a gender");
-      // }
-
-      let newValues = { ...values };
-      newValues.parentDetails = {
-        name: newValues.parentName,
-        contact: newValues.parentContact,
-      };
-      delete newValues.parentName;
-      delete newValues.parentContact;
-      newValues.email = newValues.email.toLowerCase();
-      newValues.userType = "student";
-      newValues.createdBy = {
-        id: currentUser?.id,
-        userType: currentUser?.userType,
-      };
-      newValues.confirmPassword = newValues.password;
-      newValues.institute = currentUser?.instituteId;
-      newValues.standard = parseInt(values?.standard?.value);
-      newValues.batch = values?.batch?.value;
-      newValues.roles = roles?.map((role: any) =>
-        rolesInfo?.actual?.find((roleInfo: any) => {
-          return roleInfo?.id === role?.value;
-        })
-      );
-      newValues.createdAt = new Date().toISOString();
-      newValues.modifiedAt = new Date().toISOString();
-
-      newValues.stream = values?.stream?.value;
-
-      // console.log({ newValues });
-      const res = await API_USERS().post(`/student/create`, newValues);
-      // console.log({ res });
-
-      setSuccess("Student created successfully");
-    } catch (error: any) {
-      setError(error.response.data.message);
-      message.error(error.response.data.message);
-      if (error.response.data.message.includes("email")) {
-        setHelperTextObj((prev) => ({
-          ...prev,
-          email: {
-            ...prev?.email,
-            error: true,
-            helperText: error.response.data.message,
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      if (!newUserRef.current?.reportValidity()) return;
+      e.preventDefault();
+      console.log(values);
+      try {
+        const error = {
+          stream: Boolean(values.stream),
+          standard: Boolean(values.standard),
+          batch: Boolean(values.batch),
+          gender: Boolean(values.gender),
+          roles: !(values.roles?.length > 0),
+          contact: {
+            parent: values.parentContact?.length !== 10,
+            personal: values.contact?.length !== 10,
           },
-        }));
+        };
+        if (
+          error.stream ||
+          error.standard ||
+          error.batch ||
+          error.gender ||
+          error.roles ||
+          error.contact.parent ||
+          error.contact.personal
+        ) {
+          if (error.stream) {
+            setHelperTextObj((prev) => ({
+              ...prev,
+              stream: { error: true, helperText: "Please select a Stream" },
+            }));
+          }
+
+          if (error.standard) {
+            setHelperTextObj((prev) => ({
+              ...prev,
+              standard: { error: true, helperText: "Please select a Standard" },
+            }));
+          }
+
+          if (error.batch) {
+            setHelperTextObj((prev) => ({
+              ...prev,
+              batch: { error: true, helperText: "Please select a Batch" },
+            }));
+          }
+
+          if (error.roles) {
+            setHelperTextObj((prev) => ({
+              ...prev,
+              roles: { error: true, helperText: "Please select a Roles" },
+            }));
+          }
+          if (error.contact.parent) {
+            setHelperTextObj((prev) => ({
+              ...prev,
+              contact: {
+                ...prev.contact,
+                parent: {
+                  error: true,
+                  helperText: "Please enter a valid contact number",
+                },
+              },
+            }));
+          }
+          if (error.contact.personal) {
+            setHelperTextObj((prev) => ({
+              ...prev,
+              contact: {
+                ...prev.contact,
+                personal: {
+                  error: true,
+                  helperText: "Please enter a valid contact number",
+                },
+              },
+            }));
+          }
+          if (error.gender) {
+            setHelperTextObj((prev) => ({
+              ...prev,
+              gender: { error: true, helperText: "Please select a Gender" },
+            }));
+          }
+
+          return;
+        }
+        setLoading(true);
+        setError("");
+        setSuccess("");
+        // if (values.parentContact?.length !== 10) {
+        //   setLoading(false);
+        //   setHelperTextObj((prev) => ({
+        //     ...prev,
+        //     contact: {
+        //       ...prev.contact,
+        //       parent: { ...prev.contact.parent, error: true },
+        //     },
+        //   }));
+        //   return alert("Parent Contact must be 10 digits long");
+        // }
+        // if (!values.gender) {
+        //   setLoading(false);
+        //   setHelperTextObj((prev) => ({
+        //     ...prev,
+        //     gender: { ...prev?.gender, error: true },
+        //   }));
+        //   return alert("Select a gender");
+        // }
+
+        let newValues = { ...values };
+        newValues.parentDetails = {
+          name: newValues.parentName,
+          contact: newValues.parentContact,
+        };
+        delete newValues.parentName;
+        delete newValues.parentContact;
+        newValues.email = newValues.email.toLowerCase();
+        newValues.userType = "student";
+        newValues.createdBy = {
+          id: currentUser?.id,
+          userType: currentUser?.userType,
+        };
+        newValues.confirmPassword = newValues.password;
+        newValues.institute = currentUser?.instituteId;
+        newValues.standard = parseInt(values?.standard?.value);
+        newValues.batch = values?.batch?.value;
+        newValues.roles = roles?.map((role: any) =>
+          rolesInfo?.actual?.find((roleInfo: any) => {
+            return roleInfo?.id === role?.value;
+          })
+        );
+        newValues.createdAt = new Date().toISOString();
+        newValues.modifiedAt = new Date().toISOString();
+
+        newValues.stream = values?.stream?.value;
+
+        // console.log({ newValues });
+        const res = await API_USERS().post(`/student/create`, newValues);
+        // console.log({ res });
+
+        setSuccess("Student created successfully");
+      } catch (error: any) {
+        setError(error.response.data.message);
+        message.error(error.response.data.message);
+        if (error.response.data.message.includes("email")) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            email: {
+              ...prev?.email,
+              error: true,
+              helperText: error.response.data.message,
+            },
+          }));
+        }
       }
-    }
-    setLoading(false);
-    // handleReset();
-  }
+      setLoading(false);
+      // handleReset();
+    },
+    [newUserRef, values, currentUser, rolesInfo, roles]
+  );
 
   function handleFormSubmit() {
     if (newUserRef?.current) {
@@ -714,6 +717,7 @@ export const Student: React.FC<{
                 required
                 id="email"
                 type="email"
+                error={helperTextObj?.email?.error}
                 value={values.email}
                 onChange={handleChangeValues}
                 label="Email"

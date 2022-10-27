@@ -146,9 +146,9 @@ const Test = () => {
     }
   }
 
-  useCallback(() => {
+  useEffect(() => {
     if (fetchTest) fetchTest("ongoing");
-  }, [fetchTest]);
+  }, []);
 
   useEffect(() => {
     if (ongoingTests?.length) {

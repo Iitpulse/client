@@ -1,6 +1,6 @@
 import styles from "./Result.module.scss";
 import { useParams, useNavigate } from "react-router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   Button,
   Sidebar,
@@ -15,6 +15,13 @@ import {
   DetailedAnalysis,
   HeaderDetails,
 } from "../DetailedAnalysis/DetailedAnalysis";
+import GlobalResult from "./components/GlobalResult";
+import { AuthContext } from "../../utils/auth/AuthContext";
+import { usePermission } from "../../utils/contexts/PermissionsContext";
+import { PERMISSIONS } from "../../utils/constants";
+import ResultForStudent from "./ResultForStudent";
+import ResultForAdmin from "./ResultForAdmin";
+import { message } from "antd";
 
 const tests = [
   {
@@ -63,184 +70,71 @@ function roundToOne(num: number) {
   return Number(num).toFixed(1);
 }
 const Result = () => {
-  const { testId } = useParams();
-  const [headerData, setHeaderData] = useState<any>({} as any);
-  const [currentTest, setCurrentTest] = useState<any>({});
   const [finalTest, setFinalTest] = useState<any>({});
-  const [finalSections, setFinalSections] = useState<any>([]);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const { testName, testExamName } = useParams();
+  const hasResultViewPermission = usePermission(PERMISSIONS.TEST.VIEW_RESULT);
 
-  function getStatusColor(status: string) {
-    if (!status) return;
-    switch (status.toLowerCase()) {
-      case "ongoing": {
-        return "var(--clr-success)";
-      }
-
-      default: {
-        return "red";
-      }
-    }
-  }
+  const { testId, studentId } = useParams();
+  const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
-    async function getTest() {
-      const test = tests.filter((item) => item.id.toString() === testId);
-      setCurrentTest(test);
-    }
     async function getResult() {
-      const res = await API_TESTS().get(`/test/result/student`, {
-        params: {
-          testId,
-        },
-      });
-      setFinalTest(res.data);
+      setError("");
+      if (currentUser?.userType === "student" || studentId) {
+        setLoading(true);
+        try {
+          const res = await API_TESTS().get(`/test/result/student`, {
+            params: {
+              testId,
+            },
+          });
+          setFinalTest(res.data);
+        } catch (error: any) {
+          console.log("ERROR_FETCH_RESULT", error);
+          message.error(error?.response?.data?.message);
+          setError(error?.response?.data?.message);
+        }
+        setLoading(false);
+      } else {
+        setLoading(true);
+        try {
+          const res = await API_TESTS().get(`/test/result/admin`, {
+            params: {
+              testId,
+            },
+          });
+          setFinalTest(res.data);
+        } catch (error: any) {
+          console.log("ERROR_FETCH_RESULT", error);
+          message.error(error?.response?.data?.message);
+          setError(error?.response?.data?.message);
+        }
+        setLoading(false);
+      }
     }
     // getTest();
     getResult();
-  }, [testId]);
-
-  /*
-    Listen to all the changes finalTest obj
-  */
-  useEffect(() => {
-    if (finalTest?.id || finalTest?._id) {
-      const { totalMarks, totalTimeTakenInSeconds } = finalTest;
-      let totalCorrect = 0;
-      let totalAttempted = 0;
-      let totalQuestions = 0;
-      let totalIncorrect = 0;
-
-      finalTest.sections.forEach((section: any) => {
-        totalQuestions += section.totalQuestions;
-        let attempted = 0;
-        let correct = 0;
-        let incorrect = 0;
-        let timeTakenInSeconds = 0;
-        let marks = 0;
-
-        section.subSections?.forEach((subSection: any) => {
-          Object.values(subSection?.questions)?.forEach((question: any) => {
-            const { timeTakenInSeconds: qTimeTakenInSeconds } = question;
-
-            // if not null -> Question is attempted
-            if (qTimeTakenInSeconds !== null) {
-              attempted += 1;
-              totalAttempted += 1;
-              marks += question.marks;
-              if (question.marks < 0 && question.wrongAnswers.length) {
-                incorrect += 1;
-                timeTakenInSeconds += qTimeTakenInSeconds;
-                totalIncorrect += 1;
-              } else if (question.marks > 0 && question.correctAnswers.length) {
-                correct += 1;
-                totalCorrect += 1;
-                timeTakenInSeconds += qTimeTakenInSeconds;
-              }
-            }
-            setFinalSections((prev: any) => ({
-              ...prev,
-              [section.id]: {
-                ...section,
-                attempted,
-                correct,
-                incorrect,
-                timeTakenInSeconds,
-                marks,
-              },
-            }));
-          });
-        });
-      });
-      setHeaderData({
-        totalMarks,
-        totalTimeTakenInSeconds,
-        totalCorrect,
-        totalAttempted,
-        totalQuestions,
-        totalIncorrect,
-      });
-    }
-  }, [finalTest]);
+  }, [testId, currentUser, studentId]);
 
   return (
     <div className={styles.container}>
-      <Navigate path={"/test"}>Back To Tests</Navigate>
-      <HeaderDetails
-        name={testName || ""}
-        type={finalTest?.type || ""}
-        languages={[{ name: "English" }, { name: "Hindi" }]}
-        duration={finalTest?.duration || 90}
-        totalAppeared={finalTest?.totalAppeared || 0}
-        highestMarks={finalTest?.highestMarks || 0}
-        lowestMarks={finalTest?.lowestMarks || 0}
-        averageMarks={finalTest?.averageMarks || 0}
-        status={finalTest?.status || ""}
-        scheduledFor={finalTest?.scheduledFor || []}
-      />
-      <div className={styles.content}>
-        {/* <div className={styles.top}>
-          <h2>
-            {testName || ""} ({testExamName || "NA"})
-          </h2>
-          <div className={styles.status}>
-            {currentTest?.status}{" "}
-            <div
-              className={styles.statusColor}
-              style={{ backgroundColor: getStatusColor(currentTest?.status) }}
-            ></div>{" "}
-          </div>
-        </div> */}
-
-        {/* <div className={styles.basicInfo}>
-          <h3 className={styles.marksObtained}>
-            Marks Obtained :{" "}
-            <span className={styles.boldLarge}>
-              {headerData?.totalMarks || 0}/{headerData?.totalTestMarks || 0}
-            </span>
-          </h3>
-          <h3 className={styles.totalAttempted}>
-            Attempted :{" "}
-            <span className={styles.boldLarge}>
-              {headerData?.totalAttempted || 0}/
-              {headerData?.totalQuestions || 0}
-            </span>{" "}
-          </h3>
-        </div> */}
-        <Card classes={[styles.basicInfo]}>
-          <h3 className={styles.marksObtained}>
-            Marks Obtained :{" "}
-            <span className={styles.boldLarge}>
-              {headerData?.totalMarks || 0}/{headerData?.totalTestMarks || 0}
-            </span>
-          </h3>
-          <h3 className={styles.totalAttempted}>
-            Attempted :{" "}
-            <span className={styles.boldLarge}>
-              {headerData?.totalAttempted || 0}/
-              {headerData?.totalQuestions || 0}
-            </span>{" "}
-          </h3>
-        </Card>
-        <div className={styles.cards}>
-          {Object.values(finalSections)?.map((item: any, index: number) => (
-            <SubjectCard key={item.id} color={colors[index % 4]} {...item} />
-          ))}
+      {loading ? (
+        <div className={styles.loading}>
+          <MUICircularProgress />
         </div>
-        <Button
-          onClick={() =>
-            navigate(
-              `/test/result/detailed-analysis/${testName}/${testExamName}/${testId}`
-            )
-          }
-          color="primary"
-        >
-          View Detailed Analysis
-        </Button>
-        <DetailedAnalysis sections={Object.values(finalSections)} />
-      </div>
+      ) : error ? (
+        <p>{error}</p>
+      ) : !hasResultViewPermission ? (
+        <ResultForStudent
+          finalTest={finalTest}
+          hasResultViewPermission={hasResultViewPermission}
+        />
+      ) : (
+        <ResultForAdmin finalTest={finalTest} />
+      )}
+
       <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
