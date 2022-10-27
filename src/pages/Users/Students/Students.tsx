@@ -15,7 +15,7 @@ import {
 } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
-import { Input, Space, Table, Button as AntButton } from "antd";
+import { Input, Space, Table, Button as AntButton, message } from "antd";
 import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
@@ -367,6 +367,10 @@ export const Student: React.FC<{
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
+    email: {
+      error: false,
+      helperText: "",
+    },
     stream: {
       error: false,
       helperText: "",
@@ -544,6 +548,7 @@ export const Student: React.FC<{
       };
       delete newValues.parentName;
       delete newValues.parentContact;
+      newValues.email = newValues.email.toLowerCase();
       newValues.userType = "student";
       newValues.createdBy = {
         id: currentUser?.id,
@@ -559,10 +564,10 @@ export const Student: React.FC<{
         })
       );
       newValues.createdAt = new Date().toISOString();
-      // console.log({ values });
+      newValues.modifiedAt = new Date().toISOString();
+
       newValues.stream = values?.stream?.value;
 
-      newValues.modifiedAt = new Date().toISOString();
       // console.log({ newValues });
       const res = await API_USERS().post(`/student/create`, newValues);
       // console.log({ res });
@@ -570,6 +575,17 @@ export const Student: React.FC<{
       setSuccess("Student created successfully");
     } catch (error: any) {
       setError(error.response.data.message);
+      message.error(error.response.data.message);
+      if (error.response.data.message.includes("email")) {
+        setHelperTextObj((prev) => ({
+          ...prev,
+          email: {
+            ...prev?.email,
+            error: true,
+            helperText: error.response.data.message,
+          },
+        }));
+      }
     }
     setLoading(false);
     // handleReset();

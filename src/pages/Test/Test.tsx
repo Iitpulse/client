@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Tab, Tabs } from "@mui/material";
 import styles from "./Test.module.scss";
 import { Button, Modal, Sidebar } from "../../components";
@@ -145,6 +145,10 @@ const Test = () => {
         break;
     }
   }
+
+  useCallback(() => {
+    if (fetchTest) fetchTest("ongoing");
+  }, [fetchTest]);
 
   useEffect(() => {
     if (ongoingTests?.length) {
