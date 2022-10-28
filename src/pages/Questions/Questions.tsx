@@ -149,7 +149,7 @@ const Questions = () => {
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [totalDocs, setTotalDocs] = useState(1);
-  
+
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -440,13 +440,13 @@ const Questions = () => {
               >
             }
           >
-            <PrintTest
-              subject="Physics"
-              chapter="Ray Optics"
-              title="Daily Rapid Test #025"
-              questions={questions}
-            />
-          </div> */}
+        </div> */}
+          <PrintTest
+            subject="Physics"
+            chapter="Ray Optics"
+            title="Daily Rapid Test #025"
+            questions={questions}
+          />
         </>
       ) : (
         <Error />
