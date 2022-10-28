@@ -16,8 +16,4 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
           NETLIFY_DEPLOY_MESSAGE: "Prod deploy v${{ github.ref }}"
-          REACT_APP_USERS_API: ${{ secrets.REACT_APP_USERS_API }} 
-          REACT_APP_QUESTIONS_API: ${{ secrets.REACT_APP_QUESTIONS_API }} 
-          REACT_APP_TESTS_API: ${{ secrets.REACT_APP_TESTS_API }} 
-          REACT_APP_TEST_PORTAL_URI: ${{ secrets.REACT_APP_TEST_PORTAL_URI }} 
           NETLIFY_DEPLOY_TO_PROD: true
