@@ -1,5 +1,5 @@
 import styles from "./CreateTest.module.scss";
-import { Button, Sidebar } from "../../components";
+import { Button, InputField, Sidebar } from "../../components";
 import { useContext, useEffect, useState } from "react";
 import {
   ITest,
@@ -326,7 +326,9 @@ const SubSection: React.FC<{
   // const [questions, setQuestions] = useState([]);
   const { name, description, totalQuestions, toBeAttempted, type, questions } =
     subSection;
-
+  const [easy, setEasy] = useState("0");
+  const [medium, setMedium] = useState("0");
+  const [hard, setHard] = useState("0");
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [previewData, setPreviewData] = useState<any>({} as any);
   const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
@@ -407,6 +409,38 @@ const SubSection: React.FC<{
           </div>
           <Button onClick={handleClickAutoGenerate}>Auto Generate</Button>
         </div>
+        <div className={styles.inputSection}>
+          <InputField
+            id="amt-easy"
+            type="number"
+            label="Easy"
+            required={true}
+            value={easy}
+            onChange={(e) => {
+              setEasy(e.target.value);
+            }}
+          />
+          <InputField
+            id="amt-medium"
+            type="number"
+            label="Medium"
+            required={true}
+            value={medium}
+            onChange={(e) => {
+              setMedium(e.target.value);
+            }}
+          />
+          <InputField
+            id="amt-hard"
+            type="number"
+            label="Hard"
+            required={true}
+            value={hard}
+            onChange={(e) => {
+              setHard(e.target.value);
+            }}
+          />
+        </div>
         <div className={styles.questionsList}>
           <CustomTable
             columns={
@@ -455,6 +489,7 @@ const SubSection: React.FC<{
         handleClickSave={handleClickSave}
       />
       <PreviewHTMLModal
+        showFooter={false}
         previewData={previewData}
         isOpen={previewModalVisible}
         handleClose={() => setPreviewModalVisible(false)}

@@ -15,8 +15,9 @@ $footerHeight:50px;
   .modal {
   position: relative;
     max-width: 70%;
-    min-width: 300px;
+    min-width: 70vw;
     max-height: 70vh;
+    height: 70vh;
     overflow-y: auto;
     overflow-x: hidden;
     // width: fit-content;
@@ -24,8 +25,11 @@ $footerHeight:50px;
     padding:2rem ;
     border-radius: 15px;
     @extend .flexCol;
+    align-items: flex-start;
+    justify-content: flex-start;
     .content{
       margin-bottom: $footerHeight;
+      width: 100%;
     }
     .header {
       width: 100%;
