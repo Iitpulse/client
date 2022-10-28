@@ -1,6 +1,5 @@
-- name: Netlify Deploy
-  uses: jsmrcaga/action-netlify-deploy@v1.8.0
-
+name: Netlify Deploy
+uses: jsmrcaga/action-netlify-deploy@v1.8.0
 
 on:
   release:
