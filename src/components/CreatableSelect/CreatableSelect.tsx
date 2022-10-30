@@ -157,10 +157,10 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
       />
       <Dialog open={open} onClose={handleClose}>
         <form style={{ minWidth: "300px" }} onSubmit={handleSubmit}>
-          <DialogTitle>
+          <DialogTitle sx={{ paddingBottom: "0" }}>
             Add a new {label?.replace("(s)", "")} "{dialogValue}"
           </DialogTitle>
-          <DialogContent>
+          <DialogContent sx={{ padding: "0 1rem" }}>
             {/* <DialogContentText>
               Did you miss any film in our list? Please, add it!
             </DialogContentText> */}
