@@ -201,7 +201,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
               type="text"
               variant="standard"
             />
-            <TextField
+            {/* <TextField
               margin="dense"
               id="value"
               value={dialogValue.value}
@@ -214,7 +214,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
               label="Value"
               type="text"
               variant="standard"
-            />
+            /> */}
             {chapters?.length && (
               <div style={{ marginTop: "1rem", width: "100%" }}>
                 <Autocomplete

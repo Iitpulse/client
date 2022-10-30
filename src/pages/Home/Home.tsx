@@ -240,6 +240,13 @@ const Home = () => {
                 classes={[styles.instituteDetailsCard]}
               >
                 <div className={styles.instituteDetails}>
+                  {!instituteDetailsData?.batches && (
+                    <>
+                      <Skeleton height={75} width={160} />
+                      <Skeleton height={75} width={160} />
+                      <Skeleton height={75} width={160} />
+                    </>
+                  )}
                   {instituteDetailsData?.batches?.map((batch: any) => (
                     <InstituteDetails
                       icon={yellowFlag}
