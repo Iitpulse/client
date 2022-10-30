@@ -139,9 +139,19 @@ const CreatePattern = () => {
           usedIn: [],
         };
         console.log({ pattern });
-        const res = await API_TESTS().post(`/pattern/create`, pattern);
-        message.success("Pattern created successfully");
-        console.log({ res });
+        //check if url contains new or edit
+        if (patternId) {
+          await API_TESTS().patch(`/pattern/update`, pattern, {
+            params: { id: patternId },
+          });
+          message.success("Pattern updated successfully");
+        } else {
+          await API_TESTS().post(`/pattern/create`, pattern);
+          message.success("Pattern created successfully");
+        }
+        // const res = await API_TESTS().post(`/pattern/create`, pattern);
+        // message.success("Pattern created successfully");
+        // console.log({ res });
       }
     } catch (error) {
       message.error("Error creating pattern");
