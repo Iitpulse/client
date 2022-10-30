@@ -60,6 +60,7 @@ export interface ITestTable {
 }
 
 export interface ITest extends ITestTable {
+  durationInMinutes: number | null;
   sections: ISection[];
   attemptedBy?: {
     studentsCount: number | null;
@@ -81,6 +82,7 @@ export interface ITest extends ITestTable {
 export interface IPattern {
   id: string; // PT_JEE_MAINS
   name: string;
+  durationInMinutes: number;
   sections: Array<ISection>;
   exam: string;
   usedIn?: Array<string>;

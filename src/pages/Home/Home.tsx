@@ -222,7 +222,9 @@ const Home = () => {
                     index={i + 1}
                     title={test.name}
                     marks={360}
-                    durationHours={3}
+                    durationHours={
+                      test?.durationInMinutes ? test.durationInMinutes / 60 : 3
+                    }
                     mode="online"
                   />
                 ))}

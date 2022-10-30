@@ -116,6 +116,7 @@ const CreateTest = () => {
           },
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
+          durationInMinutes: pattern?.durationInMinutes,
         };
         console.log({ finalTest });
         let response = await API_TESTS().post(`/test/create`, finalTest);
@@ -324,6 +325,7 @@ const SubSection: React.FC<{
   const [questionModal, setQuestionModal] = useState<boolean>(false);
   const [tempQuestions, setTempQuestions] = useState<any>({});
   // const [questions, setQuestions] = useState([]);
+  console.log({ subSection });
   const { name, description, totalQuestions, toBeAttempted, type, questions } =
     subSection;
   const [easy, setEasy] = useState("0");
@@ -353,7 +355,11 @@ const SubSection: React.FC<{
     const { data } = await API_QUESTIONS().get(`/mcq/autogenerate`, {
       params: {
         type,
-        difficulties: ["easy", "medium"],
+        difficulties: {
+          easy: parseInt(easy),
+          medium: parseInt(medium),
+          hard: parseInt(hard),
+        },
         subject,
         totalQuestions: subSection.totalQuestions,
       },

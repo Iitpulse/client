@@ -64,6 +64,7 @@ export const SAMPLE_TEST = {
   id: "",
   name: "",
   description: "",
+  durationInMinutes: 0,
   sections: [],
   exam: {
     id: "",
