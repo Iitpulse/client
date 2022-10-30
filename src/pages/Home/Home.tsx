@@ -222,7 +222,9 @@ const Home = () => {
                     index={i + 1}
                     title={test.name}
                     marks={360}
-                    durationHours={3}
+                    durationHours={
+                      test?.durationInMinutes ? test.durationInMinutes / 60 : 3
+                    }
                     mode="online"
                   />
                 ))}
@@ -240,6 +242,13 @@ const Home = () => {
                 classes={[styles.instituteDetailsCard]}
               >
                 <div className={styles.instituteDetails}>
+                  {!instituteDetailsData?.batches && (
+                    <>
+                      <Skeleton height={75} width={160} />
+                      <Skeleton height={75} width={160} />
+                      <Skeleton height={75} width={160} />
+                    </>
+                  )}
                   {instituteDetailsData?.batches?.map((batch: any) => (
                     <InstituteDetails
                       icon={yellowFlag}

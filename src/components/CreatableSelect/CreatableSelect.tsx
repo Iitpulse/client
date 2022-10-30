@@ -179,7 +179,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
               type="text"
               variant="standard"
             />
-            <TextField
+            {/* <TextField
               margin="dense"
               id="value"
               value={dialogValue.value}

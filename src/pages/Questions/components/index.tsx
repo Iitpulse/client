@@ -9,6 +9,7 @@ import {
   Autocomplete,
   SelectChangeEvent,
   IconButton,
+  Box,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { message, Spin, Table } from "antd";
@@ -25,7 +26,10 @@ import Delete from "@mui/icons-material/Delete";
 import { DeleteOutline } from "@mui/icons-material";
 import CustomPopConfirm from "./../../../components/PopConfirm/CustomPopConfirm";
 import { ConsoleSqlOutlined } from "@ant-design/icons";
+import Tabs from "@mui/material/Tabs";
 
+import Tab from "@mui/material/Tab";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 interface MUISelectProps {
   label: string;
   state: string;
@@ -249,9 +253,13 @@ interface PreviewHTMLModalProps {
     isProofRead: boolean;
     id: string;
     type: string;
+    en: {
+      solution: string;
+    };
   };
   setPreviewData: any;
   setQuestions: any;
+  showFooter: boolean;
 }
 interface IToggleProofReadPayload {
   id: string;
@@ -266,10 +274,12 @@ export const PreviewHTMLModal: React.FC<PreviewHTMLModalProps> = ({
   previewData,
   setQuestions,
   setPreviewData,
+  showFooter,
 }) => {
   const [previewHTML, setPreviewHTML] = useState("");
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-
+  const [tab, setTab] = useState("1");
+  console.log({ previewData });
   const handleToggleProofread = async (checked: any) => {
     console.log(checked);
     let obj = { ...previewData, isProofRead: checked };
@@ -336,32 +346,37 @@ export const PreviewHTMLModal: React.FC<PreviewHTMLModalProps> = ({
       }
     }
   };
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: string) => {
+    setTab(newValue);
+  };
   return (
     <Modal
       isOpen={isOpen}
       title="Preview"
       onClose={handleClose}
       footer={
-        <div className={styles.footer}>
-          <div className={styles.toggleButton}>
-            Proof Read
-            <ToggleButton
-              checked={previewData.isProofRead}
-              stopPropagation
-              onChange={(checked: any) => handleToggleProofread(checked)}
-            />
+        showFooter ? (
+          <div className={styles.footer}>
+            <div className={styles.toggleButton}>
+              Proof Read
+              <ToggleButton
+                checked={previewData.isProofRead}
+                stopPropagation
+                onChange={(checked: any) => handleToggleProofread(checked)}
+              />
+            </div>
+            <CustomPopConfirm
+              title="Are you sure?"
+              okText="Delete"
+              cancelText="No"
+              onConfirm={handleDeleteQuestion}
+            >
+              <IconButton>
+                <DeleteOutline />
+              </IconButton>
+            </CustomPopConfirm>
           </div>
-          <CustomPopConfirm
-            title="Are you sure?"
-            okText="Delete"
-            cancelText="No"
-            onConfirm={handleDeleteQuestion}
-          >
-            <IconButton>
-              <DeleteOutline />
-            </IconButton>
-          </CustomPopConfirm>
-        </div>
+        ) : null
       }
     >
       {isPreviewLoading ? (
@@ -369,7 +384,24 @@ export const PreviewHTMLModal: React.FC<PreviewHTMLModalProps> = ({
           <Spin />
         </div>
       ) : (
-        <RenderWithLatex quillString={quillString} />
+        <TabContext value={tab}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <TabList
+              onChange={handleChangeTab}
+              aria-label="lab API tabs example"
+            >
+              <Tab label="Question" value="1" />
+              <Tab label="Solution" value="2" />
+            </TabList>
+          </Box>
+          <TabPanel value="1">
+            {" "}
+            <RenderWithLatex quillString={quillString} />
+          </TabPanel>
+          <TabPanel value="2">
+            <RenderWithLatex quillString={previewData?.en?.solution} />
+          </TabPanel>
+        </TabContext>
       )}
     </Modal>
   );

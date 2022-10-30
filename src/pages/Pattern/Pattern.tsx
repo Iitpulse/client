@@ -76,6 +76,7 @@ const Pattern = () => {
 
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
+  const [durationInMinutes, setDurationInMinutes] = useState("");
 
   useEffect(() => {
     if (currentUser) {
@@ -135,6 +136,7 @@ const Pattern = () => {
           .toUpperCase()}`,
         name,
         exam: exam,
+        durationInMinutes: parseInt(durationInMinutes),
         sections: sections.map((sec) => ({
           ...sec,
           exam: exam,

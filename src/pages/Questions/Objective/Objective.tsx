@@ -36,6 +36,7 @@ const Objective: React.FC<Props> = ({ setData }) => {
   const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
   const [previewHTML, setPreviewHTML] = useState("");
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [fullPreviewModalOpen, setFullPreviewModalOpen] = useState(false);
 
   const [values, setValues] = useState(() => {
     let tempOptions = generateOptions(answerType, 4);
@@ -179,6 +180,10 @@ const Objective: React.FC<Props> = ({ setData }) => {
   function handleClickPreview() {
     setPreviewModalOpen(true);
   }
+  function handleClickFullPreview() {
+    console.log(values);
+    setFullPreviewModalOpen(true);
+  }
 
   function getCurrentHTMLString() {
     const current = values[currentLanguage];
@@ -195,6 +200,22 @@ const Objective: React.FC<Props> = ({ setData }) => {
       default:
         return "";
     }
+  }
+  function getCurrentFullPreviewHTMLString() {
+    let res =
+      values?.en?.question +
+      values?.en?.options
+        .map(
+          (op: any, idx: number) =>
+            `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+              op.isCorrectAnswer ? "rgba(85, 188, 126, 0.3)" : "transparent"
+            };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+              idx + 65
+            )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+        )
+        .join("");
+    console.log(res);
+    return res;
   }
 
   return (
@@ -215,6 +236,11 @@ const Objective: React.FC<Props> = ({ setData }) => {
         <div className={styles.flexRow}>
           <Tooltip title="See Preview">
             <IconButton onClick={handleClickPreview}>
+              <Visibility />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="See Full Preview">
+            <IconButton onClick={handleClickFullPreview}>
               <Visibility />
             </IconButton>
           </Tooltip>
@@ -356,12 +382,22 @@ const Objective: React.FC<Props> = ({ setData }) => {
         </div>
       </div>
       <PreviewHTMLModal
+        showFooter={false}
         isOpen={previewModalOpen}
         previewData={values}
         handleClose={() => setPreviewModalOpen(false)}
         quillString={getCurrentHTMLString()}
         setQuestions={() => {}}
-        setPreviewData={setValues}
+        setPreviewData={() => {}}
+      />
+      <PreviewHTMLModal
+        showFooter={false}
+        isOpen={fullPreviewModalOpen}
+        previewData={values}
+        handleClose={() => setFullPreviewModalOpen(false)}
+        quillString={getCurrentFullPreviewHTMLString()}
+        setQuestions={() => {}}
+        setPreviewData={() => {}}
       />
       {/* Just for preview */}
       {/* <div dangerouslySetInnerHTML={{ __html: previewHTML }}></div> */}

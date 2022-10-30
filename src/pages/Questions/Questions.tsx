@@ -424,6 +424,7 @@ const Questions = () => {
               ))}
           </Sidebar>
           <PreviewHTMLModal
+            showFooter={true}
             isOpen={previewModalVisible}
             handleClose={() => setPreviewModalVisible(false)}
             quillString={quillStringForPreview}
