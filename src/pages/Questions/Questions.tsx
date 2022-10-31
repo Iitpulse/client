@@ -578,7 +578,7 @@ const PreviewFullQuestion: React.FC<{
       <div className={styles.previewBreadCumb}>
         <div className={styles.previewBreadCumbDiv}>
           <h4>{previewData?.subject}</h4>
-          {" > "}
+          {" >    "}
           <h4>{previewData?.chapters?.join(", ")}</h4>
           {" > "}
           <h4>{previewData?.topics?.join(", ")}</h4>
