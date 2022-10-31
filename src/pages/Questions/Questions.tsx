@@ -35,12 +35,21 @@ import logo from "../../assets/images/logo.svg";
 import { asBlob } from "html-docx-js-typescript";
 import { saveAs } from "file-saver";
 import * as Docx from "docx"; // that is a peer dependency
-import { Visibility } from "@mui/icons-material";
+import {
+  DeleteOutline,
+  FormatUnderlinedOutlined,
+  Visibility,
+} from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api";
 import PrintIcon from "@mui/icons-material/Print";
 import sheetIcon from "../../assets/icons/sheets.svg";
 import MainLayout from "../../layouts/MainLayout";
+import { Divider, message, Tag } from "antd";
+import { ToggleButton } from "../../components";
+import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
+import Edit from "@mui/icons-material/Edit";
+
 export const questionTypes = [
   { name: "Objective", value: "objective" },
   // { name: "Multiple Correct", value: "multiple" },
@@ -306,8 +315,18 @@ const Questions = () => {
   }, [previewData]);
 
   useEffect(() => {
-    setSidebarContent(<RenderWithLatex quillString={quillStringForPreview} />);
-  }, [quillStringForPreview]);
+    console.log({ previewData });
+    setSidebarContent(
+      <PreviewFullQuestion
+        setQuestions={setQuestions}
+        setPreviewData={setPreviewData}
+        handleClose={() => setSideBarOpen(false)}
+        quillStringQuestion={quillStringForPreview}
+        quillStringSolution={previewData?.en?.solution}
+        previewData={previewData}
+      />
+    );
+  }, [quillStringForPreview, previewData]);
 
   useEffect(() => {
     async function fetchPaginatedMCQs() {
@@ -419,10 +438,15 @@ const Questions = () => {
                 <Button onClick={handleSubmitQuestion}>Submit</Button>
               </div> */}
             <Sidebar
-              title="Recent Activity"
+              title="Preview"
               open={sidebarOpen}
               handleClose={() => setSideBarOpen(false)}
               width={"40%"}
+              extra={
+                <IconButton>
+                  <Edit />
+                </IconButton>
+              }
             >
               {sidebarContent}
             </Sidebar>
@@ -462,6 +486,144 @@ const Questions = () => {
 
 export default Questions;
 
+interface IToggleProofReadPayload {
+  id: string;
+  isProofRead: boolean;
+  type: string;
+}
+
+const PreviewFullQuestion: React.FC<{
+  quillStringQuestion: string;
+  quillStringSolution: string;
+  previewData: any;
+  setQuestions: (currQues: any) => void;
+  setPreviewData: (obj: any) => void;
+  handleClose: () => void;
+}> = ({
+  quillStringQuestion,
+  quillStringSolution,
+  previewData,
+  setQuestions,
+  setPreviewData,
+  handleClose,
+}) => {
+  const handleToggleProofread = async (checked: any) => {
+    console.log(checked);
+    let obj = { ...previewData, isProofRead: checked };
+    let payload: IToggleProofReadPayload = {
+      id: previewData.id,
+      isProofRead: checked,
+      type: previewData.type,
+    };
+    try {
+      const res = await API_QUESTIONS().patch(`/toggleproofread`, {
+        data: payload,
+      });
+      if (res?.data?.status === "success") {
+        console.log(res);
+        setQuestions((currQues: any) => {
+          let arr = currQues.map((el: any) => {
+            return el.id !== previewData.id ? el : obj;
+          });
+          console.log(arr);
+          return arr;
+        });
+        setPreviewData(obj);
+      }
+      console.log(previewData);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const handleDeleteQuestion = async () => {
+    const type = previewData.type;
+    let url;
+    switch (type) {
+      case "single":
+      case "multiple":
+        url = "/mcq/delete";
+        break;
+      case "integer":
+        url = "/numerical/delete";
+        break;
+      default:
+        console.log(type);
+    }
+    console.log({ url, type, previewData });
+    if (url) {
+      try {
+        const res = await API_QUESTIONS().delete(url, {
+          data: {
+            id: previewData.id,
+          },
+        });
+        console.log(res);
+        handleClose();
+        message.success("Deleted successfully!");
+        setQuestions((currQues: any) => {
+          let arr = currQues.filter((el: any) => {
+            return el.id !== previewData.id;
+          });
+          console.log(arr);
+          return arr;
+        });
+        console.log(previewData);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+  return (
+    <>
+      <div className={styles.previewBreadCumb}>
+        <div className={styles.previewBreadCumbDiv}>
+          <h4>{previewData?.subject}</h4>
+          {" > "}
+          <h4>{previewData?.chapters?.join(", ")}</h4>
+          {" > "}
+          <h4>{previewData?.topics?.join(", ")}</h4>
+        </div>
+        <div>
+          <Tag
+            color={
+              previewData?.difficulty?.toLowerCase() === "easy"
+                ? "green"
+                : previewData?.difficulty?.toLowerCase() === "medium"
+                ? "yellow"
+                : "red"
+            }
+          >
+            {previewData?.difficulty}
+          </Tag>
+        </div>
+      </div>
+      <br />
+      <RenderWithLatex quillString={quillStringQuestion} />
+      <Divider />
+      <RenderWithLatex quillString={quillStringSolution} />
+      <div className={styles.footer}>
+        <div className={styles.toggleButton}>
+          Proof Read
+          <ToggleButton
+            checked={previewData?.isProofRead}
+            stopPropagation
+            onChange={(checked: any) => handleToggleProofread(checked)}
+          />
+        </div>
+        <CustomPopConfirm
+          title="Are you sure?"
+          okText="Delete"
+          cancelText="No"
+          onConfirm={handleDeleteQuestion}
+        >
+          <IconButton>
+            <DeleteOutline />
+          </IconButton>
+        </CustomPopConfirm>
+      </div>
+    </>
+  );
+};
 const PrintTest: React.FC<{
   subject: string;
   chapter: string;

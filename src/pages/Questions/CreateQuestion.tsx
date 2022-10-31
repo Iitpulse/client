@@ -191,6 +191,7 @@ const CreateQuestion = () => {
   });
 
   async function handleSubmitQuestion() {
+    let loading = message.loading("Creating Question...");
     try {
       if (currentUser) {
         let questionCore = {
@@ -237,8 +238,6 @@ const CreateQuestion = () => {
               const res = await Promise.all(promises);
               // const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
 
-              message.success("Question created successfully");
-
               console.log({ res });
             }
             break;
@@ -263,16 +262,18 @@ const CreateQuestion = () => {
                 finalQuestion
               );
 
-              message.success("Question created successfully");
-
               console.log({ res });
             }
             break;
           default:
             return;
         }
+        loading();
+        message.success("Question created successfully");
+        setData({});
       }
     } catch (error) {
+      loading();
       message.success("Error" + error);
     }
   }
