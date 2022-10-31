@@ -149,7 +149,10 @@ const Questions = () => {
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [totalDocs, setTotalDocs] = useState(1);
-
+  const [questions, setQuestions] = useState([]);
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [previewData, setPreviewData] = useState<any>({});
+  const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -277,11 +280,6 @@ const Questions = () => {
     }
   }
 
-  const [questions, setQuestions] = useState([]);
-  const [previewModalVisible, setPreviewModalVisible] = useState(false);
-  const [previewData, setPreviewData] = useState<any>({});
-  const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
-
   useEffect(() => {
     if (previewData?.type === "single" || previewData?.type === "multiple") {
       setQuillStringForPreview(
@@ -336,6 +334,7 @@ const Questions = () => {
         },
       });
       setQuestions(res.data.data);
+      console.log("Inside onChangePage", res.data.totalDocs);
       setTotalDocs(res.data.totalDocs);
       setLoading(false);
     } catch (err) {
@@ -343,6 +342,11 @@ const Questions = () => {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    console.log({ totalDocs });
+    // setTotalDocs(questions.length);
+  });
 
   return (
     <div className={styles.container}>
