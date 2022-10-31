@@ -10,9 +10,13 @@ import {
 } from "../../utils/interfaces";
 import { QUESTION_COLS_ALL, SAMPLE_TEST } from "../../utils/constants";
 import { StyledMUITextField } from "../Users/components";
-import DateRangePicker from "@mui/lab/DateRangePicker";
-import AdapterDateFns from "@mui/lab/AdapterDateFns";
-import LocalizationProvider from "@mui/lab/LocalizationProvider";
+// import {
+//   DateRangePicker,
+//   DateRange,
+// } from "@mui/x-date-pickers-pro/DateRangePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers-pro";
+import { Dayjs } from "dayjs";
 import { IconButton, TextField } from "@mui/material";
 import { Box } from "@mui/system";
 import {
@@ -22,15 +26,16 @@ import {
 } from "../Pattern/components/CustomAccordion";
 import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
-import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
-import { API_QUESTIONS, API_TESTS } from "../../utils/api";
+import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api";
 import CustomTable from "../../components/CustomTable/CustomTable";
 import { Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
 import { message } from "antd";
 import { TestContext } from "../../utils/contexts/TestContext";
+import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
+import moment from "moment";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
@@ -38,8 +43,29 @@ const CreateTest = () => {
   const [pattern, setPattern] = useState<IPattern | null>(null);
   const [patternOptions, setPatternOptions] = useState([]);
 
+  const [batchesOptions, setBatchesOptions] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [publishType, setPublishType] = useState({
+    value: "immediately",
+    name: "Immediately",
+  });
+  const [testDateRange, setTestDateRange] = useState([]);
+  const [daysAfter, setDaysAfter] = useState(1);
+
   const { currentUser } = useContext(AuthContext);
   const { exams } = useContext(TestContext);
+
+  useEffect(() => {
+    async function fetchBatch() {
+      const res = await API_USERS().get(`/batch/get`);
+      console.log({ res });
+      setBatchesOptions(res?.data);
+    }
+
+    if (currentUser?.id) {
+      fetchBatch();
+    }
+  }, [currentUser]);
 
   const examOptions = [
     {
@@ -78,9 +104,9 @@ const CreateTest = () => {
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   }
 
-  function handleChangeValidity(newValue: any) {
-    setTest({ ...test, validity: { from: newValue[0], to: newValue[1] } });
-  }
+  // function handleChangeValidity(newValue: any) {
+  //   setTest({ ...test, validity: { from: newValue[0], to: newValue[1] } });
+  // }
 
   useEffect(() => {
     if (pattern?.sections) {
@@ -114,11 +140,27 @@ const CreateTest = () => {
             id: currentUser.id,
             userType: currentUser.userType,
           },
+          validity: {
+            from: moment(testDateRange[0]).toISOString(),
+            to: moment(testDateRange[1]).toISOString(),
+          },
+          result: {
+            publishProps: {
+              type: publishType.value,
+              publishDate: getPublishDate(
+                publishType.value,
+                daysAfter,
+                testDateRange
+              ),
+              isPublished: false,
+            },
+          },
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
           durationInMinutes: pattern?.durationInMinutes,
         };
         console.log({ finalTest });
+        if (finalTest) return;
         let response = await API_TESTS().post(`/test/create`, finalTest);
         message.success("Test Created Successfully");
         console.log({ response });
@@ -197,33 +239,20 @@ const CreateTest = () => {
             }))}
             value={{ name: test.exam?.name, value: test.exam?.name }}
           />
-          <MUISimpleAutocomplete
-            label="Status"
-            onChange={(val: any) =>
-              onChangeInput({ target: { id: "status", value: val.name } })
-            }
-            options={statusOptions}
-            value={{
-              name: status,
-              value: status,
-            }}
+          <CreatableSelect
+            multiple
+            onAddModalSubmit={() => {}}
+            options={batchesOptions}
+            setValue={setBatches}
+            value={batches}
+            label={"Batche(s)"}
+            id="batches"
           />
           <div className={styles.dateSelector}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DateRangePicker
-                startText="Valid From"
-                endText="Valid Till"
-                value={[validity.from, validity.to]}
-                onChange={handleChangeValidity}
-                renderInput={(startProps: any, endProps: any) => (
-                  <>
-                    <TextField {...startProps} />
-                    <Box sx={{ mx: 2 }}> to </Box>
-                    <TextField {...endProps} />
-                  </>
-                )}
-              />
-            </LocalizationProvider>
+            <CustomDateRangePicker
+              onChange={(props: any) => setTestDateRange(props)}
+              value={testDateRange}
+            />
           </div>
           <MUISimpleAutocomplete
             label="Pattern"
@@ -235,6 +264,25 @@ const CreateTest = () => {
               value: pattern?.name || "",
             }}
           />
+          <MUISimpleAutocomplete
+            label="Result Publish Type"
+            onChange={(val: any) => setPublishType(val)}
+            options={publishTypeOptions}
+            value={publishType}
+          />
+          {publishType.value === "autoAfterXDays" && (
+            <StyledMUITextField
+              id="daysAfter"
+              label="Publish after - Day(s)"
+              type="number"
+              value={daysAfter}
+              variant="outlined"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setDaysAfter(parseInt(e.target.value))
+              }
+              inputProps={{ min: 1 }}
+            />
+          )}
         </div>
         {sections && pattern && (
           <section className={styles.sections}>
@@ -514,3 +562,41 @@ const Question: React.FC<ITestQuestionObjective> = ({ en }) => {
     </div>
   );
 };
+
+const publishTypeOptions = [
+  {
+    name: "Immediately",
+    value: "immediately",
+  },
+  {
+    name: "At the end of test",
+    value: "atTheEndOfTest",
+  },
+  {
+    name: "Automatic after 'x' days",
+    value: "autoAfterXDays",
+  },
+  {
+    name: "Manual",
+    value: "manual",
+  },
+];
+
+function getPublishDate(
+  publishType: string,
+  daysAfter: number | null | undefined,
+  testDateRange: Array<any>
+): string | null {
+  switch (publishType) {
+    case "immediately":
+      return null;
+    case "atTheEndOfTest":
+      return moment(testDateRange[1]).toISOString();
+    case "autoAfterXDays":
+      return moment().add(daysAfter, "days").toISOString();
+    case "manual":
+      return null;
+    default:
+      return null;
+  }
+}
