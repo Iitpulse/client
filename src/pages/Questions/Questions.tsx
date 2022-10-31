@@ -360,7 +360,12 @@ const Questions = () => {
                   </IconButton>
                   <IconButton>
                     <CSVLink filename={"Questions.csv"} data={questions}>
-                      <img src={sheetIcon} width="21px" height="21px" />
+                      <img
+                        src={sheetIcon}
+                        width="21px"
+                        alt="Sheet"
+                        height="21px"
+                      />
                     </CSVLink>
                   </IconButton>
                 </div>

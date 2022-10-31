@@ -30,7 +30,7 @@ interface MenuDrawerProps {
 const MenuDrawer = (props: MenuDrawerProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
-  const { currentUser,setCurrentUser } = useContext(AuthContext);
+  const { currentUser, setCurrentUser } = useContext(AuthContext);
 
   const { hasPermissions } = useContext(PermissionsContext);
 
@@ -92,6 +92,10 @@ const MenuDrawer = (props: MenuDrawerProps) => {
     };
   }, []);
 
+  function checkIfNavLinkIsActive(path: string) {
+    return window.location.pathname === path;
+  }
+
   return (
     <div
       style={isCollapsed ? { width: "fit-content", padding: "0 1rem" } : {}}
@@ -124,8 +128,8 @@ const MenuDrawer = (props: MenuDrawerProps) => {
       >
         <NavLink
           style={isCollapsed ? { width: "fit-content" } : {}}
-          className={({ isActive }) =>
-            isActive
+          className={
+            checkIfNavLinkIsActive("/")
               ? clsx(styles.navLink, styles.activeNavLink)
               : styles.navLink
           }
@@ -304,7 +308,6 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
 
   const { resetPermissions } = useContext(PermissionsContext);
   const { setCurrentUser } = useContext(AuthContext);
-
 
   const navigate = useNavigate();
 
