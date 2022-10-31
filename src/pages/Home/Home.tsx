@@ -114,7 +114,7 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
         <span className={styles.index}>{index}</span>. &nbsp; {title}
       </p>
       <div className={styles.details}>
-        <span>{marks} | </span> <span> {durationHours} Hr |</span>
+        <span>{marks} | </span> <span> {durationHours} Hr</span>
         {mode === "online" ? (
           <img src={monitor} alt="icon" className={styles.indicator} />
         ) : (

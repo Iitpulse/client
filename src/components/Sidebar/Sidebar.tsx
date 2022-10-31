@@ -12,6 +12,7 @@ interface SidebarProps {
   handleClose: () => void;
   placement?: "left" | "right" | "top" | "bottom";
   width: number | string;
+  extra?: React.ReactNode;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -22,6 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   handleClose,
   placement = "right",
   width,
+  extra,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   // function handleCollapse(value: boolean) {
@@ -40,6 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       placement={placement}
       title={title}
       width={width}
+      extra={extra}
     >
       <div ref={wrapperRef} className={styles.container}>
         {/* <div className={styles.header}>
