@@ -185,6 +185,10 @@ const CreateQuestion = () => {
     console.log({ res });
   }
 
+  useEffect(() => {
+    console.log(subjectOptions);
+  });
+
   async function handleSubmitQuestion() {
     try {
       if (currentUser) {
@@ -274,7 +278,7 @@ const CreateQuestion = () => {
 
   return (
     <div className={styles.container}>
-        <Navigate path={"/questions"}>Back To Questions</Navigate>
+      <Navigate path={"/questions"}>Back To Questions</Navigate>
       <form>
         <div className={styles.inputFields}>
           <StyledMUISelect
@@ -348,7 +352,6 @@ const CreateQuestion = () => {
             options={
               topicOptions.map((topic: any) => ({
                 name: topic,
-                value: topic,
               })) || []
             }
             chapters={subject?.chapters}
@@ -421,7 +424,7 @@ const CreateQuestion = () => {
       <section className={styles.main}>
         {getQuestionFromType(type, setData)}
       </section>
-      <div className={styles.submitButton} >
+      <div className={styles.submitButton}>
         <Button onClick={handleSubmitQuestion}>Submit</Button>
       </div>
       <Sidebar title="Recent Activity">

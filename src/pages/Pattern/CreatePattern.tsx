@@ -68,6 +68,7 @@ const CreatePattern = () => {
 
   const [name, setName] = useState("");
   const [exam, setExam] = useState("");
+  const [durationInMinutes, setDurationInMinutes] = useState("");
 
   useEffect(() => {
     async function fetchPattern() {
@@ -87,6 +88,7 @@ const CreatePattern = () => {
     if (currentPattern?.name) {
       setName(currentPattern.name);
       setExam(currentPattern.exam);
+      setDurationInMinutes(String(currentPattern.durationInMinutes));
       setSections(currentPattern.sections);
     }
   }, [currentPattern]);
@@ -126,6 +128,7 @@ const CreatePattern = () => {
             .toUpperCase()}`,
           name,
           exam: exam,
+          durationInMinutes: parseInt(durationInMinutes),
           sections: sections.map((sec) => ({
             ...sec,
             exam: exam,
@@ -139,9 +142,19 @@ const CreatePattern = () => {
           usedIn: [],
         };
         console.log({ pattern });
-        const res = await API_TESTS().post(`/pattern/create`, pattern);
-        message.success("Pattern created successfully");
-        console.log({ res });
+        //check if url contains new or edit
+        if (patternId) {
+          await API_TESTS().patch(`/pattern/update`, pattern, {
+            params: { id: patternId },
+          });
+          message.success("Pattern updated successfully");
+        } else {
+          await API_TESTS().post(`/pattern/create`, pattern);
+          message.success("Pattern created successfully");
+        }
+        // const res = await API_TESTS().post(`/pattern/create`, pattern);
+        // message.success("Pattern created successfully");
+        // console.log({ res });
       }
     } catch (error) {
       message.error("Error creating pattern");
@@ -165,6 +178,11 @@ const CreatePattern = () => {
                 value={name}
                 label="Name"
                 onChange={(e: any) => setName(e.target.value)}
+              />
+              <StyledMUITextField
+                value={durationInMinutes}
+                label="Duration (in Minutes)"
+                onChange={(e: any) => setDurationInMinutes(e.target.value)}
               />
               <MUISimpleAutocomplete
                 label="Exam"
