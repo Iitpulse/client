@@ -4,24 +4,26 @@ import notificationIcon from "../assets/icons/notification.svg";
 import searchIcon from "../assets/icons/search.svg";
 import { IconButton } from "@mui/material";
 import React, { useState } from "react";
-import TextField from "@mui/material/TextField";
-import Stack from "@mui/material/Stack";
-import Autocomplete from "@mui/material/Autocomplete";
-import { top100Films } from "../utils/constants";
 
 interface Props {
   children: React.ReactNode;
   name: string;
+  onClickDrawerIcon?: () => void;
   [key: string]: any;
 }
 
-const MainLayout = (props: Props) => {
+const MainLayout: React.FC<Props> = ({
+  name,
+  children,
+  onClickDrawerIcon,
+  ...rest
+}) => {
   return (
-    <div className={styles.container} {...props}>
+    <div className={styles.container} {...rest}>
       <MenuDrawer />
       <section className={styles.mainContainer}>
         <nav>
-          <h3>{props.name}</h3>
+          <h3>{name}</h3>
           <div className={styles.actions}>
             {/* <Stack spacing={2}>
               <Autocomplete
@@ -47,12 +49,14 @@ const MainLayout = (props: Props) => {
               </div>
             </Stack> */}
             {/* &nbsp; &nbsp; */}
-            {/* <IconButton>
-              <img src={notificationIcon} alt="notification" />
-            </IconButton> */}
+            {onClickDrawerIcon && (
+              <IconButton onClick={onClickDrawerIcon}>
+                <img src={notificationIcon} alt="notification" />
+              </IconButton>
+            )}
           </div>
         </nav>
-        <main className={styles.main}>{props.children}</main>
+        <main className={styles.main}>{children}</main>
       </section>
     </div>
   );

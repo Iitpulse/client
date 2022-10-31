@@ -12,6 +12,7 @@ import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_USERS } from "../../utils/api";
+import MainLayout from "../../layouts/MainLayout";
 
 interface DataType {
   key: React.Key;
@@ -95,25 +96,27 @@ const Batches = () => {
   ];
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <Button onClick={() => setIsModalRequested(true)}>Create New</Button>
-        {isModalRequested && (
-          <CreateNewBatch handleClose={() => setIsModalRequested(false)} />
-        )}
+    <MainLayout name="Batches">
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <Button onClick={() => setIsModalRequested(true)}>Create New</Button>
+          {isModalRequested && (
+            <CreateNewBatch handleClose={() => setIsModalRequested(false)} />
+          )}
+        </div>
+        <div className={styles.data}>
+          <Table
+            rowSelection={{
+              type: "checkbox",
+              ...rowSelection,
+            }}
+            columns={columns}
+            dataSource={data}
+          />
+        </div>
+        {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
       </div>
-      <div className={styles.data}>
-        <Table
-          rowSelection={{
-            type: "checkbox",
-            ...rowSelection,
-          }}
-          columns={columns}
-          dataSource={data}
-        />
-      </div>
-      <Sidebar title="Recent Activity">Recent</Sidebar>
-    </div>
+    </MainLayout>
   );
 };
 

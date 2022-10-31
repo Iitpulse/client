@@ -1,19 +1,6 @@
 @import "../../utils/commons.scss";
 
 .container {
-  position: fixed;
-  top: 50%;
-  right: 2rem;
-  transform: translateY(-50%);
-  width: var(--sidebar-width);
-  background: white;
-  border-radius: 0.5rem;
-  height: calc(100% - 4rem);
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding: 1rem 1.5rem;
-  padding-top: 0;
-
   .header {
     display: flex;
     align-items: center;
@@ -21,9 +8,6 @@
     padding: 1rem 0 0 0;
   }
 
-  .children {
-    margin-top: 1rem;
-  }
   .hLine {
     width: 100%;
     height: 1px;

@@ -20,6 +20,7 @@ import clsx from "clsx";
 import { style } from "@mui/system";
 import { result } from "../../utils/";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
+import MainLayout from "../../layouts/MainLayout";
 
 // const results = [
 //   {
@@ -112,108 +113,109 @@ const DetailedAnalysisMain = () => {
   }, []);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.testDetails}>
-        <Navigate path={`/test/result/${testName}/${testExamName}/${testId}`}>
-          Back to Result
-        </Navigate>
-        <div className={styles.topContainer}>
-          <div className={styles.topRow}>
-            <div className={styles.left}>
-              <h2>{currentResult?.name}</h2>
-              <h5>Type : {currentResult?.type}</h5>
-              <h5>
-                Language/s :{" "}
-                {currentResult?.languages
-                  ?.map((item: any) => {
-                    return item?.name;
-                  })
-                  .join(", ")}
-              </h5>
-              <h5> Duration(mins) : {currentResult?.duration}</h5>
+    <MainLayout name="Detailed Analysis">
+      <div className={styles.container}>
+        <div className={styles.testDetails}>
+          <Navigate path={`/test/result/${testName}/${testExamName}/${testId}`}>
+            Back to Result
+          </Navigate>
+          <div className={styles.topContainer}>
+            <div className={styles.topRow}>
+              <div className={styles.left}>
+                <h2>{currentResult?.name}</h2>
+                <h5>Type : {currentResult?.type}</h5>
+                <h5>
+                  Language/s :{" "}
+                  {currentResult?.languages
+                    ?.map((item: any) => {
+                      return item?.name;
+                    })
+                    .join(", ")}
+                </h5>
+                <h5> Duration(mins) : {currentResult?.duration}</h5>
+              </div>
+              <div className={styles.right}>
+                <img
+                  className={styles.calendar}
+                  src={calendar}
+                  alt="Scheduled For"
+                />
+                <div className={styles.scheduledFor}>
+                  Scheduled For :
+                  {currentResult?.scheduledFor?.map(
+                    (item: any, index: number) => (
+                      <p key={index}>{item}</p>
+                    )
+                  )}
+                </div>
+                <div className={styles.status}>
+                  {currentResult?.status}{" "}
+                  <div
+                    className={styles.statusColor}
+                    style={{
+                      backgroundColor: getStatusColor(currentResult?.status),
+                    }}
+                  ></div>{" "}
+                </div>
+              </div>
             </div>
-            <div className={styles.right}>
-              <img
-                className={styles.calendar}
-                src={calendar}
-                alt="Scheduled For"
+            <div className={styles.moreInfo}>
+              <SubCard
+                title="Highest Marks"
+                content={currentResult?.highestMarks}
+                icon={greenCrown}
+                variant="success"
               />
-              <div className={styles.scheduledFor}>
-                Scheduled For :
-                {currentResult?.scheduledFor?.map(
-                  (item: any, index: number) => (
-                    <p key={index}>{item}</p>
-                  )
-                )}
-              </div>
-              <div className={styles.status}>
-                {currentResult?.status}{" "}
-                <div
-                  className={styles.statusColor}
-                  style={{
-                    backgroundColor: getStatusColor(currentResult?.status),
-                  }}
-                ></div>{" "}
-              </div>
+              <SubCard
+                title="Average Marks"
+                content={currentResult?.averageMarks}
+                icon={yellowFlag}
+                variant="warning"
+              />
+              <SubCard
+                title="Average Accuracy"
+                content={currentResult?.averagePercentageAccuracy + "%"}
+                icon={redWarning}
+                variant="error"
+              />
+              <SubCard
+                title="Total Appeared"
+                content={currentResult?.totalStudentAppeared}
+                icon={blueUsers}
+                variant="primary"
+              />
             </div>
           </div>
-          <div className={styles.moreInfo}>
-            <SubCard
-              title="Highest Marks"
-              content={currentResult?.highestMarks}
-              icon={greenCrown}
-              variant="success"
-            />
-            <SubCard
-              title="Average Marks"
-              content={currentResult?.averageMarks}
-              icon={yellowFlag}
-              variant="warning"
-            />
-            <SubCard
-              title="Average Accuracy"
-              content={currentResult?.averagePercentageAccuracy + "%"}
-              icon={redWarning}
-              variant="error"
-            />
-            <SubCard
-              title="Total Appeared"
-              content={currentResult?.totalStudentAppeared}
-              icon={blueUsers}
-              variant="primary"
-            />
-          </div>
-        </div>
-        <div className={styles.sectionWiseAnalysis}>
-          <Tabs value={tab} onChange={handleChangeTab}>
-            {currentResult?.sections?.map((item: any, index: number) => (
-              <Tab label={item?.name} key={index} />
-            ))}
-            {/* <Tab label="Physics" />
+          <div className={styles.sectionWiseAnalysis}>
+            <Tabs value={tab} onChange={handleChangeTab}>
+              {currentResult?.sections?.map((item: any, index: number) => (
+                <Tab label={item?.name} key={index} />
+              ))}
+              {/* <Tab label="Physics" />
             <Tab label="Chemistry" />
             <Tab label="Mathematics" /> */}
-          </Tabs>
-          {currentResult?.sections?.map((section: any, index: number) => (
-            <TabPanel value={tab} index={index} key={index}>
-              {section?.questions?.map(
-                (question: any, questionIndex: number) => (
-                  <Question
-                    {...question}
-                    attemptedBy={roundOffToOneDecimal(
-                      (question?.totalStudentAttempted /
-                        section?.totalStudentAppeared) *
-                        100
-                    )}
-                    setIsViewSolModalOpen={setIsViewSolModalOpen}
-                    setViewSolQuestionId={setViewSolQuestionId}
-                    key={questionIndex}
-                    count={questionIndex + 1}
-                  />
-                )
-              )}
-            </TabPanel>
-          ))}
-          {/* <TabPanel value={tab} index={0}>
+            </Tabs>
+            {currentResult?.sections?.map((section: any, index: number) => (
+              <TabPanel value={tab} index={index} key={index}>
+                {section?.questions?.map(
+                  (question: any, questionIndex: number) => (
+                    <Question
+                      {...question}
+                      attemptedBy={roundOffToOneDecimal(
+                        (question?.totalStudentAttempted /
+                          section?.totalStudentAppeared) *
+                          100
+                      )}
+                      setIsViewSolModalOpen={setIsViewSolModalOpen}
+                      setViewSolQuestionId={setViewSolQuestionId}
+                      key={questionIndex}
+                      count={questionIndex + 1}
+                    />
+                  )
+                )}
+              </TabPanel>
+            ))}
+            {/* <TabPanel value={tab} index={0}>
             <div className={styles.questions}>
               <Question
                 description={
@@ -224,20 +226,20 @@ const DetailedAnalysisMain = () => {
               />
             </div>
           </TabPanel> */}
+          </div>
         </div>
-      </div>
 
-      <Modal
-        isOpen={isViewSolModalOpen}
-        title="Solution"
-        onClose={() => {
-          setIsViewSolModalOpen(false);
-          setViewSolQuestionId("");
-        }}
-      >
-        Hello{viewSolQuestionId}
-      </Modal>
-      <Sidebar title="Recent Activity">
+        <Modal
+          isOpen={isViewSolModalOpen}
+          title="Solution"
+          onClose={() => {
+            setIsViewSolModalOpen(false);
+            setViewSolQuestionId("");
+          }}
+        >
+          Hello{viewSolQuestionId}
+        </Modal>
+        {/* <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
           .map((_, i) => (
@@ -250,8 +252,9 @@ const DetailedAnalysisMain = () => {
               createdAt="10 Jan, 2022"
             />
           ))}
-      </Sidebar>
-    </div>
+      </Sidebar> */}
+      </div>
+    </MainLayout>
   );
 };
 export default DetailedAnalysisMain;
