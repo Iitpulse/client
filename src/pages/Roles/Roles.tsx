@@ -14,6 +14,7 @@ import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import AddNewRole from "./AddNewRole";
 import { Menu, MenuItem, IconButton } from "@mui/material";
+import MainLayout from "../../layouts/MainLayout";
 
 const Roles = () => {
   const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
@@ -30,7 +31,7 @@ const Roles = () => {
     setAnchorEl(null);
   };
   return (
-    <>
+    <MainLayout name="Roles">
       {hasPermission ? (
         <>
           <div className={styles.roles}>
@@ -77,7 +78,7 @@ const Roles = () => {
               ))}
             </div>
           </div>
-          <Sidebar title="Recent Activity">
+          {/* <Sidebar title="Recent Activity">
             {Array(10)
               .fill(0)
               .map((_, i) => (
@@ -90,7 +91,7 @@ const Roles = () => {
                   createdAt="10 Jan, 2022"
                 />
               ))}
-          </Sidebar>
+          </Sidebar> */}
           <AddNewRole
             open={newRoleModal}
             handleClose={() => setNewRoleModal(false)}
@@ -99,7 +100,7 @@ const Roles = () => {
       ) : (
         <Error />
       )}
-    </>
+    </MainLayout>
   );
 };
 

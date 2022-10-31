@@ -22,6 +22,7 @@ import { PERMISSIONS } from "../../utils/constants";
 import ResultForStudent from "./ResultForStudent";
 import ResultForAdmin from "./ResultForAdmin";
 import { message } from "antd";
+import MainLayout from "../../layouts/MainLayout";
 
 const tests = [
   {
@@ -119,23 +120,24 @@ const Result = () => {
   }, [testId, currentUser, studentId]);
 
   return (
-    <div className={styles.container}>
-      {loading ? (
-        <div className={styles.loading}>
-          <MUICircularProgress />
-        </div>
-      ) : error ? (
-        <p>{error}</p>
-      ) : !hasResultViewPermission ? (
-        <ResultForStudent
-          finalTest={finalTest}
-          hasResultViewPermission={hasResultViewPermission}
-        />
-      ) : (
-        <ResultForAdmin finalTest={finalTest} />
-      )}
+    <MainLayout name="Result">
+      <div className={styles.container}>
+        {loading ? (
+          <div className={styles.loading}>
+            <MUICircularProgress />
+          </div>
+        ) : error ? (
+          <p>{error}</p>
+        ) : !hasResultViewPermission ? (
+          <ResultForStudent
+            finalTest={finalTest}
+            hasResultViewPermission={hasResultViewPermission}
+          />
+        ) : (
+          <ResultForAdmin finalTest={finalTest} />
+        )}
 
-      <Sidebar title="Recent Activity">
+        {/* <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
           .map((_, i) => (
@@ -148,8 +150,9 @@ const Result = () => {
               createdAt="10 Jan, 2022"
             />
           ))}
-      </Sidebar>
-    </div>
+      </Sidebar> */}
+      </div>
+    </MainLayout>
   );
 };
 

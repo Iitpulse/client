@@ -40,6 +40,7 @@ import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api";
 import PrintIcon from "@mui/icons-material/Print";
 import sheetIcon from "../../assets/icons/sheets.svg";
+import MainLayout from "../../layouts/MainLayout";
 export const questionTypes = [
   { name: "Objective", value: "objective" },
   // { name: "Multiple Correct", value: "multiple" },
@@ -149,6 +150,8 @@ const Questions = () => {
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [totalDocs, setTotalDocs] = useState(1);
+  const [sidebarOpen, setSideBarOpen] = useState<boolean>(false);
+  const [sidebarContent, setSidebarContent] = useState<any>(null);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -303,6 +306,10 @@ const Questions = () => {
   }, [previewData]);
 
   useEffect(() => {
+    setSidebarContent(<RenderWithLatex quillString={quillStringForPreview} />);
+  }, [quillStringForPreview]);
+
+  useEffect(() => {
     async function fetchPaginatedMCQs() {
       setLoading(true);
       try {
@@ -345,94 +352,90 @@ const Questions = () => {
   }
 
   return (
-    <div className={styles.container}>
-      {isReadPermitted ? (
-        <>
-          {isCreatePermitted && (
-            <>
-              <div className={styles.flexRow}>
-                <Button onClick={() => navigate("/questions/new")}>
-                  Add New
-                </Button>
-                <div>
-                  <IconButton onClick={handlePrint}>
-                    <PrintIcon />
-                  </IconButton>
-                  <IconButton>
-                    <CSVLink filename={"Questions.csv"} data={questions}>
-                      <img src={sheetIcon} width="21px" height="21px" />
-                    </CSVLink>
-                  </IconButton>
-                </div>
-              </div>
-            </>
-          )}
-
-          <div>
-            <QuestionsTable
-              loading={loading}
-              dataSource={questions?.map((question: any) => ({
-                ...question,
-                key: question.id || question._id,
-              }))}
-              cols={[
-                {
-                  title: "Preview",
-                  key: "preview",
-                  width: 120,
-                  fixed: "left",
-                  render: (text: any, record: any) => (
-                    <IconButton
-                      onClick={() => {
-                        setPreviewModalVisible(true);
-                        setPreviewData(record);
-                      }}
-                    >
-                      <Visibility />
+    <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
+      <div className={styles.container}>
+        {isReadPermitted ? (
+          <>
+            {isCreatePermitted && (
+              <>
+                <div className={styles.flexRow}>
+                  <Button onClick={() => navigate("/questions/new")}>
+                    Add New
+                  </Button>
+                  <div>
+                    <IconButton onClick={handlePrint}>
+                      <PrintIcon />
                     </IconButton>
-                  ),
-                },
-                ...QUESTION_COLS_ALL,
-              ]}
-              height="60vh"
-              pagination={{
-                total: totalDocs,
-                onChange: onChangePageOrPageSize,
-                onShowSizeChange: onChangePageOrPageSize,
-              }}
-            />
-          </div>
-          {/* <hr /> */}
-          {/* <section className={styles.main}>
+                    <IconButton>
+                      <CSVLink filename={"Questions.csv"} data={questions}>
+                        <img src={sheetIcon} width="21px" height="21px" />
+                      </CSVLink>
+                    </IconButton>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div>
+              <QuestionsTable
+                loading={loading}
+                dataSource={questions?.map((question: any) => ({
+                  ...question,
+                  key: question.id || question._id,
+                }))}
+                cols={[
+                  {
+                    title: "Preview",
+                    key: "preview",
+                    width: 120,
+                    fixed: "left",
+                    render: (text: any, record: any) => (
+                      <IconButton
+                        onClick={() => {
+                          // setPreviewModalVisible(true);
+                          setPreviewData(record);
+                          setSideBarOpen(true);
+                        }}
+                      >
+                        <Visibility />
+                      </IconButton>
+                    ),
+                  },
+                  ...QUESTION_COLS_ALL,
+                ]}
+                height="60vh"
+                pagination={{
+                  total: totalDocs,
+                  onChange: onChangePageOrPageSize,
+                  onShowSizeChange: onChangePageOrPageSize,
+                }}
+              />
+            </div>
+            {/* <hr /> */}
+            {/* <section className={styles.main}>
                 {getQuestionFromType(type, setData)}
               </section> */}
-          {/* <div>
+            {/* <div>
                 <Button onClick={handleSubmitQuestion}>Submit</Button>
               </div> */}
-          <Sidebar title="Recent Activity">
-            {Array(10)
-              .fill(0)
-              .map((_, i) => (
-                <NotificationCard
-                  key={i}
-                  id="aasdadsd"
-                  status={i % 2 === 0 ? "success" : "warning"}
-                  title={"New Student Joined-" + i}
-                  description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-                  createdAt="10 Jan, 2022"
-                />
-              ))}
-          </Sidebar>
-          <PreviewHTMLModal
-            showFooter={true}
-            isOpen={previewModalVisible}
-            handleClose={() => setPreviewModalVisible(false)}
-            quillString={quillStringForPreview}
-            previewData={previewData}
-            setQuestions={setQuestions}
-            setPreviewData={setPreviewData}
-          />
-          {/* <div
+            <Sidebar
+              title="Recent Activity"
+              open={sidebarOpen}
+              handleClose={() => setSideBarOpen(false)}
+              width={"40%"}
+            >
+              {sidebarContent}
+            </Sidebar>
+            <PreviewHTMLModal
+              showFooter={true}
+              isOpen={previewModalVisible}
+              handleClose={() => setPreviewModalVisible(false)}
+              quillString={quillStringForPreview}
+              previewData={previewData}
+              setQuestions={setQuestions}
+              setPreviewData={setPreviewData}
+            />
+            {/* <div
             ref={tableRef}
             style={
               PrintContainerStyles as DetailedHTMLProps<
@@ -442,17 +445,18 @@ const Questions = () => {
             }
           >
         </div> */}
-          <PrintTest
-            subject="Physics"
-            chapter="Ray Optics"
-            title="Daily Rapid Test #025"
-            questions={questions}
-          />
-        </>
-      ) : (
-        <Error />
-      )}
-    </div>
+            <PrintTest
+              subject="Physics"
+              chapter="Ray Optics"
+              title="Daily Rapid Test #025"
+              questions={questions}
+            />
+          </>
+        ) : (
+          <Error />
+        )}
+      </div>
+    </MainLayout>
   );
 };
 

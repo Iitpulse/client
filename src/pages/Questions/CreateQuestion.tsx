@@ -23,6 +23,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import axios from "axios";
 import { message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api";
+import MainLayout from "../../layouts/MainLayout";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -277,67 +278,68 @@ const CreateQuestion = () => {
   }
 
   return (
-    <div className={styles.container}>
-      <Navigate path={"/questions"}>Back To Questions</Navigate>
-      <form>
-        <div className={styles.inputFields}>
-          <StyledMUISelect
-            label={"Type"}
-            options={questionTypes}
-            state={type}
-            onChange={setType}
-          />
-          <StyledMUISelect
-            label={"Difficulty"}
-            options={difficultyOptions.map((difficulty) => ({
-              name: difficulty,
-              value: difficulty,
-            }))}
-            state={difficulty}
-            onChange={setDifficulty}
-          />
-          {/* <StyledMUISelect
+    <MainLayout name="Create Question">
+      <div className={styles.container}>
+        <Navigate path={"/questions"}>Back To Questions</Navigate>
+        <form>
+          <div className={styles.inputFields}>
+            <StyledMUISelect
+              label={"Type"}
+              options={questionTypes}
+              state={type}
+              onChange={setType}
+            />
+            <StyledMUISelect
+              label={"Difficulty"}
+              options={difficultyOptions.map((difficulty) => ({
+                name: difficulty,
+                value: difficulty,
+              }))}
+              state={difficulty}
+              onChange={setDifficulty}
+            />
+            {/* <StyledMUISelect
             label={"Subject"}
             options={subjects}
             state={subject}
             onChange={setSubject}
           /> */}
-          <CreatableSelect
-            onAddModalSubmit={handleAddSubject}
-            options={subjectOptions}
-            setValue={setSubject}
-            value={subject}
-            label={"Subject"}
-            id="subject"
-          />
-          <CreatableSelect
-            multiple
-            onAddModalSubmit={handleAddExam}
-            options={examOptions.map((exam: any) => ({
-              name: exam.name,
-              value: exam.name,
-            }))}
-            setValue={setExams}
-            value={exams}
-            label={"Exam(s)"}
-            id="Exams"
-          />
-          <CreatableSelect
-            multiple
-            onAddModalSubmit={handleAddChapter}
-            options={subject?.chapters}
-            setValue={setChapters}
-            value={chapters}
-            label={"Chapter(s)"}
-            id="Chapters"
-            disabled={!subject?.name?.length}
-          />
-          {/* <MUIChipsAutocomplete
+            <CreatableSelect
+              onAddModalSubmit={handleAddSubject}
+              options={subjectOptions}
+              setValue={setSubject}
+              value={subject}
+              label={"Subject"}
+              id="subject"
+            />
+            <CreatableSelect
+              multiple
+              onAddModalSubmit={handleAddExam}
+              options={examOptions.map((exam: any) => ({
+                name: exam.name,
+                value: exam.name,
+              }))}
+              setValue={setExams}
+              value={exams}
+              label={"Exam(s)"}
+              id="Exams"
+            />
+            <CreatableSelect
+              multiple
+              onAddModalSubmit={handleAddChapter}
+              options={subject?.chapters}
+              setValue={setChapters}
+              value={chapters}
+              label={"Chapter(s)"}
+              id="Chapters"
+              disabled={!subject?.name?.length}
+            />
+            {/* <MUIChipsAutocomplete
             label="Exam(s)"
             options={examList}
             onChange={setExams}
           /> */}
-          {/* <MUIChipsAutocomplete
+            {/* <MUIChipsAutocomplete
             label="Chapter(s)"
             options={chapterOptions?.map((chapter: any) => ({
               name: chapter.name,
@@ -346,34 +348,34 @@ const CreateQuestion = () => {
             disabled={Boolean(!chapterOptions?.length)}
             onChange={setChapters}
           /> */}
-          <CreatableSelect
-            multiple
-            onAddModalSubmit={handleAddTopic}
-            options={
-              topicOptions.map((topic: any) => ({
-                name: topic,
-              })) || []
-            }
-            chapters={subject?.chapters}
-            setValue={setTopics}
-            disabled={Boolean(!chapters?.length)}
-            value={topics}
-            label={"Topic(s)"}
-            id="Topics"
-          />
-          <CreatableSelect
-            multiple
-            onAddModalSubmit={handleAddSource}
-            options={sourceOptions.map((source: any) => ({
-              name: source?.name,
-              value: source?.name,
-            }))}
-            setValue={setSources}
-            value={sources}
-            label={"Source(s)"}
-            id="Sources"
-          />
-          {/* <MUIChipsAutocomplete
+            <CreatableSelect
+              multiple
+              onAddModalSubmit={handleAddTopic}
+              options={
+                topicOptions.map((topic: any) => ({
+                  name: topic,
+                })) || []
+              }
+              chapters={subject?.chapters}
+              setValue={setTopics}
+              disabled={Boolean(!chapters?.length)}
+              value={topics}
+              label={"Topic(s)"}
+              id="Topics"
+            />
+            <CreatableSelect
+              multiple
+              onAddModalSubmit={handleAddSource}
+              options={sourceOptions.map((source: any) => ({
+                name: source?.name,
+                value: source?.name,
+              }))}
+              setValue={setSources}
+              value={sources}
+              label={"Source(s)"}
+              id="Sources"
+            />
+            {/* <MUIChipsAutocomplete
             label="Topics"
             options={
               topicOptions.map((topic) => ({
@@ -383,7 +385,7 @@ const CreateQuestion = () => {
             }
             onChange={setTopics}
           /> */}
-          {/* <CreatableSelect
+            {/* <CreatableSelect
             onAddModalSubmit={handleTempAdd}
             multiple
             options={[
@@ -406,42 +408,43 @@ const CreateQuestion = () => {
             label={"This is label"}
             id="kjdkfj"
           /> */}
-          {/* <MUISimpleAutocomplete
+            {/* <MUISimpleAutocomplete
             label={"Source"}
             options={sources}
             onChange={setSource}
           /> */}
-          {/* <StyledMUITextField
+            {/* <StyledMUITextField
             id="uploadedBy"
             value={uploadedBy.id}
             label="Uploaded By"
             disabled
             variant="outlined"
           /> */}
+          </div>
+        </form>
+        {/* <hr /> */}
+        <section className={styles.main}>
+          {getQuestionFromType(type, setData)}
+        </section>
+        <div className={styles.submitButton}>
+          <Button onClick={handleSubmitQuestion}>Submit</Button>
         </div>
-      </form>
-      {/* <hr /> */}
-      <section className={styles.main}>
-        {getQuestionFromType(type, setData)}
-      </section>
-      <div className={styles.submitButton}>
-        <Button onClick={handleSubmitQuestion}>Submit</Button>
+        {/* <Sidebar title="Recent Activity">
+          {Array(10)
+            .fill(0)
+            .map((_, i) => (
+              <NotificationCard
+                key={i}
+                id="aasdadsd"
+                status={i % 2 === 0 ? "success" : "warning"}
+                title={"New Student Joined-" + i}
+                description="New student join IIT Pulse Anurag Pal - Dropper Batch"
+                createdAt="10 Jan, 2022"
+              />
+            ))}
+        </Sidebar> */}
       </div>
-      <Sidebar title="Recent Activity">
-        {Array(10)
-          .fill(0)
-          .map((_, i) => (
-            <NotificationCard
-              key={i}
-              id="aasdadsd"
-              status={i % 2 === 0 ? "success" : "warning"}
-              title={"New Student Joined-" + i}
-              description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-              createdAt="10 Jan, 2022"
-            />
-          ))}
-      </Sidebar>
-    </div>
+    </MainLayout>
   );
 };
 

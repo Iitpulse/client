@@ -33,6 +33,7 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
 import { hasPatternPemissions } from "./utils";
 import AddIcon from "@mui/icons-material/Add";
+import MainLayout from "../../layouts/MainLayout";
 const sampleSection = {
   id: "", // PT_SE_PHY123
   name: "",
@@ -162,7 +163,7 @@ const CreatePattern = () => {
   }
 
   return (
-    <>
+    <MainLayout name="Create Pattern">
       {hasPatternPemissions(
         {
           isReadPermitted,
@@ -221,7 +222,7 @@ const CreatePattern = () => {
               </IconButton>
             </Tooltip>
           </section>
-          <Sidebar title="Recent Activity">
+          {/* <Sidebar title="Recent Activity">
             {Array(10)
               .fill(0)
               .map((_, i) => (
@@ -234,12 +235,12 @@ const CreatePattern = () => {
                   createdAt="10 Jan, 2022"
                 />
               ))}
-          </Sidebar>
+          </Sidebar> */}
         </>
       ) : (
         <Error />
       )}
-    </>
+    </MainLayout>
   );
 };
 
