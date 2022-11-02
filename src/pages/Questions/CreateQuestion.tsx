@@ -229,14 +229,11 @@ const CreateQuestion = () => {
                 correctAnswers: getCorrectAnswers(data.en.options),
               };
               console.log({ finalQuestion });
-              const fetchQuestion = async () => {
-                return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
-              };
-              const promises = Array(50)
-                .fill(null)
-                .map(() => fetchQuestion());
-              const res = await Promise.all(promises);
-              // const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
+              // const fetchQuestion =  async () => {
+              //   return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
+              // };
+
+              const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
 
               console.log({ res });
             }
