@@ -181,7 +181,7 @@ const Objective: React.FC<Props> = ({ setData }) => {
     setPreviewModalOpen(true);
   }
   function handleClickFullPreview() {
-    console.log(values);
+    // console.log(values);
     setFullPreviewModalOpen(true);
   }
 
@@ -214,7 +214,7 @@ const Objective: React.FC<Props> = ({ setData }) => {
             )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
         )
         .join("");
-    console.log(res);
+    // console.log(res);
     return res;
   }
 

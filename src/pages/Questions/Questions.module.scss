@@ -180,7 +180,32 @@
 
 }
 .footer{
-  width: 100%;
+  background-color: rgb(245, 245, 245);
+      width: 100%;
+      @extend .flexRow;
+        padding: 10px 15px;
+        position: absolute;
+        justify-content: space-between;
+        bottom: 0;
+        left: 0;
+}
+.previewBreadCumb{
   @extend .flexRow;
   justify-content: space-between;
+  align-items: center;
+
+  .previewBreadCumbDiv{
+    width:50%;
+    @extend .flexRow;
+    justify-content: space-between;
+    h4 {      
+        overflow: hidden;
+         max-width: 100px;
+         text-overflow: ellipsis;
+         white-space: nowrap;
+         
+      }
+    
+  }
+  
 }

@@ -19,6 +19,7 @@ import { CurrentContext } from "../../utils/contexts/CurrentContext";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CSVLink } from "react-csv";
 import { flattenUserStudents } from "../../utils";
+import MainLayout from "../../layouts/MainLayout";
 
 const UserTypesForCards = [
   {
@@ -184,88 +185,90 @@ const Users = () => {
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <Tabs value={tab} onChange={handleChangeTab}>
-          <Tab label="Students" />
-          <Tab label="Teachers" />
-          <Tab label="Admins" />
-          <Tab label="Operators" />
-          <Tab label="Managers" />
-        </Tabs>
-        <div>
-          <IconButton onClick={handleClickRefresh}>
-            <CSVLink
-              filename={"Questions.csv"}
-              data={csvData}
-              asyncOnClick={true}
-              onClick={(event: any, done: any) => {
-                onClickDownloadCSV();
-                console.log(csvData);
-                done();
-              }}
-            >
-              <DownloadIcon />
-              {/* Export to CSV */}
-            </CSVLink>
-          </IconButton>
-          <IconButton onClick={handleClickRefresh}>
-            <CachedIcon />
-          </IconButton>
-          <Button onClick={() => setOpenModal(!openModal)}>Add New</Button>
+    <MainLayout name="Users">
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <Tabs value={tab} onChange={handleChangeTab}>
+            <Tab label="Students" />
+            <Tab label="Teachers" />
+            <Tab label="Admins" />
+            <Tab label="Operators" />
+            <Tab label="Managers" />
+          </Tabs>
+          <div>
+            <IconButton onClick={handleClickRefresh}>
+              <CSVLink
+                filename={"Questions.csv"}
+                data={csvData}
+                asyncOnClick={true}
+                onClick={(event: any, done: any) => {
+                  onClickDownloadCSV();
+                  console.log(csvData);
+                  done();
+                }}
+              >
+                <DownloadIcon />
+                {/* Export to CSV */}
+              </CSVLink>
+            </IconButton>
+            <IconButton onClick={handleClickRefresh}>
+              <CachedIcon />
+            </IconButton>
+            <Button onClick={() => setOpenModal(!openModal)}>Add New</Button>
+          </div>
         </div>
-      </div>
-      <TabPanel value={tab} index={0}>
-        <Students
-          student={student}
-          activeTab={tab}
-          openModal={openModal}
-          handleCloseModal={handleCloseModal}
-          loading={loading}
-        />
-      </TabPanel>
-      <TabPanel value={tab} index={1}>
-        <Teachers
-          teacher={teacher}
-          activeTab={tab}
-          openModal={openModal}
-          handleCloseModal={handleCloseModal}
-          loading={loading}
-        />
-      </TabPanel>
-      <TabPanel value={tab} index={2}>
-        <Admins
-          admin={admin}
-          activeTab={tab}
-          openModal={openModal}
-          handleCloseModal={handleCloseModal}
-          loading={loading}
-        />
-      </TabPanel>
-      <TabPanel value={tab} index={3}>
-        <Operators
-          operator={operator}
-          activeTab={tab}
-          openModal={openModal}
-          handleCloseModal={handleCloseModal}
-          loading={loading}
-        />
-      </TabPanel>
+        <TabPanel value={tab} index={0}>
+          <Students
+            student={student}
+            activeTab={tab}
+            openModal={openModal}
+            handleCloseModal={handleCloseModal}
+            loading={loading}
+          />
+        </TabPanel>
+        <TabPanel value={tab} index={1}>
+          <Teachers
+            teacher={teacher}
+            activeTab={tab}
+            openModal={openModal}
+            handleCloseModal={handleCloseModal}
+            loading={loading}
+          />
+        </TabPanel>
+        <TabPanel value={tab} index={2}>
+          <Admins
+            admin={admin}
+            activeTab={tab}
+            openModal={openModal}
+            handleCloseModal={handleCloseModal}
+            loading={loading}
+          />
+        </TabPanel>
+        <TabPanel value={tab} index={3}>
+          <Operators
+            operator={operator}
+            activeTab={tab}
+            openModal={openModal}
+            handleCloseModal={handleCloseModal}
+            loading={loading}
+          />
+        </TabPanel>
 
-      <TabPanel value={tab} index={4}>
-        <Managers
-          manager={manager}
-          activeTab={tab}
-          openModal={openModal}
-          handleCloseModal={handleCloseModal}
-          loading={loading}
-        />
-      </TabPanel>
-      {/*       
+        <TabPanel value={tab} index={4}>
+          <Managers
+            manager={manager}
+            activeTab={tab}
+            openModal={openModal}
+            handleCloseModal={handleCloseModal}
+            loading={loading}
+          />
+        </TabPanel>
+        {/*       
       <Sidebar title="Recent Activity">
           <UserProfile />
         </Sidebar> */}
-    </div>
+      </div>
+    </MainLayout>
   );
 };
 

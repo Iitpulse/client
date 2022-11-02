@@ -6,6 +6,7 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import { Table } from "antd";
 import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
+import MainLayout from "../../layouts/MainLayout";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -237,78 +238,80 @@ const Test = () => {
   }, [expiredTests]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <Tabs value={tab} onChange={handleChangeTab}>
-          <Tab label="Ongoing" />
-          <Tab label="Active" />
-          <Tab label="Inactive" />
-          <Tab label="Expired" />
-        </Tabs>
-        <Button onClick={() => navigate("/test/new")}>Add New</Button>
+    <MainLayout name="Test">
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <Tabs value={tab} onChange={handleChangeTab}>
+            <Tab label="Ongoing" />
+            <Tab label="Active" />
+            <Tab label="Inactive" />
+            <Tab label="Expired" />
+          </Tabs>
+          <Button onClick={() => navigate("/test/new")}>Add New</Button>
+        </div>
+        <TabPanel value={tab} index={0}>
+          <div className={styles.data}>
+            <Table
+              rowSelection={{
+                type: "checkbox",
+                ...rowSelection,
+              }}
+              columns={columns}
+              dataSource={data}
+              scroll={{ x: 600, y: 500 }}
+            />
+          </div>
+        </TabPanel>
+        <TabPanel value={tab} index={1}>
+          <div className={styles.data}>
+            <Table
+              rowSelection={{
+                type: "checkbox",
+                ...rowSelection,
+              }}
+              columns={columns}
+              dataSource={data}
+              scroll={{ x: 600, y: 500 }}
+            />
+          </div>
+        </TabPanel>
+        <TabPanel value={tab} index={2}>
+          <div className={styles.data}>
+            <Table
+              rowSelection={{
+                type: "checkbox",
+                ...rowSelection,
+              }}
+              columns={columns}
+              dataSource={data}
+              scroll={{ x: 600, y: 500 }}
+            />
+          </div>
+        </TabPanel>
+        <TabPanel value={tab} index={3}>
+          <div className={styles.data}>
+            <Table
+              rowSelection={{
+                type: "checkbox",
+                ...rowSelection,
+              }}
+              columns={columns}
+              dataSource={data}
+              scroll={{ x: 600, y: 500 }}
+            />
+          </div>
+        </TabPanel>
+        {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
+        <Modal
+          isOpen={openModal}
+          onClose={() => setOpenModal(false)}
+          title="CreateTest"
+          backdrop
+        >
+          Content
+        </Modal>
       </div>
-      <TabPanel value={tab} index={0}>
-        <div className={styles.data}>
-          <Table
-            rowSelection={{
-              type: "checkbox",
-              ...rowSelection,
-            }}
-            columns={columns}
-            dataSource={data}
-            scroll={{ x: 600, y: 500 }}
-          />
-        </div>
-      </TabPanel>
-      <TabPanel value={tab} index={1}>
-        <div className={styles.data}>
-          <Table
-            rowSelection={{
-              type: "checkbox",
-              ...rowSelection,
-            }}
-            columns={columns}
-            dataSource={data}
-            scroll={{ x: 600, y: 500 }}
-          />
-        </div>
-      </TabPanel>
-      <TabPanel value={tab} index={2}>
-        <div className={styles.data}>
-          <Table
-            rowSelection={{
-              type: "checkbox",
-              ...rowSelection,
-            }}
-            columns={columns}
-            dataSource={data}
-            scroll={{ x: 600, y: 500 }}
-          />
-        </div>
-      </TabPanel>
-      <TabPanel value={tab} index={3}>
-        <div className={styles.data}>
-          <Table
-            rowSelection={{
-              type: "checkbox",
-              ...rowSelection,
-            }}
-            columns={columns}
-            dataSource={data}
-            scroll={{ x: 600, y: 500 }}
-          />
-        </div>
-      </TabPanel>
-      <Sidebar title="Recent Activity">Recent</Sidebar>
-      <Modal
-        isOpen={openModal}
-        onClose={() => setOpenModal(false)}
-        title="CreateTest"
-        backdrop
-      >
-        Content
-      </Modal>
-    </div>
+    </MainLayout>
   );
 };
 
