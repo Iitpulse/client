@@ -15,11 +15,13 @@ const disabledDate: RangePickerProps["disabledDate"] = (current) => {
 const CustomDateRangePicker: React.FC<{
   onChange: (values: any, formatString: [string, string]) => void;
   value: any;
-}> = ({ onChange, value }) => (
+  showTime?: boolean;
+}> = ({ onChange, value, showTime }) => (
   <RangePicker
+    showTime={Boolean(showTime)}
     disabledDate={disabledDate}
     onChange={onChange}
-    format="DD-MM-YYYY"
+    // format="DD-MM-YYYY"
     value={value}
     className={styles.cusotmDateRangePicker}
   />

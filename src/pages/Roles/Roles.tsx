@@ -15,7 +15,8 @@ import axios from "axios";
 import AddNewRole from "./AddNewRole";
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
-
+import { API_USERS } from "../../utils/api";
+import { message } from "antd";
 const Roles = () => {
   const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
   // const [roles, setRoles] = useState([]);
@@ -29,6 +30,22 @@ const Roles = () => {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+  const handleDeleteRole = (id: string) => {
+    console.log(id);
+    try {
+      const res = API_USERS().delete("/roles/deleteRole", {
+        data: {
+          role: id,
+        },
+      });
+      console.log(res);
+      message.success("Role deleted successfully");
+    } catch (err) {
+      message.error("Something wrong occured");
+      console.log(err);
+    }
+    handleClose();
   };
   return (
     <MainLayout name="Roles">
@@ -72,6 +89,13 @@ const Roles = () => {
                       "aria-labelledby": "basic-button",
                     }}
                   >
+                    <MenuItem
+                      onClick={() => {
+                        handleDeleteRole(role.id);
+                      }}
+                    >
+                      Delete Role{" "}
+                    </MenuItem>
                     <MenuItem onClick={handleClose}>Report a Problem </MenuItem>
                   </Menu>
                 </div>

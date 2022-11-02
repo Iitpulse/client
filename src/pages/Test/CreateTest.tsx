@@ -251,6 +251,7 @@ const CreateTest = () => {
           />
           <div className={styles.dateSelector}>
             <CustomDateRangePicker
+              showTime={true}
               onChange={(props: any) => setTestDateRange(props)}
               value={testDateRange}
             />

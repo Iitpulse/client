@@ -5,7 +5,7 @@ import styles from "./Managers.module.scss";
 import { Button } from "../../../components";
 import { Table } from "antd";
 import { rowSelection } from "../Users";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import AddUserModal from "../components/AddUserModal";
@@ -89,8 +89,54 @@ const Manager: React.FC<{
 }> = (props) => {
   const { uploadedBy, handleReset } = props.manager;
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState("");
+  const [roles, setRoles] = useState([]);
   const { currentUser } = useContext(AuthContext);
+  const [rolesInfo, setRolesInfo] = useState({
+    options: [],
+    actual: [],
+  });
+  const [error, setError] = useState("");
+  const [helperTextObj, setHelperTextObj] = useState({
+    email: {
+      error: false,
+      helperText: "",
+    },
+    stream: {
+      error: false,
+      helperText: "",
+    },
+    standard: {
+      error: false,
+      helperText: "",
+    },
+    gender: {
+      error: false,
+      helperText: "",
+    },
+
+    dob: {
+      error: false,
+      helperText: "",
+    },
+    batch: {
+      error: false,
+      helperText: "",
+    },
+    roles: {
+      error: false,
+      helperText: "",
+    },
+    contact: {
+      parent: {
+        error: false,
+        helperText: "",
+      },
+      personal: {
+        error: false,
+        helperText: "",
+      },
+    },
+  });
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
@@ -98,11 +144,11 @@ const Manager: React.FC<{
     setValues({ ...values, [id]: value });
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     let newValues = { ...values };
 
-    newValues.userType = "teacher";
+    newValues.userType = "manager";
     newValues.createdBy = {
       id: currentUser?.id,
       userType: currentUser?.userType,
@@ -110,7 +156,7 @@ const Manager: React.FC<{
     newValues.institute = currentUser?.instituteId;
     newValues.roles = [
       {
-        id: "ROLE_TEACHER",
+        id: "ROLE_MANAGER",
         from: new Date().toISOString(),
         to: new Date().toISOString(),
       },
@@ -124,7 +170,7 @@ const Manager: React.FC<{
     };
     console.log({ newValues });
 
-    const res = await API_USERS().post(`/teacher/create`, newValues);
+    const res = await API_USERS().post(`/manager/create`, newValues);
     console.log({ res });
 
     if (res.status === 200) {
@@ -135,6 +181,20 @@ const Manager: React.FC<{
 
     // handleReset();
   }
+  useEffect(() => {
+    async function getRolesOption() {
+      const res = await API_USERS().get(`/roles/all`);
+      setRolesInfo((prev: any) => ({
+        ...prev,
+        options: res.data.map((item: any) => ({
+          name: item.name,
+          value: item.id,
+        })),
+        actual: res.data,
+      }));
+    }
+    getRolesOption();
+  }, []);
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <AddUserModal
@@ -144,7 +204,7 @@ const Manager: React.FC<{
             <Button onClick={handleReset} type="button" color="warning">
               Reset
             </Button>
-            <Button>Submit</Button>
+            <Button onClick={handleSubmit}>Submit</Button>
           </>
         }
         classes={[styles.studentContainer]}
@@ -153,7 +213,7 @@ const Manager: React.FC<{
         // error={error}
         handleCloseModal={props.handleCloseModal}
       >
-        <form onSubmit={handleSubmit}>
+        <form>
           <div className={styles.inputFields}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={4} xl={3}>
@@ -281,14 +341,9 @@ const Manager: React.FC<{
               <Grid item xs={12} md={12} lg={12} xl={8}>
                 <MUIChipsAutocomplete
                   label="Role(s)"
-                  options={[
-                    { name: "Student", value: "student" },
-                    { name: "Admin", value: "admin" },
-                    { name: "Operator", value: "operator" },
-                    { name: "Manager", value: "manager" },
-                    { name: "Teacher", value: "teacher" },
-                  ]}
+                  options={rolesInfo?.options}
                   onChange={setRoles}
+                  value={roles}
                 />
               </Grid>
               <Grid item xs={12} md={12} lg={12} xl={8}>
