@@ -159,12 +159,12 @@ const Questions = () => {
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [totalDocs, setTotalDocs] = useState(1);
+  const [sidebarOpen, setSideBarOpen] = useState<boolean>(false);
+  const [sidebarContent, setSidebarContent] = useState<any>(null);
   const [questions, setQuestions] = useState([]);
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [previewData, setPreviewData] = useState<any>({});
   const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
-  const [sidebarOpen, setSideBarOpen] = useState<boolean>(false);
-  const [sidebarContent, setSidebarContent] = useState<any>(null);
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -360,7 +360,6 @@ const Questions = () => {
         },
       });
       setQuestions(res.data.data);
-      console.log("Inside onChangePage", res.data.totalDocs);
       setTotalDocs(res.data.totalDocs);
       setLoading(false);
     } catch (err) {
@@ -368,11 +367,6 @@ const Questions = () => {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    console.log({ totalDocs });
-    // setTotalDocs(questions.length);
-  });
 
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
@@ -582,7 +576,7 @@ const PreviewFullQuestion: React.FC<{
       <div className={styles.previewBreadCumb}>
         <div className={styles.previewBreadCumbDiv}>
           <h4>{previewData?.subject}</h4>
-          {" >    "}
+          {" > "}
           <h4>{previewData?.chapters?.join(", ")}</h4>
           {" > "}
           <h4>{previewData?.topics?.join(", ")}</h4>

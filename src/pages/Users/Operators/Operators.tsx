@@ -5,7 +5,7 @@ import styles from "./Operators.module.scss";
 import { Button } from "../../../components";
 import { Table } from "antd";
 import { rowSelection } from "../Users";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { Grid } from "@mui/material";
 import {
@@ -15,6 +15,7 @@ import {
 import AddUserModal from "../components/AddUserModal";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import { API_USERS } from "../../../utils/api";
+import { UsersContext } from "../../../utils/contexts/UsersContext";
 
 const columns = [
   {
@@ -60,8 +61,8 @@ const Operators: React.FC<{
   handleCloseModal: () => void;
   loading: boolean;
 }> = ({ activeTab, operator, openModal, handleCloseModal, loading }) => {
-  const data: any = [];
-
+  // const data: any = [];
+  const { operators } = useContext(UsersContext);
   return (
     <div className={styles.container}>
       <Table
@@ -70,7 +71,7 @@ const Operators: React.FC<{
           ...rowSelection,
         }}
         columns={columns}
-        dataSource={data as any}
+        dataSource={operators as any}
         loading={loading}
       />
       {openModal && activeTab === 3 && (
@@ -88,7 +89,53 @@ const Operator: React.FC<{
 }> = (props) => {
   const { uploadedBy, handleReset } = props.operator;
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState("");
+  const [roles, setRoles] = useState([]);
+  const [rolesInfo, setRolesInfo] = useState({
+    options: [],
+    actual: [],
+  });
+  const [error, setError] = useState("");
+  const [helperTextObj, setHelperTextObj] = useState({
+    email: {
+      error: false,
+      helperText: "",
+    },
+    stream: {
+      error: false,
+      helperText: "",
+    },
+    standard: {
+      error: false,
+      helperText: "",
+    },
+    gender: {
+      error: false,
+      helperText: "",
+    },
+
+    dob: {
+      error: false,
+      helperText: "",
+    },
+    batch: {
+      error: false,
+      helperText: "",
+    },
+    roles: {
+      error: false,
+      helperText: "",
+    },
+    contact: {
+      parent: {
+        error: false,
+        helperText: "",
+      },
+      personal: {
+        error: false,
+        helperText: "",
+      },
+    },
+  });
   const { currentUser } = useContext(AuthContext);
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
@@ -97,11 +144,11 @@ const Operator: React.FC<{
     setValues({ ...values, [id]: value });
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     let newValues = { ...values };
 
-    newValues.userType = "teacher";
+    newValues.userType = "operator";
     newValues.createdBy = {
       id: currentUser?.id,
       userType: currentUser?.userType,
@@ -109,7 +156,7 @@ const Operator: React.FC<{
     newValues.institute = currentUser?.instituteId;
     newValues.roles = [
       {
-        id: "ROLE_TEACHER",
+        id: "ROLE_OPERATOR",
         from: new Date().toISOString(),
         to: new Date().toISOString(),
       },
@@ -123,7 +170,7 @@ const Operator: React.FC<{
     };
     console.log({ newValues });
 
-    const res = await API_USERS().post(`/teacher/create`, newValues);
+    const res = await API_USERS().post(`/operator/create`, newValues);
     console.log({ res });
 
     if (res.status === 200) {
@@ -134,6 +181,20 @@ const Operator: React.FC<{
 
     // handleReset();
   }
+  useEffect(() => {
+    async function getRolesOption() {
+      const res = await API_USERS().get(`/roles/all`);
+      setRolesInfo((prev: any) => ({
+        ...prev,
+        options: res.data.map((item: any) => ({
+          name: item.name,
+          value: item.id,
+        })),
+        actual: res.data,
+      }));
+    }
+    getRolesOption();
+  }, []);
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <AddUserModal
@@ -143,7 +204,7 @@ const Operator: React.FC<{
             <Button onClick={handleReset} type="button" color="warning">
               Reset
             </Button>
-            <Button>Submit</Button>
+            <Button onClick={handleSubmit}>Submit</Button>
           </>
         }
         classes={[styles.studentContainer]}
@@ -152,7 +213,7 @@ const Operator: React.FC<{
         // error={error}
         handleCloseModal={props.handleCloseModal}
       >
-        <form onSubmit={handleSubmit}>
+        <form>
           <div className={styles.inputFields}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={4} xl={3}>
@@ -280,14 +341,9 @@ const Operator: React.FC<{
               <Grid item xs={12} md={12} lg={12} xl={8}>
                 <MUIChipsAutocomplete
                   label="Role(s)"
-                  options={[
-                    { name: "Student", value: "student" },
-                    { name: "Admin", value: "admin" },
-                    { name: "Operator", value: "operator" },
-                    { name: "Manager", value: "manager" },
-                    { name: "Teacher", value: "teacher" },
-                  ]}
+                  options={rolesInfo?.options}
                   onChange={setRoles}
+                  value={roles}
                 />
               </Grid>
               <Grid item xs={12} md={12} lg={12} xl={8}>

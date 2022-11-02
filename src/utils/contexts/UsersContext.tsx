@@ -58,7 +58,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
 
   async function fetchAdmins(cb?: () => void) {
     const res = await API_USERS().get(`/admin/`);
-    setManagers(
+    setAdmins(
       res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
     );
     // console.log({ res });
@@ -70,7 +70,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
   async function fetchOperators(cb?: () => void) {
     const res = await API_USERS().get(`/operator/`);
     setOperators(
-      res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
+      res?.data?.map((user: IUserOperator) => ({ ...user, key: user.id }))
     );
     // console.log({ res });
     if (cb) {
@@ -81,7 +81,7 @@ const UsersContextProvider: React.FC = ({ children }) => {
   async function fetchManagers(cb?: () => void) {
     const res = await API_USERS().get(`/manager/`);
     setManagers(
-      res?.data?.map((user: IUserAdmin) => ({ ...user, key: user.id }))
+      res?.data?.map((user: IUserManager) => ({ ...user, key: user.id }))
     );
     // console.log({ res });
     if (cb) {
