@@ -7,7 +7,7 @@ import {
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
 } from "../../../components";
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import { APIS } from "../../../utils/constants";
@@ -233,7 +233,53 @@ const Teacher: React.FC<{
   const { uploadedBy, handleReset } = props.teacher;
 
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState("");
+  const [roles, setRoles] = useState([]);
+  const [rolesInfo, setRolesInfo] = useState({
+    options: [],
+    actual: [],
+  });
+  const [error, setError] = useState("");
+  const [helperTextObj, setHelperTextObj] = useState({
+    email: {
+      error: false,
+      helperText: "",
+    },
+    stream: {
+      error: false,
+      helperText: "",
+    },
+    standard: {
+      error: false,
+      helperText: "",
+    },
+    gender: {
+      error: false,
+      helperText: "",
+    },
+
+    dob: {
+      error: false,
+      helperText: "",
+    },
+    batch: {
+      error: false,
+      helperText: "",
+    },
+    roles: {
+      error: false,
+      helperText: "",
+    },
+    contact: {
+      parent: {
+        error: false,
+        helperText: "",
+      },
+      personal: {
+        error: false,
+        helperText: "",
+      },
+    },
+  });
   const { currentUser } = useContext(AuthContext);
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
@@ -242,7 +288,8 @@ const Teacher: React.FC<{
     setValues({ ...values, [id]: value });
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
+    console.log("submitting");
     e.preventDefault();
     let newValues = { ...values };
 
@@ -279,7 +326,20 @@ const Teacher: React.FC<{
 
     // handleReset();
   }
-
+  useEffect(() => {
+    async function getRolesOption() {
+      const res = await API_USERS().get(`/roles/all`);
+      setRolesInfo((prev: any) => ({
+        ...prev,
+        options: res.data.map((item: any) => ({
+          name: item.name,
+          value: item.id,
+        })),
+        actual: res.data,
+      }));
+    }
+    getRolesOption();
+  }, []);
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <AddUserModal
@@ -289,7 +349,7 @@ const Teacher: React.FC<{
             <Button onClick={handleReset} type="button" color="warning">
               Reset
             </Button>
-            <Button>Submit</Button>
+            <Button onClick={handleSubmit}>Submit</Button>
           </>
         }
         classes={[styles.studentContainer]}
@@ -298,7 +358,7 @@ const Teacher: React.FC<{
         // error={error}
         handleCloseModal={props.handleCloseModal}
       >
-        <form onSubmit={handleSubmit}>
+        <form>
           <div className={styles.inputFields}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={4} xl={3}>
@@ -426,14 +486,9 @@ const Teacher: React.FC<{
               <Grid item xs={12} md={12} lg={12} xl={8}>
                 <MUIChipsAutocomplete
                   label="Role(s)"
-                  options={[
-                    { name: "Student", value: "student" },
-                    { name: "Admin", value: "admin" },
-                    { name: "Operator", value: "operator" },
-                    { name: "Manager", value: "manager" },
-                    { name: "Teacher", value: "teacher" },
-                  ]}
+                  options={rolesInfo?.options}
                   onChange={setRoles}
+                  value={roles}
                 />
               </Grid>
               <Grid item xs={12} md={12} lg={12} xl={8}>

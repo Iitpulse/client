@@ -357,15 +357,15 @@ export const Student: React.FC<{
   const { onSubmit, uploadedBy } = { ...props.student };
   const [values, setValues] = useState({} as any);
   const newUserRef = useRef<HTMLFormElement>(null);
+  const [openDropzne, setOpenDropzone] = useState(false);
+  const [file, setFile] = useState(null as any);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
   const [rolesInfo, setRolesInfo] = useState({
     options: [],
     actual: [],
   });
-  const [openDropzne, setOpenDropzone] = useState(false);
-  const [file, setFile] = useState(null as any);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
     email: {
       error: false,
