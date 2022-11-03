@@ -16,11 +16,7 @@ const PrivateRoute: React.FC<Props> = ({ component: RouteComponent, name }) => {
     return <Navigate to="/login" />;
   }
 
-  return (
-    <MainLayout name={name}>
-      <RouteComponent />
-    </MainLayout>
-  );
+  return <RouteComponent />;
 };
 
 export default PrivateRoute;

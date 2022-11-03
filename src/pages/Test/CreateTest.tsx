@@ -36,6 +36,7 @@ import { message } from "antd";
 import { TestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
 import moment from "moment";
+import MainLayout from "../../layouts/MainLayout";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
@@ -202,7 +203,7 @@ const CreateTest = () => {
   }
 
   return (
-    <>
+    <MainLayout name="Create Test">
       <div className={styles.container}>
         <div className={styles.inputFields}>
           {/* <StyledMUITextField
@@ -302,8 +303,8 @@ const CreateTest = () => {
         )}
         <Button onClick={handleClickSubmit}>Create Test</Button>
       </div>
-      <Sidebar title="Recent Activity">Recent</Sidebar>
-    </>
+      {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
+    </MainLayout>
   );
 };
 

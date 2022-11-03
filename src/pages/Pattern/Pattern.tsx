@@ -31,6 +31,7 @@ import { Error } from "../";
 import { Table } from "antd";
 import { Link, NavLink } from "react-router-dom";
 import { API_TESTS } from "../../utils/api";
+import MainLayout from "../../layouts/MainLayout";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -156,7 +157,7 @@ const Pattern = () => {
   }
 
   return (
-    <>
+    <MainLayout name="Pattern">
       {isReadPermitted ? (
         <>
           <section className={styles.container}>
@@ -176,7 +177,7 @@ const Pattern = () => {
               />
             </div>
           </section>
-          <Sidebar title="Recent Activity">
+          {/* <Sidebar title="Recent Activity">
             {Array(10)
               .fill(0)
               .map((_, i) => (
@@ -189,12 +190,12 @@ const Pattern = () => {
                   createdAt="10 Jan, 2022"
                 />
               ))}
-          </Sidebar>
+          </Sidebar> */}
         </>
       ) : (
         <Error />
       )}
-    </>
+    </MainLayout>
   );
 };
 

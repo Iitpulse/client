@@ -23,11 +23,19 @@ import { PreviewHTMLModal } from "../components";
 
 interface Props {
   setData: (data: any) => void;
+  data?: any;
+  isInitialValuePassed?: boolean;
+  setIsInitialValuePassed?: (value: boolean) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Objective: React.FC<Props> = ({ setData }) => {
+const Objective: React.FC<Props> = ({
+  setData,
+  data,
+  isInitialValuePassed,
+  setIsInitialValuePassed,
+}) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [tab, setTab] = useState(0);
@@ -58,7 +66,11 @@ const Objective: React.FC<Props> = ({ setData }) => {
   });
 
   useEffect(() => {
-    setData({ ...values, type: answerType });
+    console.log("Shishir", { tab, optionsCount, answerType, values });
+  }, [values]);
+
+  useEffect(() => {
+    setData((prev: any) => ({ ...prev, type: answerType }));
   }, [values, setData, answerType]);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
@@ -67,53 +79,53 @@ const Objective: React.FC<Props> = ({ setData }) => {
 
   function handleChangeEditor(id: string, value: string, index?: number) {
     if (id === "question" || id === "solution") {
-      setValues({
-        ...values,
+      setValues((prev) => ({
+        ...prev,
         [currentLanguage]: {
-          ...values[currentLanguage],
+          ...prev[currentLanguage],
           [id]: value,
         },
-      });
+      }));
       return;
     }
 
-    setValues({
-      ...values,
+    setValues((prev) => ({
+      ...prev,
       [currentLanguage]: {
-        ...values[currentLanguage],
+        ...prev[currentLanguage],
         options: values[currentLanguage].options.map((option, i) =>
           i === index ? { ...option, value } : option
         ),
       },
-    });
+    }));
   }
 
   function handleChangeAnswerType(e: any) {
-    setValues({
-      ...values,
+    setValues((prev) => ({
+      ...prev,
       en: {
-        ...values.en,
+        ...prev.en,
         options: values.en.options.map((option) => ({
           ...option,
           isCorrectAnswer: false,
         })),
       },
       hi: {
-        ...values.hi,
+        ...prev.hi,
         options: values.hi.options.map((option) => ({
           ...option,
           isCorrectAnswer: false,
         })),
       },
-    });
+    }));
     setAnswerType(e.target.value);
   }
 
   function handleChangeCorrectAnswer(e: any, optionIdx: number) {
-    setValues({
-      ...values,
+    setValues((prev) => ({
+      ...prev,
       en: {
-        ...values.en,
+        ...prev.en,
         options: values.en.options.map(
           (option, i) =>
             i === optionIdx
@@ -124,7 +136,7 @@ const Objective: React.FC<Props> = ({ setData }) => {
         ),
       },
       hi: {
-        ...values.hi,
+        ...prev.hi,
         options: values.hi.options.map(
           (option, i) =>
             i === optionIdx
@@ -134,45 +146,45 @@ const Objective: React.FC<Props> = ({ setData }) => {
               : option // nothing happens with multiple correct
         ),
       },
-    });
+    }));
   }
 
   function handleChaneOptionsCount(type: "increment" | "decrement") {
     if (type === "increment") {
       let optionId = getOptionID(answerType, optionsCount + 1);
       setOptionsCount((prev) => prev + 1);
-      setValues({
-        ...values,
+      setValues((prev) => ({
+        ...prev,
         en: {
-          ...values.en,
+          ...prev.en,
           options: [
-            ...values.en.options,
+            ...prev.en.options,
             { id: optionId, value: "", isCorrectAnswer: false },
           ],
         },
         hi: {
-          ...values.hi,
+          ...prev.hi,
           options: [
-            ...values.hi.options,
+            ...prev.hi.options,
             { id: optionId, value: "", isCorrectAnswer: false },
           ],
         },
-      });
+      }));
     } else {
       if (optionsCount > 1) {
         // Don't allow to decrement below 1 as there has to be at least 1 option
         setOptionsCount((prev) => prev - 1);
-        setValues({
-          ...values,
+        setValues((prev) => ({
+          ...prev,
           en: {
-            ...values.en,
+            ...prev.en,
             options: values.en.options.slice(0, optionsCount - 1),
           },
           hi: {
-            ...values.hi,
+            ...prev.hi,
             options: values.hi.options.slice(0, optionsCount - 1),
           },
-        });
+        }));
       }
     }
   }
@@ -181,7 +193,7 @@ const Objective: React.FC<Props> = ({ setData }) => {
     setPreviewModalOpen(true);
   }
   function handleClickFullPreview() {
-    console.log(values);
+    // console.log(values);
     setFullPreviewModalOpen(true);
   }
 
@@ -214,9 +226,54 @@ const Objective: React.FC<Props> = ({ setData }) => {
             )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
         )
         .join("");
-    console.log(res);
+    // console.log(res);
     return res;
   }
+
+  useEffect(() => {
+    if (!isInitialValuePassed) {
+      if (data?._id) {
+        console.log(
+          "SHISHIR",
+          { data },
+          {
+            en: {
+              question: data?.en?.question,
+              options: data?.en?.options.map((option: any) => ({
+                ...option,
+                isCorrectAnswer: data?.correctAnswers.includes(option.id),
+              })),
+              solution: data?.en?.solution,
+            },
+            hi: data.hi,
+            isProofRead: data.isProofRead,
+            id: data._id ?? "",
+            type: data.type,
+          }
+        );
+        setValues({
+          en: {
+            question: data?.en?.question,
+            options: data?.en?.options.map((option: any) => ({
+              ...option,
+              isCorrectAnswer: data?.correctAnswers.includes(option.id),
+            })),
+            solution: data?.en?.solution,
+          },
+          hi: data.hi,
+          isProofRead: data.isProofRead,
+          id: data._id ?? "",
+          type: data.type,
+        });
+
+        setAnswerType(data.type);
+        setOptionsCount(data.en.options.length);
+
+        //@ts-ignore
+        setIsInitialValuePassed(true);
+      }
+    }
+  }, [data, isInitialValuePassed]);
 
   return (
     <section className={styles.container}>

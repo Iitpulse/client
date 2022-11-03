@@ -83,13 +83,13 @@
     nav {
       background: var(--clr-bg-light);
       padding: 2rem;
-      width: calc(100% - var(--margin-due-to-sidebar));
+      width: 100%;
     }
 
     > main {
       padding: 0 2rem;
-      margin-right: var(--margin-due-to-sidebar);
-      width: calc(100% - var(--margin-due-to-sidebar));
+      // margin-right: var(--margin-due-to-sidebar);
+      // width: calc(100% - var(--margin-due-to-sidebar));
       // margin-top: 1rem;
       @extend .flexRow;
       align-items: flex-start;

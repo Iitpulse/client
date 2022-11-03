@@ -24,6 +24,7 @@ import { AUTH_TOKEN } from "../../utils/constants";
 import CalendarComponent from "../../components/CalendarComponent/CalendarComponent";
 import { API_USERS } from "../../utils/api";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import MainLayout from "../../layouts/MainLayout";
 
 interface SubCardProps {
   title: string;
@@ -113,7 +114,7 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
         <span className={styles.index}>{index}</span>. &nbsp; {title}
       </p>
       <div className={styles.details}>
-        <span>{marks} | </span> <span> {durationHours} Hr |</span>
+        <span>{marks} | </span> <span> {durationHours} Hr</span>
         {mode === "online" ? (
           <img src={monitor} alt="icon" className={styles.indicator} />
         ) : (
@@ -171,7 +172,7 @@ const Home = () => {
   }, [ongoingTests]);
 
   return (
-    <>
+    <MainLayout name="Home">
       <div className={styles.container}>
         <Grid container spacing={4}>
           <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
@@ -268,7 +269,7 @@ const Home = () => {
           </Grid>
         </Grid>
       </div>
-      <Sidebar title="Recent Activity">
+      {/* <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
           .map((_, i) => (
@@ -281,7 +282,7 @@ const Home = () => {
               createdAt="10 Jan, 2022"
             />
           ))}
-      </Sidebar>
+      </Sidebar> */}
 
       <CustomModal
         title="Hello From Deepak"
@@ -290,7 +291,7 @@ const Home = () => {
       >
         YE CHILDREN HAI
       </CustomModal>
-    </>
+    </MainLayout>
   );
 };
 

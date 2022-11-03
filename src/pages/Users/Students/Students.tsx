@@ -334,12 +334,12 @@ const Students: React.FC<{
         </div>
       </Modal>
 
-      <Sidebar title="Recent Activity">
+      {/* <Sidebar title="Recent Activity">
         <UserProfile
           handleEditModal={() => setIsEditModalOpen(true)}
           handleDeleteModal={() => setIsDeleteModalOpen(true)}
         />
-      </Sidebar>
+      </Sidebar> */}
     </div>
   );
 };

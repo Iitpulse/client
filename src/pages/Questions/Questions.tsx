@@ -35,11 +35,21 @@ import logo from "../../assets/images/logo.svg";
 import { asBlob } from "html-docx-js-typescript";
 import { saveAs } from "file-saver";
 import * as Docx from "docx"; // that is a peer dependency
-import { Visibility } from "@mui/icons-material";
+import {
+  DeleteOutline,
+  FormatUnderlinedOutlined,
+  Visibility,
+} from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api";
 import PrintIcon from "@mui/icons-material/Print";
 import sheetIcon from "../../assets/icons/sheets.svg";
+import MainLayout from "../../layouts/MainLayout";
+import { Divider, message, Tag } from "antd";
+import { ToggleButton } from "../../components";
+import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
+import Edit from "@mui/icons-material/Edit";
+
 export const questionTypes = [
   { name: "Objective", value: "objective" },
   // { name: "Multiple Correct", value: "multiple" },
@@ -153,6 +163,9 @@ const Questions = () => {
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [previewData, setPreviewData] = useState<any>({});
   const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
+  const [sidebarOpen, setSideBarOpen] = useState<boolean>(false);
+  const [sidebarContent, setSidebarContent] = useState<any>(null);
+
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -301,6 +314,19 @@ const Questions = () => {
   }, [previewData]);
 
   useEffect(() => {
+    setSidebarContent(
+      <PreviewFullQuestion
+        setQuestions={setQuestions}
+        setPreviewData={setPreviewData}
+        handleClose={() => setSideBarOpen(false)}
+        quillStringQuestion={quillStringForPreview}
+        quillStringSolution={previewData?.en?.solution}
+        previewData={previewData}
+      />
+    );
+  }, [quillStringForPreview, previewData]);
+
+  useEffect(() => {
     async function fetchPaginatedMCQs() {
       setLoading(true);
       try {
@@ -349,99 +375,102 @@ const Questions = () => {
   });
 
   return (
-    <div className={styles.container}>
-      {isReadPermitted ? (
-        <>
-          {isCreatePermitted && (
-            <>
-              <div className={styles.flexRow}>
-                <Button onClick={() => navigate("/questions/new")}>
-                  Add New
-                </Button>
-                <div>
-                  <IconButton onClick={handlePrint}>
-                    <PrintIcon />
-                  </IconButton>
-                  <IconButton>
-                    <CSVLink filename={"Questions.csv"} data={questions}>
-                      <img
-                        src={sheetIcon}
-                        width="21px"
-                        alt="Sheet"
-                        height="21px"
-                      />
-                    </CSVLink>
-                  </IconButton>
-                </div>
-              </div>
-            </>
-          )}
-
-          <div>
-            <QuestionsTable
-              loading={loading}
-              dataSource={questions?.map((question: any) => ({
-                ...question,
-                key: question.id || question._id,
-              }))}
-              cols={[
-                {
-                  title: "Preview",
-                  key: "preview",
-                  width: 120,
-                  fixed: "left",
-                  render: (text: any, record: any) => (
-                    <IconButton
-                      onClick={() => {
-                        setPreviewModalVisible(true);
-                        setPreviewData(record);
-                      }}
-                    >
-                      <Visibility />
+    <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
+      <div className={styles.container}>
+        {isReadPermitted ? (
+          <>
+            {isCreatePermitted && (
+              <>
+                <div className={styles.flexRow}>
+                  <Button onClick={() => navigate("/questions/new")}>
+                    Add New
+                  </Button>
+                  <div>
+                    <IconButton onClick={handlePrint}>
+                      <PrintIcon />
                     </IconButton>
-                  ),
-                },
-                ...QUESTION_COLS_ALL,
-              ]}
-              height="60vh"
-              pagination={{
-                total: totalDocs,
-                onChange: onChangePageOrPageSize,
-                onShowSizeChange: onChangePageOrPageSize,
-              }}
-            />
-          </div>
-          {/* <hr /> */}
-          {/* <section className={styles.main}>
+                    <IconButton>
+                      <CSVLink filename={"Questions.csv"} data={questions}>
+                        <img
+                          src={sheetIcon}
+                          width="21px"
+                          alt="Sheet"
+                          height="21px"
+                        />
+                      </CSVLink>
+                    </IconButton>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div>
+              <QuestionsTable
+                loading={loading}
+                dataSource={questions?.map((question: any) => ({
+                  ...question,
+                  key: question.id || question._id,
+                }))}
+                cols={[
+                  {
+                    title: "Preview",
+                    key: "preview",
+                    width: 120,
+                    fixed: "left",
+                    render: (text: any, record: any) => (
+                      <IconButton
+                        onClick={() => {
+                          // setPreviewModalVisible(true);
+                          setPreviewData(record);
+                          setSideBarOpen(true);
+                        }}
+                      >
+                        <Visibility />
+                      </IconButton>
+                    ),
+                  },
+                  ...QUESTION_COLS_ALL,
+                ]}
+                height="60vh"
+                pagination={{
+                  total: totalDocs,
+                  onChange: onChangePageOrPageSize,
+                  onShowSizeChange: onChangePageOrPageSize,
+                }}
+              />
+            </div>
+            {/* <hr /> */}
+            {/* <section className={styles.main}>
                 {getQuestionFromType(type, setData)}
               </section> */}
-          {/* <div>
+            {/* <div>
                 <Button onClick={handleSubmitQuestion}>Submit</Button>
               </div> */}
-          <Sidebar title="Recent Activity">
-            {Array(10)
-              .fill(0)
-              .map((_, i) => (
-                <NotificationCard
-                  key={i}
-                  id="aasdadsd"
-                  status={i % 2 === 0 ? "success" : "warning"}
-                  title={"New Student Joined-" + i}
-                  description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-                  createdAt="10 Jan, 2022"
-                />
-              ))}
-          </Sidebar>
-          <PreviewHTMLModal
-            showFooter={true}
-            isOpen={previewModalVisible}
-            handleClose={() => setPreviewModalVisible(false)}
-            quillString={quillStringForPreview}
-            previewData={previewData}
-            setQuestions={setQuestions}
-            setPreviewData={setPreviewData}
-          />
-          {/* <div
+            <Sidebar
+              title="Preview"
+              open={sidebarOpen}
+              handleClose={() => setSideBarOpen(false)}
+              width={"40%"}
+              extra={
+                <IconButton
+                  onClick={() => navigate(`/questions/edit/${previewData?.id}`)}
+                >
+                  <Edit />
+                </IconButton>
+              }
+            >
+              {sidebarContent}
+            </Sidebar>
+            <PreviewHTMLModal
+              showFooter={true}
+              isOpen={previewModalVisible}
+              handleClose={() => setPreviewModalVisible(false)}
+              quillString={quillStringForPreview}
+              previewData={previewData}
+              setQuestions={setQuestions}
+              setPreviewData={setPreviewData}
+            />
+            {/* <div
             ref={tableRef}
             style={
               PrintContainerStyles as DetailedHTMLProps<
@@ -451,22 +480,158 @@ const Questions = () => {
             }
           >
         </div> */}
-          <PrintTest
-            subject="Physics"
-            chapter="Ray Optics"
-            title="Daily Rapid Test #025"
-            questions={questions}
-          />
-        </>
-      ) : (
-        <Error />
-      )}
-    </div>
+            <PrintTest
+              subject="Physics"
+              chapter="Ray Optics"
+              title="Daily Rapid Test #025"
+              questions={questions}
+            />
+          </>
+        ) : (
+          <Error />
+        )}
+      </div>
+    </MainLayout>
   );
 };
 
 export default Questions;
 
+interface IToggleProofReadPayload {
+  id: string;
+  isProofRead: boolean;
+  type: string;
+}
+
+const PreviewFullQuestion: React.FC<{
+  quillStringQuestion: string;
+  quillStringSolution: string;
+  previewData: any;
+  setQuestions: (currQues: any) => void;
+  setPreviewData: (obj: any) => void;
+  handleClose: () => void;
+}> = ({
+  quillStringQuestion,
+  quillStringSolution,
+  previewData,
+  setQuestions,
+  setPreviewData,
+  handleClose,
+}) => {
+  const handleToggleProofread = async (checked: any) => {
+    console.log(checked);
+    let obj = { ...previewData, isProofRead: checked };
+    let payload: IToggleProofReadPayload = {
+      id: previewData.id,
+      isProofRead: checked,
+      type: previewData.type,
+    };
+    try {
+      const res = await API_QUESTIONS().patch(`/toggleproofread`, {
+        data: payload,
+      });
+      if (res?.data?.status === "success") {
+        console.log(res);
+        setQuestions((currQues: any) => {
+          let arr = currQues.map((el: any) => {
+            return el.id !== previewData.id ? el : obj;
+          });
+          console.log(arr);
+          return arr;
+        });
+        setPreviewData(obj);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const handleDeleteQuestion = async () => {
+    const type = previewData.type;
+    let url;
+    switch (type) {
+      case "single":
+      case "multiple":
+        url = "/mcq/delete";
+        break;
+      case "integer":
+        url = "/numerical/delete";
+        break;
+      default:
+        console.log(type);
+    }
+    if (url) {
+      try {
+        const res = await API_QUESTIONS().delete(url, {
+          data: {
+            id: previewData.id,
+          },
+        });
+        console.log(res);
+        handleClose();
+        message.success("Deleted successfully!");
+        setQuestions((currQues: any) => {
+          let arr = currQues.filter((el: any) => {
+            return el.id !== previewData.id;
+          });
+          console.log(arr);
+          return arr;
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+  return (
+    <>
+      <div className={styles.previewBreadCumb}>
+        <div className={styles.previewBreadCumbDiv}>
+          <h4>{previewData?.subject}</h4>
+          {" >    "}
+          <h4>{previewData?.chapters?.join(", ")}</h4>
+          {" > "}
+          <h4>{previewData?.topics?.join(", ")}</h4>
+        </div>
+        <div>
+          <Tag
+            color={
+              previewData?.difficulty?.toLowerCase() === "easy"
+                ? "green"
+                : previewData?.difficulty?.toLowerCase() === "medium"
+                ? "yellow"
+                : "red"
+            }
+          >
+            {previewData?.difficulty}
+          </Tag>
+        </div>
+      </div>
+      <br />
+      <RenderWithLatex quillString={quillStringQuestion} />
+      <Divider />
+      <RenderWithLatex quillString={quillStringSolution} />
+      <div className={styles.footer}>
+        <div className={styles.toggleButton}>
+          Proof Read
+          <ToggleButton
+            checked={previewData?.isProofRead}
+            stopPropagation
+            onChange={(checked: any) => handleToggleProofread(checked)}
+          />
+        </div>
+        <CustomPopConfirm
+          title="Are you sure?"
+          okText="Delete"
+          cancelText="No"
+          onConfirm={handleDeleteQuestion}
+        >
+          <IconButton>
+            <DeleteOutline />
+          </IconButton>
+        </CustomPopConfirm>
+      </div>
+    </>
+  );
+};
 const PrintTest: React.FC<{
   subject: string;
   chapter: string;

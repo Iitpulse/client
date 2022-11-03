@@ -9,6 +9,7 @@ import {
 } from "../DetailedAnalysis/DetailedAnalysis";
 import timerIcon from "../../assets/icons/timer.svg";
 import { CircularProgress as MUICircularProgress } from "@mui/material";
+import MainLayout from "../../layouts/MainLayout";
 
 interface Props {
   finalTest: any;
@@ -29,27 +30,29 @@ const ResultForStudent: React.FC<Props> = ({
   const { testId, testName, testExamName } = useParams();
 
   return (
-    <div className={styles.container}>
-      <Navigate path={"/test"}>Back To Tests</Navigate>
-      <HeaderDetails
-        name={testName || ""}
-        type={finalTest?.type || ""}
-        languages={[{ name: "English" }, { name: "Hindi" }]}
-        duration={finalTest?.duration || 90}
-        totalAppeared={finalTest?.totalAppeared || 0}
-        highestMarks={finalTest?.highestMarks || 0}
-        lowestMarks={finalTest?.lowestMarks || 0}
-        averageMarks={finalTest?.averageMarks || 0}
-        status={finalTest?.status || ""}
-        scheduledFor={finalTest?.scheduledFor || []}
-      />
-      <div className={styles.content}>
-        <StudentResultCore
-          finalTest={finalTest}
-          hasResultViewPermission={hasResultViewPermission}
+    <MainLayout name="Result > Student">
+      <div className={styles.container}>
+        <Navigate path={"/test"}>Back To Tests</Navigate>
+        <HeaderDetails
+          name={testName || ""}
+          type={finalTest?.type || ""}
+          languages={[{ name: "English" }, { name: "Hindi" }]}
+          duration={finalTest?.duration || 90}
+          totalAppeared={finalTest?.totalAppeared || 0}
+          highestMarks={finalTest?.highestMarks || 0}
+          lowestMarks={finalTest?.lowestMarks || 0}
+          averageMarks={finalTest?.averageMarks || 0}
+          status={finalTest?.status || ""}
+          scheduledFor={finalTest?.scheduledFor || []}
         />
+        <div className={styles.content}>
+          <StudentResultCore
+            finalTest={finalTest}
+            hasResultViewPermission={hasResultViewPermission}
+          />
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 
