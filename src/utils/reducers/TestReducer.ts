@@ -12,7 +12,7 @@ export default function TestReducer(
     case TEST_ACTION_TYPES.SET_ONGOING_TESTS:
       return {
         ...state,
-        ongoingTests: payload.ongoingTests?.map((test: any) => ({
+        ongoingTests: payload?.map((test: any) => ({
           ...test,
           id: test._id,
         })),
@@ -20,7 +20,7 @@ export default function TestReducer(
     case TEST_ACTION_TYPES.SET_ACTIVE_TESTS:
       return {
         ...state,
-        activeTests: payload.activeTests?.map((test: any) => ({
+        activeTests: payload?.map((test: any) => ({
           ...test,
           id: test._id,
         })),
@@ -28,7 +28,7 @@ export default function TestReducer(
     case TEST_ACTION_TYPES.SET_INACTIVE_TESTS:
       return {
         ...state,
-        inactiveTests: payload.inactiveTests?.map((test: any) => ({
+        inactiveTests: payload?.map((test: any) => ({
           ...test,
           id: test._id,
         })),
@@ -36,7 +36,7 @@ export default function TestReducer(
     case TEST_ACTION_TYPES.SET_EXPIRED_TESTS:
       return {
         ...state,
-        expiredTests: payload.expiredTests?.map((test: any) => ({
+        expiredTests: payload?.map((test: any) => ({
           ...test,
           id: test._id,
         })),

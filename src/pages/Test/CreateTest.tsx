@@ -133,6 +133,8 @@ const CreateTest = () => {
   }, [test]);
 
   async function handleClickSubmit() {
+    console.log({ test });
+
     if (currentUser) {
       try {
         let finalTest = {
@@ -161,7 +163,7 @@ const CreateTest = () => {
           durationInMinutes: pattern?.durationInMinutes,
         };
         console.log({ finalTest });
-        if (finalTest) return;
+        // if (finalTest) return;
         let response = await API_TESTS().post(`/test/create`, finalTest);
         message.success("Test Created Successfully");
         console.log({ response });
@@ -414,9 +416,22 @@ const SubSection: React.FC<{
         totalQuestions: subSection.totalQuestions,
       },
     });
-    console.table(data);
-    setTempQuestions(data);
-    handleUpdateSubSection(subSection.id, { questions: data });
+    console.log({ data });
+    let withAttemptedByForOptions = [...data];
+    withAttemptedByForOptions.forEach((ques) => {
+      ques.en.options.forEach((option: any) => {
+        option["attemptedBy"] = 0;
+      });
+
+      ques.hi.options.forEach((option: any) => {
+        option["attemptedBy"] = 0;
+      });
+    });
+    setTempQuestions(withAttemptedByForOptions);
+    console.log({ withAttemptedByForOptions });
+    handleUpdateSubSection(subSection.id, {
+      questions: withAttemptedByForOptions,
+    });
   }
 
   function handleClickAutoGenerate() {
@@ -426,6 +441,7 @@ const SubSection: React.FC<{
 
   function handleClickSave(rows: Array<any>) {
     console.log({ rows });
+
     handleUpdateSubSection(subSection.id, { questions: rows });
     setQuestionModal(false);
   }

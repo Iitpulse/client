@@ -4,6 +4,8 @@ import notificationIcon from "../assets/icons/notification.svg";
 import searchIcon from "../assets/icons/search.svg";
 import { IconButton } from "@mui/material";
 import React, { useState } from "react";
+import CustomBreadCrumb from "../components/CustomBreadCrumb/CustomBreadCrumb";
+import { useLocation } from "react-router";
 
 interface Props {
   children: React.ReactNode;
@@ -18,12 +20,13 @@ const MainLayout: React.FC<Props> = ({
   onClickDrawerIcon,
   ...rest
 }) => {
+  const location = useLocation();
   return (
     <div className={styles.container} {...rest}>
       <MenuDrawer />
       <section className={styles.mainContainer}>
         <nav>
-          <h3>{name}</h3>
+          <CustomBreadCrumb location={location.pathname} />
           <div className={styles.actions}>
             {/* <Stack spacing={2}>
               <Autocomplete

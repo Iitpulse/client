@@ -341,7 +341,7 @@ export const HeaderDetails: React.FC<IHeaderDetails> = ({
         />
         <SubCard
           title="Average Marks"
-          content={averageMarks}
+          content={averageMarks.toFixed(1)}
           icon={yellowFlag}
           variant="warning"
         />
@@ -524,7 +524,7 @@ interface QuestionProps {
   quickestResponse?: number;
   averageTimeTaken?: number;
   timeTakenInSeconds?: number;
-  totalStudentAttempted?: number;
+  // totalStudentAttempted?: number;
 }
 const Question = (props: QuestionProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -543,8 +543,12 @@ const Question = (props: QuestionProps) => {
     quickestResponse,
     averageTimeTaken,
     timeTakenInSeconds,
-    totalStudentAttempted,
+    // totalStudentAttempted,
   } = props;
+  let totalStudentAttempted = 0;
+  en.options.forEach((option: any) => {
+    totalStudentAttempted += option.attemptedBy;
+  });
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -637,7 +641,7 @@ const Question = (props: QuestionProps) => {
             {en?.options.map((option: any, index: number) => {
               const selectedBy = totalStudentAttempted
                 ? roundOffToOneDecimal(
-                    (option?.totalStudentSelected / totalStudentAttempted) * 100
+                    (option?.attemptedBy / totalStudentAttempted) * 100
                   )
                 : 0;
               return (
