@@ -350,7 +350,6 @@ const CreateQuestion = () => {
   return (
     <MainLayout name="Create Question">
       <div className={styles.container}>
-        <Navigate path={"/questions"}>Back To Questions</Navigate>
         <form>
           <div className={styles.inputFields}>
             <StyledMUISelect
