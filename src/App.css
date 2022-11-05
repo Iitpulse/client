@@ -15,5 +15,13 @@ input[type="date"]:focus::-webkit-datetime-edit {
   color: black !important;
 }
 .ant-popconfirm {
-    z-index: 10000;
+  z-index: 10000;
+}
+
+.ant-drawer-header-title .ant-drawer-close {
+  padding: 8px;
+  border-radius: 50%;
+}
+.ant-drawer-header-title .ant-drawer-close:hover {
+  background-color: rgba(0, 0, 0, 0.04);
 }

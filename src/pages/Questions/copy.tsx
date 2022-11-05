@@ -25,7 +25,6 @@ import { message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api";
 import MainLayout from "../../layouts/MainLayout";
 import { useParams } from "react-router";
-import { CircularProgress } from "@mui/material";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -66,6 +65,7 @@ const CreateQuestion = () => {
   // const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<IOptionType>>([]);
   const [type, setType] = useState<string>("objective");
+
   const [subjectOptions, setSubjectOptions] = useState<any>([]);
   const [subject, setSubject] = useState<any>({ name: "", value: "" });
   const [chapters, setChapters] = useState<Array<IOptionType>>([]);
@@ -84,14 +84,9 @@ const CreateQuestion = () => {
   const [examOptions, setExamOptions] = useState<any>([]);
   const [sourceOptions, setSourceOptions] = useState<any>([]);
   const [data, setData] = useState<any>({});
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isInitialValuePassed, setIsInitialValuePassed] =
-    useState<boolean>(false);
 
   const { currentUser } = useContext(AuthContext);
-  useEffect(() => {
-    if (!window.location.href.includes("edit")) setIsInitialValuePassed(true);
-  }, []);
+
   const { id } = useParams();
   useEffect(() => {
     if (currentUser) {
@@ -198,42 +193,18 @@ const CreateQuestion = () => {
       API_QUESTIONS()
         .get(`mcq/question/${id}`)
         .then((res) => {
-          const subject = subjectOptions?.find((sub: any) => {
-            console.log({ sub, res });
-            return (
-              sub?.name?.toLowerCase() ===
-              res.data?.questions?.subject?.toLowerCase()
-            );
-          });
-          const chapters = subject?.chapters?.filter((chapter: any) =>
-            res.data?.questions?.chapters?.includes(chapter.name)
-          );
-          const topics = chapters
-            ?.reduce((acc: any, curr: any) => {
-              return [...acc, ...curr.topics];
-            }, [])
-            .map((topic: any) => ({ name: topic }));
-          console.log({ mainData: res.data });
-          setData(res.data?.questions);
-          setSubject(subject || {});
-          setChapters(chapters || []);
-          setTopics(topics || []);
-          setDifficulty(res.data.questions.difficulty);
-          setExams(res.data.questions.exams ?? []);
-          setSources(res.data.questions.sources ?? []);
-          setType(
-            res.data?.questions?.type == "single" ||
-              res.data?.questions?.type == "multiple"
-              ? "objective"
-              : res.data?.questions?.type
-          );
+          console.log({ res });
+          // setData(res.data);
+          // setSubject(res.data.questions.subject);
+          // setChapters(res.data.questions.chapters ?? []);
+          // setTopics(res.data.questions.topics ?? []);
+          // setDifficulty(res.data.questions.difficulty);
+          // setExams(res.data.questions.exams ?? []);
+          // setSources(res.data.questions.sources ?? []);
+          // setType(res.data.questions.type);
         });
     }
-  }, [subjectOptions, id]);
-
-  // useEffect(() => {
-  //   setIsLoading(false);
-  // });
+  });
 
   async function handleSubmitQuestion() {
     //check if the url has edit in it then update the question
@@ -339,14 +310,6 @@ const CreateQuestion = () => {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div>
-        <CircularProgress />
-      </div>
-    );
-  }
-
   return (
     <MainLayout name="Create Question">
       <div className={styles.container}>
@@ -428,13 +391,7 @@ const CreateQuestion = () => {
           </div>
         </form>
         <section className={styles.main}>
-          {getQuestionFromType(
-            type,
-            data,
-            setData,
-            isInitialValuePassed,
-            setIsInitialValuePassed
-          )}
+          {getQuestionFromType(type, setData)}
         </section>
         <div className={styles.submitButton}>
           <Button onClick={handleSubmitQuestion}>
@@ -448,23 +405,10 @@ const CreateQuestion = () => {
 
 export default CreateQuestion;
 
-function getQuestionFromType(
-  type: string,
-  data: any,
-  setData: (data: any) => void,
-  isInitialValuePassed: boolean,
-  setIsInitialValuePassed: (data: any) => void
-) {
+function getQuestionFromType(type: string, setData: (data: any) => void) {
   switch (type) {
     case "objective":
-      return (
-        <Objective
-          data={data}
-          setData={setData}
-          isInitialValuePassed={isInitialValuePassed}
-          setIsInitialValuePassed={setIsInitialValuePassed}
-        />
-      );
+      return <Objective setData={setData} />;
     case "integer":
       return <Integer setData={setData} />;
     case "paragraph":

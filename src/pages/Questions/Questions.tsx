@@ -165,6 +165,7 @@ const Questions = () => {
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [previewData, setPreviewData] = useState<any>({});
   const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
+
   const { currentUser } = useContext(AuthContext);
 
   // useEffect(() => {
@@ -313,7 +314,6 @@ const Questions = () => {
   }, [previewData]);
 
   useEffect(() => {
-    console.log({ previewData });
     setSidebarContent(
       <PreviewFullQuestion
         setQuestions={setQuestions}
@@ -385,7 +385,12 @@ const Questions = () => {
                     </IconButton>
                     <IconButton>
                       <CSVLink filename={"Questions.csv"} data={questions}>
-                        <img src={sheetIcon} width="21px" height="21px" />
+                        <img
+                          src={sheetIcon}
+                          width="21px"
+                          alt="Sheet"
+                          height="21px"
+                        />
                       </CSVLink>
                     </IconButton>
                   </div>
@@ -441,7 +446,9 @@ const Questions = () => {
               handleClose={() => setSideBarOpen(false)}
               width={"40%"}
               extra={
-                <IconButton>
+                <IconButton
+                  onClick={() => navigate(`/questions/edit/${previewData?.id}`)}
+                >
                   <Edit />
                 </IconButton>
               }
@@ -528,7 +535,6 @@ const PreviewFullQuestion: React.FC<{
         });
         setPreviewData(obj);
       }
-      console.log(previewData);
     } catch (err) {
       console.log(err);
     }
@@ -547,7 +553,6 @@ const PreviewFullQuestion: React.FC<{
       default:
         console.log(type);
     }
-    console.log({ url, type, previewData });
     if (url) {
       try {
         const res = await API_QUESTIONS().delete(url, {
@@ -565,7 +570,6 @@ const PreviewFullQuestion: React.FC<{
           console.log(arr);
           return arr;
         });
-        console.log(previewData);
       } catch (err) {
         console.log(err);
       }

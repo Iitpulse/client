@@ -144,6 +144,15 @@ const App = () => {
                       }
                     />
                     <Route
+                      path="/questions/edit/:id"
+                      element={
+                        <PrivateRoute
+                          component={CreateQuestion}
+                          name="Create Question"
+                        />
+                      }
+                    />
+                    <Route
                       path="/roles"
                       element={<PrivateRoute component={Roles} name="Roles" />}
                     />
