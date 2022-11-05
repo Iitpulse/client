@@ -28,10 +28,11 @@ import axios from "axios";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
-import { Table } from "antd";
+import { message, Popconfirm, Table } from "antd";
 import { Link, NavLink } from "react-router-dom";
 import { API_TESTS } from "../../utils/api";
 import MainLayout from "../../layouts/MainLayout";
+import { columns } from "./utils";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -68,92 +69,47 @@ const rowSelection = {
 
 const Pattern = () => {
   const isReadPermitted = usePermission(PERMISSIONS.PATTERN.READ);
-  // const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
-  // const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
-  // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
+  const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
+  const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
+  const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
+  const [loading, setLoading] = useState(false);
   const [patterns, setPatterns] = useState<IPattern[]>([]);
 
   const { currentUser } = useContext(AuthContext);
 
-  const [name, setName] = useState("");
-  const [exam, setExam] = useState("");
-  const [durationInMinutes, setDurationInMinutes] = useState("");
-
   useEffect(() => {
     if (currentUser) {
+      setLoading(true);
       API_TESTS()
         .get(`/pattern/all`)
         .then((res) => {
           setPatterns(
             res.data?.map((item: any) => ({ ...item, key: item._id }))
           );
+          setLoading(false);
+        })
+        .catch((err) => {
+          setLoading(false);
         });
     }
   }, [currentUser]);
 
-  const columns = [
-    {
-      title: "ID",
-      dataIndex: "_id",
-      render: (text: string) => (
-        <Link
-          to={`/pattern/edit/${text}`}
-          style={{
-            textOverflow: "ellipsis",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            maxWidth: "50px",
-          }}
-        >
-          {text}
-        </Link>
-      ),
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-    },
-    {
-      title: "Exam",
-      dataIndex: "exam",
-    },
-    {
-      title: "Created",
-      dataIndex: "createdAt",
-      render: (date: string) => new Date(date).toLocaleString(),
-    },
-  ];
-  const [sections, setSections] = useState<Array<ISection>>([]);
-
-  function handleDeleteSection(id: string) {
-    setSections(sections.filter((section) => section.id !== id));
-  }
-
-  async function handleClickSubmit() {
-    if (currentUser) {
-      const pattern: IPattern = {
-        id: `${currentUser.instituteId}_${name
-          .replace(/ /g, "")
-          .toUpperCase()}`,
-        name,
-        exam: exam,
-        durationInMinutes: parseInt(durationInMinutes),
-        sections: sections.map((sec) => ({
-          ...sec,
-          exam: exam,
-        })),
-        createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString(),
-        createdBy: {
-          userType: currentUser.userType || "",
-          id: currentUser.id || "",
-        },
-        usedIn: [],
-      };
-      console.log({ pattern });
-      const res = await API_TESTS().post(`/pattern/create`, pattern);
-      console.log({ res });
+  async function handleDeletePattern(id: string) {
+    setLoading(true);
+    const antLoading = message.loading("Deleting Pattern", 0);
+    try {
+      await API_TESTS().delete(`/pattern/delete`, {
+        params: { id },
+      });
+      setPatterns(patterns.filter((pattern) => pattern.id !== id));
+      antLoading();
+      message.success("Pattern Deleted Successfully");
+    } catch (error) {
+      console.log("ERROR_DELETING_PATTERN", error);
+      antLoading();
+      message.error("Error Deleting Pattern");
     }
+    setLoading(false);
   }
 
   return (
@@ -162,9 +118,11 @@ const Pattern = () => {
         <>
           <section className={styles.container}>
             <div className={styles.header}>
-              <NavLink to="/pattern/new">
-                <Button>Add New</Button>
-              </NavLink>
+              {isCreatePermitted && (
+                <NavLink to="/pattern/new">
+                  <Button>Add New</Button>
+                </NavLink>
+              )}
             </div>
             <div className={styles.data}>
               <Table
@@ -172,8 +130,28 @@ const Pattern = () => {
                   type: "checkbox",
                   ...rowSelection,
                 }}
-                columns={columns}
+                columns={columns
+                  ?.filter((col: any) =>
+                    col.key === "action" ? isDeletePermitted : true
+                  )
+                  .map((col: any) => {
+                    if (col.key !== "action") return col;
+                    return {
+                      ...col,
+                      render: (id: string) => (
+                        <Popconfirm
+                          title="Sure to delete?"
+                          onConfirm={() => handleDeletePattern(id)}
+                        >
+                          <IconButton>
+                            <img src={deleteIcon} alt="delete" />
+                          </IconButton>
+                        </Popconfirm>
+                      ),
+                    };
+                  })}
                 dataSource={patterns as any}
+                scroll={{ x: 500, y: 600 }}
               />
             </div>
           </section>
