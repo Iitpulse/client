@@ -73,9 +73,10 @@ const Test = () => {
       fixed: "right",
       render: (row: any) => (
         <Button
-          onClick={() =>
-            navigate(`/test/result/${row.name}/${row.exam.name}/${row.id}`)
-          }
+          onClick={() => {
+            console.log({ row });
+            navigate(`/test/result/${row.name}/${row.exam.name}/${row._id}`);
+          }}
         >
           View Result
         </Button>
@@ -121,26 +122,83 @@ const Test = () => {
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
+    console.log(newValue);
     switch (newValue) {
       case 0:
         setData([]);
         setLoading(true);
-        fetchTest("ongoing");
+        fetchTest("ongoing", (error, result: any[]) => {
+          if (error) console.log(error);
+          setLoading(false);
+          setData(
+            result?.map((test: any) => ({
+              ...test,
+              key: test.id,
+              id: test.id,
+              name: test.name,
+              createdAt: test.createdAt,
+              status: test.status,
+              exam: test.exam,
+            }))
+          );
+        });
         break;
       case 1:
         setData([]);
         setLoading(true);
-        fetchTest("active");
+        fetchTest("active", (error, result: any[]) => {
+          if (error) console.log(error);
+          setLoading(false);
+          setData(
+            result?.map((test: any) => ({
+              ...test,
+              key: test.id,
+              id: test.id,
+              name: test.name,
+              createdAt: test.createdAt,
+              status: test.status,
+              exam: test.exam,
+            }))
+          );
+        });
         break;
       case 2:
         setData([]);
         setLoading(true);
-        fetchTest("inactive");
+        fetchTest("inactive", (error, result: any[]) => {
+          if (error) console.log(error);
+          setLoading(false);
+          setData(
+            result?.map((test: any) => ({
+              ...test,
+              key: test.id,
+              id: test.id,
+              name: test.name,
+              createdAt: test.createdAt,
+              status: test.status,
+              exam: test.exam,
+            }))
+          );
+        });
         break;
       case 3:
         setData([]);
         setLoading(true);
-        fetchTest("expired");
+        fetchTest("expired", (error, result: any[]) => {
+          if (error) console.log(error);
+          setLoading(false);
+          setData(
+            result?.map((test: any) => ({
+              ...test,
+              key: test.id,
+              id: test.id,
+              name: test.name,
+              createdAt: test.createdAt,
+              status: test.status,
+              exam: test.exam,
+            }))
+          );
+        });
         break;
       default:
         break;
@@ -148,94 +206,23 @@ const Test = () => {
   }
 
   useEffect(() => {
-    if (fetchTest) fetchTest("ongoing");
+    setLoading(true);
+    if (fetchTest)
+      fetchTest("ongoing", (error, result) => {
+        setData(
+          result?.map((test: any) => ({
+            ...test,
+            key: test.id,
+            id: test.id,
+            name: test.name,
+            createdAt: test.createdAt,
+            status: test.status,
+            exam: test.exam,
+          }))
+        );
+        setLoading(false);
+      });
   }, []);
-
-  useEffect(() => {
-    if (ongoingTests?.length) {
-      setData(
-        ongoingTests.map((test) => ({
-          ...test,
-          key: test.id,
-          id: test.id,
-          name: test.name,
-          createdAt: test.createdAt,
-          status: test.status,
-          exam: test.exam,
-        }))
-      );
-    }
-    setLoading(false);
-  }, [ongoingTests]);
-
-  useEffect(() => {
-    setData([]);
-    if (inactiveTests?.length) {
-      setData(
-        inactiveTests.map((test) => ({
-          ...test,
-          key: test.id,
-          id: test.id,
-          name: test.name,
-          createdAt: test.createdAt,
-          status: test.status,
-          exam: test.exam,
-        }))
-      );
-    }
-    setLoading(false);
-  }, [inactiveTests]);
-
-  useEffect(() => {
-    if (inactiveTests?.length) {
-      setData(() =>
-        inactiveTests.map((test) => ({
-          ...test,
-          key: test.id,
-          id: test.id,
-          name: test.name,
-          createdAt: test.createdAt,
-          status: test.status,
-          exam: test.exam,
-        }))
-      );
-    }
-    setLoading(false);
-  }, [inactiveTests]);
-
-  useEffect(() => {
-    if (inactiveTests?.length) {
-      setData(
-        inactiveTests.map((test) => ({
-          ...test,
-          key: test.id,
-          id: test.id,
-          name: test.name,
-          createdAt: test.createdAt,
-          status: test.status,
-          exam: test.exam,
-        }))
-      );
-    }
-    setLoading(false);
-  }, [inactiveTests]);
-
-  useEffect(() => {
-    if (expiredTests?.length) {
-      setData(
-        expiredTests.map((test) => ({
-          ...test,
-          key: test.id,
-          id: test.id,
-          name: test.name,
-          createdAt: test.createdAt,
-          status: test.status,
-          exam: test.exam,
-        }))
-      );
-    }
-    setLoading(false);
-  }, [expiredTests]);
 
   return (
     <MainLayout name="Test">
@@ -252,6 +239,7 @@ const Test = () => {
         <TabPanel value={tab} index={0}>
           <div className={styles.data}>
             <Table
+              loading={loading}
               rowSelection={{
                 type: "checkbox",
                 ...rowSelection,
@@ -265,6 +253,7 @@ const Test = () => {
         <TabPanel value={tab} index={1}>
           <div className={styles.data}>
             <Table
+              loading={loading}
               rowSelection={{
                 type: "checkbox",
                 ...rowSelection,
@@ -278,6 +267,7 @@ const Test = () => {
         <TabPanel value={tab} index={2}>
           <div className={styles.data}>
             <Table
+              loading={loading}
               rowSelection={{
                 type: "checkbox",
                 ...rowSelection,
@@ -291,6 +281,7 @@ const Test = () => {
         <TabPanel value={tab} index={3}>
           <div className={styles.data}>
             <Table
+              loading={loading}
               rowSelection={{
                 type: "checkbox",
                 ...rowSelection,

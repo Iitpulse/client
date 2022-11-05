@@ -190,7 +190,9 @@ const Home = () => {
                 />
                 <SubCard
                   title="Average Marks"
-                  content={String(recentTest.averageMarks)}
+                  content={String(
+                    parseInt(recentTest.averageMarks.toString()).toFixed(2)
+                  )}
                   icon={yellowFlag}
                   variant="warning"
                 />

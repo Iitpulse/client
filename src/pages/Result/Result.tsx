@@ -89,8 +89,10 @@ const Result = () => {
           const res = await API_TESTS().get(`/test/result/student`, {
             params: {
               testId,
+              studentId,
             },
           });
+          console.log("student result", res.data);
           setFinalTest(res.data);
         } catch (error: any) {
           console.log("ERROR_FETCH_RESULT", error);

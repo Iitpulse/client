@@ -50,7 +50,10 @@ export const TestContext = createContext<{
   exams: Array<any>;
   subjects: Array<any>;
   recentTest: recenTestContext;
-  fetchTest: (type: "active" | "ongoing" | "inactive" | "expired") => void;
+  fetchTest: (
+    type: "active" | "ongoing" | "inactive" | "expired",
+    cb?: (error: any, data: any[]) => void
+  ) => void;
 }>({
   state: defaultTestContext,
   dispatch: () => {},
@@ -60,8 +63,8 @@ export const TestContext = createContext<{
   fetchTest: () => {},
 });
 
-function getActionTypeFromTestType(type: string) {
-  switch (type) {
+function getActionTypeFromTestType(status: string) {
+  switch (status.toLowerCase()) {
     case "ongoing":
       return TEST_ACTION_TYPES.SET_ONGOING_TESTS;
     case "active":
@@ -84,22 +87,25 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   const { currentUser } = useContext(AuthContext);
 
   async function fetchTest(
-    type: "active" | "ongoing" | "inactive" | "expired"
+    status: "active" | "ongoing" | "inactive" | "expired",
+    cb?: (error: any, data: any[]) => void
   ) {
-    const res = await API_TESTS().get(`/test`, {
-      params: {
-        type,
-      },
-    });
-    console.log({ res });
-    if (res.data?.length > 0) {
-      console.log({ res });
-      dispatch({
-        type: getActionTypeFromTestType(type),
-        payload: {
-          ongoingTests: res.data,
+    try {
+      const res = await API_TESTS().get(`/test`, {
+        params: {
+          status,
         },
       });
+      if (cb) cb(null, res.data);
+      console.log({ res });
+
+      dispatch({
+        type: getActionTypeFromTestType(status),
+        payload: res.data,
+      });
+    } catch (err) {
+      console.log(err);
+      if (cb) cb(err, []);
     }
   }
 
