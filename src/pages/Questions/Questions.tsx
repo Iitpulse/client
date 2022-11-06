@@ -7,23 +7,15 @@ import {
   HTMLAttributes,
 } from "react";
 import styles from "./Questions.module.scss";
-import { Sidebar, NotificationCard, Button } from "../../components";
+import { Sidebar, Button, Card } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
 import Integer from "./Integer/Integer";
 import Paragraph from "./Paragraph/Paragraph";
-import { StyledMUITextField } from "../Users/components";
-import {
-  MUIChipsAutocomplete,
-  MUISimpleAutocomplete,
-  PreviewHTMLModal,
-  QuestionsTable,
-  StyledMUISelect,
-} from "./components";
+import { PreviewHTMLModal, QuestionsTable } from "./components";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
 import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import axios from "axios";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS, QUESTION_COLS_ALL } from "../../utils/constants";
 import { Error } from "../";
@@ -35,11 +27,7 @@ import logo from "../../assets/images/logo.svg";
 import { asBlob } from "html-docx-js-typescript";
 import { saveAs } from "file-saver";
 import * as Docx from "docx"; // that is a peer dependency
-import {
-  DeleteOutline,
-  FormatUnderlinedOutlined,
-  Visibility,
-} from "@mui/icons-material";
+import { DeleteOutline, Visibility } from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api";
 import PrintIcon from "@mui/icons-material/Print";
@@ -49,6 +37,7 @@ import { Divider, message, Tag } from "antd";
 import { ToggleButton } from "../../components";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
 import Edit from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -370,15 +359,12 @@ const Questions = () => {
 
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
-      <div className={styles.container}>
+      <Card classes={[styles.container]}>
         {isReadPermitted ? (
           <>
             {isCreatePermitted && (
               <>
                 <div className={styles.flexRow}>
-                  <Button onClick={() => navigate("/questions/new")}>
-                    Add New
-                  </Button>
                   <div>
                     <IconButton onClick={handlePrint}>
                       <PrintIcon />
@@ -394,9 +380,16 @@ const Questions = () => {
                       </CSVLink>
                     </IconButton>
                   </div>
+                  <Button
+                    onClick={() => navigate("/questions/new")}
+                    icon={<AddIcon />}
+                  >
+                    Add New
+                  </Button>
                 </div>
               </>
             )}
+            <Divider style={{ margin: "1rem 0" }} />
 
             <div>
               <QuestionsTable
@@ -474,17 +467,17 @@ const Questions = () => {
             }
           >
         </div> */}
-            <PrintTest
+            {/* <PrintTest
               subject="Physics"
               chapter="Ray Optics"
               title="Daily Rapid Test #025"
               questions={questions}
-            />
+            /> */}
           </>
         ) : (
           <Error />
         )}
-      </div>
+      </Card>
     </MainLayout>
   );
 };

@@ -8,8 +8,10 @@ interface ButtonProps {
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   classes?: Array<string>;
   icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
   type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
   disabled?: boolean;
+  variant?: "primary" | "outlined" | "text";
   color?: "primary" | "success" | "error" | "warning";
   [key: string]: any;
 }
@@ -19,8 +21,10 @@ const Button = (props: ButtonProps) => {
     title,
     classes,
     icon: Icon,
+    iconPosition = "left",
     type,
     children,
+    variant = "primary",
     onClick,
     disabled = false,
     color,
@@ -34,14 +38,26 @@ const Button = (props: ButtonProps) => {
       className={clsx(
         styles.btn,
         classes ? [...classes] : "",
-        getStyleByColor(color || "primary")
+        getStyleByColor(color || "primary"),
+        variant === "outlined"
+          ? styles.outlined
+          : variant === "text"
+          ? styles.text
+          : ""
       )}
       disabled={disabled}
       onClick={onClick || (() => {})}
       {...rest}
     >
-      {children}
-      {Icon && <span className={styles.icon}>{Icon}</span>}
+      <span>
+        {Icon && iconPosition === "left" && (
+          <span className={styles.leftIcon}>{Icon}</span>
+        )}
+        <span className={styles.main}>{children}</span>
+        {Icon && iconPosition === "right" && (
+          <span className={styles.rightIcon}>{Icon}</span>
+        )}
+      </span>
     </button>
   );
 };

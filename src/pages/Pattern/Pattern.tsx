@@ -1,38 +1,19 @@
-import React, {
-  HTMLInputTypeAttribute,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import styles from "./Pattern.module.scss";
-import {
-  Sidebar,
-  NotificationCard,
-  MUISimpleAutocomplete,
-  Button,
-} from "../../components";
-import { StyledMUITextField } from "../Users/components";
-import { IPattern, ISection, ISubSection } from "../../utils/interfaces";
-import clsx from "clsx";
-import { IconButton, Tooltip } from "@mui/material";
+import { Button, Card, CustomTable } from "../../components";
+import { IPattern } from "../../utils/interfaces";
+import { IconButton } from "@mui/material";
 import deleteIcon from "../../assets/icons/delete.svg";
-import closeCircleIcon from "../../assets/icons/close-circle.svg";
-import {
-  CustomAccordion,
-  CustomAccordionDetails,
-  CustomAccordionSummary,
-} from "./components/CustomAccordion";
-import tickCircle from "../../assets/icons/tick-circle.svg";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import axios from "axios";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
-import { message, Popconfirm, Table } from "antd";
-import { Link, NavLink } from "react-router-dom";
+import { message, Popconfirm } from "antd";
+import { NavLink } from "react-router-dom";
 import { API_TESTS } from "../../utils/api";
 import MainLayout from "../../layouts/MainLayout";
 import { columns } from "./utils";
+import AddIcon from "@mui/icons-material/Add";
 
 const sampleSection = {
   id: "", // PT_SE_PHY123
@@ -73,36 +54,34 @@ const Pattern = () => {
   const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
   const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
   const [loading, setLoading] = useState(false);
-  const [patterns, setPatterns] = useState<IPattern[]>([]);
+  const [patterns, setPatterns] = useState<Array<IPattern>>([]);
 
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
+    async function fetchPatterns() {
+      const res = await API_TESTS().get(`/pattern/all`);
+      setPatterns(
+        res.data?.map((item: any) => ({ ...item, id: item._id, key: item._id }))
+      );
+      setLoading(false);
+    }
     if (currentUser) {
       setLoading(true);
-      API_TESTS()
-        .get(`/pattern/all`)
-        .then((res) => {
-          setPatterns(
-            res.data?.map((item: any) => ({ ...item, key: item._id }))
-          );
-          setLoading(false);
-        })
-        .catch((err) => {
-          setLoading(false);
-        });
+      fetchPatterns();
     }
   }, [currentUser]);
 
-  async function handleDeletePattern(id: string) {
+  const handleDeletePattern = useCallback(async (id: string) => {
     setLoading(true);
     const antLoading = message.loading("Deleting Pattern", 0);
     try {
       await API_TESTS().delete(`/pattern/delete`, {
         params: { id },
       });
-      setPatterns(patterns.filter((pattern) => pattern.id !== id));
+      setPatterns((prev) => prev.filter((pattern) => pattern.id !== id));
       antLoading();
+      setLoading(false);
       message.success("Pattern Deleted Successfully");
     } catch (error) {
       console.log("ERROR_DELETING_PATTERN", error);
@@ -110,26 +89,25 @@ const Pattern = () => {
       message.error("Error Deleting Pattern");
     }
     setLoading(false);
-  }
+  }, []);
 
   return (
     <MainLayout name="Pattern">
       {isReadPermitted ? (
         <>
-          <section className={styles.container}>
+          <Card classes={[styles.container]}>
             <div className={styles.header}>
+              <span></span>
               {isCreatePermitted && (
                 <NavLink to="/pattern/new">
-                  <Button>Add New</Button>
+                  <Button icon={<AddIcon />}>Add New</Button>
                 </NavLink>
               )}
             </div>
             <div className={styles.data}>
-              <Table
-                rowSelection={{
-                  type: "checkbox",
-                  ...rowSelection,
-                }}
+              <CustomTable
+                loading={loading}
+                selectable={false}
                 columns={columns
                   ?.filter((col: any) =>
                     col.key === "action" ? isDeletePermitted : true
@@ -150,11 +128,11 @@ const Pattern = () => {
                       ),
                     };
                   })}
-                dataSource={patterns as any}
+                dataSource={patterns}
                 scroll={{ x: 500, y: 600 }}
               />
             </div>
-          </section>
+          </Card>
           {/* <Sidebar title="Recent Activity">
             {Array(10)
               .fill(0)

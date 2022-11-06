@@ -7,6 +7,7 @@ import { Table } from "antd";
 import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
+import { Add as AddIcon } from "@mui/icons-material";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -34,7 +35,7 @@ const Test = () => {
   const columns: any = [
     {
       title: "ID",
-      dataIndex: "id",
+      dataIndex: "_id",
       width: 100,
       render: (text: string) => (
         <span
@@ -234,7 +235,9 @@ const Test = () => {
             <Tab label="Inactive" />
             <Tab label="Expired" />
           </Tabs>
-          <Button onClick={() => navigate("/test/new")}>Add New</Button>
+          <Button onClick={() => navigate("/test/new")} icon={<AddIcon />}>
+            Add New
+          </Button>
         </div>
         <TabPanel value={tab} index={0}>
           <div className={styles.data}>

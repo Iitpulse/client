@@ -8,40 +8,33 @@ import styles from "./UserProfile.module.scss";
 import { CurrentContext } from "../../utils/contexts/CurrentContext";
 import { Button } from "../";
 import { Student } from "../../pages/Users/Students/Students";
-import clsx from "clsx";
 
 const UserProfile: React.FC<{
+  user: any;
   handleEditModal: () => void;
   handleDeleteModal: () => void;
-}> = ({ handleEditModal, handleDeleteModal }) => {
-  const { selectedUsers } = useContext(CurrentContext);
-
+}> = ({ handleEditModal, handleDeleteModal, user }) => {
   const [userType, setUserType] = useState<
     "student" | "teacher" | "admin" | "superadmin" | "manager" | "operator" | ""
   >("");
-  useEffect(() => {
-    if (selectedUsers.length > 0) setUserType(selectedUsers[0].userType);
-    else setUserType("");
-  }, [selectedUsers]);
-  if (userType === "student" && selectedUsers.length > 0) {
-    if (selectedUsers.length === 1) {
-      return (
-        <>
-          <StudentSideMenu
-            handleEditModal={handleEditModal}
-            handleDeleteModal={handleDeleteModal}
-            selectedUsers={selectedUsers}
-          />
-        </>
-      );
-    }
+
+  if (user.userType === "student") {
+    return (
+      <>
+        <StudentSideMenu
+          handleEditModal={handleEditModal}
+          handleDeleteModal={handleDeleteModal}
+          user={user}
+        />
+      </>
+    );
   }
 
   return <>{/* <StudentSideMenu student={props.user} /> */}</>;
 };
 
 interface StudentSideMenuProps {
-  selectedUsers: Array<any>;
+  user: any;
   handleEditModal: () => void;
   handleDeleteModal: () => void;
 }
@@ -60,7 +53,7 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
     dob,
     contact,
     parentDetails,
-  } = props.selectedUsers[0];
+  } = props.user;
 
   return (
     <>
@@ -119,14 +112,6 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
         <div className={styles.parentsContact}>
           <p className={styles.property}>Parent's Contact</p>
           <p className={styles.value}>{parentDetails.contact}</p>
-        </div>
-        <div className={styles.buttons}>
-          <Button onClick={props.handleEditModal} color="primary">
-            Edit
-          </Button>
-          <Button onClick={props.handleDeleteModal} color="error">
-            Delete
-          </Button>
         </div>
       </div>
     </>

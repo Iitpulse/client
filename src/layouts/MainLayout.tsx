@@ -26,32 +26,11 @@ const MainLayout: React.FC<Props> = ({
       <MenuDrawer />
       <section className={styles.mainContainer}>
         <nav>
-          <CustomBreadCrumb location={location.pathname} />
+          <CustomBreadCrumb
+            location={location.pathname}
+            name={location.pathname === "/" ? "Home" : ""}
+          />
           <div className={styles.actions}>
-            {/* <Stack spacing={2}>
-              <Autocomplete
-                freeSolo
-                id="free-solo-2-demo"
-                disableClearable
-                options={top100Films.map((option) => option.title)}
-                renderInput={(params) => (
-                  <TextField
-                    className={styles.inputField}
-                    {...params}
-                    placeholder="What are you looking for?"
-                    variant="filled"
-                    InputProps={{
-                      ...params.InputProps,
-                      type: "search",
-                    }}
-                  />
-                )}
-              />
-              <div className={styles.imageContainer}>
-                <img src={searchIcon} alt="Search Icon" />
-              </div>
-            </Stack> */}
-            {/* &nbsp; &nbsp; */}
             {onClickDrawerIcon && (
               <IconButton onClick={onClickDrawerIcon}>
                 <img src={notificationIcon} alt="notification" />

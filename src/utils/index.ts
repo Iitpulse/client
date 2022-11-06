@@ -1,3 +1,4 @@
+import { PERMISSIONS } from "./constants";
 import { IUserStudent } from "./interfaces";
 
 export { result } from "./data";
@@ -61,3 +62,12 @@ export function stringToCamelCase(str: string) {
     .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
     .join("");
 }
+
+export const flattendPermissions = () => {
+  let final: any = [];
+  Object.keys(PERMISSIONS).forEach((item) => {
+    // @ts-ignores
+    final = [...final, ...Object.values(PERMISSIONS[item])];
+  });
+  return final;
+};

@@ -21,7 +21,6 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
 
   return (
     <div className={styles.container}>
-      <Navigate path={"/test"}>Back To Tests</Navigate>
       <HeaderDetails
         name={testName || ""}
         type={finalTest?.type || ""}

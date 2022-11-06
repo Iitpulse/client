@@ -1,153 +1,7 @@
-import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
 import { API_USERS } from "../api";
 import { AuthContext } from "../auth/AuthContext";
 import { APIS, PERMISSIONS } from "../constants";
-
-interface PermissionsType {
-  READ_QUESTION?: {
-    from: string;
-    to: string;
-  };
-  CREATE_QUESTION?: {
-    from: string;
-    to: string;
-  };
-  UPDATE_QUESTION?: {
-    from: string;
-    to: string;
-  };
-  READ_GLOBAL_QUESTION?: {
-    from: string;
-    to: string;
-  };
-  DELETE_QUESTION?: {
-    from: string;
-    to: string;
-  };
-  READ_USER?: {
-    from: string;
-    to: string;
-  };
-  CREATE_USER?: {
-    from: string;
-    to: string;
-  };
-  UPDATE_USER?: {
-    from: string;
-    to: string;
-  };
-  DELETE_USER?: {
-    from: string;
-    to: string;
-  };
-
-  READ_BATCH?: {
-    from: string;
-    to: string;
-  };
-  CREATE_BATCH?: {
-    from: string;
-    to: string;
-  };
-  UPDATE_BATCH?: {
-    from: string;
-    to: string;
-  };
-  DELETE_BATCH?: {
-    from: string;
-    to: string;
-  };
-
-  READ_PATTERN?: {
-    from: string;
-    to: string;
-  };
-  CREATE_PATTERN?: {
-    from: string;
-    to: string;
-  };
-  UPDATE_PATTERN?: {
-    from: string;
-    to: string;
-  };
-  DELETE_PATTERN?: {
-    from: string;
-    to: string;
-  };
-  READ_SUBJECT?: {
-    from: string;
-    to: string;
-  };
-  CREATE_SUBJECT?: {
-    from: string;
-    to: string;
-  };
-  UPDATE_SUBJECT?: {
-    from: string;
-    to: string;
-  };
-  DELETE_SUBJECT?: {
-    from: string;
-    to: string;
-  };
-  MANAGE_CHAPTER?: {
-    from: string;
-    to: string;
-  };
-  MANAGE_TOPIC?: {
-    from: string;
-    to: string;
-  };
-  READ_TEST?: {
-    from: string;
-    to: string;
-  };
-  READ_GLOBAL_TEST?: {
-    from: string;
-    to: string;
-  };
-  VIEW_RESULT?: {
-    from: string;
-    to: string;
-  };
-  PUBLISH_RESULT?: {
-    from: string;
-    to: string;
-  };
-  EXPORT_RESULT?: {
-    from: string;
-    to: string;
-  };
-  CREATE_TEST?: {
-    from: string;
-    to: string;
-  };
-  UPDATE_TEST?: {
-    from: string;
-    to: string;
-  };
-  DELETE_TEST?: {
-    from: string;
-    to: string;
-  };
-  READ_ROLE?: {
-    from: string;
-    to: string;
-  };
-  CREATE_ROLE?: {
-    from: string;
-    to: string;
-  };
-  UPDATE_ROLE?: {
-    from: string;
-    to: string;
-  };
-  DELETE_ROLE?: {
-    from: string;
-    to: string;
-  };
-}
 
 interface PermissionsContextType {
   permissions: any;
@@ -155,6 +9,10 @@ interface PermissionsContextType {
   allRoles: any;
   resetPermissions: () => void;
   hasPermissions: any;
+  createNewRole: (name: string) => Promise<any>;
+  updateRole: (id: string, name: string) => Promise<any>;
+  removeMember: (id: string, member: object) => Promise<any>;
+  deleteRole: (id: string) => Promise<any>;
 }
 
 export const PermissionsContext = createContext<PermissionsContextType>(
@@ -183,7 +41,7 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
   useEffect(() => {
     async function getRoles() {
       const response = await API_USERS().get(`/roles/all`);
-      
+
       setAllRoles(response.data);
       let perms: any = {};
       let hPerms: any = {};
@@ -226,6 +84,91 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
     }
   }, [currentUser]);
 
+  const createNewRole = (name: string): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const res = await API_USERS().post(`/roles/create`, {
+          name,
+          permissions: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          createdBy: {
+            id: currentUser?.id,
+            userType: currentUser?.userType,
+          },
+        });
+        setAllRoles((prev: any) => [...prev, res.data]);
+        resolve(res.data);
+      } catch (error) {
+        console.log("ERROR_CREATE_NEW_ROLE", error);
+        reject(error);
+      }
+    });
+  };
+
+  const updateRole = (id: string, permissions: any): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const res = await API_USERS().post(`/roles/update`, {
+          id,
+          permissions,
+        });
+        setAllRoles((prev: any) =>
+          prev.map((role: any) => {
+            if (role.id === id) {
+              return res.data;
+            }
+            return role;
+          })
+        );
+        resolve(res.data);
+      } catch (error) {
+        console.log("ERROR_UPDATE_ROLE", error);
+        reject(error);
+      }
+    });
+  };
+
+  const removeMember = (role: string, member: object): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const res = await API_USERS().post(`/roles/removeMember`, {
+          member,
+          role,
+        });
+        setAllRoles((prev: any) =>
+          prev.map((role: any) => {
+            if (role.id === role) {
+              return res.data;
+            }
+            return role;
+          })
+        );
+        resolve(res.data);
+      } catch (error) {
+        console.log("ERROR_REMOVE_MEMBER", error);
+        reject(error);
+      }
+    });
+  };
+
+  const deleteRole = (id: string): Promise<any> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const res = await API_USERS().delete("/roles/deleteRole", {
+          data: {
+            role: id,
+          },
+        });
+        setAllRoles((prev: any) => prev.filter((role: any) => role.id !== id));
+        resolve(res.data);
+      } catch (error) {
+        console.log("ERROR_DELETE_ROLE", error);
+        reject(error);
+      }
+    });
+  };
+
   return (
     <PermissionsContext.Provider
       value={{
@@ -234,6 +177,10 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
         allRoles,
         resetPermissions,
         hasPermissions,
+        createNewRole,
+        updateRole,
+        removeMember,
+        deleteRole,
       }}
     >
       {children}

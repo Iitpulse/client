@@ -20,6 +20,9 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { CSVLink } from "react-csv";
 import { flattenUserStudents } from "../../utils";
 import MainLayout from "../../layouts/MainLayout";
+import { PERMISSIONS } from "../../utils/constants";
+import { Add as AddIcon } from "@mui/icons-material";
+import { usePermission } from "../../utils/contexts/PermissionsContext";
 
 const UserTypesForCards = [
   {
@@ -85,12 +88,14 @@ const defaultValue = {
 };
 
 const Users = () => {
+  const isCreatePermitted = usePermission(PERMISSIONS.USER.CREATE);
   const [student, setStudent] = useState<any>(defaultValue);
   const [admin, setAdmin] = useState<any>(defaultValue);
   const [manager, setManager] = useState<any>(defaultValue);
   const [teacher, setTeacher] = useState<any>(defaultValue);
   const [operator, setOperator] = useState<any>(defaultValue);
   const [csvData, setCsvData] = useState<any>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   //For Option Menu
   const [selectedUserType, setSelectedUserType] = useState<string>("");
@@ -214,7 +219,14 @@ const Users = () => {
             <IconButton onClick={handleClickRefresh}>
               <CachedIcon />
             </IconButton>
-            <Button onClick={() => setOpenModal(!openModal)}>Add New</Button>
+            {isCreatePermitted && (
+              <Button
+                onClick={() => setOpenModal(!openModal)}
+                icon={<AddIcon />}
+              >
+                Add New
+              </Button>
+            )}
           </div>
         </div>
         <TabPanel value={tab} index={0}>
