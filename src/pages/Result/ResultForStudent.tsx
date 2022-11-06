@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import styles from "./Result.module.scss";
 import { useNavigate, useParams } from "react-router";
-import { Button, Card, Navigate } from "../../components";
+import { Button, Card, CustomTable, Navigate } from "../../components";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import {
   DetailedAnalysis,
@@ -10,6 +10,8 @@ import {
 import timerIcon from "../../assets/icons/timer.svg";
 import { CircularProgress as MUICircularProgress } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
+import { StyledMUISelect } from "../Questions/components";
+import SubjectCard from "./components/SubjectCard";
 
 interface Props {
   finalTest: any;
@@ -17,9 +19,6 @@ interface Props {
 }
 
 const colors = ["#55bc7e", "#f8ba1c", "#fc5f5f", "#61b4f1"];
-function roundToOne(num: number) {
-  return Number(num).toFixed(1);
-}
 
 const ResultForStudent: React.FC<Props> = ({
   finalTest,
@@ -70,6 +69,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
   const [finalSections, setFinalSections] = useState<any>([]);
   const [headerData, setHeaderData] = useState<any>({} as any);
   const [viewDetailedAnalysis, setViewDetaildAnalysis] = useState(false);
+  const [resultType, setResultType] = useState<string>("");
 
   const { testId, testName, testExamName } = useParams();
 
@@ -162,89 +162,97 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
           <SubjectCard key={item.id} color={colors[index % 4]} {...item} />
         ))}
       </div>
-      <Button onClick={() => setViewDetaildAnalysis(true)} color="primary">
-        View Detailed Analysis
-      </Button>
-      {(!hasResultViewPermission || viewDetailedAnalysis) && (
+      <div className={styles.detailedBtns}>
+        <Button onClick={() => setViewDetaildAnalysis(true)} color="primary">
+          View Detailed Analysis
+        </Button>
+        <StyledMUISelect
+          label="Result Type"
+          options={[
+            {
+              name: "Subject Wise",
+              value: "subjectWise",
+            },
+            {
+              name: "Question Wise",
+              value: "questionWise",
+            },
+          ]}
+          state={resultType}
+          onChange={(val) => setResultType(val)}
+        />
+      </div>
+      {(!hasResultViewPermission || viewDetailedAnalysis) &&
+      resultType === "subjectWise" ? (
+        <SubjectWiseAnalysis sections={Object.values(finalSections)} />
+      ) : (
         <DetailedAnalysis sections={Object.values(finalSections)} />
       )}
     </>
   );
 };
 
-interface ISubjectCard {
-  color: string;
-  name: string;
-  marks: number;
-  maxMarks: number;
-  attempted: number;
-  correct: number;
-  incorrect: number;
-  maxTime: string;
-  timeTakenInSeconds: number;
-  totalQuestions: number;
+interface SubjectWiseProps {
+  sections: Array<any>;
 }
 
-const SubjectCard: React.FC<ISubjectCard> = ({
-  color,
-  name,
-  marks,
-  attempted,
-  correct,
-  incorrect,
-  timeTakenInSeconds,
-  totalQuestions,
-}) => {
-  return (
-    <div className={styles.subjectCard}>
-      <h3 style={{ color }} className={styles.subjectName}>
-        {name}
-      </h3>
-      <div className={styles.mid}>
-        <div className={styles.left}>
-          <h2 className={styles.marks}>
-            {marks}/{360}
-          </h2>
-          <div className={styles.time}>
-            <img src={timerIcon} alt="Time" />
-            <p>{timeTakenInSeconds.toFixed(2)}</p>
-          </div>
-          <p className={styles.accuracy}>
-            Accuracy:
-            <span className={styles.highlight}>
-              {roundToOne((correct / attempted) * 100)}%
-            </span>
-          </p>
-        </div>
-        <CircularProgress color={color} progress={(marks / 360) * 100} />
-      </div>
-      <div className={styles.moreInfo}>
-        <p>
-          Attempted :<span className={styles.highlight}>{attempted}</span>{" "}
-        </p>
-        <p>
-          Correct :<span className={styles.highlight}>{correct}</span>{" "}
-        </p>
-        <p>
-          Incorrect :<span className={styles.highlight}>{incorrect}</span>{" "}
-        </p>
-      </div>
-    </div>
-  );
-};
+const SubjectWiseAnalysis: React.FC<SubjectWiseProps> = ({ sections }) => {
+  const [chapters, setChapters] = useState<any>([]);
 
-const CircularProgress: React.FC<{ color: string; progress: number }> = ({
-  progress,
-  color,
-}) => {
+  useEffect(() => {
+    if (sections?.length) {
+      const tempChapters: any = [];
+      sections.forEach((section: any) => {
+        section.subSections.forEach((subSection: any) => {
+          tempChapters.push({
+            ...subSection,
+            sectionName: section.name,
+            sectionId: section.id,
+          });
+        });
+      });
+      setChapters(tempChapters);
+    }
+  }, [sections]);
+
+  const subjectWiseColumns = [
+    {
+      title: "Chapter",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Total Questions",
+      dataIndex: "totalQuestions",
+      key: "totalQuestions",
+    },
+    {
+      title: "Attempted",
+      dataIndex: "attempted",
+      key: "attempted",
+    },
+    {
+      title: "Correct",
+      dataIndex: "correct",
+      key: "correct",
+    },
+    {
+      title: "Incorrect",
+      dataIndex: "incorrect",
+      key: "incorrect",
+    },
+    {
+      title: "Marks Obtained",
+      dataIndex: "marks",
+      key: "marks",
+    },
+  ];
+
   return (
-    <div className={styles.circularProgress}>
-      <MUICircularProgress
-        sx={{ color }}
-        variant="determinate"
-        value={progress}
-      />
-      <p className={styles.progress}>{roundToOne(progress)}%</p>
-    </div>
+    <section className={styles.subjectWiseContainer}>
+      <Card>
+        <CustomTable columns={subjectWiseColumns} dataSource={chapters} />
+      </Card>
+    </section>
   );
 };

@@ -404,7 +404,7 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({ sections }) => {
 
   return (
     <>
-      <div className={styles.sectionWiseAnalysis}>
+      <Card classes={[styles.sectionWiseAnalysis]}>
         <Tabs value={tab} onChange={handleChangeTab}>
           {sections?.map((item: any, index: number) => (
             <Tab label={item?.name} key={index} />
@@ -424,7 +424,7 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({ sections }) => {
             )}
           </TabPanel>
         ))}
-      </div>
+      </Card>
 
       <Modal
         isOpen={isViewSolModalOpen}

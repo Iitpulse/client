@@ -132,3 +132,6 @@
 .globalResultTable {
   margin-top: 2rem;
 }
+.detailedBtns {
+  @extend .flexRow;
+}
