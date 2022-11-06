@@ -9,5 +9,6 @@ export { default as Modal } from "./Modal/Modal";
 export { default as UserProfile } from "./UserProfile/UserProfile";
 export { default as ToggleButton } from "./ToggleButton/ToggleButton";
 export { default as Navigate } from "./Navigate/Navigate";
-export * from "./CustomMUIComps/CustomMUIComps";
 export { default as CreatableSelect } from "./CreatableSelect/CreatableSelect";
+export { default as CustomTable } from "./CustomTable/CustomTable";
+export * from "./CustomMUIComps/CustomMUIComps";

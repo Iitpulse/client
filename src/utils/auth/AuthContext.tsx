@@ -1,5 +1,6 @@
 import { useState, createContext, useEffect } from "react";
 import { decodeToken, isExpired } from "react-jwt";
+import { useNavigate } from "react-router";
 import { API_USERS } from "../api";
 import { AUTH_TOKEN } from "../constants";
 import { ICurrentUser, IAuthContext, IUserDetails } from "../interfaces";
@@ -26,6 +27,8 @@ const AuthContextProvider = (props: ProviderProps) => {
   const [roles, setRoles] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const user = localStorage.getItem(AUTH_TOKEN);
     async function getUserDetails(id: string) {
@@ -40,6 +43,7 @@ const AuthContextProvider = (props: ProviderProps) => {
       if (isExpired(user)) {
         localStorage.removeItem(AUTH_TOKEN);
         setCurrentUser(null);
+        navigate("/login");
         return;
       }
       let newRoles: any = {};
@@ -59,7 +63,7 @@ const AuthContextProvider = (props: ProviderProps) => {
       });
       getUserDetails(decoded.id);
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     console.log("THis is User", { currentUser });

@@ -4,49 +4,54 @@ import {
 } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
-import { Sidebar, NotificationCard } from "../../components";
+import { Button } from "../../components";
 import styles from "./Roles.module.scss";
 import { Link } from "react-router-dom";
-import add from "../../assets/icons/add.svg";
 import member from "../../assets/icons/member.svg";
 import kebabMenu from "../../assets/icons/kebabMenu.svg";
-import { useContext, useEffect, useState } from "react";
-import axios from "axios";
-import AddNewRole from "./AddNewRole";
+import { useCallback, useContext, useState } from "react";
+import AddNewRoleSidebar from "./AddNewRole";
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
-import { API_USERS } from "../../utils/api";
+import { Add as AddIcon } from "@mui/icons-material";
 import { message } from "antd";
+
 const Roles = () => {
   const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
-  // const [roles, setRoles] = useState([]);
-  const [newRoleModal, setNewRoleModal] = useState(false);
-
+  const [isOpenAddNewRole, setIsOpenAddNewRole] = useState(false);
   const { allRoles } = useContext(PermissionsContext);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  const { deleteRole } = useContext(PermissionsContext);
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
+  function handleCloseIsOpenAddNewRole() {
+    setIsOpenAddNewRole(false);
+  }
+
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const handleDeleteRole = (id: string) => {
-    console.log(id);
-    try {
-      const res = API_USERS().delete("/roles/deleteRole", {
-        data: {
-          role: id,
-        },
-      });
-      console.log(res);
-      message.success("Role deleted successfully");
-    } catch (err) {
-      message.error("Something wrong occured");
-      console.log(err);
-    }
-    handleClose();
-  };
+
+  const handleDeleteRole = useCallback(
+    (id: string) => {
+      try {
+        const res = deleteRole(id);
+        console.log(res);
+        message.success("Role deleted successfully");
+      } catch (err) {
+        message.error("Something wrong occured");
+        console.log(err);
+      }
+      handleClose();
+    },
+    [deleteRole]
+  );
+
   return (
     <MainLayout name="Roles">
       {hasPermission ? (
@@ -55,13 +60,16 @@ const Roles = () => {
             <div className={styles.tableHeader}>
               <h4>Roles</h4>
               <h4>Members</h4>
-              <IconButton onClick={() => setNewRoleModal(true)}>
-                <img src={add} alt="add-new-role" />
-              </IconButton>
+              <Button
+                onClick={() => setIsOpenAddNewRole(true)}
+                icon={<AddIcon />}
+              >
+                Create New
+              </Button>
             </div>
             <div className={styles.tableContent}>
               {allRoles?.map((role: any) => (
-                <div className={styles.memberContainer}>
+                <div key={role.id} className={styles.memberContainer}>
                   <Link key={role.id} to={`/roles/${role.id}`}>
                     <p>{role?.name}</p>{" "}
                     <div className={styles.member}>
@@ -102,23 +110,16 @@ const Roles = () => {
               ))}
             </div>
           </div>
-          {/* <Sidebar title="Recent Activity">
-            {Array(10)
-              .fill(0)
-              .map((_, i) => (
-                <NotificationCard
-                  key={i}
-                  id="aasdadsd"
-                  status={i % 2 === 0 ? "success" : "warning"}
-                  title={"New Student Joined-" + i}
-                  description="New student join IIT Pulse Anurag Pal - Dropper Batch"
-                  createdAt="10 Jan, 2022"
-                />
-              ))}
+          {/* <Sidebar
+            title="Create New Role"
+            open={isOpenAddNewRole}
+            width="30%"
+            handleClose={handleCloseIsOpenAddNewRole}
           </Sidebar> */}
-          <AddNewRole
-            open={newRoleModal}
-            handleClose={() => setNewRoleModal(false)}
+
+          <AddNewRoleSidebar
+            open={isOpenAddNewRole}
+            handleClose={handleCloseIsOpenAddNewRole}
           />
         </>
       ) : (

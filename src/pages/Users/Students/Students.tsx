@@ -15,7 +15,14 @@ import {
 } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
-import { Input, Space, Table, Button as AntButton, message } from "antd";
+import {
+  Input,
+  Space,
+  Table,
+  Button as AntButton,
+  message,
+  Popconfirm,
+} from "antd";
 import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
@@ -39,6 +46,8 @@ import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { API_USERS } from "../../../utils/api";
 import { DesktopDatePicker } from "@mui/lab";
+import { Edit, Face, Face3, Person } from "@mui/icons-material";
+import deleteIcon from "../../../assets/icons/delete.svg";
 
 const Students: React.FC<{
   activeTab: number;
@@ -47,7 +56,9 @@ const Students: React.FC<{
   handleCloseModal: () => void;
   loading: boolean;
 }> = ({ activeTab, student, openModal, handleCloseModal, loading }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { students } = useContext(UsersContext);
+  const [currentStudent, setCurrentStudent] = useState<any>(null);
   const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
 
   const [searchText, setSearchText] = useState("");
@@ -151,6 +162,23 @@ const Students: React.FC<{
   });
 
   const columns: any = [
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      width: 80,
+      fixed: "left",
+      render: (text: any, record: any) => (
+        <IconButton
+          onClick={() => {
+            setIsSidebarOpen(true);
+            setCurrentStudent(record);
+          }}
+        >
+          {record.gender === "male" ? <Face /> : <Face3 />}
+        </IconButton>
+      ),
+    },
     {
       title: "Name",
       dataIndex: "name",
@@ -321,18 +349,33 @@ const Students: React.FC<{
           handleCloseModal={() => setIsEditModalOpen(false)}
         />
       )}
-
-      <Modal
-        title="Are you sure you want to delete this user?"
-        hideCloseIcon={true}
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+      <Sidebar
+        title="User Details"
+        open={isSidebarOpen}
+        width={"25%"}
+        handleClose={() => setIsSidebarOpen(false)}
+        extra={
+          <div className={styles.flexRow}>
+            <IconButton onClick={() => setIsSidebarOpen(false)}>
+              <Edit />
+            </IconButton>
+            <Popconfirm
+              title="Sure to delete?"
+              onConfirm={() => setIsSidebarOpen(false)}
+            >
+              <IconButton>
+                <img src={deleteIcon} alt="Delete" />
+              </IconButton>
+            </Popconfirm>
+          </div>
+        }
       >
-        <div className={clsx(styles.modalButtons, styles.actionButtons)}>
-          <Button color="error">Delete</Button>
-          <Button onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-        </div>
-      </Modal>
+        <UserProfile
+          user={currentStudent}
+          handleDeleteModal={() => {}}
+          handleEditModal={() => {}}
+        />
+      </Sidebar>
 
       {/* <Sidebar title="Recent Activity">
         <UserProfile

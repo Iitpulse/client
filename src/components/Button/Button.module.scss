@@ -12,6 +12,21 @@
   -ms-user-select: none;
   user-select: none;
   margin: 0.5rem 0;
+  > span {
+    @extend .flexRow;
+    justify-content: center;
+  }
+  .rightIcon,
+  .leftIcon {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+  .leftIcon {
+    margin-right: 0.2rem;
+  }
+  .rightIcon {
+    margin-left: 0.2rem;
+  }
 }
 
 button:disabled {
@@ -19,15 +34,27 @@ button:disabled {
   opacity: 0.5;
 }
 
+$mainColor: var(--clr-primary);
+
 .clrPrimary {
   background: var(--clr-primary);
+  $mainColor: var(--clr-primary);
 }
 .clrError {
   background: var(--clr-error);
+  $mainColor: var(--clr-error);
 }
 .clrWarning {
   background: var(--clr-warning);
+  $mainColor: var(--clr-warning);
 }
 .clrSuccess {
   background: var(--clr-success);
+  $mainColor: var(--clr-success);
+}
+
+.outlined {
+  background-color: transparent;
+  border: 1px solid $mainColor;
+  color: $mainColor;
 }

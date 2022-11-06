@@ -2,7 +2,7 @@ import styles from "./Batches.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { Table } from "antd";
 import { useNavigate } from "react-router";
-import { Button, Sidebar } from "../../components";
+import { Button, Card, Sidebar } from "../../components";
 import { styled, Box } from "@mui/system";
 import { TextField } from "@mui/material";
 import clsx from "clsx";
@@ -97,7 +97,7 @@ const Batches = () => {
 
   return (
     <MainLayout name="Batches">
-      <div className={styles.container}>
+      <Card classes={[styles.container]}>
         <div className={styles.header}>
           <Button onClick={() => setIsModalRequested(true)}>Create New</Button>
           {isModalRequested && (
@@ -115,7 +115,7 @@ const Batches = () => {
           />
         </div>
         {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
-      </div>
+      </Card>
     </MainLayout>
   );
 };

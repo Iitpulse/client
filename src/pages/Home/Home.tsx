@@ -48,21 +48,6 @@ interface UpcomingTestItemProps {
   mode: "online" | "offline";
 }
 
-function getVariantColor(variant: "success" | "warning" | "error" | "primary") {
-  switch (variant) {
-    case "success":
-      return "#dafde8";
-    case "warning":
-      return "#fff3d3";
-    case "error":
-      return "#ffd8d8";
-    case "primary":
-      return "var(--clr-primary)";
-    default:
-      return "var(--clr-primary)";
-  }
-}
-
 function getVariantClass(variant: "success" | "warning" | "error" | "primary") {
   switch (variant) {
     case "success":

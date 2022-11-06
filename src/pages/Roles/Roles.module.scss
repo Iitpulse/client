@@ -9,6 +9,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+
+    h4:nth-of-type(2) {
+      position: absolute;
+      left: 48%;
+      top: 50%;
+      transform: translate(-45%, -50%);
+    }
   }
   .tableContent {
     a {
@@ -37,31 +45,29 @@
         > img {
           padding-right: 1rem;
         }
-        >img:hover{
+        > img:hover {
           cursor: pointer;
         }
       }
-     
     }
   }
 }
-.memberContainer{
+.memberContainer {
   display: flex;
   flex-direction: row;
   align-items: center;
- 
-         &::before {
-           content: "";
-           transition: all 0.2s ease-in-out;
-           position: absolute;
-           left: 28px;
-           z-index: 0;
-           width: 96%;
-           height: 60px;
-         }
-    
-         &:hover::before {
-           background: #f5f5f5;
-    
-         }
+
+  &::before {
+    content: "";
+    transition: all 0.2s ease-in-out;
+    position: absolute;
+    left: 28px;
+    z-index: 0;
+    width: 96%;
+    height: 60px;
+  }
+
+  &:hover::before {
+    background: #f5f5f5;
+  }
 }

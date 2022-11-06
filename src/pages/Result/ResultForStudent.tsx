@@ -32,7 +32,6 @@ const ResultForStudent: React.FC<Props> = ({
   return (
     <MainLayout name="Result > Student">
       <div className={styles.container}>
-        <Navigate path={"/test"}>Back To Tests</Navigate>
         <HeaderDetails
           name={testName || ""}
           type={finalTest?.type || ""}

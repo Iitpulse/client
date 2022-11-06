@@ -1,63 +1,73 @@
 @import "../../utils/commons.scss";
 
-.student{
- @extend .flexCol;
-.avatar{
-  width: 150px;
-}
- .name{
-  margin:5px 0;
-  font-size: 1.1rem;
-  font-weight: 500;
- }
- p{
-  display: inline-block;
-  margin-bottom: 0;
- }
- .property{
-  font-weight: 600;
-  font-size: 0.9rem;
-  color:#262626;
- }
- .value{
-  font-weight: 400;
-  font-size: 0.9rem;
-  color:rgb(97, 97, 97);
- }
- .icons{
-  button{
-    margin:5px;
+.student {
+  @extend .flexCol;
+  .avatar {
+    width: 150px;
   }
- }
- .class,.course{
-  width: 100%;
-  .property{
-    width:70px;
+  .name {
+    margin: 5px 0;
+    font-size: 1.1rem;
+    font-weight: 500;
   }
- }
- .ageGenderDOB{
-  @extend .flexRow;
-  width: 100%;
-  justify-content: space-between;
-  .age,.gender,.DOB{
+  p {
+    display: inline-block;
+    margin-bottom: 0;
+  }
+  .property {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #262626;
+  }
+  .value {
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: rgb(97, 97, 97);
+  }
+  .icons {
+    button {
+      margin: 5px;
+    }
+  }
+  .class,
+  .course {
+    width: 100%;
+    .property {
+      width: 70px;
+    }
+  }
+  .ageGenderDOB {
+    @extend .flexRow;
+    width: 100%;
+    justify-content: space-between;
+    .age,
+    .gender,
+    .DOB {
+      @extend .flexCol;
+      align-items: flex-start;
+    }
+  }
+  .address,
+  .contact,
+  .parentsContact {
     @extend .flexCol;
+    width: 100%;
     align-items: flex-start;
   }
- }
- .address,.contact,.parentsContact{
-  @extend .flexCol;
-  width: 100%;
-  align-items: flex-start;
- }
- .class,.course,.ageGenderDOB,.address,.contact,.parentsContact{
-  margin-bottom: 0.4rem;
- }
- .buttons{
-  width: 100%;
-  @extend .flexRow;
-  justify-content: space-between;
-  button{
-    min-width:100px;
+  .class,
+  .course,
+  .ageGenderDOB,
+  .address,
+  .contact,
+  .parentsContact {
+    margin-bottom: 0.4rem;
   }
- }
+  .buttons {
+    width: 100%;
+    @extend .flexRow;
+    justify-content: space-between;
+    button {
+      min-width: 100px;
+    }
+  }
 }

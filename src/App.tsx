@@ -47,12 +47,12 @@ const App = () => {
   // });
   return (
     <div className={styles.container}>
-      <AuthContextProvider>
-        <PermissionsContextProvider>
-          <UsersContextProvider>
-            <CurrentContextProvider>
-              <TestsContextProvider>
-                <Router>
+      <Router>
+        <AuthContextProvider>
+          <PermissionsContextProvider>
+            <UsersContextProvider>
+              <CurrentContextProvider>
+                <TestsContextProvider>
                   <Routes>
                     <Route
                       path="/"
@@ -167,12 +167,12 @@ const App = () => {
                       element={<PrivateRoute component={Users} name="Users" />}
                     />
                   </Routes>
-                </Router>
-              </TestsContextProvider>
-            </CurrentContextProvider>
-          </UsersContextProvider>
-        </PermissionsContextProvider>
-      </AuthContextProvider>
+                </TestsContextProvider>
+              </CurrentContextProvider>
+            </UsersContextProvider>
+          </PermissionsContextProvider>
+        </AuthContextProvider>
+      </Router>
     </div>
   );
 };

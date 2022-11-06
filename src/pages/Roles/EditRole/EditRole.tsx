@@ -1,13 +1,13 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { Tabs, Tab, IconButton } from "@mui/material";
-import { Modal } from "../../../components";
+import { CustomTable } from "../../../components";
 import styles from "./EditRole.module.scss";
 import {
   PermissionsContext,
   usePermission,
 } from "../../../utils/contexts/PermissionsContext";
-import { APIS, PERMISSIONS } from "../../../utils/constants";
+import { PERMISSIONS } from "../../../utils/constants";
 import { Error } from "../../";
 import {
   Sidebar,
@@ -17,17 +17,15 @@ import {
   Card,
 } from "../../../components";
 import clsx from "clsx";
-import axios from "axios";
-import { flattendPermissions } from "../AddNewRole";
-import ClearIcon from "@mui/icons-material/Clear";
-import { API_USERS } from "../../../utils/api";
 import {
   CustomAccordion,
   CustomAccordionDetails,
   CustomAccordionSummary,
 } from "../../Pattern/components/CustomAccordion";
-import { message } from "antd";
+import { message, Popconfirm } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
+import deleteIcon from "../../../assets/icons/delete.svg";
+import { EDIT_ROLE_TABLE_COLS } from "../utils";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -61,179 +59,17 @@ const EditRole = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [targetUser, setTargetUser] = useState<any>({ name: "", id: "" });
 
-  const { permissions: rolePermissions, allRoles } =
-    useContext(PermissionsContext);
+  const {
+    permissions: rolePermissions,
+    allRoles,
+    updateRole,
+    removeMember,
+  } = useContext(PermissionsContext);
   console.log("all roles :", allRoles);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
-
-  // function getRoleInformation(roleName: string | undefined) {
-  //   const response = {
-  //     id: "ABC123",
-  //     permission: {
-  //       READ_QUESTION: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       CREATE_QUESTION: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       UPDATE_QUESTION: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       READ_GLOBAL_QUESTION: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       DELETE_QUESTION: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       READ_USER: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       CREATE_USER: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       UPDATE_USER: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       DELETE_USER: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-
-  //       READ_BATCH: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       CREATE_BATCH: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       UPDATE_BATCH: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       DELETE_BATCH: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-
-  //       READ_PATTERN: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       CREATE_PATTERN: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       UPDATE_PATTERN: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       DELETE_PATTERN: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       READ_SUBJECT: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       CREATE_SUBJECT: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       UPDATE_SUBJECT: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       DELETE_SUBJECT: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       MANAGE_CHAPTER: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       MANAGE_TOPIC: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       READ_TEST: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       READ_GLOBAL_TEST: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       VIEW_RESULT: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       PUBLISH_RESULT: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       EXPORT_RESULT: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       CREATE_TEST: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       UPDATE_TEST: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //       DELETE_TEST: {
-  //         from: "Date",
-  //         to: "Date",
-  //         description: "Allows User to do something",
-  //       },
-  //     },
-  //   };
-  //   setPermissionInformation(response);
-  // }
 
   useEffect(() => {
     setPermissions(PERMISSIONS);
@@ -285,16 +121,14 @@ const EditRole = () => {
     }
   }
 
-  async function handleClickUpdate() {
+  const handleClickUpdate = useCallback(async () => {
     const msgLoding = message.loading({
       content: "Updating Role...",
       key: "updateRole",
     });
+    if (!roleName) return message.error("Role name is required");
     try {
-      await API_USERS().post(`/roles/update`, {
-        id: roleName,
-        permissions: allowedPermissions,
-      });
+      await updateRole(String(roleName), allowedPermissions);
       msgLoding();
       message.success({
         content: "Role Updated Successfully",
@@ -304,38 +138,40 @@ const EditRole = () => {
       msgLoding();
       message.error({ content: "Error Updating Role", key: "updateRole" });
     }
-  }
-  async function handleClickRemoveUser(member: Object, role: any) {
-    console.log(member, role);
-    const msgLoding = message.loading({
-      content: "Removing User...",
-      key: "removeUser",
-    });
-    try {
-      await API_USERS().post(`/roles/removeMember`, {
-        member,
-        role,
-      });
-      msgLoding();
-      message.success({
-        content: "User Removed Successfully",
+  }, [roleName, allowedPermissions, updateRole]);
+
+  const handleClickRemoveUser = useCallback(
+    async (member: Object, role: any) => {
+      const msgLoding = message.loading({
+        content: "Removing User...",
         key: "removeUser",
       });
-    } catch (error) {
-      msgLoding();
-      message.error({ content: "Error Removing User", key: "removeUser" });
-    }
-  }
+      try {
+        await removeMember(role, member);
+        msgLoding();
+        message.success({
+          content: "User Removed Successfully",
+          key: "removeUser",
+        });
+      } catch (error) {
+        msgLoding();
+        message.error({ content: "Error Removing User", key: "removeUser" });
+      }
+    },
+    [removeMember]
+  );
 
   return (
     <MainLayout name="Edit Role">
       {isReadPermitted ? (
         <>
           <div className={styles.editRole}>
-            <div className={styles.flexRow}>
-              <p>{roleName}</p>
-              <Button onClick={handleClickUpdate}>Update</Button>
-            </div>
+            <Button
+              onClick={handleClickUpdate}
+              classes={[styles.floatingUpdateBtn]}
+            >
+              Update
+            </Button>
             <Card classes={[styles.tabHeaders]}>
               <Tabs value={tab} onChange={handleChangeTab}>
                 <Tab label="Permissions" />
@@ -367,51 +203,33 @@ const EditRole = () => {
             </TabPanel>
             <TabPanel value={tab} index={1}>
               <div className={clsx(styles.tabPanel, styles.managePeople)}>
-                {members?.map((member: any, index: number) => (
-                  <Card key={index} classes={[styles.peopleContainer]}>
-                    <div className={styles.flexRow}>
-                      <p>{member?.name}</p>
-                      <IconButton
-                        onClick={() => {
-                          setTargetUser(member);
-                          setIsDeleteModalOpen(true);
-                        }}
-                      >
-                        <ClearIcon />
-                      </IconButton>
-                    </div>
-                  </Card>
-                ))}
+                <CustomTable
+                  columns={EDIT_ROLE_TABLE_COLS?.map((col: any) =>
+                    col.key === "action"
+                      ? ({
+                          ...col,
+                          render: (text: any, record: any) => (
+                            <Popconfirm
+                              title="Are you sure?"
+                              onConfirm={() =>
+                                handleClickRemoveUser(record, roleName)
+                              }
+                            >
+                              <IconButton>
+                                <img src={deleteIcon} alt="delete" />
+                              </IconButton>
+                            </Popconfirm>
+                          ),
+                        } as any)
+                      : col
+                  )}
+                  dataSource={members}
+                  scroll={{
+                    x: 500,
+                    y: 400,
+                  }}
+                />
               </div>
-              <Modal
-                title={`Are you sure you want to delete user : ${targetUser.name}?`}
-                hideCloseIcon={true}
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-              >
-                <div
-                  className={clsx(styles.modalButtons, styles.actionButtons)}
-                >
-                  <Button
-                    color="error"
-                    onClick={() => {
-                      console.log("hey");
-                      handleClickRemoveUser(targetUser, roleName);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      console.log(targetUser, roleName);
-                      setTargetUser({ name: "", id: "" });
-                      setIsDeleteModalOpen(false);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </Modal>
             </TabPanel>
           </div>
           {/* <Sidebar title="Recent Activity">
