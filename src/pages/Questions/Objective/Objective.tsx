@@ -70,7 +70,9 @@ const Objective: React.FC<Props> = ({
   }, [values]);
 
   useEffect(() => {
-    setData((prev: any) => ({ ...prev, type: answerType }));
+    console.log("hey", data);
+    console.log("hey", values);
+    setData((prev: any) => ({ ...values, type: answerType }));
   }, [values, setData, answerType]);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
