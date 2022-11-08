@@ -40,7 +40,7 @@ import MainLayout from "../../layouts/MainLayout";
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
-  const { id, name, description, exam, status, validity, sections } = test;
+  const { id, name, description, exam, validity, sections } = test;
   const [pattern, setPattern] = useState<IPattern | null>(null);
   const [patternOptions, setPatternOptions] = useState([]);
 
@@ -49,6 +49,10 @@ const CreateTest = () => {
   const [publishType, setPublishType] = useState({
     value: "immediately",
     name: "Immediately",
+  });
+  const [status, setStatus] = useState({
+    value: "",
+    name: "",
   });
   const [testDateRange, setTestDateRange] = useState([]);
   const [daysAfter, setDaysAfter] = useState(1);
@@ -139,6 +143,7 @@ const CreateTest = () => {
       try {
         let finalTest = {
           ...test,
+          status: status.name,
           createdBy: {
             id: currentUser.id,
             userType: currentUser.userType,
@@ -258,6 +263,19 @@ const CreateTest = () => {
               value={testDateRange}
             />
           </div>
+          <MUISimpleAutocomplete
+            label="Status"
+            onChange={(val: any) => {
+              console.log({ val });
+              setStatus(val);
+            }}
+            options={statusOptions}
+            disabled={!Boolean(statusOptions.length)}
+            value={{
+              name: status?.name || "",
+              value: status?.value || "",
+            }}
+          />
           <MUISimpleAutocomplete
             label="Pattern"
             onChange={(val: any) => setPattern(val)}

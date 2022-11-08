@@ -297,7 +297,14 @@ const CreateQuestion = () => {
                 );
                 console.log({ res });
               } else {
-                res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
+                async function createNewQuestion() {
+                  return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
+                }
+                const temp = Array(50)
+                  .fill(null)
+                  .map(() => createNewQuestion());
+                await Promise.all(temp);
+                console.log(temp);
               }
 
               console.log({ res });
