@@ -8,7 +8,7 @@ import {
   Modal,
   Card,
 } from "../../components/";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, memo, SetStateAction, useEffect, useState } from "react";
 import { Tab, Tabs, Menu, MenuItem, IconButton } from "@mui/material";
 import calendar from "../../assets/icons/calendar.svg";
 import yellowFlag from "../../assets/icons/yellowFlag.svg";

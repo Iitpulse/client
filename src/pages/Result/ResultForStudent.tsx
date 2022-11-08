@@ -183,11 +183,11 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         />
       </div>
       {(!hasResultViewPermission || viewDetailedAnalysis) &&
-      resultType === "subjectWise" ? (
-        <SubjectWiseAnalysis sections={Object.values(finalSections)} />
-      ) : (
-        <DetailedAnalysis sections={Object.values(finalSections)} />
-      )}
+        (resultType === "subjectWise" ? (
+          <SubjectWiseAnalysis sections={Object.values(finalSections)} />
+        ) : (
+          <DetailedAnalysis sections={Object.values(finalSections)} />
+        ))}
     </>
   );
 };
@@ -201,57 +201,168 @@ const SubjectWiseAnalysis: React.FC<SubjectWiseProps> = ({ sections }) => {
 
   useEffect(() => {
     if (sections?.length) {
-      const tempChapters: any = [];
+      let tempChapters: any = {};
       sections.forEach((section: any) => {
         section.subSections.forEach((subSection: any) => {
-          tempChapters.push({
-            ...subSection,
-            sectionName: section.name,
-            sectionId: section.id,
+          subSection.questions.forEach((question: any) => {
+            question.chapters.forEach((chapter: any, i: number) => {
+              if (tempChapters[chapter.name]) {
+                tempChapters[chapter.name].totalQuestions += 1;
+                if (question.marks > 0) {
+                  tempChapters[chapter.name].correct += 1;
+                } else if (question.marks < 0) {
+                  tempChapters[chapter.name].incorrect += 1;
+                }
+                if (question.timeTakenInSeconds !== null) {
+                  tempChapters[chapter.name].attempted += 1;
+                } else {
+                  tempChapters[chapter.name].unattempted += 1;
+                }
+                tempChapters[chapter.name].marks += question.marks;
+
+                tempChapters[chapter.name].timeTakenInSeconds +=
+                  question.timeTakenInSeconds;
+
+                // topics
+                chapter.topics.forEach((topic: any) => {
+                  if (tempChapters[chapter.name].topics[topic]) {
+                    tempChapters[chapter.name].topics[
+                      topic
+                    ].totalQuestions += 1;
+                    if (question.marks > 0) {
+                      tempChapters[chapter.name].topics[topic].correct += 1;
+                    } else if (question.marks < 0) {
+                      tempChapters[chapter.name].topics[topic].incorrect += 1;
+                    }
+                    if (question.timeTakenInSeconds !== null) {
+                      tempChapters[chapter.name].topics[topic].attempted += 1;
+                    } else {
+                      tempChapters[chapter.name].topics[topic].unattempted += 1;
+                    }
+                    tempChapters[chapter.name].topics[topic].marks +=
+                      question.marks;
+                    tempChapters[chapter.name].topics[
+                      topic
+                    ].timeTakenInSeconds += question.timeTakenInSeconds;
+                  }
+                });
+              } else {
+                tempChapters[chapter.name] = {
+                  ...chapter,
+                  totalQuestions: 1,
+                  marks: question.marks,
+                  attempted: question.timeTakenInSeconds ? 1 : 0,
+                  unattempted: question.timeTakenInSeconds ? 0 : 1,
+                  correct: question.marks > 0 ? 1 : 0,
+                  incorrect: question.marks < 0 ? 1 : 0,
+                };
+                tempChapters[chapter.name].timeTakenInSeconds =
+                  question.timeTakenInSeconds;
+                // topics
+                tempChapters[chapter.name].topics = {};
+                chapter.topics.forEach((topic: any) => {
+                  tempChapters[chapter.name].topics[topic] = {
+                    name: topic,
+                    totalQuestions: 1,
+                    marks: question.marks,
+                    attempted: question.timeTakenInSeconds ? 1 : 0,
+                    unattempted: question.timeTakenInSeconds ? 0 : 1,
+                    correct: question.marks > 0 ? 1 : 0,
+                    incorrect: question.marks < 0 ? 1 : 0,
+                  };
+                  tempChapters[chapter.name].topics[topic].timeTakenInSeconds =
+                    question.timeTakenInSeconds;
+                });
+              }
+            });
           });
         });
       });
-      setChapters(tempChapters);
+      setChapters(
+        Object.values(tempChapters)?.map((item: any, i: number) => ({
+          ...item,
+          key: i.toString(),
+        }))
+      );
+      console.log({ tempChapters });
     }
   }, [sections]);
 
-  const subjectWiseColumns = [
+  const subjectWiseColumns: any = [
     {
       title: "Chapter",
       dataIndex: "name",
       key: "name",
+      fixed: "left",
+      width: 200,
     },
     {
       title: "Total Questions",
       dataIndex: "totalQuestions",
       key: "totalQuestions",
+      width: 150,
     },
     {
       title: "Attempted",
       dataIndex: "attempted",
       key: "attempted",
+      width: 150,
     },
     {
       title: "Correct",
       dataIndex: "correct",
       key: "correct",
+      width: 150,
     },
     {
       title: "Incorrect",
       dataIndex: "incorrect",
       key: "incorrect",
+      width: 150,
     },
     {
       title: "Marks Obtained",
       dataIndex: "marks",
       key: "marks",
+      width: 150,
+    },
+    {
+      title: "Time Taken",
+      dataIndex: "timeTakenInSeconds",
+      key: "timeTakenInSeconds",
+      width: 150,
+      render: (time: number) => {
+        return <>{time ? `${time.toFixed(2)} sec` : "-"}</>;
+      },
     },
   ];
+
+  const expandedRowRender = (record: any) => {
+    const columns: any = subjectWiseColumns.map((col: any) =>
+      col.title === "Chapter" ? { ...col, title: "Topics" } : col
+    );
+
+    const data = Object.values(record.topics).map((item: any, i: number) => ({
+      ...item,
+      key: i.toString(),
+    }));
+
+    return (
+      <CustomTable columns={columns} dataSource={data} pagination={false} />
+    );
+  };
 
   return (
     <section className={styles.subjectWiseContainer}>
       <Card>
-        <CustomTable columns={subjectWiseColumns} dataSource={chapters} />
+        <CustomTable
+          columns={subjectWiseColumns}
+          dataSource={chapters}
+          expandable={{ expandedRowRender, defaultExpandedRowKeys: ["0"] }}
+          scroll={{
+            x: 600,
+          }}
+        />
       </Card>
     </section>
   );
