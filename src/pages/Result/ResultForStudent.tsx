@@ -12,7 +12,10 @@ import { CircularProgress as MUICircularProgress } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
 import { StyledMUISelect } from "../Questions/components";
 import SubjectCard from "./components/SubjectCard";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Doughnut } from "react-chartjs-2";
 
+ChartJS.register(ArcElement, Tooltip, Legend);
 interface Props {
   finalTest: any;
   hasResultViewPermission: boolean;
@@ -120,6 +123,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
                 incorrect,
                 timeTakenInSeconds,
                 marks,
+                totalQuestions,
               },
             }));
           });

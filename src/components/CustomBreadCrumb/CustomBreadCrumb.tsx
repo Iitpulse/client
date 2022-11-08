@@ -11,6 +11,9 @@ const CustomBreadCrumb: React.FC<{
   if (items[2] === "result") {
     items = ["", "test", items[items.length - 1]];
   }
+  if (items[1] === "pattern" && items.length !== 2) {
+    items = ["", "pattern", items[items.length - 1]];
+  }
   return (
     <Breadcrumb className={styles.breadcrumb}>
       {name ? (
@@ -25,6 +28,14 @@ const CustomBreadCrumb: React.FC<{
 
           for (let i = 1; i <= idx; i++)
             str += items[i] + (i === idx ? "" : "/");
+          if (idx === items.length - 1) {
+            item = item[0].toLocaleUpperCase() + item.slice(1);
+            return (
+              <Breadcrumb.Item key={`/${str}`}>
+                <p>{item}</p>
+              </Breadcrumb.Item>
+            );
+          }
           return (
             <Breadcrumb.Item key={`/${str}`}>
               <Link to={`/${str}`}>{item}</Link>

@@ -38,7 +38,7 @@ import { ToggleButton } from "../../components";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
 import Edit from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
-
+import { getTopics } from "./../../utils/constants";
 export const questionTypes = [
   { name: "Objective", value: "objective" },
   // { name: "Multiple Correct", value: "multiple" },
@@ -128,24 +128,6 @@ const Questions = () => {
   const isUpdatePermitted = usePermission(PERMISSIONS.QUESTION.UPDATE);
   const isDeletePermitted = usePermission(PERMISSIONS.QUESTION.DELETE);
 
-  // const [id, setId] = useState<string>("QM_ABC123");
-  const [exams, setExams] = useState<Array<string>>([]);
-  const [type, setType] = useState<string>("objective");
-  const [subject, setSubject] = useState<string>("");
-  const [chapters, setChapters] = useState<Array<string>>([]);
-  const [topics, setTopics] = useState<Array<string>>([]);
-  const [difficulty, setDifficulty] = useState<string>("");
-  const [source, setSource] = useState<Array<string>>([]);
-  const [uploadedBy, setUploadedBy] = useState<{
-    userType: string;
-    id: string;
-  }>({
-    userType: "operator",
-    id: "",
-  });
-  const [chapterOptions, setChapterOptions] = useState([]);
-  const [topicOptions, setTopicOptions] = useState([]);
-  const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [totalDocs, setTotalDocs] = useState(1);
   const [sidebarOpen, setSideBarOpen] = useState<boolean>(false);
@@ -157,48 +139,8 @@ const Questions = () => {
 
   const { currentUser } = useContext(AuthContext);
 
-  // useEffect(() => {
-  //   console.log({
-  //     id,
-  //     type,
-  //     subject,
-  //     chapter: chapters,
-  //     topics,
-  //     difficulty,
-  //     source,
-  //     uploadedBy,
-  //   });
-  // });
-
-  useEffect(() => {
-    if (subject?.length) {
-      console.log(subject);
-      API_QUESTIONS()
-        .get(`/subject/chapter/`, {
-          params: {
-            subject,
-          },
-        })
-        .then((res) => {
-          console.log({ res });
-          if (res.data) {
-            setChapterOptions(res.data);
-            setTopicOptions(res.data[0].topics);
-          }
-        });
-    }
-  }, [subject]);
-
-  useEffect(() => {
-    if (currentUser)
-      setUploadedBy({ userType: currentUser?.userType, id: currentUser?.id });
-  }, [currentUser]);
-
   const tableRef = useRef<any>(null);
 
-  // const handlePrint = useReactToPrint({
-  //   content: () => tableRef.current,
-  // });
   const handlePrint = async () => {
     const data = await asBlob(tableRef.current.innerHTML, {
       orientation: "portrait",
@@ -209,78 +151,6 @@ const Questions = () => {
     saveAs(data, "file.docx"); // save as docx file
     // }); // asBlob() return Promise<Blob|Buffer>
   };
-
-  async function handleSubmitQuestion() {
-    if (currentUser) {
-      let questionCore = {
-        id: Date.now().toString(),
-        type: data.type,
-        subject,
-        chapters,
-        topics,
-        difficulty,
-        sources: source,
-        createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString(),
-        isProofRead: false,
-        uploadedBy: {
-          userType: currentUser?.userType,
-          id: currentUser.id,
-        },
-      };
-      switch (data.type) {
-        case "single":
-        case "multiple":
-          {
-            const finalQuestion: IQuestionObjective = {
-              ...questionCore,
-              en: {
-                question: data.en.question,
-                options: data.en.options,
-                solution: data.en.solution,
-              },
-              hi: {
-                question: data.hi.question,
-                options: data.hi.options,
-                solution: data.hi.solution,
-              },
-              correctAnswers: getCorrectAnswers(data.en.options),
-            };
-            console.log({ finalQuestion });
-            const res = await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
-
-            console.log({ res });
-          }
-          break;
-        case "integer":
-          {
-            const finalQuestion: IQuestionInteger = {
-              ...questionCore,
-              en: {
-                question: data.en.question,
-                solution: data.en.solution,
-              },
-              hi: {
-                question: data.hi.question,
-                solution: data.hi.solution,
-              },
-              correctAnswers: data.correctAnswers,
-            };
-
-            console.log({ finalQuestion });
-            const res = await API_QUESTIONS().post(
-              `/numerical/new`,
-              finalQuestion
-            );
-
-            console.log({ res });
-          }
-          break;
-        default:
-          return;
-      }
-    }
-  }
 
   useEffect(() => {
     if (previewData?.type === "single" || previewData?.type === "multiple") {
@@ -574,9 +444,14 @@ const PreviewFullQuestion: React.FC<{
         <div className={styles.previewBreadCumbDiv}>
           <h4>{previewData?.subject}</h4>
           {" > "}
-          <h4>{previewData?.chapters?.join(", ")}</h4>
+          <h4>
+            {previewData?.chapters?.map((value: any) => value.name)?.join(", ")}
+          </h4>
           {" > "}
-          <h4>{previewData?.topics?.join(", ")}</h4>
+          <h4>
+            {previewData?.chapters &&
+              getTopics(previewData?.chapters)?.join(", ")}
+          </h4>
         </div>
         <div>
           <Tag

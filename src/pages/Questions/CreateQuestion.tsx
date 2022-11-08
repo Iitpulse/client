@@ -246,8 +246,15 @@ const CreateQuestion = () => {
           id: Date.now().toString(),
           type: data.type,
           subject: subject?.name,
-          chapters: chapters.map((chapter) => chapter.name),
-          topics: topics.map((topic) => topic.name),
+          chapters: chapters.map((chapter: any) => {
+            let topicArray = topics.map((topic) => topic.name);
+            return {
+              name: chapter.name,
+              topics: chapter.topics.filter((value: any) =>
+                topicArray.includes(value)
+              ),
+            };
+          }),
           difficulty,
           sources: sources.map((source) => source.name),
           createdAt: new Date().toISOString(),
@@ -258,10 +265,12 @@ const CreateQuestion = () => {
             id: currentUser.id,
           },
         };
+
         switch (data.type) {
           case "single":
           case "multiple":
             {
+              console.log("here ", { data });
               const finalQuestion: IQuestionObjective = {
                 ...questionCore,
                 en: {

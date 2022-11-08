@@ -15,6 +15,7 @@ import { Menu, MenuItem, IconButton } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";
 import { message } from "antd";
+import deleteIcon from "../../assets/icons/delete.svg";
 
 const Roles = () => {
   const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
@@ -77,35 +78,14 @@ const Roles = () => {
                       <p>{role.members?.length}</p>
                     </div>
                   </Link>
-                  <div>
-                    <IconButton
-                      id="basic-button"
-                      aria-controls={open ? "basic-menu" : undefined}
-                      aria-haspopup="true"
-                      aria-expanded={open ? "true" : undefined}
-                      onClick={handleClick}
-                    >
-                      <img src={kebabMenu} alt="Kebab Menu" />
-                    </IconButton>
-                  </div>
-                  <Menu
-                    id="basic-menu"
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleClose}
-                    MenuListProps={{
-                      "aria-labelledby": "basic-button",
+
+                  <IconButton
+                    onClick={() => {
+                      handleDeleteRole(role.id);
                     }}
                   >
-                    <MenuItem
-                      onClick={() => {
-                        handleDeleteRole(role.id);
-                      }}
-                    >
-                      Delete Role{" "}
-                    </MenuItem>
-                    <MenuItem onClick={handleClose}>Report a Problem </MenuItem>
-                  </Menu>
+                    <img src={deleteIcon} />
+                  </IconButton>
                 </div>
               ))}
             </div>

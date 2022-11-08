@@ -221,7 +221,13 @@ export const PERMISSIONS = {
 //   createdAt: new Date().toISOString(),
 //   modifiedAt: new Date().toISOString(),
 // };
-
+export const getTopics = (chapters: Array<any>) => {
+  let topics: Array<string> = [];
+  chapters.forEach((chapter) => {
+    chapter.topics.forEach((topic: string) => topics.push(topic));
+  });
+  return topics;
+};
 export const QUESTION_COLS_ALL = [
   // {
   //   title: "ID",
@@ -292,7 +298,9 @@ export const QUESTION_COLS_ALL = [
     dataIndex: "chapters",
     key: "chapter",
     searchable: true,
-    render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
+    render: (chapters: any) => (
+      <p>{chapters?.map((value: any) => value.name)?.join(", ")}</p>
+    ),
     width: 150,
   },
   {
@@ -300,7 +308,9 @@ export const QUESTION_COLS_ALL = [
     dataIndex: "topics",
     key: "topic",
     searchable: true,
-    render: (topics: any) => <p>{topics?.join(", ")}</p>,
+    render: (topics: any, record: any) => (
+      <p>{getTopics(record.chapters)?.join(", ")}</p>
+    ),
     width: 150,
   },
   {

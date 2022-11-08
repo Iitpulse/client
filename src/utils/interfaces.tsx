@@ -142,8 +142,11 @@ interface IQuestionCore {
   type: string; // single | multiple | integer | paragraph | matrix
   sources: Array<string>;
   subject: string;
-  chapters: Array<string>;
-  topics: Array<string>;
+  chapters: Array<{
+    name: string;
+    topics: Array<string>;
+  }>;
+
   difficulty: string; // easy | medium | hard
   isProofRead: boolean;
   createdAt: string;
