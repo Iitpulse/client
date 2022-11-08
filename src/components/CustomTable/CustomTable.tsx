@@ -12,6 +12,7 @@ interface Props {
   scroll?: any;
   selectedRows?: Array<any>;
   setSelectedRows?: (rows: Array<any>) => void;
+  expandable?: any;
   pagination?: any;
 }
 
@@ -21,6 +22,7 @@ const CustomTable: React.FC<Props> = ({
   loading,
   selectable,
   scroll,
+  expandable,
   setSelectedRows,
   pagination,
 }) => {
@@ -165,6 +167,7 @@ const CustomTable: React.FC<Props> = ({
       columns={cols}
       loading={tableLoading}
       rowSelection={rowSelection}
+      expandable={expandable}
       scroll={
         scroll || {
           y: "40vh",

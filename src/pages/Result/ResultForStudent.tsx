@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import styles from "./Result.module.scss";
 import { useNavigate, useParams } from "react-router";
-import { Button, Card, Navigate } from "../../components";
+import { Button, Card, CustomTable, Navigate } from "../../components";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import {
   DetailedAnalysis,
@@ -10,6 +10,8 @@ import {
 import timerIcon from "../../assets/icons/timer.svg";
 import { CircularProgress as MUICircularProgress } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
+import { StyledMUISelect } from "../Questions/components";
+import SubjectCard from "./components/SubjectCard";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 
@@ -20,9 +22,6 @@ interface Props {
 }
 
 const colors = ["#55bc7e", "#f8ba1c", "#fc5f5f", "#61b4f1"];
-function roundToOne(num: number) {
-  return Number(num).toFixed(1);
-}
 
 const ResultForStudent: React.FC<Props> = ({
   finalTest,
@@ -73,6 +72,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
   const [finalSections, setFinalSections] = useState<any>([]);
   const [headerData, setHeaderData] = useState<any>({} as any);
   const [viewDetailedAnalysis, setViewDetaildAnalysis] = useState(false);
+  const [resultType, setResultType] = useState<string>("");
 
   const { testId, testName, testExamName } = useParams();
 
@@ -166,119 +166,208 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
           <SubjectCard key={item.id} color={colors[index % 4]} {...item} />
         ))}
       </div>
-      <Button onClick={() => setViewDetaildAnalysis(true)} color="primary">
-        View Detailed Analysis
-      </Button>
-      {(!hasResultViewPermission || viewDetailedAnalysis) && (
-        <DetailedAnalysis sections={Object.values(finalSections)} />
-      )}
+      <div className={styles.detailedBtns}>
+        <Button onClick={() => setViewDetaildAnalysis(true)} color="primary">
+          View Detailed Analysis
+        </Button>
+        <StyledMUISelect
+          label="Result Type"
+          options={[
+            {
+              name: "Subject Wise",
+              value: "subjectWise",
+            },
+            {
+              name: "Question Wise",
+              value: "questionWise",
+            },
+          ]}
+          state={resultType}
+          onChange={(val) => setResultType(val)}
+        />
+      </div>
+      {(!hasResultViewPermission || viewDetailedAnalysis) &&
+        (resultType === "subjectWise" ? (
+          <SubjectWiseAnalysis sections={Object.values(finalSections)} />
+        ) : (
+          <DetailedAnalysis sections={Object.values(finalSections)} />
+        ))}
     </>
   );
 };
 
-interface ISubjectCard {
-  color: string;
-  name: string;
-  marks: number;
-  maxMarks: number;
-  attempted: number;
-  correct: number;
-  incorrect: number;
-  maxTime: string;
-  timeTakenInSeconds: number;
-  totalQuestions: number;
+interface SubjectWiseProps {
+  sections: Array<any>;
 }
 
-const SubjectCard: React.FC<ISubjectCard> = ({
-  color,
-  name,
-  marks,
-  attempted,
-  correct,
-  incorrect,
-  timeTakenInSeconds,
-  totalQuestions,
-}) => {
-  const chartData = {
-    labels: ["Correct", "Incorrect", "Unattemped"],
-    datasets: [
-      {
-        label: "# of Votes",
-        data: [correct, incorrect, totalQuestions - attempted],
-        backgroundColor: ["green", "red", "yellow"],
-        borderColor: [
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
-        ],
-        borderWidth: 1,
+const SubjectWiseAnalysis: React.FC<SubjectWiseProps> = ({ sections }) => {
+  const [chapters, setChapters] = useState<any>([]);
+
+  useEffect(() => {
+    if (sections?.length) {
+      let tempChapters: any = {};
+      sections.forEach((section: any) => {
+        section.subSections.forEach((subSection: any) => {
+          subSection.questions.forEach((question: any) => {
+            question.chapters.forEach((chapter: any, i: number) => {
+              if (tempChapters[chapter.name]) {
+                tempChapters[chapter.name].totalQuestions += 1;
+                if (question.marks > 0) {
+                  tempChapters[chapter.name].correct += 1;
+                } else if (question.marks < 0) {
+                  tempChapters[chapter.name].incorrect += 1;
+                }
+                if (question.timeTakenInSeconds !== null) {
+                  tempChapters[chapter.name].attempted += 1;
+                } else {
+                  tempChapters[chapter.name].unattempted += 1;
+                }
+                tempChapters[chapter.name].marks += question.marks;
+
+                tempChapters[chapter.name].timeTakenInSeconds +=
+                  question.timeTakenInSeconds;
+
+                // topics
+                chapter.topics.forEach((topic: any) => {
+                  if (tempChapters[chapter.name].topics[topic]) {
+                    tempChapters[chapter.name].topics[
+                      topic
+                    ].totalQuestions += 1;
+                    if (question.marks > 0) {
+                      tempChapters[chapter.name].topics[topic].correct += 1;
+                    } else if (question.marks < 0) {
+                      tempChapters[chapter.name].topics[topic].incorrect += 1;
+                    }
+                    if (question.timeTakenInSeconds !== null) {
+                      tempChapters[chapter.name].topics[topic].attempted += 1;
+                    } else {
+                      tempChapters[chapter.name].topics[topic].unattempted += 1;
+                    }
+                    tempChapters[chapter.name].topics[topic].marks +=
+                      question.marks;
+                    tempChapters[chapter.name].topics[
+                      topic
+                    ].timeTakenInSeconds += question.timeTakenInSeconds;
+                  }
+                });
+              } else {
+                tempChapters[chapter.name] = {
+                  ...chapter,
+                  totalQuestions: 1,
+                  marks: question.marks,
+                  attempted: question.timeTakenInSeconds ? 1 : 0,
+                  unattempted: question.timeTakenInSeconds ? 0 : 1,
+                  correct: question.marks > 0 ? 1 : 0,
+                  incorrect: question.marks < 0 ? 1 : 0,
+                };
+                tempChapters[chapter.name].timeTakenInSeconds =
+                  question.timeTakenInSeconds;
+                // topics
+                tempChapters[chapter.name].topics = {};
+                chapter.topics.forEach((topic: any) => {
+                  tempChapters[chapter.name].topics[topic] = {
+                    name: topic,
+                    totalQuestions: 1,
+                    marks: question.marks,
+                    attempted: question.timeTakenInSeconds ? 1 : 0,
+                    unattempted: question.timeTakenInSeconds ? 0 : 1,
+                    correct: question.marks > 0 ? 1 : 0,
+                    incorrect: question.marks < 0 ? 1 : 0,
+                  };
+                  tempChapters[chapter.name].topics[topic].timeTakenInSeconds =
+                    question.timeTakenInSeconds;
+                });
+              }
+            });
+          });
+        });
+      });
+      setChapters(
+        Object.values(tempChapters)?.map((item: any, i: number) => ({
+          ...item,
+          key: i.toString(),
+        }))
+      );
+      console.log({ tempChapters });
+    }
+  }, [sections]);
+
+  const subjectWiseColumns: any = [
+    {
+      title: "Chapter",
+      dataIndex: "name",
+      key: "name",
+      fixed: "left",
+      width: 200,
+    },
+    {
+      title: "Total Questions",
+      dataIndex: "totalQuestions",
+      key: "totalQuestions",
+      width: 150,
+    },
+    {
+      title: "Attempted",
+      dataIndex: "attempted",
+      key: "attempted",
+      width: 150,
+    },
+    {
+      title: "Correct",
+      dataIndex: "correct",
+      key: "correct",
+      width: 150,
+    },
+    {
+      title: "Incorrect",
+      dataIndex: "incorrect",
+      key: "incorrect",
+      width: 150,
+    },
+    {
+      title: "Marks Obtained",
+      dataIndex: "marks",
+      key: "marks",
+      width: 150,
+    },
+    {
+      title: "Time Taken",
+      dataIndex: "timeTakenInSeconds",
+      key: "timeTakenInSeconds",
+      width: 150,
+      render: (time: number) => {
+        return <>{time ? `${time.toFixed(2)} sec` : "-"}</>;
       },
-    ],
+    },
+  ];
+
+  const expandedRowRender = (record: any) => {
+    const columns: any = subjectWiseColumns.map((col: any) =>
+      col.title === "Chapter" ? { ...col, title: "Topics" } : col
+    );
+
+    const data = Object.values(record.topics).map((item: any, i: number) => ({
+      ...item,
+      key: i.toString(),
+    }));
+
+    return (
+      <CustomTable columns={columns} dataSource={data} pagination={false} />
+    );
   };
 
   return (
-    <div className={styles.subjectCard}>
-      <h3 style={{ color }} className={styles.subjectName}>
-        {name}
-      </h3>
-      <div className={styles.mid}>
-        <div className={styles.left}>
-          <h2 className={styles.marks}>
-            {marks}/{360}
-          </h2>
-          <div className={styles.time}>
-            <img src={timerIcon} alt="Time" />
-            <p>{timeTakenInSeconds.toFixed(2)}</p>
-          </div>
-          <p className={styles.accuracy}>
-            Accuracy:
-            <span className={styles.highlight}>
-              {roundToOne((correct / attempted) * 100)}%
-            </span>
-          </p>
-        </div>
-        <CircularProgress color={color} progress={(marks / 360) * 100} />
-      </div>
-      <div className={styles.moreInfo}>
-        <p>
-          Attempted :<span className={styles.highlight}>{attempted}</span>{" "}
-        </p>
-        <p>
-          Correct :<span className={styles.highlight}>{correct}</span>{" "}
-        </p>
-        <p>
-          Incorrect :<span className={styles.highlight}>{incorrect}</span>{" "}
-        </p>
-      </div>
-      <div className={styles.pieContainer}>
-        <Doughnut
-          options={{
-            plugins: {
-              legend: {
-                display: false,
-              },
-            },
+    <section className={styles.subjectWiseContainer}>
+      <Card>
+        <CustomTable
+          columns={subjectWiseColumns}
+          dataSource={chapters}
+          expandable={{ expandedRowRender, defaultExpandedRowKeys: ["0"] }}
+          scroll={{
+            x: 600,
           }}
-          className={styles.pie}
-          data={chartData}
         />
-      </div>
-    </div>
-  );
-};
-
-const CircularProgress: React.FC<{ color: string; progress: number }> = ({
-  progress,
-  color,
-}) => {
-  return (
-    <div className={styles.circularProgress}>
-      <MUICircularProgress
-        sx={{ color }}
-        variant="determinate"
-        value={progress}
-      />
-      <p className={styles.progress}>{roundToOne(progress)}%</p>
-    </div>
+      </Card>
+    </section>
   );
 };

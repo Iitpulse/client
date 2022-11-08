@@ -132,6 +132,12 @@
 .globalResultTable {
   margin-top: 2rem;
 }
+.detailedBtns {
+  @extend .flexRow;
+}
+.subjectWiseContainer {
+  margin-top: 1rem;
+}
 
 .pieContainer{
   height: 200px !important;

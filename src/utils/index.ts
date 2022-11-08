@@ -71,3 +71,7 @@ export const flattendPermissions = () => {
   });
   return final;
 };
+
+export function roundToOne(num: number) {
+  return Number(num).toFixed(1);
+}

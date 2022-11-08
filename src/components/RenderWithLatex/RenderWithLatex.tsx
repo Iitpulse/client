@@ -1,5 +1,5 @@
 import { Spin } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { splitAndKeepDelimiters } from "../../utils";
 import "katex/dist/katex.min.css";
 import katex from "katex";
@@ -81,4 +81,4 @@ const RenderWithLatex: React.FC<Props> = ({ quillString }) => {
   );
 };
 
-export default RenderWithLatex;
+export default memo(RenderWithLatex);
