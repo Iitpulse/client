@@ -155,6 +155,7 @@
         align-items: flex-start;
       }
       .options {
+        width: 100%;
         p {
           margin: 0.3rem 0;
           @extend .flexRow;
