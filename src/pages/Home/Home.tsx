@@ -130,7 +130,7 @@ const Home = () => {
 
   const { state, recentTest } = useContext(TestContext);
   const { currentUser } = useContext(AuthContext);
-  console.log("recentTests in home : ", recentTest);
+  // console.log("recentTests in home : ", recentTest);
 
   const { ongoingTests } = state;
   useEffect(() => {

@@ -79,7 +79,7 @@ const CreateQuestion = () => {
     userType: "operator",
     id: "",
   });
-  const [chapterOptions, setChapterOptions] = useState<any>([]);
+  // const [chapterOptions, setChapterOptions] = useState<any>([]);
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [examOptions, setExamOptions] = useState<any>([]);
   const [sourceOptions, setSourceOptions] = useState<any>([]);
@@ -89,16 +89,22 @@ const CreateQuestion = () => {
     useState<boolean>(false);
 
   const { currentUser } = useContext(AuthContext);
+
   useEffect(() => {
-    if (!window.location.href.includes("edit")) setIsInitialValuePassed(true);
+    console.log("%cRender Start", "color:green;font-size:20px");
+    console.count("Render Start");
+  }, [data, subject, subjectOptions, chapters]);
+  useEffect(() => {
+    if (!id) setIsInitialValuePassed(true);
   }, []);
   const { id } = useParams();
+
   useEffect(() => {
     if (currentUser) {
       API_QUESTIONS()
         .get(`/subject/subjects`)
         .then((res) => {
-          console.log({ sub: res.data });
+          // console.log({ sub: res.data });
           setSubjectOptions(res.data);
         });
 
@@ -115,10 +121,62 @@ const CreateQuestion = () => {
         });
     }
   }, [currentUser]);
+  useEffect(() => {
+    console.log("id");
+  }, [id]);
+  useEffect(() => {
+    console.log("Data Change");
+  }, [data]);
+  useEffect(() => {
+    console.log("Type Change");
+  }, [type]);
+  useEffect(() => {
+    console.log("Subject Change");
+  }, [subject]);
+  useEffect(() => {
+    console.log("Chapters Change");
+  }, [chapters]);
+  useEffect(() => {
+    console.log("Topics Change");
+  }, [topics]);
+  useEffect(() => {
+    console.log("Difficulty Change");
+  }, [difficulty]);
+  useEffect(() => {
+    console.log("Sources Change");
+  }, [sources]);
+  useEffect(() => {
+    console.log("Uploaded By Change", uploadedBy);
+  }, [uploadedBy]);
+  useEffect(() => {
+    console.log("Exams Change");
+  }, [exams]);
+  useEffect(() => {
+    console.log("IsInitialValuePassed Change");
+  }, [isInitialValuePassed]);
+  useEffect(() => {
+    console.log("IsLoading Change");
+  }, [isLoading]);
+  useEffect(() => {
+    console.log("TopicOptions Change");
+  }, [topicOptions]);
+  useEffect(() => {
+    console.log("ChapterOptions Change");
+  }, [chapterOptions]);
+  useEffect(() => {
+    console.log("SubjectOptions Change");
+  }, [subjectOptions]);
+  useEffect(() => {
+    console.log("ExamOptions Change");
+  }, [examOptions]);
+  useEffect(() => {
+    console.log("SourceOptions Change");
+  }, [sourceOptions]);
 
   useEffect(() => {
     setTopics([]);
     setChapters([]);
+    console.log("%cMake it Empty ", "color: red; font-size: 14px");
   }, [subject]);
 
   useEffect(() => {
@@ -141,7 +199,6 @@ const CreateQuestion = () => {
   }, [currentUser]);
 
   async function handleAddSubject(sub: any) {
-    console.log({ sub });
     const res = await API_QUESTIONS().post("/subject/create", {
       subject: sub,
       chapters: [],
@@ -153,11 +210,11 @@ const CreateQuestion = () => {
       exam,
     });
     setExamOptions([...examOptions, res.data]);
-    console.log({ res });
+    // console.log({ res });
   }
 
   async function handleAddChapter(chapter: any) {
-    console.log({ chapter, subject });
+    // console.log({ chapter, subject });
     const res = await API_QUESTIONS().post("/subject/create-chapter", {
       subjectId: subject._id,
       chapter: {
@@ -165,75 +222,101 @@ const CreateQuestion = () => {
         topics: [],
       },
     });
-    console.log({ res });
-    setChapterOptions([
-      ...chapterOptions,
-      {
-        name: chapter,
-        topics: [],
-      },
-    ]);
+    // console.log({ res });
+    // setChapterOptions([
+    //   ...chapterOptions,
+    //   {
+    //     name: chapter,
+    //     topics: [],
+    //   },
+    // ]);
     // setChapters(vals);
   }
   async function handleAddTopic(topic: any) {
-    console.log({ subject, chapters, topic });
+    // console.log({ subject, chapters, topic });
     const res = await API_QUESTIONS().post("/subject/create-topic", {
       subjectId: subject._id,
       chapter: topic.chapter,
       topic: topic.topic,
     });
     setTopicOptions([...topicOptions, topic.topic]);
-    console.log({ res });
+    // console.log({ res });
   }
   async function handleAddSource(source: string) {
     const res = await API_QUESTIONS().post("/source/create", {
       source,
     });
     setSourceOptions([...sourceOptions, res.data]);
-    console.log({ res });
+    // console.log({ res });
   }
 
+  // useEffect(()=>{
+
+  // })
+
   useEffect(() => {
-    if (id && window.location.href.includes("edit")) {
-      API_QUESTIONS()
-        .get(`mcq/question/${id}`)
+    console.log("Main outside if");
+    async function getQuestionData() {
+      await API_QUESTIONS()
+        .get(`mcq/question/${id}`, {
+          params: {
+            id,
+          },
+        })
         .then((res) => {
           const subject = subjectOptions?.find((sub: any) => {
-            console.log({ sub, res });
+            // console.log({ sub, res });
             return (
               sub?.name?.toLowerCase() ===
               res.data?.questions?.subject?.toLowerCase()
             );
           });
-          const chapters = subject?.chapters?.filter((chapter: any) =>
-            res.data?.questions?.chapters?.includes(chapter.name)
-          );
-          const topics = chapters
-            ?.reduce((acc: any, curr: any) => {
-              return [...acc, ...curr.topics];
-            }, [])
-            .map((topic: any) => ({ name: topic }));
-          console.log({ mainData: res.data });
+          let chapters: any = [];
+          let topics: any = [];
+          res.data?.questions?.chapters?.forEach((chapter: any) => {
+            chapters.push(chapter.name);
+            topics.push(...chapter.topics);
+          });
+
+          chapters = chapters.map((stringArrayChapter: any) => {
+            const newChapter = subject?.chapters?.find(
+              (allInfoChapter: any) =>
+                allInfoChapter.name === stringArrayChapter
+            );
+            // console.log(newChapter);
+            return newChapter;
+          });
+          topics = topics.map((topic: string) => ({ name: topic }));
+          // console.log(
+          //   { mainData: res.data },
+          //   { subject, chapters, topics, subjectOptions }
+          // );
           setData(res.data?.questions);
           setSubject(subject || {});
+          console.log("THIS IS FUCKING RUNNING");
           setChapters(chapters || []);
           setTopics(topics || []);
           setDifficulty(res.data.questions.difficulty);
           setExams(res.data.questions.exams ?? []);
           setSources(res.data.questions.sources ?? []);
           setType(
-            res.data?.questions?.type == "single" ||
-              res.data?.questions?.type == "multiple"
+            res.data?.questions?.type === "single" ||
+              res.data?.questions?.type === "multiple"
               ? "objective"
               : res.data?.questions?.type
           );
         });
     }
-  }, [subjectOptions, id]);
+    if (id && currentUser) {
+      console.log("Main inside if");
+      getQuestionData();
+    }
+  }, [subjectOptions, id, currentUser]);
 
-  // useEffect(() => {
-  //   setIsLoading(false);
-  // });
+  useEffect(() => {
+    console.log({ subject, chapters, topics, subjectOptions, data });
+    console.count();
+  }, [subject, chapters, topics]);
 
   async function handleSubmitQuestion() {
     //check if the url has edit in it then update the question
@@ -243,7 +326,7 @@ const CreateQuestion = () => {
     try {
       if (currentUser) {
         let questionCore = {
-          id: Date.now().toString(),
+          id: id ? id : Date.now().toString(),
           type: data.type,
           subject: subject?.name,
           chapters: chapters.map((chapter: any) => {
@@ -270,7 +353,7 @@ const CreateQuestion = () => {
           case "single":
           case "multiple":
             {
-              console.log("here ", { data });
+              // console.log("here ", { data });
               const finalQuestion: IQuestionObjective = {
                 ...questionCore,
                 en: {
@@ -290,12 +373,12 @@ const CreateQuestion = () => {
               //   return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
               // };
               let res = "";
-              if (window.location.href.includes("edit")) {
+              if (id) {
                 res = await API_QUESTIONS().put(
                   `/mcq/update/${id}`,
                   finalQuestion
                 );
-                console.log({ res });
+                // console.log({ res });
               } else {
                 async function createNewQuestion() {
                   return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
@@ -304,10 +387,10 @@ const CreateQuestion = () => {
                   .fill(null)
                   .map(() => createNewQuestion());
                 await Promise.all(temp);
-                console.log(temp);
+                // console.log(temp);
               }
 
-              console.log({ res });
+              // console.log({ res });
             }
             break;
           case "integer":
@@ -327,7 +410,7 @@ const CreateQuestion = () => {
 
               console.log({ finalQuestion });
               let res = "";
-              if (window.location.href.includes("edit")) {
+              if (id) {
                 res = await API_QUESTIONS().put(
                   `/numerical/update/${id}`,
                   finalQuestion
@@ -339,7 +422,7 @@ const CreateQuestion = () => {
                 );
               }
 
-              console.log({ res });
+              // console.log({ res });
             }
             break;
           default:
@@ -354,7 +437,10 @@ const CreateQuestion = () => {
       message.success("Error" + error);
     }
   }
-
+  useEffect(() => {
+    console.log("%cRender End", "color:brown;font-size:14px");
+    console.count("Render End");
+  }, [data, subject, subjectOptions, chapters]);
   if (isLoading) {
     return (
       <div>
@@ -453,7 +539,7 @@ const CreateQuestion = () => {
         </section>
         <div className={styles.submitButton}>
           <Button onClick={handleSubmitQuestion}>
-            {window.location.href.includes("edit") ? "Update" : "Submit"}
+            {id ? "Update" : "Submit"}
           </Button>
         </div>
       </div>

@@ -70,7 +70,7 @@ const Batches = () => {
   useEffect(() => {
     async function fetchBatch() {
       const res = await API_USERS().get(`/batch/get`);
-      console.log({ res });
+      // console.log({ res });
       setData(res?.data);
     }
 
@@ -166,7 +166,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
     if (res.status === 200) {
       alert("Succesfully Created");
     }
-    console.log({ res });
+    // console.log({ res });
   }
 
   return (

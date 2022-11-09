@@ -24,7 +24,7 @@ import { API_QUESTIONS } from "../../../utils/api";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
 import Delete from "@mui/icons-material/Delete";
 import { DeleteOutline } from "@mui/icons-material";
-import CustomPopConfirm from "./../../../components/PopConfirm/CustomPopConfirm";
+import CustomPopConfirm from "../../../components/PopConfirm/CustomPopConfirm";
 import { ConsoleSqlOutlined } from "@ant-design/icons";
 import Tabs from "@mui/material/Tabs";
 
@@ -279,7 +279,7 @@ export const PreviewHTMLModal: React.FC<PreviewHTMLModalProps> = ({
   const [previewHTML, setPreviewHTML] = useState("");
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [tab, setTab] = useState("1");
-  console.log({ previewData });
+  // console.log({ previewData });
   const handleToggleProofread = async (checked: any) => {
     console.log(checked);
     let obj = { ...previewData, isProofRead: checked };

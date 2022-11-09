@@ -4,7 +4,13 @@
   max-width: 100%;
   .correctAnswer {
     color: green;
-    font-weight: 700;
+    // font-weight: 700;
+    position: relative;
+    &::after {
+      content: "\2713";
+      bottom: 0;
+      position: absolute;
+    }
   }
   .header {
     @extend .flexRow;

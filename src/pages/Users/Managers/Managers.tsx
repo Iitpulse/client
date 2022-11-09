@@ -171,7 +171,7 @@ const Manager: React.FC<{
     console.log({ newValues });
 
     const res = await API_USERS().post(`/manager/create`, newValues);
-    console.log({ res });
+    // console.log({ res });
 
     if (res.status === 200) {
       return alert("Succesfully created user");

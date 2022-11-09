@@ -63,7 +63,7 @@ const CreateTest = () => {
   useEffect(() => {
     async function fetchBatch() {
       const res = await API_USERS().get(`/batch/get`);
-      console.log({ res });
+      // console.log({ res });
       setBatchesOptions(res?.data);
     }
 

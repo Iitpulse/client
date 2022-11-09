@@ -97,7 +97,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
         },
       });
       if (cb) cb(null, res.data);
-      console.log({ res });
+      // console.log({ res });
 
       dispatch({
         type: getActionTypeFromTestType(status),
@@ -112,25 +112,25 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   useEffect(() => {
     async function fetchExams() {
       const res = await API_TESTS().get(`/exam/all`);
-      console.log({ res });
+      // console.log({ res });
       if (res.data?.length > 0) {
-        console.log({ res });
+        // console.log({ res });
         setExams(res.data);
       }
     }
     async function fetchSubjects() {
       const res = await API_QUESTIONS().get(`/subject/subjects`);
-      console.log({ res });
+      // console.log({ res });
       if (res.data?.length > 0) {
-        console.log({ res });
+        // console.log({ res });
         setsubjects(res.data);
       }
     }
     async function fetchRecentTest() {
       const res = await API_TESTS().get(`/test/recent`);
-      console.log("recentTests :", { res });
+      // console.log("recentTests :", { res });
       if (res.data?.length > 0) {
-        console.log({ res });
+        // console.log({ res });
         const recent = {
           highestMarks: res.data[0].highestMarks ?? "NA",
           lowestMarks: res.data[0].lowestMarks ?? "NA",

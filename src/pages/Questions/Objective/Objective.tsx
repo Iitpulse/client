@@ -66,12 +66,8 @@ const Objective: React.FC<Props> = ({
   });
 
   useEffect(() => {
-    console.log("Shishir", { tab, optionsCount, answerType, values });
-  }, [values]);
-
-  useEffect(() => {
-    console.log("hey", data);
-    console.log("hey", values);
+    // console.log("hey", data);
+    // console.log("hey", values);
     setData((prev: any) => ({ ...values, type: answerType }));
   }, [values, setData, answerType]);
 

@@ -22,6 +22,7 @@ interface ICreatableSelect {
   width?: string;
   disabled?: boolean;
   chapters?: Array<any>;
+  error?: boolean;
   children?: any;
 }
 
@@ -41,6 +42,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   width,
   disabled,
   chapters,
+  error,
   onAddModalSubmit,
   children,
   ...remaining
@@ -75,7 +77,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   };
 
   React.useEffect(() => {
-    console.log(value);
+    // console.log(value);
   }, [value]);
 
   return (
@@ -84,7 +86,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
         multiple={multiple}
         value={value}
         isOptionEqualToValue={(option: IOptionType, value: IOptionType) =>
-          option.name === value.name
+          option?.name === value?.name
         }
         disabled={disabled || false}
         onChange={
@@ -125,7 +127,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
         filterOptions={(options, params) => {
           const filtered = filter(options, params);
 
-          if (params.inputValue !== "") {
+          if (params?.inputValue !== "") {
             filtered.push({
               inputValue: params.inputValue,
               name: `Add "${params.inputValue}"`,
@@ -141,18 +143,20 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
           if (typeof option === "string") {
             return option;
           }
-          if (option.inputValue) {
+          if (option?.inputValue) {
             return option.inputValue;
           }
-          return option.name;
+          return option?.name;
         }}
         selectOnFocus
         clearOnBlur
         handleHomeEndKeys
         filterSelectedOptions
-        renderOption={(props, option) => <li {...props}>{option.name}</li>}
+        renderOption={(props, option) => <li {...props}>{option?.name}</li>}
         sx={{ width: width || 300 }}
-        renderInput={(params) => <TextField {...params} label={label} />}
+        renderInput={(params) => (
+          <TextField error={error} {...params} label={label} />
+        )}
         {...remaining}
       />
       <Dialog open={open} onClose={handleClose}>
@@ -213,7 +217,7 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
                   options={chapters}
                   getOptionLabel={(option) => {
                     // e.g value selected with enter, right from the input
-                    console.log({ option });
+                    // console.log({ option });
                     if (typeof option === "string") {
                       return option;
                     }

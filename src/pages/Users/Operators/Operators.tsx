@@ -171,7 +171,7 @@ const Operator: React.FC<{
     console.log({ newValues });
 
     const res = await API_USERS().post(`/operator/create`, newValues);
-    console.log({ res });
+    // console.log({ res });
 
     if (res.status === 200) {
       return alert("Succesfully created user");

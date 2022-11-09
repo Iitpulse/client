@@ -71,7 +71,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
   // ]);
 
   useEffect(() => {
-    console.log({ hasPermissions });
+    // console.log({ hasPermissions });
   }, [hasPermissions]);
 
   useEffect(() => {

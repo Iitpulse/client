@@ -53,7 +53,7 @@ const AuthContextProvider = (props: ProviderProps) => {
           permissions: [],
         };
       });
-      console.log({ hello: newRoles });
+      // console.log({ hello: newRoles });
       setCurrentUser({
         email: decoded.email,
         id: decoded.id,
@@ -66,7 +66,7 @@ const AuthContextProvider = (props: ProviderProps) => {
   }, [navigate]);
 
   useEffect(() => {
-    console.log("THis is User", { currentUser });
+    // console.log("THis is User", { currentUser });
   }, [currentUser]);
   useEffect(() => {
     // console.log({ roles });
