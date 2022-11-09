@@ -6,6 +6,7 @@ import {
   Button,
   CreatableSelect,
   Navigate,
+  Card,
 } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
@@ -24,8 +25,8 @@ import axios from "axios";
 import { message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api";
 import MainLayout from "../../layouts/MainLayout";
-import { useParams } from "react-router";
-import { CircularProgress } from "@mui/material";
+import { useParams, useLocation } from "react-router";
+import { CircularProgress, Skeleton } from "@mui/material";
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
@@ -90,97 +91,123 @@ const CreateQuestion = () => {
 
   const { currentUser } = useContext(AuthContext);
 
-  useEffect(() => {
-    console.log("%cRender Start", "color:green;font-size:20px");
-    console.count("Render Start");
-  }, [data, subject, subjectOptions, chapters]);
+  // useEffect(() => {
+  //   console.log("%cRender Start", "color:green;font-size:20px");
+  //   console.count("Render Start");
+  // }, [data, subject, subjectOptions, chapters]);
+  const { id } = useParams();
+  const { pathname } = useLocation();
+
   useEffect(() => {
     if (!id) setIsInitialValuePassed(true);
-  }, []);
-  const { id } = useParams();
+  }, [id]);
 
   useEffect(() => {
+    setIsLoading(true);
     if (currentUser) {
-      API_QUESTIONS()
-        .get(`/subject/subjects`)
-        .then((res) => {
-          // console.log({ sub: res.data });
-          setSubjectOptions(res.data);
+      const allPromises = [
+        API_QUESTIONS().get(`/subject/subjects`),
+        API_TESTS().get("/exam/all"),
+        API_QUESTIONS().get(`/source/all`),
+      ];
+      try {
+        Promise.all(allPromises).then((res) => {
+          setSubjectOptions(res[0].data);
+          setExamOptions(res[1].data);
+          setSourceOptions(res[2].data);
+          setIsLoading(false);
         });
-
-      API_TESTS()
-        .get("/exam/all")
-        .then((res) => {
-          setExamOptions(res.data);
-        });
-
-      API_QUESTIONS()
-        .get(`/source/all`)
-        .then((res) => {
-          setSourceOptions(res.data);
-        });
+      } catch (error) {
+        console.log("ERROR_INITIAL_VALUES_QUESTION", error);
+      }
     }
   }, [currentUser]);
-  useEffect(() => {
-    console.log("id");
-  }, [id]);
-  useEffect(() => {
-    console.log("Data Change");
-  }, [data]);
-  useEffect(() => {
-    console.log("Type Change");
-  }, [type]);
-  useEffect(() => {
-    console.log("Subject Change");
-  }, [subject]);
-  useEffect(() => {
-    console.log("Chapters Change");
-  }, [chapters]);
-  useEffect(() => {
-    console.log("Topics Change");
-  }, [topics]);
-  useEffect(() => {
-    console.log("Difficulty Change");
-  }, [difficulty]);
-  useEffect(() => {
-    console.log("Sources Change");
-  }, [sources]);
-  useEffect(() => {
-    console.log("Uploaded By Change", uploadedBy);
-  }, [uploadedBy]);
-  useEffect(() => {
-    console.log("Exams Change");
-  }, [exams]);
-  useEffect(() => {
-    console.log("IsInitialValuePassed Change");
-  }, [isInitialValuePassed]);
-  useEffect(() => {
-    console.log("IsLoading Change");
-  }, [isLoading]);
-  useEffect(() => {
-    console.log("TopicOptions Change");
-  }, [topicOptions]);
-  useEffect(() => {
-    console.log("ChapterOptions Change");
-  }, [chapterOptions]);
-  useEffect(() => {
-    console.log("SubjectOptions Change");
-  }, [subjectOptions]);
-  useEffect(() => {
-    console.log("ExamOptions Change");
-  }, [examOptions]);
-  useEffect(() => {
-    console.log("SourceOptions Change");
-  }, [sourceOptions]);
 
   useEffect(() => {
+    console.log("Main outside if");
+    async function getQuestionData() {
+      setIsLoading(true);
+      const res = await API_QUESTIONS().get(`mcq/question/${id}`, {
+        params: {
+          id,
+        },
+      });
+
+      const { data: questionData } = res;
+
+      const subject = subjectOptions?.find((sub: any) => {
+        // console.log({ sub, res });
+        return (
+          sub?.name?.toLowerCase() === questionData?.subject?.toLowerCase()
+        );
+      });
+      // questionData.chapters?.map((chapter: any) => subject.chapters.find((chap: any) => chap.name === chapter))
+      let chapters: any = subject.chapters.filter(
+        (chap: any) =>
+          questionData.chapters?.findIndex(
+            (qChapter: any) => qChapter.name === chap.name
+          ) !== -1
+      );
+      let topics: any = [];
+      // chapters = chapters.map((stringArrayChapter: any) => {
+      //   const newChapter = subject?.chapters?.find(
+      //     (allInfoChapter: any) => allInfoChapter.name === stringArrayChapter
+      //   );
+      //   // console.log(newChapter);
+      //   return newChapter;
+      // });
+      chapters.forEach((chap: any) => {
+        topics.push(...chap.topics);
+      });
+      topics = topics.map((topic: string) => ({ name: topic }));
+      // console.log(
+      //   { mainData: res.data },
+      //   { subject, chapters, topics, subjectOptions }
+      // );
+      setData(questionData);
+      setSubject(subject || {});
+      console.log("THIS IS FUCKING RUNNING");
+      setChapters(chapters || []);
+      setTopics(topics || []);
+      setDifficulty(questionData.difficulty);
+      setExams(questionData.exams ?? []);
+      setSources(
+        (prev) =>
+          prev?.filter((gSource: any) =>
+            questionData.sources.includes(gSource.name)
+          ) ?? []
+      );
+      setType(
+        questionData?.type === "single" || questionData?.type === "multiple"
+          ? "objective"
+          : questionData?.type
+      );
+      setIsLoading(false);
+    }
+    if (
+      id &&
+      currentUser &&
+      pathname.includes("edit") &&
+      subjectOptions?.length &&
+      sourceOptions?.length &&
+      examOptions?.length
+    ) {
+      console.log("Main inside if");
+      getQuestionData();
+    }
+  }, [id, currentUser, pathname, subjectOptions, sourceOptions, examOptions]);
+
+  useEffect(() => {
+    if (pathname.includes("edit")) {
+    }
     setTopics([]);
     setChapters([]);
     console.log("%cMake it Empty ", "color: red; font-size: 14px");
-  }, [subject]);
+  }, [subject, pathname]);
 
   useEffect(() => {
     if (chapters?.length) {
+      console.log({ chapters });
       let tempTopics: Array<IOptionType> = [];
       chapters.forEach((chapter: any) => {
         if (chapter.topics) {
@@ -188,10 +215,20 @@ const CreateQuestion = () => {
         }
       });
       setTopicOptions(tempTopics);
+      // setTopics(tempTopics);
     } else {
       setTopics([]);
     }
   }, [chapters]);
+
+  useEffect(() => {
+    if (!topicOptions.length) {
+      setTopics([]);
+    } else
+      setTopics((prev) =>
+        prev.filter((tp: any) => topicOptions.includes(tp.name))
+      );
+  }, [topicOptions]);
 
   useEffect(() => {
     if (currentUser)
@@ -254,69 +291,10 @@ const CreateQuestion = () => {
 
   // })
 
-  useEffect(() => {
-    console.log("Main outside if");
-    async function getQuestionData() {
-      await API_QUESTIONS()
-        .get(`mcq/question/${id}`, {
-          params: {
-            id,
-          },
-        })
-        .then((res) => {
-          const subject = subjectOptions?.find((sub: any) => {
-            // console.log({ sub, res });
-            return (
-              sub?.name?.toLowerCase() ===
-              res.data?.questions?.subject?.toLowerCase()
-            );
-          });
-          let chapters: any = [];
-          let topics: any = [];
-          res.data?.questions?.chapters?.forEach((chapter: any) => {
-            chapters.push(chapter.name);
-            topics.push(...chapter.topics);
-          });
-
-          chapters = chapters.map((stringArrayChapter: any) => {
-            const newChapter = subject?.chapters?.find(
-              (allInfoChapter: any) =>
-                allInfoChapter.name === stringArrayChapter
-            );
-            // console.log(newChapter);
-            return newChapter;
-          });
-          topics = topics.map((topic: string) => ({ name: topic }));
-          // console.log(
-          //   { mainData: res.data },
-          //   { subject, chapters, topics, subjectOptions }
-          // );
-          setData(res.data?.questions);
-          setSubject(subject || {});
-          console.log("THIS IS FUCKING RUNNING");
-          setChapters(chapters || []);
-          setTopics(topics || []);
-          setDifficulty(res.data.questions.difficulty);
-          setExams(res.data.questions.exams ?? []);
-          setSources(res.data.questions.sources ?? []);
-          setType(
-            res.data?.questions?.type === "single" ||
-              res.data?.questions?.type === "multiple"
-              ? "objective"
-              : res.data?.questions?.type
-          );
-        });
-    }
-    if (id && currentUser) {
-      console.log("Main inside if");
-      getQuestionData();
-    }
-  }, [subjectOptions, id, currentUser]);
-
-  useEffect(() => {
-    console.log({ subject, chapters, topics, subjectOptions, data });
-    console.count();
-  }, [subject, chapters, topics]);
+  // useEffect(() => {
+  //   console.log({ subject, chapters, topics, subjectOptions, data });
+  //   console.count();
+  // }, [subject, chapters, topics]);
 
   async function handleSubmitQuestion() {
     //check if the url has edit in it then update the question
@@ -437,111 +415,121 @@ const CreateQuestion = () => {
       message.success("Error" + error);
     }
   }
-  useEffect(() => {
-    console.log("%cRender End", "color:brown;font-size:14px");
-    console.count("Render End");
-  }, [data, subject, subjectOptions, chapters]);
-  if (isLoading) {
-    return (
-      <div>
-        <CircularProgress />
-      </div>
-    );
-  }
+  // useEffect(() => {
+  //   console.log("%cRender End", "color:brown;font-size:14px");
+  //   console.count("Render End");
+  // }, [data, subject, subjectOptions, chapters]);
 
   return (
     <MainLayout name="Create Question">
       <div className={styles.container}>
-        <form>
-          <div className={styles.inputFields}>
-            <StyledMUISelect
-              label={"Type"}
-              options={questionTypes}
-              state={type}
-              onChange={setType}
-            />
-            <StyledMUISelect
-              label={"Difficulty"}
-              options={difficultyOptions.map((difficulty) => ({
-                name: difficulty,
-                value: difficulty,
-              }))}
-              state={difficulty}
-              onChange={setDifficulty}
-            />
-            <CreatableSelect
-              onAddModalSubmit={handleAddSubject}
-              options={subjectOptions}
-              setValue={setSubject}
-              value={subject}
-              label={"Subject"}
-              id="subject"
-            />
-            <CreatableSelect
-              multiple
-              onAddModalSubmit={handleAddExam}
-              options={examOptions.map((exam: any) => ({
-                name: exam.name,
-                value: exam.name,
-              }))}
-              setValue={setExams}
-              value={exams}
-              label={"Exam(s)"}
-              id="Exams"
-            />
-            <CreatableSelect
-              multiple
-              onAddModalSubmit={handleAddChapter}
-              options={subject?.chapters}
-              setValue={setChapters}
-              value={chapters}
-              label={"Chapter(s)"}
-              id="Chapters"
-              disabled={!subject?.name?.length}
-            />
-            <CreatableSelect
-              multiple
-              onAddModalSubmit={handleAddTopic}
-              options={
-                topicOptions.map((topic: any) => ({
-                  name: topic,
-                })) || []
-              }
-              chapters={subject?.chapters}
-              setValue={setTopics}
-              disabled={Boolean(!chapters?.length)}
-              value={topics}
-              label={"Topic(s)"}
-              id="Topics"
-            />
-            <CreatableSelect
-              multiple
-              onAddModalSubmit={handleAddSource}
-              options={sourceOptions.map((source: any) => ({
-                name: source?.name,
-                value: source?.name,
-              }))}
-              setValue={setSources}
-              value={sources}
-              label={"Source(s)"}
-              id="Sources"
-            />
+        {isLoading ? (
+          <div className={styles.loading}>
+            <Skeleton width={"100%"} height={300} />
           </div>
-        </form>
-        <section className={styles.main}>
-          {getQuestionFromType(
-            type,
-            data,
-            setData,
-            isInitialValuePassed,
-            setIsInitialValuePassed
-          )}
-        </section>
-        <div className={styles.submitButton}>
-          <Button onClick={handleSubmitQuestion}>
-            {id ? "Update" : "Submit"}
-          </Button>
-        </div>
+        ) : (
+          <Card classes={[styles.formContainer]}>
+            <form>
+              <div className={styles.inputFields}>
+                <StyledMUISelect
+                  label={"Type"}
+                  options={questionTypes}
+                  state={type}
+                  onChange={setType}
+                  disabled={id ? true : false}
+                />
+                <StyledMUISelect
+                  label={"Difficulty"}
+                  options={difficultyOptions.map((difficulty) => ({
+                    name: difficulty,
+                    value: difficulty,
+                  }))}
+                  state={difficulty}
+                  onChange={setDifficulty}
+                />
+                <CreatableSelect
+                  onAddModalSubmit={handleAddSubject}
+                  options={subjectOptions}
+                  setValue={setSubject}
+                  value={subject}
+                  label={"Subject"}
+                  id="subject"
+                />
+                <CreatableSelect
+                  multiple
+                  onAddModalSubmit={handleAddExam}
+                  options={examOptions.map((exam: any) => ({
+                    name: exam.name,
+                    value: exam.name,
+                  }))}
+                  setValue={setExams}
+                  value={exams}
+                  label={"Exam(s)"}
+                  id="Exams"
+                />
+                <CreatableSelect
+                  multiple
+                  onAddModalSubmit={handleAddChapter}
+                  options={subject?.chapters}
+                  setValue={setChapters}
+                  value={chapters}
+                  label={"Chapter(s)"}
+                  id="Chapters"
+                  disabled={!subject?.name?.length}
+                />
+                <CreatableSelect
+                  multiple
+                  onAddModalSubmit={handleAddTopic}
+                  options={
+                    topicOptions.map((topic: any) => ({
+                      name: topic,
+                    })) || []
+                  }
+                  chapters={subject?.chapters}
+                  setValue={setTopics}
+                  disabled={Boolean(!chapters?.length)}
+                  value={topics}
+                  label={"Topic(s)"}
+                  id="Topics"
+                />
+                <CreatableSelect
+                  multiple
+                  onAddModalSubmit={handleAddSource}
+                  options={sourceOptions.map((source: any) => ({
+                    name: source?.name,
+                    value: source?.name,
+                  }))}
+                  setValue={setSources}
+                  value={sources}
+                  label={"Source(s)"}
+                  id="Sources"
+                />
+              </div>
+            </form>
+          </Card>
+        )}
+        {isLoading ? (
+          <div className={styles.loading}>
+            <Skeleton width={"100%"} height={300} />
+          </div>
+        ) : (
+          <>
+            <section className={styles.main}>
+              {getQuestionFromType(
+                type,
+                data,
+                setData,
+                isInitialValuePassed,
+                setIsInitialValuePassed
+              )}
+            </section>
+            <div className={styles.submitButton}>
+              <Button onClick={handleSubmitQuestion}>
+                {id ? "Update" : "Submit"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </MainLayout>
   );

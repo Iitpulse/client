@@ -37,6 +37,7 @@ interface MUISelectProps {
     name: string;
     value: string;
   }>;
+  disabled?: boolean;
   onChange: React.Dispatch<React.SetStateAction<string>>;
 }
 
@@ -55,6 +56,7 @@ export const MUISelect = (props: MUISelectProps) => {
         value={props.state}
         label="Age"
         onChange={handleChange}
+        disabled={props.disabled}
       >
         {props.options.map((item, index) => (
           <MenuItem key={index} value={item.value}>
