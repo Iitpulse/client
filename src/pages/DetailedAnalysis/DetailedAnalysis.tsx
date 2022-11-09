@@ -8,6 +8,7 @@ import {
   Modal,
   Card,
 } from "../../components/";
+import Question from "./components/Question";
 import { Dispatch, memo, SetStateAction, useEffect, useState } from "react";
 import { Tab, Tabs, Menu, MenuItem, IconButton } from "@mui/material";
 import calendar from "../../assets/icons/calendar.svg";
@@ -364,13 +365,17 @@ export const HeaderDetails: React.FC<IHeaderDetails> = ({
 
 interface IDetailedAnalysis {
   sections: Array<any>;
+  totalAppeared: number;
 }
 
-export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({ sections }) => {
+export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
+  sections,
+  totalAppeared,
+}) => {
   const [tab, setTab] = useState(0);
-  const [viewSolQuestionId, setViewSolQuestionId] = useState("");
+  const [viewSol, setViewSol] = useState("");
   const [isViewSolModalOpen, setIsViewSolModalOpen] = useState(false);
-
+  console.log("hello", sections[tab]);
   interface TabPanelProps {
     children?: React.ReactNode;
     index: number;
@@ -393,10 +398,8 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({ sections }) => {
   }
 
   useEffect(() => {
-    viewSolQuestionId
-      ? setIsViewSolModalOpen(true)
-      : setIsViewSolModalOpen(false);
-  }, [viewSolQuestionId]);
+    viewSol ? setIsViewSolModalOpen(true) : setIsViewSolModalOpen(false);
+  }, [viewSol]);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
@@ -415,9 +418,10 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({ sections }) => {
             {section?.subSections?.map(
               (subSection: any, subsectionIndex: number) => (
                 <SubSection
+                  totalAppeared={totalAppeared}
                   subSection={subSection}
                   setIsViewSolModalOpen={setIsViewSolModalOpen}
-                  setViewSolQuestionId={setViewSolQuestionId}
+                  setViewSol={setViewSol}
                   key={subsectionIndex}
                 />
               )
@@ -431,10 +435,10 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({ sections }) => {
         title="Solution"
         onClose={() => {
           setIsViewSolModalOpen(false);
-          setViewSolQuestionId("");
+          setViewSol("");
         }}
       >
-        Hello{viewSolQuestionId}
+        <RenderWithLatex quillString={viewSol} />
       </Modal>
     </>
   );
@@ -478,191 +482,31 @@ export const SubCard = (props: SubCardProps) => {
 interface ISubSection {
   subSection: any;
   setIsViewSolModalOpen: Dispatch<SetStateAction<boolean>>;
-  setViewSolQuestionId: (id: string) => void;
+  setViewSol: (id: string) => void;
+  totalAppeared: number;
 }
 
 const SubSection: React.FC<ISubSection> = ({
   subSection,
   setIsViewSolModalOpen,
-  setViewSolQuestionId,
+  setViewSol,
+  totalAppeared,
 }) => {
   return (
     <>
       {Object.values(subSection?.questions)?.map(
         (question: any, questionIndex: number) => (
           <Question
+            totalAppeared={totalAppeared}
             {...question}
             attemptedBy={2}
             setIsViewSolModalOpen={setIsViewSolModalOpen}
-            setViewSolQuestionId={setViewSolQuestionId}
+            setViewSol={setViewSol}
             key={question.id}
             count={questionIndex + 1}
           />
         )
       )}
-    </>
-  );
-};
-
-interface OptionProp {
-  id: string;
-  value: string;
-  selectedBy: 249;
-}
-interface QuestionProps {
-  id: string;
-  count: number;
-  en: any;
-  hi: any;
-  description: string;
-  correctOptionIndex: number;
-  solution?: any;
-  options: OptionProp[];
-  setViewSolQuestionId: (value: string) => void;
-  selectedOptionIndex: number;
-  attemptedBy?: number;
-  quickestResponse?: number;
-  averageTimeTaken?: number;
-  timeTakenInSeconds?: number;
-  // totalStudentAttempted?: number;
-}
-const Question = (props: QuestionProps) => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const {
-    id,
-    count,
-    en,
-    hi,
-    options,
-    correctOptionIndex,
-    solution,
-    setViewSolQuestionId,
-    selectedOptionIndex,
-    attemptedBy,
-    quickestResponse,
-    averageTimeTaken,
-    timeTakenInSeconds,
-    // totalStudentAttempted,
-  } = props;
-  let totalStudentAttempted = 0;
-  en.options.forEach((option: any) => {
-    totalStudentAttempted += option.attemptedBy;
-  });
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleViewSolution = () => {
-    setViewSolQuestionId(id);
-    handleClose();
-  };
-
-  function getOptionStyles(index: number) {
-    if (selectedOptionIndex === index && correctOptionIndex === index) {
-      return clsx(styles.correct, styles.selected, styles.option);
-    } else if (selectedOptionIndex === index) {
-      return clsx(styles.selected, styles.option);
-    } else if (correctOptionIndex === index) {
-      return clsx(styles.correct, styles.option);
-    } else {
-      return clsx(styles.option);
-    }
-  }
-  function getWidthBarStyles(index: number) {
-    if (selectedOptionIndex === index && correctOptionIndex === index) {
-      return clsx(styles.correct, styles.selected, styles.widthBar);
-    } else if (selectedOptionIndex === index) {
-      return clsx(styles.selected, styles.widthBar);
-    } else if (correctOptionIndex === index) {
-      return clsx(styles.correct, styles.widthBar);
-    } else {
-      return clsx(styles.widthBar);
-    }
-  }
-  return (
-    <>
-      <div className={styles.question}>
-        <div className={styles.left}>
-          <h5>
-            {count}.&nbsp;
-            <RenderWithLatex quillString={en?.question} />
-          </h5>
-          <div className={styles.options}>
-            {en?.options.map((item: any, index: number) => (
-              <p className={getOptionStyles(index)}>
-                <span>{String.fromCharCode(65 + index)}.)</span>&nbsp;
-                <RenderWithLatex quillString={item.value} />
-              </p>
-            ))}
-          </div>
-        </div>
-        <div className={styles.right}>
-          <div className={styles.header}>
-            <Button onClick={handleViewSolution} color="success">
-              View Full Solution
-            </Button>
-            <IconButton
-              id="basic-button"
-              aria-controls={open ? "basic-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={open ? "true" : undefined}
-              onClick={handleClick}
-            >
-              <img src={kebabMenu} alt="Kebab Menu" />
-            </IconButton>
-          </div>
-
-          <Menu
-            id="basic-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            MenuListProps={{
-              "aria-labelledby": "basic-button",
-            }}
-          >
-            <MenuItem onClick={handleClose}>Report a Problem </MenuItem>
-          </Menu>
-          <div className={styles.moreInfo}>
-            <div className={styles.leftMI}>
-              <p>Time Taken : {timeTakenInSeconds?.toFixed(2)}s</p>
-              <p>Average Time Taken : {averageTimeTaken}s</p>
-            </div>
-            <div className={styles.rightMI}>
-              <p>Quickest Response : {quickestResponse}s</p>
-              <p>Attempted By : {attemptedBy}%</p>
-            </div>
-          </div>
-          <div className={styles.optionPercentageWrapper}>
-            {en?.options.map((option: any, index: number) => {
-              const selectedBy = totalStudentAttempted
-                ? roundOffToOneDecimal(
-                    (option?.attemptedBy / totalStudentAttempted) * 100
-                  )
-                : 0;
-              return (
-                <div className={styles.optionPercentageContainer}>
-                  <h5>{String.fromCharCode(65 + index)}</h5>
-                  <div className={styles.fullWidth}>
-                    <div
-                      style={{ width: selectedBy + "%" }}
-                      className={getWidthBarStyles(index)}
-                    >
-                      {" "}
-                    </div>
-                  </div>
-                  <p>{selectedBy}%</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      <div className={styles.horizontalLine}></div>
     </>
   );
 };

@@ -187,7 +187,10 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         (resultType === "subjectWise" ? (
           <SubjectWiseAnalysis sections={Object.values(finalSections)} />
         ) : (
-          <DetailedAnalysis sections={Object.values(finalSections)} />
+          <DetailedAnalysis
+            totalAppeared={finalTest?.totalAppeared || 0}
+            sections={Object.values(finalSections)}
+          />
         ))}
     </>
   );
