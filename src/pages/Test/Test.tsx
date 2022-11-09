@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Tab, Tabs } from "@mui/material";
 import styles from "./Test.module.scss";
-import { Button, Modal, Sidebar } from "../../components";
+import { Button, CustomTable, Modal, Sidebar } from "../../components";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { Table } from "antd";
 import "antd/dist/antd.css";
@@ -241,12 +241,9 @@ const Test = () => {
         </div>
         <TabPanel value={tab} index={0}>
           <div className={styles.data}>
-            <Table
+            <CustomTable
               loading={loading}
-              rowSelection={{
-                type: "checkbox",
-                ...rowSelection,
-              }}
+              selectable={false}
               columns={columns}
               dataSource={data}
               scroll={{ x: 600, y: 500 }}
@@ -255,12 +252,9 @@ const Test = () => {
         </TabPanel>
         <TabPanel value={tab} index={1}>
           <div className={styles.data}>
-            <Table
+            <CustomTable
               loading={loading}
-              rowSelection={{
-                type: "checkbox",
-                ...rowSelection,
-              }}
+              selectable={false}
               columns={columns}
               dataSource={data}
               scroll={{ x: 600, y: 500 }}
@@ -269,12 +263,9 @@ const Test = () => {
         </TabPanel>
         <TabPanel value={tab} index={2}>
           <div className={styles.data}>
-            <Table
+            <CustomTable
               loading={loading}
-              rowSelection={{
-                type: "checkbox",
-                ...rowSelection,
-              }}
+              selectable={false}
               columns={columns}
               dataSource={data}
               scroll={{ x: 600, y: 500 }}
@@ -283,12 +274,9 @@ const Test = () => {
         </TabPanel>
         <TabPanel value={tab} index={3}>
           <div className={styles.data}>
-            <Table
+            <CustomTable
               loading={loading}
-              rowSelection={{
-                type: "checkbox",
-                ...rowSelection,
-              }}
+              selectable={false}
               columns={columns}
               dataSource={data}
               scroll={{ x: 600, y: 500 }}

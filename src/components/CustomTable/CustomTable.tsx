@@ -166,7 +166,7 @@ const CustomTable: React.FC<Props> = ({
       dataSource={data}
       columns={cols}
       loading={tableLoading}
-      rowSelection={rowSelection}
+      rowSelection={selectable ? rowSelection : undefined}
       expandable={expandable}
       scroll={
         scroll || {

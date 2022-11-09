@@ -7,6 +7,7 @@ import {
   Sidebar,
   UserProfile,
   Modal,
+  CustomTable,
 } from "../../../components";
 import {
   StyledMUITextField,
@@ -325,13 +326,10 @@ const Students: React.FC<{
 
   return (
     <div className={styles.container}>
-      <Table
-        rowSelection={{
-          type: "checkbox",
-          ...rowSelection,
-        }}
+      <CustomTable
+        selectable={true}
         columns={columns}
-        dataSource={students as any}
+        dataSource={students}
         loading={loading}
         scroll={{ x: 200, y: "50vh" }}
       />
