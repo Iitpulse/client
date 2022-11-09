@@ -92,7 +92,7 @@ const InsertQuestionModal: React.FC<Props> = ({
           },
         })
         .then((res) => {
-          console.log({ res });
+          // console.log({ res });
           setChaptersOptions(
             res.data?.map((chapter: any) => ({
               ...chapter,

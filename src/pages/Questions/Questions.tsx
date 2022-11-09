@@ -18,7 +18,7 @@ import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS, QUESTION_COLS_ALL } from "../../utils/constants";
-import { Error } from "../";
+import { Error } from "..";
 import { CSVLink } from "react-csv";
 import { useReactToPrint } from "react-to-print";
 import { useNavigate } from "react-router-dom";
@@ -38,7 +38,7 @@ import { ToggleButton } from "../../components";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
 import Edit from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
-import { getTopics } from "./../../utils/constants";
+import { getTopics } from "../../utils/constants";
 export const questionTypes = [
   { name: "Objective", value: "objective" },
   // { name: "Multiple Correct", value: "multiple" },

@@ -17,6 +17,9 @@ input[type="date"]:focus::-webkit-datetime-edit {
 .ant-popconfirm {
   z-index: 10000;
 }
+.errorLabel {
+  color: var(--clr-error) !important;
+}
 
 .ant-drawer-header-title .ant-drawer-close {
   padding: 8px;
