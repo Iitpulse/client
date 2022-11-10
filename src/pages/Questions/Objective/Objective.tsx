@@ -229,26 +229,13 @@ const Objective: React.FC<Props> = ({
   }
 
   useEffect(() => {
+    console.log({ values });
+  });
+
+  useEffect(() => {
     if (!isInitialValuePassed) {
       if (data?._id) {
-        console.log(
-          "SHISHIR",
-          { data },
-          {
-            en: {
-              question: data?.en?.question,
-              options: data?.en?.options.map((option: any) => ({
-                ...option,
-                isCorrectAnswer: data?.correctAnswers.includes(option.id),
-              })),
-              solution: data?.en?.solution,
-            },
-            hi: data.hi,
-            isProofRead: data.isProofRead,
-            id: data._id ?? "",
-            type: data.type,
-          }
-        );
+        console.log("YOHO", { data });
         setValues({
           en: {
             question: data?.en?.question,

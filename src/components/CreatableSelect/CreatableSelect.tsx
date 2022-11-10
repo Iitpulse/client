@@ -24,6 +24,9 @@ interface ICreatableSelect {
   chapters?: Array<any>;
   error?: boolean;
   children?: any;
+  setChapters?: any;
+  setTopics?: any;
+  [x: string]: any;
 }
 
 interface IOptionType {
@@ -31,6 +34,8 @@ interface IOptionType {
   inputValue?: string;
   value?: string | number;
 }
+
+const listToNotAddValuesIn = ["chapters", "topics", "subject"];
 
 const CreatableSelect: React.FC<ICreatableSelect> = ({
   multiple = false,
@@ -45,6 +50,8 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   error,
   onAddModalSubmit,
   children,
+  setChapters,
+  setTopics,
   ...remaining
 }) => {
   const [open, toggleOpen] = React.useState(false);
@@ -69,9 +76,15 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
         : dialogValue
     );
     if (multiple) {
-      setValue((prev: any) => [...prev, dialogValue]);
+      setValue((prev: any) =>
+        listToNotAddValuesIn.includes(id.toLowerCase())
+          ? [...prev]
+          : [...prev, dialogValue]
+      );
     } else {
-      setValue(dialogValue);
+      setValue(
+        listToNotAddValuesIn.includes(id.toLowerCase()) ? "" : dialogValue
+      );
     }
     handleClose();
   };
@@ -98,6 +111,10 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
                     toggleOpen(true);
                     setDialogValue(newValue);
                   });
+                  if (id === "subject") {
+                    setChapters([]);
+                    setTopics([]);
+                  }
                 } else if (
                   newValue &&
                   multiple &&
@@ -105,8 +122,16 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
                 ) {
                   toggleOpen(true);
                   setDialogValue(newValue[newValue?.length - 1].inputValue);
+                  if (id === "subject") {
+                    setChapters([]);
+                    setTopics([]);
+                  }
                 } else {
                   setValue(newValue);
+                  if (id === "subject") {
+                    setChapters([]);
+                    setTopics([]);
+                  }
                 }
               }
             : (event, newValue: any) => {
@@ -115,12 +140,24 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
                   setTimeout(() => {
                     toggleOpen(true);
                     setDialogValue(newValue);
+                    if (id === "subject") {
+                      setChapters([]);
+                      setTopics([]);
+                    }
                   });
                 } else if (newValue && newValue.inputValue) {
                   toggleOpen(true);
                   setDialogValue(newValue.inputValue);
+                  if (id === "subject") {
+                    setChapters([]);
+                    setTopics([]);
+                  }
                 } else {
                   setValue(newValue);
+                  if (id === "subject") {
+                    setChapters([]);
+                    setTopics([]);
+                  }
                 }
               }
         }

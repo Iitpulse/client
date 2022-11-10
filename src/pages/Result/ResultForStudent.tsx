@@ -172,11 +172,9 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
           options={[
             {
               name: "Subject Wise",
-              value: "subjectWise",
             },
             {
               name: "Question Wise",
-              value: "questionWise",
             },
           ]}
           state={resultType}

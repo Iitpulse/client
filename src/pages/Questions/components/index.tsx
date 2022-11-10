@@ -35,8 +35,8 @@ interface MUISelectProps {
   state: string;
   options: Array<{
     name: string;
-    value: string;
   }>;
+  error?: boolean;
   disabled?: boolean;
   onChange: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -47,7 +47,10 @@ export const MUISelect = (props: MUISelectProps) => {
   };
   return (
     <StyledFormControl sx={{ minWidth: 250 }}>
-      <InputLabel id="demo-simple-select-helper-label">
+      <InputLabel
+        sx={props.error ? { color: "var(--clr-error)" } : {}}
+        id="demo-simple-select-helper-label"
+      >
         {props.label}
       </InputLabel>
       <Select
@@ -56,10 +59,11 @@ export const MUISelect = (props: MUISelectProps) => {
         value={props.state}
         label="Age"
         onChange={handleChange}
+        error={props.error}
         disabled={props.disabled}
       >
         {props.options.map((item, index) => (
-          <MenuItem key={index} value={item.value}>
+          <MenuItem key={index} value={item.name}>
             {item.name}
           </MenuItem>
         ))}
