@@ -22,6 +22,7 @@ import { style } from "@mui/system";
 import { result } from "../../utils/";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import MainLayout from "../../layouts/MainLayout";
+import timer from "../../assets/icons/timer.svg";
 
 // const results = [
 //   {
@@ -280,6 +281,8 @@ interface IHeaderDetails {
   duration: number;
   scheduledFor: string[];
   status: string;
+  totalMarks: number;
+  marksObtained: number;
   highestMarks: number;
   averageMarks: number;
   lowestMarks: number;
@@ -293,73 +296,92 @@ export const HeaderDetails: React.FC<IHeaderDetails> = ({
   duration,
   scheduledFor,
   status,
+  totalMarks,
+  marksObtained,
   highestMarks,
   averageMarks,
   lowestMarks,
   totalAppeared,
 }) => {
   return (
-    <Card classes={[styles.topContainer]}>
-      <div className={styles.topRow}>
-        <div className={styles.left}>
-          <h2>{name}</h2>
-          <h5>Type : {type}</h5>
-          <h5>
-            Language/s :{" "}
-            {languages
-              ?.map((item: any) => {
-                return item?.name;
-              })
-              .join(", ")}
-          </h5>
-          <h5> Duration(mins) : {duration}</h5>
-        </div>
-        <div className={styles.right}>
-          <img className={styles.calendar} src={calendar} alt="Scheduled For" />
-          <div className={styles.scheduledFor}>
-            Scheduled For :
-            {scheduledFor?.map((item: any, index: number) => (
-              <p key={index}>{item}</p>
-            ))}
+    <div className={styles.headerContainer}>
+      <Card classes={[styles.topContainer]}>
+        <div className={styles.topRow}>
+          <div className={styles.left}>
+            <h2>{name}</h2>
+            {/* <h5>Type : {type}</h5> */}
           </div>
-          <div className={styles.status}>
-            {status}{" "}
-            <div
-              className={styles.statusColor}
-              style={{
-                backgroundColor: getStatusColor(status),
-              }}
-            ></div>{" "}
+          <div className={styles.right}>
+            <h5 style={{ marginRight: "1rem" }}>
+              {languages
+                ?.map((item: any) => {
+                  return item?.name;
+                })
+                .join(", ")}
+            </h5>
+            |
+            <div className={styles.flexRow} style={{ margin: "0 1rem" }}>
+              <img src={timer} alt="duration" />
+              <h5>{duration} mins</h5>
+            </div>
+            {/* <img
+              className={styles.calendar}
+              src={calendar}
+              alt="Scheduled For"
+            />
+            <div className={styles.scheduledFor}>
+              Scheduled For :
+              {scheduledFor?.map((item: any, index: number) => (
+                <p key={index}>{item}</p>
+              ))}
+            </div>
+            <div className={styles.status}>
+              {status}{" "}
+              <div
+                className={styles.statusColor}
+                style={{
+                  backgroundColor: getStatusColor(status),
+                }}
+              ></div>{" "}
+            </div> */}
           </div>
         </div>
-      </div>
-      <div className={styles.moreInfo}>
-        <SubCard
-          title="Highest Marks"
-          content={highestMarks}
-          icon={greenCrown}
-          variant="success"
-        />
-        <SubCard
-          title="Average Marks"
-          content={averageMarks.toFixed(1)}
-          icon={yellowFlag}
-          variant="warning"
-        />
-        <SubCard
-          title="Lowest Marks"
-          content={lowestMarks}
-          icon={redWarning}
-          variant="error"
-        />
-        <SubCard
-          title="Total Appeared"
-          content={totalAppeared}
-          icon={blueUsers}
-          variant="primary"
-        />
-      </div>
-    </Card>
+        <div className={styles.moreInfo}>
+          <SubCard
+            title="Highest Marks"
+            content={highestMarks}
+            icon={greenCrown}
+            variant="success"
+          />
+          <SubCard
+            title="Average Marks"
+            content={averageMarks.toFixed(1)}
+            icon={yellowFlag}
+            variant="warning"
+          />
+          <SubCard
+            title="Lowest Marks"
+            content={lowestMarks}
+            icon={redWarning}
+            variant="error"
+          />
+          <SubCard
+            title="Total Appeared"
+            content={totalAppeared}
+            icon={blueUsers}
+            variant="primary"
+          />
+        </div>
+      </Card>
+      <Card classes={[styles.marksCard]}>
+        <p>Marks Obtained</p>
+        <div>
+          <h2>
+            {marksObtained}/<span>{totalMarks}</span>
+          </h2>
+        </div>
+      </Card>
+    </div>
   );
 };
 

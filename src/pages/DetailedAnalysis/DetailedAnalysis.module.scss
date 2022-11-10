@@ -1,5 +1,21 @@
 @import "../../utils/commons.scss";
 
+.headerContainer {
+  @extend .flexRow;
+  align-items: stretch;
+  gap: 1rem;
+  flex-wrap: wrap;
+  .marksCard {
+    flex: 1;
+    h2 {
+      font-size: 3rem;
+      span {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
 .container {
   width: 100%;
 
@@ -19,6 +35,7 @@
 }
 .topContainer {
   background-color: white;
+  flex: 2;
 
   width: 100%;
   .left {
@@ -30,9 +47,7 @@
     }
   }
   .right {
-    @extend .flexCol;
-    justify-content: flex-start;
-    align-items: flex-end;
+    @extend .flexRow;
   }
   .topRow {
     @extend .flexRow;

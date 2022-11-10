@@ -37,6 +37,8 @@ const ResultForStudent: React.FC<Props> = ({
           languages={[{ name: "English" }, { name: "Hindi" }]}
           duration={finalTest?.duration || 90}
           totalAppeared={finalTest?.totalAppeared || 0}
+          totalMarks={finalTest?.totalMarks || 0}
+          marksObtained={finalTest?.marksObtained || 0}
           highestMarks={finalTest?.highestMarks || 0}
           lowestMarks={finalTest?.lowestMarks || 0}
           averageMarks={finalTest?.averageMarks || 0}
@@ -144,20 +146,6 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
 
   return (
     <>
-      <Card classes={[styles.basicInfo]}>
-        <h3 className={styles.marksObtained}>
-          Marks Obtained :{" "}
-          <span className={styles.boldLarge}>
-            {headerData?.totalMarks || 0}/{headerData?.totalTestMarks || 0}
-          </span>
-        </h3>
-        <h3 className={styles.totalAttempted}>
-          Attempted :{" "}
-          <span className={styles.boldLarge}>
-            {headerData?.totalAttempted || 0}/{headerData?.totalQuestions || 0}
-          </span>{" "}
-        </h3>
-      </Card>
       <div className={styles.cards}>
         {Object.values(finalSections)?.map((item: any, index: number) => (
           <SubjectCard key={item.id} color={colors[index % 4]} {...item} />

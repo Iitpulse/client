@@ -27,6 +27,8 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
         languages={[{ name: "English" }, { name: "Hindi" }]}
         duration={finalTest?.duration || 90}
         totalAppeared={finalTest?.totalAppeared || 0}
+        totalMarks={finalTest?.totalMarks || 0}
+        marksObtained={finalTest?.marksObtained || 0}
         highestMarks={finalTest?.highestMarks || 0}
         lowestMarks={finalTest?.lowestMarks || 0}
         averageMarks={finalTest?.averageMarks || 0}
