@@ -29,11 +29,10 @@ import { useParams, useLocation } from "react-router";
 import { CircularProgress, Skeleton } from "@mui/material";
 
 export const questionTypes = [
-  { name: "Objective", value: "objective" },
-  // { name: "Multiple Correct", value: "multiple" },
-  { name: "Integer Type", value: "integer" },
-  { name: "Paragraph", value: "paragraph" },
-  { name: "Matrix Match", value: "matrix" },
+  { name: "Objective" },
+  { name: "Integer" },
+  { name: "Paragraph" },
+  { name: "Matrix" },
 ];
 
 // export const topicOptions = [
@@ -47,11 +46,7 @@ export const questionTypes = [
 //   { name: "Normals", value: "normals" },
 //   { name: `Newton's Law of Motion`, value: "newtonsLawofMotion" },
 // ];
-export const chapterOptions = [
-  "Fluid Mechanics",
-  "Sets Relation and Functions",
-  "Phenol",
-];
+
 // export const subjectOptions = ["Physics", "Mathematics", "Chemistry"];
 export const difficultyOptions = ["Easy", "Medium", "Hard"];
 // export const examOptions = ["JEE MAINS", "JEE ADVANCED", "NEET UG"];
@@ -63,11 +58,147 @@ interface IOptionType {
   value?: string | number;
 }
 
+const defaultErrorObject = {
+  type: false,
+  topics: false,
+  subject: false,
+  chapters: false,
+  difficulty: false,
+  exams: false,
+  sources: false,
+  en: false,
+  hi: false,
+  options: false,
+  correctAnswers: false,
+  uploadedBy: false,
+};
+
+function checkOptionsValidity(options: any) {
+  if (options.length < 4) return false;
+  for (let i = 0; i < options.length; i++) {
+    if (
+      !options[i].value ||
+      !options[i].id ||
+      !checkQuillParaValidity(options[i].value)
+    ) {
+      console.log(options[i]);
+      return false;
+    }
+  }
+  return true;
+}
+
+function checkTopicValidity(chapters: any) {
+  for (let i = 0; i < chapters.length; i++)
+    if (chapters[i].topics.length > 0) return true;
+
+  return false;
+}
+
+function checkQuillParaValidity(para: any) {
+  const stringToBeReplacedWithEmptySpace = ["<p>", "</p>", "</br>", "<br>"];
+  const regex = new RegExp(stringToBeReplacedWithEmptySpace.join("|"), "gi");
+  para = para.replace(regex, () => "");
+  console.log({ para });
+  if (!para) return false;
+  return true;
+}
+
+function checkDataValidity(data: any, setError: any) {
+  if (!data.type) {
+    setError({ ...defaultErrorObject, type: true });
+    return { state: false, message: '"Please select a question type"' };
+  }
+  if (!data.difficulty) {
+    setError({ ...defaultErrorObject, difficulty: true });
+    return { state: false, message: '"Please select a difficulty level"' };
+  }
+  if (!data.subject) {
+    setError({ ...defaultErrorObject, subject: true });
+    return { state: false, message: '"Please select a subject"' };
+  }
+  if (!data.exams?.length) {
+    setError({ ...defaultErrorObject, exams: true });
+    return { state: false, message: '"Please select at least one exam"' };
+  }
+  if (!data.chapters?.length) {
+    setError({ ...defaultErrorObject, chapters: true });
+    return { state: false, message: '"Please select at least one chapter"' };
+  }
+  if (!checkTopicValidity(data?.chapters)) {
+    setError({ ...defaultErrorObject, topics: true });
+    return { state: false, message: '"Please select at least one topic"' };
+  }
+  if (!data.sources?.length) {
+    setError({ ...defaultErrorObject, sources: true });
+    return { state: false, message: '"Please select at least one source"' };
+  }
+  const enQuestion = checkQuillParaValidity(data.en.question);
+  const enOptions = checkOptionsValidity(data.en.options);
+  const enSolution = checkQuillParaValidity(data.en.solution);
+  if (!enQuestion) {
+    setError({ ...defaultErrorObject, en: true });
+    console.log("hola");
+    return { state: false, message: "Please enter a valid question(English)" };
+  }
+  if (!enOptions) {
+    console.log("NOT VALID OPTIONS");
+    setError({ ...defaultErrorObject, en: true });
+    return {
+      state: false,
+      message: "Make sure no option field is blank(English)",
+    };
+  }
+  if (!enSolution) {
+    setError({ ...defaultErrorObject, en: true });
+    return { state: false, message: "Please enter a valid solution(English)" };
+  }
+  // if (
+  //   !checkQuilParaValidity(data.hi.question, setMessage) ||
+  //   !checkOptionsValidity(data.hi.options, setMessage) ||
+  //   !checkQuilParaValidity(data.hi.solution, setMessage)
+  // ) {
+  //   setError({ ...defaultErrorObject, hi: true });
+  //   return false;
+  // }
+  if (
+    data.type === "objective" ||
+    data.type === "multiple" ||
+    data.type === "single"
+  ) {
+    if (data.correctAnswers.length < 1) {
+      setError({ ...defaultErrorObject, correctAnswers: true });
+      return {
+        state: false,
+        message: "At least one correct answer is required",
+      };
+    }
+  } else if (data.type === "integer") {
+    if (!data.correctAnswers.length) {
+      setError({ ...defaultErrorObject, correctAnswers: true });
+      return { state: false, message: "Please enter a valid OBJ(English)" };
+    }
+  } else if (data.type === "paragraph") {
+    if (!data.correctAnswers.length) {
+      setError({ ...defaultErrorObject, correctAnswers: true });
+      return { state: false, message: "Please enter a valid OBJ(English)" };
+    }
+  } else if (data.type === "matrix") {
+    if (!data.correctAnswers.length) {
+      setError({ ...defaultErrorObject, correctAnswers: true });
+      return { state: false, message: "Please enter a valid OBJ(English)" };
+    }
+  }
+  return { state: true, message: "" };
+}
+
 const CreateQuestion = () => {
   // const [id, setId] = useState<string>("QM_ABC123");
   const [exams, setExams] = useState<Array<IOptionType>>([]);
-  const [type, setType] = useState<string>("objective");
+  const [type, setType] = useState<any>(questionTypes[0]?.name);
+  const [error, setError] = useState<any>(defaultErrorObject);
   const [subjectOptions, setSubjectOptions] = useState<any>([]);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [subject, setSubject] = useState<any>({ name: "", value: "" });
   const [chapters, setChapters] = useState<Array<IOptionType>>([]);
   const [topics, setTopics] = useState<Array<IOptionType>>([]);
@@ -118,13 +249,12 @@ const CreateQuestion = () => {
           setIsLoading(false);
         });
       } catch (error) {
-        console.log("ERROR_INITIAL_VALUES_QUESTION", error);
+        console.log(error);
       }
     }
   }, [currentUser]);
 
   useEffect(() => {
-    console.log("Main outside if");
     async function getQuestionData() {
       setIsLoading(true);
       const res = await API_QUESTIONS().get(`mcq/question/${id}`, {
@@ -164,22 +294,27 @@ const CreateQuestion = () => {
       //   { mainData: res.data },
       //   { subject, chapters, topics, subjectOptions }
       // );
+      console.log({ questionData });
       setData(questionData);
       setSubject(subject || {});
-      console.log("THIS IS FUCKING RUNNING");
       setChapters(chapters || []);
-      setTopics(topics || []);
+      setTopics(() => {
+        return topics || [];
+      });
       setDifficulty(questionData.difficulty);
-      setExams(questionData.exams ?? []);
-      setSources(
-        (prev) =>
-          prev?.filter((gSource: any) =>
-            questionData.sources.includes(gSource.name)
-          ) ?? []
+      setExams(
+        questionData?.exams?.map((exam: string) => ({ name: exam })) ?? []
       );
+      setSources(
+        questionData?.sources?.map((source: string) => ({
+          name: source,
+          value: source,
+        })) ?? []
+      );
+
       setType(
         questionData?.type === "single" || questionData?.type === "multiple"
-          ? "objective"
+          ? questionTypes[0]?.name
           : questionData?.type
       );
       setIsLoading(false);
@@ -192,22 +327,12 @@ const CreateQuestion = () => {
       sourceOptions?.length &&
       examOptions?.length
     ) {
-      console.log("Main inside if");
       getQuestionData();
     }
   }, [id, currentUser, pathname, subjectOptions, sourceOptions, examOptions]);
 
   useEffect(() => {
-    if (pathname.includes("edit")) {
-    }
-    setTopics([]);
-    setChapters([]);
-    console.log("%cMake it Empty ", "color: red; font-size: 14px");
-  }, [subject, pathname]);
-
-  useEffect(() => {
     if (chapters?.length) {
-      console.log({ chapters });
       let tempTopics: Array<IOptionType> = [];
       chapters.forEach((chapter: any) => {
         if (chapter.topics) {
@@ -215,7 +340,6 @@ const CreateQuestion = () => {
         }
       });
       setTopicOptions(tempTopics);
-      // setTopics(tempTopics);
     } else {
       setTopics([]);
     }
@@ -224,10 +348,7 @@ const CreateQuestion = () => {
   useEffect(() => {
     if (!topicOptions.length) {
       setTopics([]);
-    } else
-      setTopics((prev) =>
-        prev.filter((tp: any) => topicOptions.includes(tp.name))
-      );
+    }
   }, [topicOptions]);
 
   useEffect(() => {
@@ -240,6 +361,7 @@ const CreateQuestion = () => {
       subject: sub,
       chapters: [],
     });
+    setSubject(res.data.data);
     setSubjectOptions([...subjectOptions, res.data?.data]);
   }
   async function handleAddExam(exam: any) {
@@ -252,31 +374,74 @@ const CreateQuestion = () => {
 
   async function handleAddChapter(chapter: any) {
     // console.log({ chapter, subject });
-    const res = await API_QUESTIONS().post("/subject/create-chapter", {
-      subjectId: subject._id,
-      chapter: {
-        name: chapter,
-        topics: [],
-      },
-    });
-    // console.log({ res });
-    // setChapterOptions([
-    //   ...chapterOptions,
-    //   {
-    //     name: chapter,
-    //     topics: [],
-    //   },
-    // ]);
-    // setChapters(vals);
+    try {
+      const res = await API_QUESTIONS().post("/subject/create-chapter", {
+        subjectId: subject._id,
+        chapter: {
+          name: chapter,
+          topics: [],
+        },
+      });
+      const newSubjectData = res.data.data;
+      setSubjectOptions((prev: any) => {
+        const newSubjectOptions = prev.map((sub: any) =>
+          sub._id === newSubjectData?._id ? newSubjectData : sub
+        );
+        return newSubjectOptions;
+      });
+      setSubject(newSubjectData);
+      setChapters((prev: any) => {
+        return [
+          ...prev,
+          newSubjectData.chapters[newSubjectData.chapters.length - 1],
+        ];
+      });
+    } catch (err) {
+      console.log(err);
+      message.error("Error adding chapter");
+    }
   }
+
   async function handleAddTopic(topic: any) {
     // console.log({ subject, chapters, topic });
-    const res = await API_QUESTIONS().post("/subject/create-topic", {
-      subjectId: subject._id,
-      chapter: topic.chapter,
-      topic: topic.topic,
-    });
-    setTopicOptions([...topicOptions, topic.topic]);
+    try {
+      const res = await API_QUESTIONS().post("/subject/create-topic", {
+        subjectId: subject._id,
+        chapter: topic.chapter,
+        topic: topic.topic,
+      });
+
+      setTopicOptions(
+        chapters?.find((chapter: any) => chapter.name === topic.chapter)
+          ? [...topicOptions, topic.topic]
+          : [...topicOptions]
+      );
+      setTopics((prev: any) => {
+        return chapters?.find((chapter: any) => chapter.name === topic.chapter)
+          ? [...prev, topic.topic]
+          : [...prev];
+      });
+      setChapters((prev: any) => {
+        const newChapters = prev.map((chapter: any) => {
+          if (chapter.name === topic.chapter) {
+            chapter.topics.push(topic.topic);
+          }
+          return chapter;
+        });
+        return newChapters;
+      });
+      setSubjectOptions((prev: any) => {
+        const newSubjectOptions = prev.map((sub: any) =>
+          sub._id === subject._id ? res.data.data : sub
+        );
+        return newSubjectOptions;
+      });
+      setSubject(res.data.data);
+    } catch (err) {
+      console.log(err);
+      message.error("Error adding topic");
+    }
+
     // console.log({ res });
   }
   async function handleAddSource(source: string) {
@@ -287,10 +452,6 @@ const CreateQuestion = () => {
     // console.log({ res });
   }
 
-  // useEffect(()=>{
-
-  // })
-
   // useEffect(() => {
   //   console.log({ subject, chapters, topics, subjectOptions, data });
   //   console.count();
@@ -300,7 +461,6 @@ const CreateQuestion = () => {
     //check if the url has edit in it then update the question
     // else create a new question
 
-    let loading = message.loading("Creating Question...");
     try {
       if (currentUser) {
         let questionCore = {
@@ -317,6 +477,7 @@ const CreateQuestion = () => {
             };
           }),
           difficulty,
+          exams: exams.map((exam: any) => exam.name),
           sources: sources.map((source) => source.name),
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
@@ -351,21 +512,40 @@ const CreateQuestion = () => {
               //   return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
               // };
               let res = "";
-              if (id) {
-                res = await API_QUESTIONS().put(
-                  `/mcq/update/${id}`,
-                  finalQuestion
-                );
-                // console.log({ res });
-              } else {
-                async function createNewQuestion() {
-                  return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
+
+              let dataValid = checkDataValidity(finalQuestion, setError);
+              if (!dataValid.state) {
+                console.log("This means error");
+                message.error(dataValid?.message);
+              }
+              console.log({ dataValid, finalQuestion });
+              if (dataValid?.state) {
+                if (id) {
+                  let loading = message.loading("Updating Question...");
+                  res = await API_QUESTIONS().put(
+                    `/mcq/update/${id}`,
+                    finalQuestion
+                  );
+                  // console.log({ res });
+                  loading();
+                  message.success("Question updated successfully");
+                  // setData({});
+                } else {
+                  let loading = message.loading("Creating Question...");
+                  async function createNewQuestion() {
+                    return await API_QUESTIONS().post(
+                      `/mcq/new`,
+                      finalQuestion
+                    );
+                  }
+                  const temp = Array(50)
+                    .fill(null)
+                    .map(() => createNewQuestion());
+                  await Promise.all(temp);
+                  loading();
+                  message.success("Question created successfully");
+                  setData({});
                 }
-                const temp = Array(50)
-                  .fill(null)
-                  .map(() => createNewQuestion());
-                await Promise.all(temp);
-                // console.log(temp);
               }
 
               // console.log({ res });
@@ -385,19 +565,28 @@ const CreateQuestion = () => {
                 },
                 correctAnswers: data.correctAnswers,
               };
-
+              let dataValid = checkDataValidity(finalQuestion, setError);
               console.log({ finalQuestion });
               let res = "";
-              if (id) {
-                res = await API_QUESTIONS().put(
-                  `/numerical/update/${id}`,
-                  finalQuestion
-                );
-              } else {
-                res = await API_QUESTIONS().post(
-                  `/numerical/new`,
-                  finalQuestion
-                );
+              if (dataValid.state) {
+                if (id) {
+                  let loading = message.loading("Updating Question...");
+                  res = await API_QUESTIONS().put(
+                    `/numerical/update/${id}`,
+                    finalQuestion
+                  );
+                  loading();
+                  message.success("Question Updated successfully");
+                } else {
+                  let loading = message.loading("Creating Question...");
+                  res = await API_QUESTIONS().post(
+                    `/numerical/new`,
+                    finalQuestion
+                  );
+                  loading();
+                  message.success("Question created successfully");
+                  setData({});
+                }
               }
 
               // console.log({ res });
@@ -406,12 +595,8 @@ const CreateQuestion = () => {
           default:
             return;
         }
-        loading();
-        message.success("Question created successfully");
-        setData({});
       }
     } catch (error) {
-      loading();
       message.success("Error" + error);
     }
   }
@@ -436,34 +621,39 @@ const CreateQuestion = () => {
                   options={questionTypes}
                   state={type}
                   onChange={setType}
+                  error={error.type}
                   disabled={id ? true : false}
                 />
                 <StyledMUISelect
                   label={"Difficulty"}
                   options={difficultyOptions.map((difficulty) => ({
                     name: difficulty,
-                    value: difficulty,
                   }))}
                   state={difficulty}
+                  error={error.difficulty}
                   onChange={setDifficulty}
                 />
                 <CreatableSelect
                   onAddModalSubmit={handleAddSubject}
                   options={subjectOptions}
                   setValue={setSubject}
+                  setChapters={setChapters}
+                  setTopics={setTopics}
                   value={subject}
                   label={"Subject"}
+                  error={error.subject}
                   id="subject"
+                  loading
                 />
                 <CreatableSelect
                   multiple
                   onAddModalSubmit={handleAddExam}
                   options={examOptions.map((exam: any) => ({
                     name: exam.name,
-                    value: exam.name,
                   }))}
                   setValue={setExams}
                   value={exams}
+                  error={error.exams}
                   label={"Exam(s)"}
                   id="Exams"
                 />
@@ -473,6 +663,7 @@ const CreateQuestion = () => {
                   options={subject?.chapters}
                   setValue={setChapters}
                   value={chapters}
+                  error={error.chapters}
                   label={"Chapter(s)"}
                   id="Chapters"
                   disabled={!subject?.name?.length}
@@ -489,6 +680,7 @@ const CreateQuestion = () => {
                   setValue={setTopics}
                   disabled={Boolean(!chapters?.length)}
                   value={topics}
+                  error={error.topics}
                   label={"Topic(s)"}
                   id="Topics"
                 />
@@ -501,6 +693,7 @@ const CreateQuestion = () => {
                   }))}
                   setValue={setSources}
                   value={sources}
+                  error={error.sources}
                   label={"Source(s)"}
                   id="Sources"
                 />
@@ -544,7 +737,7 @@ function getQuestionFromType(
   isInitialValuePassed: boolean,
   setIsInitialValuePassed: (data: any) => void
 ) {
-  switch (type) {
+  switch (type.toLowerCase()) {
     case "objective":
       return (
         <Objective
