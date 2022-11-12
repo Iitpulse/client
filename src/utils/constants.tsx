@@ -30,6 +30,10 @@ export const USER_TYPES = {
   GUEST_TEACHER: "guest-teacher",
 };
 
+export const TEST_GENERAL = {
+  REJECTED_QUESTIONS: "REJECTED_QUESTIONS",
+};
+
 export const AUTH_TOKEN = "IITP_AUTH_TOKEN";
 
 export const EXAMS = {};

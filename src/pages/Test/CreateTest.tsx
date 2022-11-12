@@ -8,7 +8,11 @@ import {
   ISubSection,
   ITestQuestionObjective,
 } from "../../utils/interfaces";
-import { QUESTION_COLS_ALL, SAMPLE_TEST } from "../../utils/constants";
+import {
+  QUESTION_COLS_ALL,
+  SAMPLE_TEST,
+  TEST_GENERAL,
+} from "../../utils/constants";
 import { StyledMUITextField } from "../Users/components";
 // import {
 //   DateRangePicker,
@@ -30,9 +34,9 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api";
 import CustomTable from "../../components/CustomTable/CustomTable";
-import { Visibility } from "@mui/icons-material";
+import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
-import { message } from "antd";
+import { message, Popconfirm } from "antd";
 import { TestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
 import moment from "moment";
@@ -404,6 +408,7 @@ const SubSection: React.FC<{
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [previewData, setPreviewData] = useState<any>({} as any);
   const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (previewData?.type === "single" || previewData?.type === "multiple") {
@@ -415,44 +420,69 @@ const SubSection: React.FC<{
   }, [previewData]);
 
   useEffect(() => {
-    console.log({ questions });
     if (questions) {
       setTempQuestions(questions);
     }
   }, [questions]);
 
-  async function generateQuestions() {
-    const { data } = await API_QUESTIONS().get(`/mcq/autogenerate`, {
-      params: {
-        type,
-        difficulties: {
-          easy: parseInt(easy),
-          medium: parseInt(medium),
-          hard: parseInt(hard),
-        },
-        subject,
-        totalQuestions: subSection.totalQuestions,
-      },
-    });
-    console.log({ data });
-    let withAttemptedByForOptions = [...data];
-    withAttemptedByForOptions.forEach((ques) => {
-      ques.en.options.forEach((option: any) => {
-        option["attemptedBy"] = 0;
-      });
+  useEffect(() => {
+    return () => {
+      // Remove Rejected Questions from Local Storage
+      localStorage.removeItem(TEST_GENERAL.REJECTED_QUESTIONS);
+    };
+  });
 
-      ques.hi.options.forEach((option: any) => {
-        option["attemptedBy"] = 0;
+  async function generateQuestions() {
+    setLoading(true);
+    try {
+      const rejectedQuestions = JSON.parse(
+        localStorage.getItem(TEST_GENERAL.REJECTED_QUESTIONS) || "[]"
+      );
+      const { data } = await API_QUESTIONS().get(`/mcq/autogenerate`, {
+        params: {
+          type,
+          difficulties: {
+            easy: parseInt(easy),
+            medium: parseInt(medium),
+            hard: parseInt(hard),
+          },
+          rejectedQuestions,
+          subject,
+          totalQuestions: subSection.totalQuestions,
+        },
       });
-    });
-    setTempQuestions(withAttemptedByForOptions);
-    console.log({ withAttemptedByForOptions });
-    handleUpdateSubSection(subSection.id, {
-      questions: withAttemptedByForOptions,
-    });
+      let withAttemptedByForOptions = [...data];
+      withAttemptedByForOptions.forEach((ques) => {
+        ques.en.options.forEach((option: any) => {
+          option["attemptedBy"] = 0;
+        });
+
+        ques.hi.options.forEach((option: any) => {
+          option["attemptedBy"] = 0;
+        });
+      });
+      setTempQuestions(withAttemptedByForOptions);
+      console.log({ withAttemptedByForOptions });
+      handleUpdateSubSection(subSection.id, {
+        questions: withAttemptedByForOptions,
+      });
+    } catch (error: any) {
+      message.error(error?.response?.data?.message);
+    }
+    setLoading(false);
   }
 
-  function handleClickAutoGenerate() {
+  function handleClickAutoGenerate(e: any, rejected?: string) {
+    if (rejected) {
+      const prevRejected = JSON.parse(
+        localStorage.getItem(TEST_GENERAL.REJECTED_QUESTIONS) || "[]"
+      );
+      const newRejected = [...prevRejected, rejected];
+      localStorage.setItem(
+        TEST_GENERAL.REJECTED_QUESTIONS,
+        JSON.stringify(newRejected)
+      );
+    }
     generateQuestions();
     // setTempQuestions(newQuestions);
   }
@@ -535,12 +565,11 @@ const SubSection: React.FC<{
           <CustomTable
             columns={
               [
-                ...QUESTION_COLS_ALL,
                 {
-                  title: "Preview",
-                  key: "preview",
-                  width: 120,
-                  fixed: "right",
+                  title: "View",
+                  key: "view",
+                  width: 70,
+                  fixed: "left",
                   render: (text: any, record: any) => (
                     <IconButton
                       onClick={() => {
@@ -550,6 +579,25 @@ const SubSection: React.FC<{
                     >
                       <Visibility />
                     </IconButton>
+                  ),
+                },
+                ...QUESTION_COLS_ALL,
+                {
+                  title: "Reject",
+                  key: "reject",
+                  width: 80,
+                  fixed: "right",
+                  render: (text: any, record: any) => (
+                    <Popconfirm
+                      title="Sure to reject?"
+                      onConfirm={() => {
+                        handleClickAutoGenerate(null, record._id);
+                      }}
+                    >
+                      <IconButton>
+                        <Delete />
+                      </IconButton>
+                    </Popconfirm>
                   ),
                 },
               ] as Array<any>
