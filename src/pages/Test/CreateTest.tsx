@@ -411,6 +411,14 @@ const SubSection: React.FC<{
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (totalQuestions) {
+      setEasy(Math.floor(totalQuestions * 0.3).toString());
+      setMedium(Math.floor(totalQuestions * 0.5).toString());
+      setHard(Math.floor(totalQuestions * 0.2).toString());
+    }
+  }, [totalQuestions]);
+
+  useEffect(() => {
     if (previewData?.type === "single" || previewData?.type === "multiple") {
       setQuillStringForPreview(
         previewData?.en?.question +
@@ -602,6 +610,7 @@ const SubSection: React.FC<{
                 },
               ] as Array<any>
             }
+            loading={loading}
             dataSource={Object.values(tempQuestions)?.map((q: any) => ({
               ...q,
               key: q._id,
