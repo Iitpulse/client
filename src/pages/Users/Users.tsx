@@ -201,7 +201,7 @@ const Users = () => {
             <Tab label="Managers" />
           </Tabs>
           <div>
-            <IconButton onClick={handleClickRefresh}>
+            <IconButton className={styles.icons} onClick={handleClickRefresh}>
               <CSVLink
                 filename={"Questions.csv"}
                 data={csvData}
@@ -216,7 +216,10 @@ const Users = () => {
                 {/* Export to CSV */}
               </CSVLink>
             </IconButton>
-            <IconButton onClick={handleClickRefresh}>
+            <IconButton
+              className={styles.cacheIcon}
+              onClick={handleClickRefresh}
+            >
               <CachedIcon />
             </IconButton>
             {isCreatePermitted && (
