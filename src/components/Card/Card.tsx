@@ -8,12 +8,20 @@ interface CardProps {
   actionBtn?: React.ReactNode;
   children: React.ReactNode;
   styles?: React.CSSProperties;
+  disablePadding?: boolean;
   classes?: Array<string>;
 }
 const Card = (props: CardProps) => {
-  const { title, actionBtn, children, classes, showMoreBtn } = props;
+  const { title, actionBtn, children, classes, showMoreBtn, disablePadding } =
+    props;
   return (
-    <div className={clsx(styles.cardWrapper, classes)}>
+    <div
+      className={clsx(
+        styles.cardWrapper,
+        disablePadding ? styles.noPadding : "",
+        classes
+      )}
+    >
       {(title || showMoreBtn) && (
         <div className={styles.header}>
           <p className={styles.title}>{title}</p>

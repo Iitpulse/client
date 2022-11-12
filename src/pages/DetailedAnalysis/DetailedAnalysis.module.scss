@@ -7,10 +7,33 @@
   flex-wrap: wrap;
   .marksCard {
     flex: 1;
-    h2 {
-      font-size: 3rem;
+    .marksObtained {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 8px;
+      background-color: var(--clr-primary);
+      h2,
+      p,
       span {
-        font-size: 1rem;
+        color: white;
+      }
+      h2 {
+        font-size: 4rem;
+        font-weight: 600;
+        color: white;
+        span {
+          font-size: 1.5rem;
+          font-weight: 400;
+        }
+      }
+    }
+    .attempted {
+      margin-top: 1rem;
+      > div {
+        @extend .flexRow;
+        h2 {
+          font-size: 2rem;
+        }
       }
     }
   }
@@ -36,8 +59,8 @@
 .topContainer {
   background-color: white;
   flex: 2;
+  min-width: 66%;
 
-  width: 100%;
   .left {
     h5 {
       color: rgb(119, 118, 118);
@@ -92,7 +115,7 @@
   display: flex;
   flex-direction: column;
   width: fit-content;
-  min-width: 170px;
+  min-width: 160px;
   justify-content: space-evenly;
   background: rgba(85, 188, 126, 0.2);
   padding: 0.5rem;

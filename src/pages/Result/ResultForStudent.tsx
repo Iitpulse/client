@@ -18,7 +18,7 @@ interface Props {
   hasResultViewPermission: boolean;
 }
 
-const colors = ["#55bc7e", "#f8ba1c", "#fc5f5f", "#61b4f1"];
+const colors = ["primary", "success", "warning", "error"];
 
 const ResultForStudent: React.FC<Props> = ({
   finalTest,
@@ -36,6 +36,8 @@ const ResultForStudent: React.FC<Props> = ({
           type={finalTest?.type || ""}
           languages={[{ name: "English" }, { name: "Hindi" }]}
           duration={finalTest?.duration || 90}
+          totalQuestions={finalTest?.totalQuestions || 0}
+          attempted={finalTest?.attempted || 0}
           totalAppeared={finalTest?.totalAppeared || 0}
           totalMarks={finalTest?.totalMarks || 0}
           marksObtained={finalTest?.marksObtained || 0}

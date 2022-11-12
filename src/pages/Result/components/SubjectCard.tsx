@@ -4,11 +4,12 @@ import { CircularProgress as MUICircularProgress } from "@mui/material";
 import { roundToOne } from "../../../utils";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
+import { Card } from "../../../components";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface ISubjectCard {
-  color: string;
+  color: "primary" | "success" | "warning" | "error";
   name: string;
   marks: number;
   maxMarks: number;
@@ -48,53 +49,59 @@ const SubjectCard: React.FC<ISubjectCard> = ({
   };
 
   return (
-    <div className={styles.subjectCard}>
-      <h3 style={{ color }} className={styles.subjectName}>
-        {name}
-      </h3>
-      <div className={styles.mid}>
-        <div className={styles.left}>
-          <h2 className={styles.marks}>
-            {marks}/{360}
-          </h2>
-          <div className={styles.time}>
-            <img src={timerIcon} alt="Time" />
-            <p>{timeTakenInSeconds.toFixed(2)}</p>
+    <Card
+      classes={[styles.subjectCard, styles[`card_${color}`]]}
+      disablePadding
+    >
+      <div className={styles.header}>
+        <h3 className={styles.subjectName}>{name}</h3>
+        <div className={styles.mid}>
+          <div className={styles.left}>
+            <h2 className={styles.marks}>
+              {marks}/{360}
+            </h2>
+            <p className={styles.accuracy}>
+              Accuracy:
+              <span className={styles.highlight}>
+                {roundToOne((correct / attempted) * 100)}%
+              </span>
+            </p>
+            <div className={styles.time}>
+              <img src={timerIcon} alt="Time" style={{ filter: "invert(1)" }} />
+              &nbsp;
+              <p>{timeTakenInSeconds.toFixed(2)}</p>
+            </div>
           </div>
-          <p className={styles.accuracy}>
-            Accuracy:
-            <span className={styles.highlight}>
-              {roundToOne((correct / attempted) * 100)}%
-            </span>
+          <CircularProgress color={color} progress={(marks / 360) * 100} />
+        </div>
+      </div>
+      <div className={styles.content}>
+        <div className={styles.moreInfo}>
+          <p>
+            Attempted :<span className={styles.highlight}>{attempted}</span>{" "}
+          </p>
+          <p>
+            Correct :<span className={styles.highlight}>{correct}</span>{" "}
+          </p>
+          <p>
+            Incorrect :<span className={styles.highlight}>{incorrect}</span>{" "}
           </p>
         </div>
-        <CircularProgress color={color} progress={(marks / 360) * 100} />
-      </div>
-      <div className={styles.moreInfo}>
-        <p>
-          Attempted :<span className={styles.highlight}>{attempted}</span>{" "}
-        </p>
-        <p>
-          Correct :<span className={styles.highlight}>{correct}</span>{" "}
-        </p>
-        <p>
-          Incorrect :<span className={styles.highlight}>{incorrect}</span>{" "}
-        </p>
-      </div>
-      <div className={styles.pieContainer}>
-        <Doughnut
-          options={{
-            plugins: {
-              legend: {
-                display: false,
+        <div className={styles.pieContainer}>
+          <Doughnut
+            options={{
+              plugins: {
+                legend: {
+                  display: false,
+                },
               },
-            },
-          }}
-          className={styles.pie}
-          data={chartData}
-        />
+            }}
+            className={styles.pie}
+            data={chartData}
+          />
+        </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

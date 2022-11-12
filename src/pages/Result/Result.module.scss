@@ -48,15 +48,24 @@
   .subjectCard {
     // min-width: 250px;
     flex: 1;
-    padding: 1rem 2rem;
+    // padding: 1rem 2rem;
     background-color: white;
     border-radius: 10px;
+    .header {
+      padding: 2rem;
+      h3 {
+        color: white;
+      }
+    }
+    .content {
+      padding: 2rem;
+    }
     .subjectName {
       color: var(--clr-success);
       font-weight: 600;
-      margin-bottom: 2rem;
     }
     .mid {
+      margin-top: 1rem;
       @extend .flexRow;
       h2 {
         font-size: 1.5rem;
@@ -69,7 +78,7 @@
         span {
           margin-left: 0.4rem;
           font-weight: 600;
-          color: var(--clr-txt-dark);
+          color: white;
         }
       }
       .time {
@@ -81,7 +90,6 @@
       }
     }
     .moreInfo {
-      margin-top: 2rem;
       p {
         font-size: 1rem;
         margin: 0.8rem 0;
@@ -121,6 +129,7 @@
   justify-content: center;
   width: -moz-fit-content;
   width: fit-content;
+  min-width: 100px;
   > :first-child {
     position: absolute;
     transform: rotate(270deg) scale(1.5) !important;
@@ -142,4 +151,36 @@
 .pieContainer {
   max-height: 200px !important;
   max-width: 200px !important;
+}
+.card_primary {
+  .header {
+    * {
+      color: white;
+    }
+    background: var(--clr-primary);
+  }
+}
+.card_success {
+  .header {
+    * {
+      color: white;
+    }
+    background: var(--clr-success);
+  }
+}
+.card_warning {
+  .header {
+    * {
+      color: white;
+    }
+    background: var(--clr-warning);
+  }
+}
+.card_error {
+  .header {
+    * {
+      color: white;
+    }
+    background: var(--clr-error);
+  }
 }

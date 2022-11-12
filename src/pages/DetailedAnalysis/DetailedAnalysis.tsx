@@ -10,7 +10,14 @@ import {
 } from "../../components/";
 import Question from "./components/Question";
 import { Dispatch, memo, SetStateAction, useEffect, useState } from "react";
-import { Tab, Tabs, Menu, MenuItem, IconButton } from "@mui/material";
+import {
+  Tab,
+  Tabs,
+  Menu,
+  MenuItem,
+  IconButton,
+  CircularProgress,
+} from "@mui/material";
 import calendar from "../../assets/icons/calendar.svg";
 import yellowFlag from "../../assets/icons/yellowFlag.svg";
 import blueUsers from "../../assets/icons/blueUsers.svg";
@@ -281,6 +288,8 @@ interface IHeaderDetails {
   duration: number;
   scheduledFor: string[];
   status: string;
+  attempted: number;
+  totalQuestions: number;
   totalMarks: number;
   marksObtained: number;
   highestMarks: number;
@@ -296,7 +305,9 @@ export const HeaderDetails: React.FC<IHeaderDetails> = ({
   duration,
   scheduledFor,
   status,
+  attempted,
   totalMarks,
+  totalQuestions,
   marksObtained,
   highestMarks,
   averageMarks,
@@ -374,11 +385,25 @@ export const HeaderDetails: React.FC<IHeaderDetails> = ({
         </div>
       </Card>
       <Card classes={[styles.marksCard]}>
-        <p>Marks Obtained</p>
-        <div>
-          <h2>
-            {marksObtained}/<span>{totalMarks}</span>
-          </h2>
+        <div className={styles.marksObtained}>
+          <p>Marks Obtained</p>
+          <div>
+            <h2>
+              {marksObtained}/<span>{totalMarks}</span>
+            </h2>
+          </div>
+        </div>
+        <div className={styles.attempted}>
+          <p>Attempted</p>
+          <div>
+            <h2>
+              {attempted}/<span>{totalQuestions}</span>
+            </h2>
+            <CircularProgress
+              variant="determinate"
+              value={Math.floor((attempted / totalQuestions) * 100)}
+            />
+          </div>
         </div>
       </Card>
     </div>
