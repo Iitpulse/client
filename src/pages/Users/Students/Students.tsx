@@ -386,7 +386,26 @@ const Students: React.FC<{
 };
 
 export default Students;
-
+const defaultValue = {
+  name: "",
+  password: "",
+  email: "",
+  stream: "",
+  standard: "",
+  batch: "",
+  gender: "",
+  roles: "",
+  contact: "",
+  parentContact: "",
+  aadhaar: "",
+  school: "",
+  dob: "",
+  city: "",
+  state: "",
+  parentName: "",
+  currentAddress: "",
+  permanentAddress: "",
+};
 export const Student: React.FC<{
   student?: UserProps;
   title?: string;
@@ -396,16 +415,7 @@ export const Student: React.FC<{
   };
 }> = (props) => {
   const { onSubmit, uploadedBy } = { ...props.student };
-  const [values, setValues] = useState({
-    stream: "",
-    standard: "",
-    batch: "",
-    gender: "",
-    roles: "",
-    contact: "",
-    parentContact: "",
-    aadhaar: "",
-  } as any);
+  const [values, setValues] = useState(defaultValue as any);
   const newUserRef = useRef<HTMLFormElement>(null);
   const [openDropzne, setOpenDropzone] = useState(false);
   const [file, setFile] = useState(null as any);
@@ -476,26 +486,7 @@ export const Student: React.FC<{
   });
 
   function handleReset() {
-    setValues({
-      name: "",
-      password: "",
-      email: "",
-      stream: "",
-      standard: "",
-      batch: "",
-      gender: "",
-      roles: "",
-      contact: "",
-      parentContact: "",
-      aadhaar: "",
-      school: "",
-      dob: "",
-      city: "",
-      state: "",
-      parentName: "",
-      currentAddress: "",
-      permanentAddress: "",
-    });
+    setValues(defaultValue);
     setRoles([]);
   }
   function handleChangeValuesForCreatableSelect(
