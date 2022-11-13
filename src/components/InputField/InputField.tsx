@@ -1,3 +1,4 @@
+import { Button } from "antd";
 import { HTMLInputTypeAttribute } from "react";
 import styles from "./InputField.module.scss";
 
@@ -8,6 +9,7 @@ interface Props {
   placeholder?: string;
   disabled?: boolean;
   value: string;
+  ref?: any;
   required?: boolean;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   [x: string]: any;
@@ -19,6 +21,7 @@ const InputField = (props: Props) => {
     type,
     label,
     placeholder,
+    ref,
     required,
     disabled,
     value,

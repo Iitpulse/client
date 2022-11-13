@@ -7,7 +7,7 @@ import {
   HTMLAttributes,
 } from "react";
 import styles from "./Questions.module.scss";
-import { Sidebar, Button, Card } from "../../components";
+import { Sidebar, Button, Card, InputField } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
 import Integer from "./Integer/Integer";
@@ -136,6 +136,9 @@ const Questions = () => {
   const [previewModalVisible, setPreviewModalVisible] = useState(false);
   const [previewData, setPreviewData] = useState<any>({});
   const [quillStringForPreview, setQuillStringForPreview] = useState<any>("");
+  const [globalSearch, setGlobalSearch] = useState<string>("");
+  const globalSearchRef = useRef<any>(null);
+  const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -216,8 +219,10 @@ const Questions = () => {
         params: {
           page,
           size: pageSize || 10,
+          search: globalSearch, // I Wrote this line
         },
       });
+      console.log({ data: res.data });
       setQuestions(res.data.data);
       setTotalDocs(res.data.totalDocs);
       setLoading(false);
@@ -227,6 +232,27 @@ const Questions = () => {
     }
   }
 
+  // async function fetchData() {
+  //   setLoading(true);
+  //   const res = await API_QUESTIONS().get("/mcq/all", {
+  //     params: {
+  //       search: globalSearch,
+  //       page:1,
+  //     },
+  //   });
+  //   setQuestions(res.data.data);
+  //   console.log("TESTING", { data: res.data });
+  //   return res;
+  // }
+  useEffect(() => {
+    async function debounceGlobalSearch() {
+      console.log("HEY I AM GETTING CALLED");
+      clearTimeout(timeoutNumber);
+      setTimeoutNumber(setTimeout(onChangePageOrPageSize, 600));
+    }
+    debounceGlobalSearch();
+  }, [globalSearch]);
+
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
       <Card classes={[styles.container]}>
@@ -235,10 +261,21 @@ const Questions = () => {
             {isCreatePermitted && (
               <>
                 <div className={styles.flexRow}>
+                  <InputField
+                    ref={globalSearchRef}
+                    id="globalSearch"
+                    label=""
+                    placeholder="Search Question"
+                    value={globalSearch}
+                    onChange={(e: any) => setGlobalSearch(e.target.value)}
+                    type="text"
+                  />
+
                   <div>
                     <IconButton onClick={handlePrint}>
                       <PrintIcon />
                     </IconButton>
+
                     <IconButton>
                       <CSVLink filename={"Questions.csv"} data={questions}>
                         <img
