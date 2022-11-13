@@ -4,6 +4,7 @@ import {
   Card,
   NotificationCard,
   Sidebar,
+  StyledMUISelect,
 } from "../../components";
 import styles from "./Home.module.scss";
 import { useContext, useEffect, useState } from "react";
@@ -25,7 +26,8 @@ import CalendarComponent from "../../components/CalendarComponent/CalendarCompon
 import { API_USERS } from "../../utils/api";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import MainLayout from "../../layouts/MainLayout";
-
+import { Dropdown, Menu } from "antd";
+import type { MenuProps } from "antd";
 interface SubCardProps {
   title: string;
   icon: string;
@@ -129,6 +131,10 @@ const Home = () => {
   const handleClose = () => setOpen(false);
 
   const { state, recentTest } = useContext(TestContext);
+  const [recentTestIdx, setrecentTestidx] = useState<any>(0);
+  const [recentTestValue, setrecentTestValue] = useState<any>(
+    recentTest?.at(0)?.name
+  );
   const { currentUser } = useContext(AuthContext);
   // console.log("recentTests in home : ", recentTest);
 
@@ -155,41 +161,62 @@ const Home = () => {
   useEffect(() => {
     console.log({ ongoingTests });
   }, [ongoingTests]);
-
+  useEffect(() => {
+    setrecentTestValue(recentTest?.at(0)?.name);
+  }, [recentTest]);
   return (
     <MainLayout name="Home">
       <div className={styles.container}>
         <Grid container spacing={4}>
           <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
             <Card
+              actionBtn={
+                <StyledMUISelect
+                  label={"Recent Tests"}
+                  options={recentTest.map((test) => ({
+                    name: test.name,
+                    value: test.name,
+                  }))}
+                  value={recentTestValue}
+                  onChange={(e) => {
+                    setrecentTestValue(e);
+                    let test = recentTest.find((test) => test.name === e);
+                    let idx = -1;
+                    if (test) idx = recentTest.indexOf(test);
+                    if (idx !== -1) setrecentTestidx(idx);
+                  }}
+                />
+              }
               title="Recent Test Analysis"
               classes={[styles.recentTestContainer]}
             >
-              <h2>{recentTest.name}</h2>
+              <h2>{recentTest[recentTestIdx]?.name}</h2>
               <div className={styles.data}>
                 <SubCard
                   title="Highest Marks"
-                  content={String(recentTest.highestMarks)}
+                  content={String(recentTest[recentTestIdx]?.highestMarks)}
                   icon={greenCrown}
                   variant="success"
                 />
                 <SubCard
                   title="Average Marks"
                   content={String(
-                    parseInt(recentTest.averageMarks.toString()).toFixed(2)
+                    parseInt(
+                      recentTest[recentTestIdx]?.averageMarks.toString()
+                    ).toFixed(2)
                   )}
                   icon={yellowFlag}
                   variant="warning"
                 />
                 <SubCard
                   title="Lowest Marks"
-                  content={String(recentTest.lowestMarks)}
+                  content={String(recentTest[recentTestIdx]?.lowestMarks)}
                   icon={redWarning}
                   variant="error"
                 />
                 <SubCard
                   title="Total Appeared"
-                  content={String(recentTest.totalAppeared)}
+                  content={String(recentTest[recentTestIdx]?.totalAppeared)}
                   icon={blueUsers}
                   variant="primary"
                 />

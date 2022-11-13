@@ -7,7 +7,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
-import { FormHelperText } from "@mui/material";
+import { FormHelperText, Tooltip } from "@mui/material";
 
 const filter = createFilterOptions<IOptionType>();
 
@@ -27,6 +27,9 @@ interface ICreatableSelect {
   setChapters?: any;
   setTopics?: any;
   [x: string]: any;
+  enabledToolTipTitle?: string;
+  disabledToolTipTitle?: string;
+  enableToolTip?: boolean;
 }
 
 interface IOptionType {
@@ -52,6 +55,9 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   children,
   setChapters,
   setTopics,
+  enabledToolTipTitle,
+  disabledToolTipTitle,
+  enableToolTip,
   ...remaining
 }) => {
   const [open, toggleOpen] = React.useState(false);
@@ -95,107 +101,113 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
 
   return (
     <React.Fragment>
-      <Autocomplete
-        multiple={multiple}
-        value={value}
-        isOptionEqualToValue={(option: IOptionType, value: IOptionType) =>
-          option?.name === value?.name
-        }
-        disabled={disabled || false}
-        onChange={
-          multiple
-            ? (event, newValue: any) => {
-                if (typeof newValue === "string") {
-                  // timeout to avoid instant validation of the dialog's form.
-                  setTimeout(() => {
-                    toggleOpen(true);
-                    setDialogValue(newValue);
-                  });
-                  if (id === "subject") {
-                    setChapters([]);
-                    setTopics([]);
-                  }
-                } else if (
-                  newValue &&
-                  multiple &&
-                  newValue[newValue?.length - 1]?.inputValue
-                ) {
-                  toggleOpen(true);
-                  setDialogValue(newValue[newValue?.length - 1].inputValue);
-                  if (id === "subject") {
-                    setChapters([]);
-                    setTopics([]);
-                  }
-                } else {
-                  setValue(newValue);
-                  if (id === "subject") {
-                    setChapters([]);
-                    setTopics([]);
-                  }
-                }
-              }
-            : (event, newValue: any) => {
-                if (typeof newValue === "string") {
-                  // timeout to avoid instant validation of the dialog's form.
-                  setTimeout(() => {
-                    toggleOpen(true);
-                    setDialogValue(newValue);
+      <Tooltip
+        disableHoverListener={!enableToolTip}
+        disableFocusListener={!enableToolTip}
+        title={options?.length > 0 ? enabledToolTipTitle : disabledToolTipTitle}
+      >
+        <Autocomplete
+          multiple={multiple}
+          value={value}
+          isOptionEqualToValue={(option: IOptionType, value: IOptionType) =>
+            option?.name === value?.name
+          }
+          disabled={disabled || false}
+          onChange={
+            multiple
+              ? (event, newValue: any) => {
+                  if (typeof newValue === "string") {
+                    // timeout to avoid instant validation of the dialog's form.
+                    setTimeout(() => {
+                      toggleOpen(true);
+                      setDialogValue(newValue);
+                    });
                     if (id === "subject") {
                       setChapters([]);
                       setTopics([]);
                     }
-                  });
-                } else if (newValue && newValue.inputValue) {
-                  toggleOpen(true);
-                  setDialogValue(newValue.inputValue);
-                  if (id === "subject") {
-                    setChapters([]);
-                    setTopics([]);
-                  }
-                } else {
-                  setValue(newValue);
-                  if (id === "subject") {
-                    setChapters([]);
-                    setTopics([]);
+                  } else if (
+                    newValue &&
+                    multiple &&
+                    newValue[newValue?.length - 1]?.inputValue
+                  ) {
+                    toggleOpen(true);
+                    setDialogValue(newValue[newValue?.length - 1].inputValue);
+                    if (id === "subject") {
+                      setChapters([]);
+                      setTopics([]);
+                    }
+                  } else {
+                    setValue(newValue);
+                    if (id === "subject") {
+                      setChapters([]);
+                      setTopics([]);
+                    }
                   }
                 }
-              }
-        }
-        filterOptions={(options, params) => {
-          const filtered = filter(options, params);
+              : (event, newValue: any) => {
+                  if (typeof newValue === "string") {
+                    // timeout to avoid instant validation of the dialog's form.
+                    setTimeout(() => {
+                      toggleOpen(true);
+                      setDialogValue(newValue);
+                      if (id === "subject") {
+                        setChapters([]);
+                        setTopics([]);
+                      }
+                    });
+                  } else if (newValue && newValue.inputValue) {
+                    toggleOpen(true);
+                    setDialogValue(newValue.inputValue);
+                    if (id === "subject") {
+                      setChapters([]);
+                      setTopics([]);
+                    }
+                  } else {
+                    setValue(newValue);
+                    if (id === "subject") {
+                      setChapters([]);
+                      setTopics([]);
+                    }
+                  }
+                }
+          }
+          filterOptions={(options, params) => {
+            const filtered = filter(options, params);
 
-          if (params?.inputValue !== "") {
-            filtered.push({
-              inputValue: params.inputValue,
-              name: `Add "${params.inputValue}"`,
-            });
-          }
+            if (params?.inputValue !== "") {
+              filtered.push({
+                inputValue: params.inputValue,
+                name: `Add "${params.inputValue}"`,
+              });
+            }
 
-          return filtered;
-        }}
-        id={id}
-        options={options}
-        getOptionLabel={(option) => {
-          // e.g value selected with enter, right from the input
-          if (typeof option === "string") {
-            return option;
-          }
-          if (option?.inputValue) {
-            return option.inputValue;
-          }
-          return option?.name;
-        }}
-        selectOnFocus
-        clearOnBlur
-        handleHomeEndKeys
-        filterSelectedOptions
-        renderOption={(props, option) => <li {...props}>{option?.name}</li>}
-        sx={{ width: width || 300 }}
-        renderInput={(params) => (
-          <TextField error={error} {...params} label={label} />
-        )}
-        {...remaining}
-      />
+            return filtered;
+          }}
+          id={id}
+          options={options}
+          getOptionLabel={(option) => {
+            // e.g value selected with enter, right from the input
+            if (typeof option === "string") {
+              return option;
+            }
+            if (option?.inputValue) {
+              return option.inputValue;
+            }
+            return option?.name;
+          }}
+          selectOnFocus
+          clearOnBlur
+          handleHomeEndKeys
+          filterSelectedOptions
+          renderOption={(props, option) => <li {...props}>{option?.name}</li>}
+          sx={{ width: width || 300 }}
+          renderInput={(params) => (
+            <TextField error={error} {...params} label={label} />
+          )}
+          {...remaining}
+        />
+      </Tooltip>
       <Dialog open={open} onClose={handleClose}>
         <form style={{ minWidth: "300px" }} onSubmit={handleSubmit}>
           <DialogTitle sx={{ paddingBottom: "0" }}>

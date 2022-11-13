@@ -4,6 +4,7 @@ import { AuthContext } from "../auth/AuthContext";
 import { APIS, PERMISSIONS } from "../constants";
 
 interface PermissionsContextType {
+  loading: boolean;
   permissions: any;
   setPermissions: (permissions: any) => void;
   allRoles: any;
@@ -22,7 +23,7 @@ export const PermissionsContext = createContext<PermissionsContextType>(
 const PermissionsContextProvider: React.FC = ({ children }) => {
   const [permissions, setPermissions] = useState<any>({});
   const [allRoles, setAllRoles] = useState<any>([]);
-
+  const [loading, setLoading] = useState<boolean>(false);
   const [hasPermissions, setHasPermissions] = useState({
     hasQuestionPermission: false,
     hasUsersPermission: false,
@@ -40,8 +41,8 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     async function getRoles() {
+      setLoading(true);
       const response = await API_USERS().get(`/roles/all`);
-
       setAllRoles(response.data);
       let perms: any = {};
       let hPerms: any = {};
@@ -78,6 +79,7 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
       });
       setPermissions(perms);
       setHasPermissions(hPerms);
+      setLoading(false);
     }
     if (currentUser) {
       getRoles();
@@ -172,6 +174,7 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
   return (
     <PermissionsContext.Provider
       value={{
+        loading,
         permissions,
         setPermissions,
         allRoles,

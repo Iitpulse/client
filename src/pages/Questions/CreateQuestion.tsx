@@ -26,7 +26,7 @@ import { message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api";
 import MainLayout from "../../layouts/MainLayout";
 import { useParams, useLocation } from "react-router";
-import { CircularProgress, Skeleton } from "@mui/material";
+import { CircularProgress, Skeleton, Tooltip } from "@mui/material";
 
 export const questionTypes = [
   { name: "Objective" },
@@ -657,6 +657,7 @@ const CreateQuestion = () => {
                   label={"Exam(s)"}
                   id="Exams"
                 />
+
                 <CreatableSelect
                   multiple
                   onAddModalSubmit={handleAddChapter}
@@ -667,7 +668,11 @@ const CreateQuestion = () => {
                   label={"Chapter(s)"}
                   id="Chapters"
                   disabled={!subject?.name?.length}
+                  enableToolTip={true}
+                  enabledToolTipTitle="Select a chapter"
+                  disabledToolTipTitle="Please select a subject first"
                 />
+
                 <CreatableSelect
                   multiple
                   onAddModalSubmit={handleAddTopic}
@@ -683,6 +688,9 @@ const CreateQuestion = () => {
                   error={error.topics}
                   label={"Topic(s)"}
                   id="Topics"
+                  enableToolTip={true}
+                  enabledToolTipTitle="Select a topic"
+                  disabledToolTipTitle="Please select a chapter first"
                 />
                 <CreatableSelect
                   multiple
