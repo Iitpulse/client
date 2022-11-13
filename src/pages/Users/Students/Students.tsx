@@ -386,7 +386,26 @@ const Students: React.FC<{
 };
 
 export default Students;
-
+const defaultValue = {
+  name: "",
+  password: "",
+  email: "",
+  stream: "",
+  standard: "",
+  batch: "",
+  gender: "",
+  roles: "",
+  contact: "",
+  parentContact: "",
+  aadhaar: "",
+  school: "",
+  dob: "",
+  city: "",
+  state: "",
+  parentName: "",
+  currentAddress: "",
+  permanentAddress: "",
+};
 export const Student: React.FC<{
   student?: UserProps;
   title?: string;
@@ -396,7 +415,7 @@ export const Student: React.FC<{
   };
 }> = (props) => {
   const { onSubmit, uploadedBy } = { ...props.student };
-  const [values, setValues] = useState({} as any);
+  const [values, setValues] = useState(defaultValue as any);
   const newUserRef = useRef<HTMLFormElement>(null);
   const [openDropzne, setOpenDropzone] = useState(false);
   const [file, setFile] = useState(null as any);
@@ -437,6 +456,10 @@ export const Student: React.FC<{
       error: false,
       helperText: "",
     },
+    aadhaar: {
+      error: false,
+      helperText: "",
+    },
     contact: {
       parent: {
         error: false,
@@ -463,7 +486,8 @@ export const Student: React.FC<{
   });
 
   function handleReset() {
-    setValues({});
+    setValues(defaultValue);
+    setRoles([]);
   }
   function handleChangeValuesForCreatableSelect(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -481,16 +505,18 @@ export const Student: React.FC<{
       console.log(values);
       try {
         const error = {
-          stream: Boolean(values.stream),
-          standard: Boolean(values.standard),
-          batch: Boolean(values.batch),
-          gender: Boolean(values.gender),
+          stream: !Boolean(values.stream),
+          standard: !Boolean(values.standard),
+          batch: !Boolean(values.batch),
+          gender: !Boolean(values.gender),
           roles: !(values.roles?.length > 0),
           contact: {
             parent: values.parentContact?.length !== 10,
             personal: values.contact?.length !== 10,
           },
+          aadhaar: values.aadhaar?.length !== 12,
         };
+        console.log(error);
         if (
           error.stream ||
           error.standard ||
@@ -498,7 +524,8 @@ export const Student: React.FC<{
           error.gender ||
           error.roles ||
           error.contact.parent ||
-          error.contact.personal
+          error.contact.personal ||
+          error.aadhaar
         ) {
           if (error.stream) {
             setHelperTextObj((prev) => ({
@@ -525,6 +552,15 @@ export const Student: React.FC<{
             setHelperTextObj((prev) => ({
               ...prev,
               roles: { error: true, helperText: "Please select a Roles" },
+            }));
+          }
+          if (error.aadhaar) {
+            setHelperTextObj((prev) => ({
+              ...prev,
+              aadhaar: {
+                error: true,
+                helperText: "Please enter a valid aadhar number",
+              },
             }));
           }
           if (error.contact.parent) {
@@ -844,6 +880,8 @@ export const Student: React.FC<{
                 type="text"
                 value={values.aadhaar}
                 onChange={handleChangeValues}
+                error={helperTextObj?.aadhaar?.error}
+                helperText={helperTextObj?.aadhaar?.helperText}
                 label="Aadhaar Number"
                 placeholder="Enter Aadhaar Number"
                 variant="outlined"
@@ -885,6 +923,7 @@ export const Student: React.FC<{
                 variant="outlined"
               />
             </Grid>
+
             <Grid item xs={12} md={4} lg={4} xl={3}>
               <StyledMUITextField
                 id="parentName"

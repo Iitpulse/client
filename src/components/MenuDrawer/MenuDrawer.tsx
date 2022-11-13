@@ -6,7 +6,7 @@ import collapse from "../../assets/icons/collapse.svg";
 import profilePlaceholder from "../../assets/images/profilePlaceholder.jpg";
 import institutePlaceholder from "../../assets/images/institutePlaceholder.svg";
 import { NavLink, useNavigate } from "react-router-dom";
-import { IconButton } from "@mui/material";
+import { Box, IconButton, Skeleton } from "@mui/material";
 import { Menu, MenuItem } from "@mui/material";
 import clsx from "clsx";
 import { AUTH_TOKEN, PERMISSIONS } from "../../utils/constants";
@@ -22,7 +22,6 @@ import { ReactComponent as PatternIcon } from "../../assets/icons/pattern.svg";
 import { ReactComponent as TestsIcon } from "../../assets/icons/test.svg";
 import { ReactComponent as BatchesIcon } from "../../assets/icons/batch.svg";
 import { ReactComponent as RolesIcon } from "../../assets/icons/roles.svg";
-
 interface MenuDrawerProps {
   [x: string]: any;
 }
@@ -31,8 +30,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   const { currentUser, setCurrentUser } = useContext(AuthContext);
-
-  const { hasPermissions } = useContext(PermissionsContext);
+  const { hasPermissions, loading } = useContext(PermissionsContext);
 
   // const hasQuestionPermission: boolean = usePermission(
   //   PERMISSIONS.QUESTION.READ
@@ -71,8 +69,8 @@ const MenuDrawer = (props: MenuDrawerProps) => {
   // ]);
 
   useEffect(() => {
-    // console.log({ hasPermissions });
-  }, [hasPermissions]);
+    console.log({ loading, hasPermissions });
+  }, [hasPermissions, loading]);
 
   useEffect(() => {
     // Close the menu drawer if width is <= 1300px
@@ -140,6 +138,16 @@ const MenuDrawer = (props: MenuDrawerProps) => {
           </div>{" "}
           {isCollapsed || <span>Home</span>}
         </NavLink>
+        {loading && (
+          <Box sx={{ width: "100%" }}>
+            <Skeleton height={55} />
+            <Skeleton height={55} />
+            <Skeleton height={55} />
+            <Skeleton height={55} />
+            <Skeleton height={55} />
+            <Skeleton height={55} />
+          </Box>
+        )}
         {hasPermissions?.hasQuestionPermission && (
           <NavLink
             style={isCollapsed ? { width: "fit-content" } : {}}

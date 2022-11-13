@@ -36,20 +36,22 @@ const defaultTestContext: ITestContext = {
   inactiveTests: null,
   expiredTests: null,
 };
-const defaultRecentTestContext: recenTestContext = {
-  highestMarks: "NA",
-  lowestMarks: "NA",
-  averageMarks: "NA",
-  totalAppeared: "NA",
-  name: "NA",
-};
+const defaultRecentTestContext: recenTestContext[] = [
+  {
+    highestMarks: "NA",
+    lowestMarks: "NA",
+    averageMarks: "NA",
+    totalAppeared: "NA",
+    name: "NA",
+  },
+];
 
 export const TestContext = createContext<{
   state: ITestContext;
   dispatch: React.Dispatch<TEST_ACTION>;
   exams: Array<any>;
   subjects: Array<any>;
-  recentTest: recenTestContext;
+  recentTest: recenTestContext[];
   fetchTest: (
     type: "active" | "ongoing" | "inactive" | "expired",
     cb?: (error: any, data: any[]) => void
@@ -127,17 +129,16 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
       }
     }
     async function fetchRecentTest() {
-      const res = await API_TESTS().get(`/test/recent`);
+      const res = await API_TESTS().get(`/test/recent`, {
+        params: {
+          count: 5,
+        },
+      });
       // console.log("recentTests :", { res });
       if (res.data?.length > 0) {
         // console.log({ res });
-        const recent = {
-          highestMarks: res.data[0].highestMarks ?? "NA",
-          lowestMarks: res.data[0].lowestMarks ?? "NA",
-          averageMarks: res.data[0].averageMarks ?? "NA",
-          totalAppeared: res.data[0].totalAppeared ?? "NA",
-          name: res.data[0].name,
-        };
+        const recent = res.data;
+        console.log(recent);
         setRecentTest(recent);
       }
     }

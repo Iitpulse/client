@@ -25,6 +25,7 @@ const Card = (props: CardProps) => {
       {(title || showMoreBtn) && (
         <div className={styles.header}>
           <p className={styles.title}>{title}</p>
+          {actionBtn}
           {showMoreBtn && (
             <div className={styles.btn}>
               {/* {actionBtn} */} More
