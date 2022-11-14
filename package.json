@@ -80,7 +80,6 @@
   "devDependencies": {
     "@types/file-saver": "^2.0.5",
     "@types/katex": "^0.14.0",
-    "@types/lodash.debounce": "^4.0.7",
     "@types/react-csv": "^1.1.2",
     "@types/react-date-range": "^1.4.4",
     "@types/react-highlight-words": "^0.16.4",
