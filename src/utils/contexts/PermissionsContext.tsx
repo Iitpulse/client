@@ -42,8 +42,10 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
   useEffect(() => {
     async function getRoles() {
       setLoading(true);
+      // console.log("LOading On...");
       const response = await API_USERS().get(`/roles/all`);
       setAllRoles(response.data);
+
       let perms: any = {};
       let hPerms: any = {};
       response.data.forEach((role: any) => {
@@ -81,7 +83,7 @@ const PermissionsContextProvider: React.FC = ({ children }) => {
       setHasPermissions(hPerms);
       setLoading(false);
     }
-    if (currentUser) {
+    if (currentUser && allRoles?.length === 0) {
       getRoles();
     }
   }, [currentUser]);

@@ -102,9 +102,13 @@ const CreatableSelect: React.FC<ICreatableSelect> = ({
   return (
     <React.Fragment>
       <Tooltip
-        disableHoverListener={!enableToolTip}
-        disableFocusListener={!enableToolTip}
-        title={options?.length > 0 ? enabledToolTipTitle : disabledToolTipTitle}
+        disableHoverListener={
+          !enableToolTip || (value as Array<IOptionType>)?.length > 0
+        }
+        disableFocusListener={
+          !enableToolTip || (value as Array<IOptionType>)?.length > 0
+        }
+        title={!disabled ? enabledToolTipTitle : disabledToolTipTitle}
       >
         <Autocomplete
           multiple={multiple}
