@@ -13,7 +13,7 @@ import {
 import { StyledMUITextField } from "../Users/components";
 import { IPattern, ISection, ISubSection } from "../../utils/interfaces";
 import clsx from "clsx";
-import { IconButton, Tooltip } from "@mui/material";
+import { IconButton, Skeleton, Tooltip } from "@mui/material";
 import deleteIcon from "../../assets/icons/delete.svg";
 import closeCircleIcon from "../../assets/icons/close-circle.svg";
 import {
@@ -58,6 +58,7 @@ const CreatePattern = () => {
   const isCreatePermitted = usePermission(PERMISSIONS.PATTERN.CREATE);
   const isUpdatePermitted = usePermission(PERMISSIONS.PATTERN.UPDATE);
   const [currentPattern, setCurrentPattern] = useState({} as IPattern);
+  const [loading, setLoading] = useState<boolean>(false);
   // const isDeletePermitted = usePermission(PERMISSIONS.PATTERN.DELETE);
 
   // Get patternId from router
@@ -73,12 +74,18 @@ const CreatePattern = () => {
 
   useEffect(() => {
     async function fetchPattern() {
-      const res = await API_TESTS().get(`/pattern/single`, {
-        params: {
-          id: patternId,
-        },
-      });
-      setCurrentPattern(res.data);
+      setLoading(true);
+      try {
+        const res = await API_TESTS().get(`/pattern/single`, {
+          params: {
+            id: patternId,
+          },
+        });
+        setCurrentPattern(res.data);
+      } catch (error) {
+        console.log("FETCH_PATTERN_ERROR", error);
+      }
+      setLoading(false);
     }
     if (patternId) {
       fetchPattern();
@@ -172,57 +179,63 @@ const CreatePattern = () => {
         },
         patternId
       ) ? (
-        <>
-          <section className={styles.container}>
-            <div className={styles.header}>
-              <StyledMUITextField
-                value={name}
-                label="Name"
-                onChange={(e: any) => setName(e.target.value)}
-              />
-              <StyledMUITextField
-                value={durationInMinutes}
-                label="Duration (in Minutes)"
-                onChange={(e: any) => setDurationInMinutes(e.target.value)}
-              />
-              <MUISimpleAutocomplete
-                label="Exam"
-                onChange={setExam}
-                options={
-                  exams?.map((exam) => ({
-                    name: exam.name,
-                    value: exam.name,
-                    id: exam._id,
-                  })) || []
-                }
-                value={exam}
-              />
-            </div>
-            <div className={styles.sections}>
-              {sections.map((section, i) => (
-                <Section
-                  key={i}
-                  section={section}
-                  setSection={handleChangeSection}
-                  handleDeleteSection={handleDeleteSection}
-                  index={i}
-                  subjects={subjects}
+        loading ? (
+          <>
+            <Skeleton variant="rectangular" width={"100%"} height={100} />
+            <Skeleton variant="rectangular" width={"100%"} height={100} />
+          </>
+        ) : (
+          <>
+            <section className={styles.container}>
+              <div className={styles.header}>
+                <StyledMUITextField
+                  value={name}
+                  label="Name"
+                  onChange={(e: any) => setName(e.target.value)}
                 />
-              ))}
-            </div>
-            <div className={styles.addSection} onClick={handleClickAddNew}>
-              <p>+ Add New Section</p>
-            </div>
-            <Tooltip title="Save Pattern" placement="top">
-              <IconButton
-                className={styles.savePatternBtn}
-                onClick={handleClickSubmit}
-              >
-                <img src={tickCircle} alt="save-pattern" />
-              </IconButton>
-            </Tooltip>
-          </section>
-          {/* <Sidebar title="Recent Activity">
+                <StyledMUITextField
+                  value={durationInMinutes}
+                  label="Duration (in Minutes)"
+                  onChange={(e: any) => setDurationInMinutes(e.target.value)}
+                />
+                <MUISimpleAutocomplete
+                  label="Exam"
+                  onChange={setExam}
+                  options={
+                    exams?.map((exam) => ({
+                      name: exam.name,
+                      value: exam.name,
+                      id: exam._id,
+                    })) || []
+                  }
+                  value={exam}
+                />
+              </div>
+              <div className={styles.sections}>
+                {sections.map((section, i) => (
+                  <Section
+                    key={i}
+                    section={section}
+                    setSection={handleChangeSection}
+                    handleDeleteSection={handleDeleteSection}
+                    index={i}
+                    subjects={subjects}
+                  />
+                ))}
+              </div>
+              <div className={styles.addSection} onClick={handleClickAddNew}>
+                <p>+ Add New Section</p>
+              </div>
+              <Tooltip title="Save Pattern" placement="top">
+                <IconButton
+                  className={styles.savePatternBtn}
+                  onClick={handleClickSubmit}
+                >
+                  <img src={tickCircle} alt="save-pattern" />
+                </IconButton>
+              </Tooltip>
+            </section>
+            {/* <Sidebar title="Recent Activity">
             {Array(10)
               .fill(0)
               .map((_, i) => (
@@ -236,7 +249,8 @@ const CreatePattern = () => {
                 />
               ))}
           </Sidebar> */}
-        </>
+          </>
+        )
       ) : (
         <Error />
       )}
