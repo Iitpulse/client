@@ -83,7 +83,7 @@ const AddNewRole: React.FC<{
           type="text"
           id="name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: any) => setName(e.target.value)}
           label="Name"
         />
       </form>

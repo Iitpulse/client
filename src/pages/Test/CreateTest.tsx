@@ -544,7 +544,7 @@ const SubSection: React.FC<{
             label="Easy"
             required={true}
             value={easy}
-            onChange={(e) => {
+            onChange={(e: any) => {
               setEasy(e.target.value);
             }}
           />
@@ -554,7 +554,7 @@ const SubSection: React.FC<{
             label="Medium"
             required={true}
             value={medium}
-            onChange={(e) => {
+            onChange={(e: any) => {
               setMedium(e.target.value);
             }}
           />
@@ -564,7 +564,7 @@ const SubSection: React.FC<{
             label="Hard"
             required={true}
             value={hard}
-            onChange={(e) => {
+            onChange={(e: any) => {
               setHard(e.target.value);
             }}
           />

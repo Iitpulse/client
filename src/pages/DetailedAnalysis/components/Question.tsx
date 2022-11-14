@@ -79,7 +79,7 @@ const Question = (props: QuestionProps) => {
 
   const handleViewSolution = () => {
     setViewSol(en.solution);
-    handleClose();
+    // handleClose();
   };
   //   console.log({ averageTimeTakenInSeconds });
   function getOptionStyles(index: number) {
