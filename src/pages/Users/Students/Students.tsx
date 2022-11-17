@@ -316,7 +316,7 @@ const Students: React.FC<{
   // useEffect(() => {
   //   async function fetchStudents() {
   //     const res = await axios.get(
-  //       `${process.env.REACT_APP_USERS_API}/student/`
+  //       `${import.meta.env.VITE_USERS_API}/student/`
   //     );
   //     console.log({ res });
   //     setData(res.data?.map((item: any) => ({ ...item, key: item.id })));

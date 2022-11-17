@@ -7,15 +7,15 @@ import RenderWithLatex from "../components/RenderWithLatex/RenderWithLatex";
 export const APIS = {
   USERS_API:
     "https://iitpulse.in" ||
-    process.env.REACT_APP_USERS_API ||
+    import.meta.env.VITE_USERS_API ||
     "http://localhost:8080",
   QUESTIONS_API:
     "https://questions.iitpulse.in" ||
-    process.env.REACT_APP_QUESTIONS_API ||
+    import.meta.env.VITE_QUESTIONS_API ||
     "http://localhost:8081",
   TESTS_API:
     "https://tests.iitpulse.in" ||
-    process.env.REACT_APP_TESTS_API ||
+    import.meta.env.VITE_TESTS_API ||
     "http://localhost:8082",
 };
 
