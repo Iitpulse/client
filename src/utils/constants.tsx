@@ -3,6 +3,7 @@ import { Tag } from "antd";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RenderWithLatex from "../components/RenderWithLatex/RenderWithLatex";
+import { Cancel, CancelOutlined, Check } from "@mui/icons-material";
 
 export const APIS = {
   USERS_API:
@@ -321,7 +322,19 @@ export const QUESTION_COLS_ALL = [
     title: "Proof Read?",
     dataIndex: "isProofRead",
     key: "isProofRead",
-    render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
+    render: (isProofRead: boolean) => (
+      <p>
+        {isProofRead ? (
+          <Check
+            style={{
+              color: "green",
+            }}
+          />
+        ) : (
+          <CancelOutlined />
+        )}
+      </p>
+    ),
     width: 150,
   },
   {

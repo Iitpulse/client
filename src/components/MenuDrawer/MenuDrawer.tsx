@@ -22,6 +22,8 @@ import { ReactComponent as PatternIcon } from "../../assets/icons/pattern.svg";
 import { ReactComponent as TestsIcon } from "../../assets/icons/test.svg";
 import { ReactComponent as BatchesIcon } from "../../assets/icons/batch.svg";
 import { ReactComponent as RolesIcon } from "../../assets/icons/roles.svg";
+import MenuIcon from "@mui/icons-material/Menu";
+
 interface MenuDrawerProps {
   [x: string]: any;
 }
@@ -103,6 +105,10 @@ const MenuDrawer = (props: MenuDrawerProps) => {
         style={isCollapsed ? { justifyContent: "center" } : {}}
         className={styles.topContainer}
       >
+        <IconButton onClick={() => setIsCollapsed((prev) => !prev)}>
+          {" "}
+          <MenuIcon />
+        </IconButton>
         {isCollapsed || (
           <NavLink to="/">
             <div className={styles.imageContainer}>
@@ -110,14 +116,6 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             </div>
           </NavLink>
         )}
-        <IconButton onClick={() => setIsCollapsed((prev) => !prev)}>
-          {" "}
-          <img
-            style={isCollapsed ? { transform: "rotate(180deg)" } : {}}
-            src={collapse}
-            alt={collapse}
-          />
-        </IconButton>
       </section>
 
       <section
