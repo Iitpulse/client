@@ -57,6 +57,7 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
 
   return (
     <>
+      DEPCRECATED, Has to be redesigned
       <div className={styles.student}>
         {/* <span className={clsx(styles.value, styles.id)}>{id}</span> */}
         <img className={styles.avatar} src={avatar} alt={name} />
