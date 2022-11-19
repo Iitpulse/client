@@ -264,13 +264,16 @@ const Home = () => {
                       <Skeleton height={75} width={160} />
                     </>
                   )}
-                  {instituteDetailsData?.batches?.map((batch: any) => (
-                    <InstituteDetails
-                      icon={yellowFlag}
-                      batch={batch.name}
-                      value={batch.totalStudents}
-                    />
-                  ))}
+                  {instituteDetailsData?.batches?.map(
+                    (batch: any, idx: number) => (
+                      <InstituteDetails
+                        key={idx}
+                        icon={yellowFlag}
+                        batch={batch.name}
+                        value={batch.totalStudents}
+                      />
+                    )
+                  )}
                 </div>
               </Card>
             </div>

@@ -1,19 +1,20 @@
 import styles from "./Batches.module.scss";
 import { useContext, useEffect, useState } from "react";
-import { Table } from "antd";
+import { DatePicker, Slider, Table } from "antd";
 import { useNavigate } from "react-router";
 import { Button, Card, Sidebar } from "../../components";
 import { styled, Box } from "@mui/system";
 import { TextField } from "@mui/material";
 import clsx from "clsx";
 import closeIcon from "../../assets/icons/close-circle.svg";
-import { DateRangePicker, LocalizationProvider } from "@mui/lab";
-import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_USERS } from "../../utils/api";
 import MainLayout from "../../layouts/MainLayout";
-
+import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
+import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
+import moment from "moment";
+import { SliderMarks } from "antd/lib/slider";
 interface DataType {
   key: React.Key;
   id: string;
@@ -125,13 +126,12 @@ interface CreateNewBatchProps {
 }
 const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
   const [batch, setBatch] = useState();
-  const [validity, setValidity] = useState({
-    from: Date.now(),
-    to: Date.now(),
-  });
+  const [validity, setValidity] = useState([]);
+  const [classesFrom, setClassesFrom] = useState(10);
+  const [classesTo, setClassesTo] = useState(12);
   const [values, setValues] = useState({} as any);
   function handleChangeValidity(newValue: any) {
-    setValidity({ from: newValue[0], to: newValue[1] });
+    setValidity(newValue);
   }
 
   const { currentUser } = useContext(AuthContext);
@@ -151,8 +151,12 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
       exam: "JEEMAINS",
       institute: "IITP",
       validity: {
-        from: new Date(validity.from).toISOString(),
-        to: new Date(validity.to).toISOString(),
+        from: moment(validity[0]).toISOString(),
+        to: moment(validity[1]).toISOString(),
+      },
+      classes: {
+        from: classesFrom,
+        to: classesTo,
       },
       createdBy: {
         userType: currentUser?.userType,
@@ -168,6 +172,22 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
     }
     // console.log({ res });
   }
+  const marks: SliderMarks = {
+    0: "0",
+    1: "1st",
+    2: "2nd",
+    3: "3rd",
+    4: "4th",
+    5: "5th",
+    6: "6th",
+    7: "7th",
+    8: "8th",
+    9: "9th",
+    10: "10th",
+    11: "11th",
+    12: "12th",
+    13: "dropper",
+  };
 
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
@@ -188,22 +208,26 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
             variant="outlined"
           />
           <div className={styles.dateSelector}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DateRangePicker
-                startText="Valid From"
-                endText="Valid Till"
-                value={[validity.from, validity.to]}
-                onChange={handleChangeValidity}
-                renderInput={(startProps: any, endProps: any) => (
-                  <>
-                    <TextField {...startProps} />
-                    <Box sx={{ mx: 2 }}> to </Box>
-                    <TextField {...endProps} />
-                  </>
-                )}
-              />
-            </LocalizationProvider>
+            <CustomDateRangePicker
+              showTime={false}
+              onChange={(props: any) => setValidity(props)}
+              value={validity}
+            />
           </div>
+        </div>
+        <div>
+          <Slider
+            range
+            marks={marks}
+            defaultValue={[10, 12]}
+            max={13}
+            min={1}
+            value={[classesFrom, classesTo]}
+            onChange={(e) => {
+              setClassesFrom(e[0]);
+              setClassesTo(e[1]);
+            }}
+          />
         </div>
         <div className={styles.buttons}>
           <Button>Submit</Button>

@@ -54,6 +54,7 @@ const AuthContextProvider = (props: ProviderProps) => {
         };
       });
       // console.log({ hello: newRoles });
+      console.log({ decoded });
       setCurrentUser({
         email: decoded.email,
         id: decoded.id,
