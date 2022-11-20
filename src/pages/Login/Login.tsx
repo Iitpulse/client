@@ -48,6 +48,7 @@ const Login = () => {
 
       if (response.status === 200) {
         let decoded = decodeToken(response.data.token) as any;
+        console.log({ decoded });
         let newRoles: any = {};
         decoded?.roles?.forEach((role: any) => {
           newRoles[role.id] = {
