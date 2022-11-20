@@ -1,8 +1,14 @@
 import styles from "./Batches.module.scss";
 import { useContext, useEffect, useState } from "react";
-import { DatePicker, Slider, Table } from "antd";
+import { DatePicker, Select, SelectProps, Slider, Table } from "antd";
 import { useNavigate } from "react-router";
-import { Button, Card, Sidebar } from "../../components";
+import {
+  Button,
+  Card,
+  CreatableSelect,
+  Sidebar,
+  StyledMUISelect,
+} from "../../components";
 import { styled, Box } from "@mui/system";
 import { TextField } from "@mui/material";
 import clsx from "clsx";
@@ -63,7 +69,7 @@ const rowSelection = {
 const Batches = () => {
   const [data, setData] = useState([]);
 
-  const [isModalRequested, setIsModalRequested] = useState(false);
+  const [toggleSideBar, setToggleSideBar] = useState(false);
   const navigate = useNavigate();
 
   const { currentUser } = useContext(AuthContext);
@@ -100,10 +106,12 @@ const Batches = () => {
     <MainLayout name="Batches">
       <Card classes={[styles.container]}>
         <div className={styles.header}>
-          <Button onClick={() => setIsModalRequested(true)}>Create New</Button>
-          {isModalRequested && (
-            <CreateNewBatch handleClose={() => setIsModalRequested(false)} />
-          )}
+          <Button onClick={() => setToggleSideBar(true)}>Create New</Button>
+
+          <CreateNewBatch
+            handleClose={() => setToggleSideBar(false)}
+            toggleSideBar={toggleSideBar}
+          />
         </div>
         <div className={styles.data}>
           <Table
@@ -123,12 +131,16 @@ const Batches = () => {
 
 interface CreateNewBatchProps {
   handleClose: () => void;
+  toggleSideBar: boolean;
 }
-const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
+const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
+  handleClose,
+  toggleSideBar,
+}) => {
   const [batch, setBatch] = useState();
   const [validity, setValidity] = useState([]);
-  const [classesFrom, setClassesFrom] = useState(10);
-  const [classesTo, setClassesTo] = useState(12);
+  const [classes, setClasses] = useState<any>([]);
+
   const [values, setValues] = useState({} as any);
   function handleChangeValidity(newValue: any) {
     setValidity(newValue);
@@ -154,10 +166,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
         from: moment(validity[0]).toISOString(),
         to: moment(validity[1]).toISOString(),
       },
-      classes: {
-        from: classesFrom,
-        to: classesTo,
-      },
+      classes: classes.map((value: any) => value.name),
       createdBy: {
         userType: currentUser?.userType,
         id: currentUser?.id,
@@ -172,32 +181,22 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
     }
     // console.log({ res });
   }
-  const marks: SliderMarks = {
-    0: "0",
-    1: "1st",
-    2: "2nd",
-    3: "3rd",
-    4: "4th",
-    5: "5th",
-    6: "6th",
-    7: "7th",
-    8: "8th",
-    9: "9th",
-    10: "10th",
-    11: "11th",
-    12: "12th",
-    13: "dropper",
-  };
+  const options = [
+    { value: "9", name: "9" },
+    { value: "10", name: "10" },
+    { value: "11", name: "11" },
+    { value: "12", name: "12" },
+    { value: "13", name: "dropper" },
+  ];
 
   return (
-    <div className={clsx(styles.studentContainer, styles.modal)}>
+    <Sidebar
+      title="Create New Batch"
+      open={toggleSideBar}
+      width="30%"
+      handleClose={handleClose}
+    >
       <form onSubmit={handleSubmit}>
-        <div className={styles.header}>
-          <div className={styles.flexRow}>
-            <h2>Add a Batch</h2>
-          </div>
-          <img onClick={handleClose} src={closeIcon} alt="Close" />
-        </div>
         <div className={styles.inputFields}>
           <StyledMUITextField
             id="batchName"
@@ -214,26 +213,21 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({ handleClose }) => {
               value={validity}
             />
           </div>
-        </div>
-        <div>
-          <Slider
-            range
-            marks={marks}
-            defaultValue={[10, 12]}
-            max={13}
-            min={1}
-            value={[classesFrom, classesTo]}
-            onChange={(e) => {
-              setClassesFrom(e[0]);
-              setClassesTo(e[1]);
-            }}
+          <CreatableSelect
+            multiple
+            options={options}
+            setValue={setClasses}
+            value={classes}
+            label={"Classes"}
+            id="Classes"
+            onAddModalSubmit={function (value: any): void {}}
           />
         </div>
         <div className={styles.buttons}>
           <Button>Submit</Button>
         </div>
       </form>
-    </div>
+    </Sidebar>
   );
 };
 

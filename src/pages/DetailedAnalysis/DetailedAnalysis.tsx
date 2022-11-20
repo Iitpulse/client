@@ -296,6 +296,7 @@ interface IHeaderDetails {
   averageMarks: number;
   lowestMarks: number;
   totalAppeared: number;
+  forStudent: boolean;
 }
 
 export const HeaderDetails: React.FC<IHeaderDetails> = ({
@@ -313,7 +314,9 @@ export const HeaderDetails: React.FC<IHeaderDetails> = ({
   averageMarks,
   lowestMarks,
   totalAppeared,
+  forStudent,
 }) => {
+  console.log({ marksObtained });
   return (
     <div className={styles.headerContainer}>
       <Card classes={[styles.topContainer]}>
@@ -384,28 +387,30 @@ export const HeaderDetails: React.FC<IHeaderDetails> = ({
           />
         </div>
       </Card>
-      <Card classes={[styles.marksCard]}>
-        <div className={styles.marksObtained}>
-          <p>Marks Obtained</p>
-          <div>
-            <h2>
-              {marksObtained}/<span>{totalMarks}</span>
-            </h2>
+      {forStudent === true && (
+        <Card classes={[styles.marksCard]}>
+          <div className={styles.marksObtained}>
+            <p>Marks Obtained</p>
+            <div>
+              <h2>
+                {marksObtained}/<span>{totalMarks}</span>
+              </h2>
+            </div>
           </div>
-        </div>
-        <div className={styles.attempted}>
-          <p>Attempted</p>
-          <div>
-            <h2>
-              {attempted}/<span>{totalQuestions}</span>
-            </h2>
-            <CircularProgress
-              variant="determinate"
-              value={Math.floor((attempted / totalQuestions) * 100)}
-            />
+          <div className={styles.attempted}>
+            <p>Attempted</p>
+            <div>
+              <h2>
+                {attempted}/<span>{totalQuestions}</span>
+              </h2>
+              <CircularProgress
+                variant="determinate"
+                value={Math.floor((attempted / totalQuestions) * 100)}
+              />
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
     </div>
   );
 };

@@ -3,7 +3,13 @@ import { Tag } from "antd";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RenderWithLatex from "../components/RenderWithLatex/RenderWithLatex";
-import { Cancel, CancelOutlined, Check } from "@mui/icons-material";
+import {
+  Cancel,
+  CancelOutlined,
+  Check,
+  WarningAmber,
+  WarningAmberOutlined,
+} from "@mui/icons-material";
 
 export const APIS = {
   USERS_API:
@@ -331,7 +337,7 @@ export const QUESTION_COLS_ALL = [
             }}
           />
         ) : (
-          <CancelOutlined />
+          <WarningAmberOutlined sx={{ color: "var(--clr-warning)" }} />
         )}
       </p>
     ),
