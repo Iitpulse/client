@@ -27,7 +27,6 @@ const ResultForStudent: React.FC<Props> = ({
   const navigate = useNavigate();
 
   const { testId, testName, testExamName } = useParams();
-
   return (
     <MainLayout name="Result > Student">
       <div className={styles.container}>
@@ -46,6 +45,7 @@ const ResultForStudent: React.FC<Props> = ({
           averageMarks={finalTest?.averageMarks || 0}
           status={finalTest?.status || ""}
           scheduledFor={finalTest?.scheduledFor || []}
+          forStudent={true}
         />
         <div className={styles.content}>
           <StudentResultCore
@@ -172,7 +172,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         />
       </div>
       {(!hasResultViewPermission || viewDetailedAnalysis) &&
-        (resultType === "subjectWise" ? (
+        (resultType === "Subject Wise" ? (
           <SubjectWiseAnalysis sections={Object.values(finalSections)} />
         ) : (
           <DetailedAnalysis
@@ -249,7 +249,8 @@ const SubjectWiseAnalysis: React.FC<SubjectWiseProps> = ({ sections }) => {
                   incorrect: question.marks < 0 ? 1 : 0,
                 };
                 tempChapters[chapter.name].timeTakenInSeconds =
-                  question.timeTakenInSeconds;
+                  (parseInt(tempChapters[chapter.name].timeTakenInSeconds) ||
+                    0) + question.timeTakenInSeconds;
                 // topics
                 tempChapters[chapter.name].topics = {};
                 chapter.topics.forEach((topic: any) => {

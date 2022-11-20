@@ -56,16 +56,7 @@
       max-width: 900px;
       padding: 2rem;
 
-      .inputFields {
-        width: -moz-fit-content;
-        width: fit-content;
-        justify-content: space-between;
-        display: flex;
-        flex-wrap: wrap;
-        > * {
-          margin: 1rem;
-        }
-      }
+    
       button {
         margin: 1rem;
         width: -moz-fit-content;
@@ -131,3 +122,16 @@
     margin-top: 1rem;
   }
 }
+    .inputFields {
+      @extend .flexCol;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 15px;
+      width: -moz-fit-content;
+      width: fit-content;
+      flex-direction: column;
+      justify-content: space-between;
+      display: flex;
+      flex-wrap: wrap;
+      margin: 10px;
+    }

@@ -18,7 +18,7 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
   const hasResultViewPermission = usePermission(PERMISSIONS.TEST.VIEW_RESULT);
 
   const { currentUser } = useContext(AuthContext);
-
+  console.log({ finalTest });
   return (
     <div className={styles.container}>
       <HeaderDetails
@@ -36,6 +36,7 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
         averageMarks={finalTest?.averageMarks || 0}
         status={finalTest?.status || ""}
         scheduledFor={finalTest?.scheduledFor || []}
+        forStudent={Boolean(hasResultViewPermission && studentId)}
       />
       {hasResultViewPermission && studentId ? (
         <StudentResultCore
