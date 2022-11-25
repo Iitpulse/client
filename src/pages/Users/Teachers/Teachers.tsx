@@ -134,28 +134,28 @@ const Teachers: React.FC<{
       ),
   });
   const columns = [
-    {
-      title: "View",
-      dataIndex: "id",
-      key: "view",
-      width: 80,
-      fixed: "left",
-      render: (id: any) => {
-        let idx = teachers.findIndex((value) => value.id === id);
-        let record = teachers[idx];
-        console.log({ record });
-        return (
-          <IconButton
-            onClick={() => {
-              setIsSidebarOpen(true);
-              setCurrent(record);
-            }}
-          >
-            {record.gender === "male" ? <Face /> : <Face />}
-          </IconButton>
-        );
-      },
-    },
+    // {
+    //   title: "View",
+    //   dataIndex: "id",
+    //   key: "view",
+    //   width: 80,
+    //   fixed: "left",
+    //   render: (id: any) => {
+    //     let idx = teachers.findIndex((value) => value.id === id);
+    //     let record = teachers[idx];
+    //     console.log({ record });
+    //     return (
+    //       <IconButton
+    //         onClick={() => {
+    //           setIsSidebarOpen(true);
+    //           setCurrent(record);
+    //         }}
+    //       >
+    //         {record.gender === "male" ? <Face /> : <Face />}
+    //       </IconButton>
+    //     );
+    //   },
+    // },
     {
       title: "Name",
       dataIndex: "name",
