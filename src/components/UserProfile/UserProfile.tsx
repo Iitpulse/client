@@ -8,6 +8,14 @@ import styles from "./UserProfile.module.scss";
 import { CurrentContext } from "../../utils/contexts/CurrentContext";
 import { Button } from "../";
 import { Student } from "../../pages/Users/Students/Students";
+import { CalendarOutlined } from "@ant-design/icons";
+import {
+  AccountCircleOutlined,
+  AccountCircleRounded,
+  CallOutlined,
+  CottageOutlined,
+  EventNoteRounded,
+} from "@mui/icons-material";
 
 const UserProfile: React.FC<{
   user: any;
@@ -17,8 +25,18 @@ const UserProfile: React.FC<{
   const [userType, setUserType] = useState<
     "student" | "teacher" | "admin" | "superadmin" | "manager" | "operator" | ""
   >("");
-
+  console.log(user);
   if (user.userType === "student") {
+    return (
+      <>
+        <StudentSideMenu
+          handleEditModal={handleEditModal}
+          handleDeleteModal={handleDeleteModal}
+          user={user}
+        />
+      </>
+    );
+  } else {
     return (
       <>
         <StudentSideMenu
@@ -53,6 +71,117 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
     dob,
     contact,
     parentDetails,
+  } = props.user;
+
+  return (
+    <>
+      <div className={styles.student}>
+        <div className={styles.basicDetailContainer}>
+          <div className={styles.avatarContainer}>
+            <img src={avatar} alt="avatar" className={styles.avatar} />
+          </div>
+          <div className={styles.basicDetail}>
+            <p className={styles.name}>{name}</p>
+            <p className={styles.ageNgender}>
+              ({age} {gender})
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.contact}>
+          <IconButton href={"tel:+91" + contact}>
+            <img src={phone} alt="Phone" />
+          </IconButton>
+          <IconButton
+            target="_blank"
+            href={"https://mail.google.com/mail/?view=cm&fs=1&to=" + email}
+          >
+            <img src={mail} alt="Email" />
+          </IconButton>
+          <div className={styles.line}></div>
+        </div>
+
+        <div className={styles.detailContainer}>
+          <p className={styles.heading}>Student Details</p>
+          <div className={styles.row}>
+            <div className={styles.col}>
+              <p className={styles.key}>Roll No.</p>
+              <p className={styles.key}>Batch</p>
+              <p className={styles.key}>Class</p>
+              <p className={styles.key}>Course</p>
+            </div>
+            <div className={styles.col}>
+              <p className={styles.value}>20T2121</p>
+              <p className={styles.value}>{batch}</p>
+              <p className={styles.value}>{standard}</p>
+              <p className={styles.value}>{stream}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.detailContainer}>
+          <p className={styles.heading}>About</p>
+          <div className={styles.row}>
+            <div className={styles.col}>
+              <p className={styles.key}>
+                <EventNoteRounded />
+              </p>
+              <p className={styles.key}>
+                <CallOutlined />
+              </p>
+              <p className={styles.key}>
+                <CottageOutlined />
+              </p>
+            </div>
+            <div className={styles.col} style={{ gap: "25px" }}>
+              <p className={styles.value}>{dob}</p>
+              <p className={styles.value}>{parentDetails?.contact}</p>
+              <p className={styles.value}>{currentAddress}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.detailContainer}>
+          <p className={styles.heading}>parent Details</p>
+          <div className={styles.row}>
+            <div className={styles.col}>
+              <p className={styles.key}>
+                <AccountCircleOutlined />
+              </p>
+              <p className={styles.key}>
+                <CallOutlined />
+              </p>
+            </div>
+            <div className={styles.col} style={{ gap: "30px" }}>
+              <p className={styles.value}>{parentDetails?.name}</p>
+              <p className={styles.value}>{parentDetails?.contact}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+interface TeacherSideMenuProps {
+  user: any;
+  handleEditModal: () => void;
+  handleDeleteModal: () => void;
+}
+
+const TeacherSideMenu = (props: TeacherSideMenuProps) => {
+  const {
+    id,
+    batch,
+    email,
+    name,
+    standard,
+    stream,
+    age,
+    gender,
+    currentAddress,
+    dob,
+    contact,
   } = props.user;
 
   return (
@@ -108,10 +237,6 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
         <div className={styles.contact}>
           <p className={styles.property}>Contact</p>
           <p className={styles.value}>{contact}</p>
-        </div>
-        <div className={styles.parentsContact}>
-          <p className={styles.property}>Parent's Contact</p>
-          <p className={styles.value}>{parentDetails.contact}</p>
         </div>
       </div>
     </>
