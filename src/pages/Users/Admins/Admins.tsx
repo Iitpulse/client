@@ -2,10 +2,10 @@ import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Admins.module.scss";
-import { Button } from "../../../components";
-import { Grid } from "@mui/material";
+import { Button, CustomTable, Sidebar, UserProfile } from "../../../components";
+import { Grid, IconButton } from "@mui/material";
 import axios from "axios";
-import { Input, Space, Table, Button as AntButton } from "antd";
+import { Input, Space, Table, Button as AntButton, Popconfirm } from "antd";
 import { DataType, rowSelection } from "../Users";
 import { useContext, useEffect, useRef, useState } from "react";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
@@ -14,6 +14,7 @@ import Highlighter from "react-highlight-words";
 import { ColumnType } from "antd/lib/table";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import AddUserModal from "../components/AddUserModal";
+import deleteIcon from "../../../assets/icons/delete.svg";
 
 import {
   MUIChipsAutocomplete,
@@ -21,6 +22,7 @@ import {
 } from "../../../components";
 import { FilterConfirmProps } from "antd/lib/table/interface";
 import { API_USERS } from "../../../utils/api";
+import { Edit, Face } from "@mui/icons-material";
 
 const Admins: React.FC<{
   activeTab: number;
@@ -31,6 +33,8 @@ const Admins: React.FC<{
 }> = ({ activeTab, admin, openModal, handleCloseModal, loading }) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [current, setCurrent] = useState<any>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const searchInput = useRef<any>(null);
 
   const handleSearch = (
@@ -127,7 +131,24 @@ const Admins: React.FC<{
       ),
   });
 
-  const columns = [
+  const columns: any = [
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      width: 80,
+      fixed: "left",
+      render: (text: any, record: any) => (
+        <IconButton
+          onClick={() => {
+            setIsSidebarOpen(true);
+            setCurrent(record);
+          }}
+        >
+          {record.gender === "male" ? <Face /> : <Face />}
+        </IconButton>
+      ),
+    },
     {
       title: "Name",
       dataIndex: "name",
@@ -169,15 +190,39 @@ const Admins: React.FC<{
 
   return (
     <div className={styles.container}>
-      <Table
-        rowSelection={{
-          type: "checkbox",
-          ...rowSelection,
-        }}
+      <CustomTable
+        selectable={true}
         columns={columns}
         dataSource={admins as any}
         loading={loading}
       />
+      <Sidebar
+        title=""
+        open={isSidebarOpen}
+        width={"25%"}
+        handleClose={() => setIsSidebarOpen(false)}
+        extra={
+          <div className={styles.flexRow}>
+            <IconButton onClick={() => setIsSidebarOpen(false)}>
+              <Edit />
+            </IconButton>
+            <Popconfirm
+              title="Sure to delete?"
+              onConfirm={() => setIsSidebarOpen(false)}
+            >
+              <IconButton>
+                <img src={deleteIcon} alt="Delete" />
+              </IconButton>
+            </Popconfirm>
+          </div>
+        }
+      >
+        <UserProfile
+          user={current}
+          handleDeleteModal={() => {}}
+          handleEditModal={() => {}}
+        />
+      </Sidebar>
       {openModal && activeTab === 2 && (
         <Admin admin={admin} handleCloseModal={handleCloseModal} />
       )}

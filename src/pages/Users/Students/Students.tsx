@@ -176,7 +176,7 @@ const Students: React.FC<{
             setCurrentStudent(record);
           }}
         >
-          {record.gender === "male" ? <Face /> : <Face3 />}
+          {record.gender === "male" ? <Face /> : <Face />}
         </IconButton>
       ),
     },

@@ -79,3 +79,15 @@
     }
   }
 }
+.detail{
+  width: 100%;
+  display: grid;
+    grid-template-columns: auto auto;
+    padding: 10px;
+    .value {
+        color: black;
+    }
+    p{
+      padding: 10px;
+    }
+}

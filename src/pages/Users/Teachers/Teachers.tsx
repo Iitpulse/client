@@ -4,6 +4,7 @@ import clsx from "clsx";
 import styles from "./Teachers.module.scss";
 import {
   Button,
+  CustomTable,
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
   Sidebar,
@@ -133,29 +134,24 @@ const Teachers: React.FC<{
         text
       ),
   });
-  const columns = [
-    // {
-    //   title: "View",
-    //   dataIndex: "id",
-    //   key: "view",
-    //   width: 80,
-    //   fixed: "left",
-    //   render: (id: any) => {
-    //     let idx = teachers.findIndex((value) => value.id === id);
-    //     let record = teachers[idx];
-    //     console.log({ record });
-    //     return (
-    //       <IconButton
-    //         onClick={() => {
-    //           setIsSidebarOpen(true);
-    //           setCurrent(record);
-    //         }}
-    //       >
-    //         {record.gender === "male" ? <Face /> : <Face />}
-    //       </IconButton>
-    //     );
-    //   },
-    // },
+  const columns: any = [
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      width: 80,
+      fixed: "left",
+      render: (text: any, record: any) => (
+        <IconButton
+          onClick={() => {
+            setIsSidebarOpen(true);
+            setCurrent(record);
+          }}
+        >
+          {record.gender === "male" ? <Face /> : <Face />}
+        </IconButton>
+      ),
+    },
     {
       title: "Name",
       dataIndex: "name",
@@ -190,6 +186,9 @@ const Teachers: React.FC<{
       ],
       onFilter: (value: any, record: any) =>
         record.gender?.indexOf(value) === 0,
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}>{text}</span>
+      ),
     },
     {
       title: "Institute",
@@ -234,11 +233,8 @@ const Teachers: React.FC<{
 
   return (
     <div className={styles.container}>
-      <Table
-        rowSelection={{
-          type: "checkbox",
-          ...rowSelection,
-        }}
+      <CustomTable
+        selectable={true}
         columns={columns}
         dataSource={teachers as any}
         loading={loading}

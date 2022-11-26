@@ -14,6 +14,7 @@ import {
   AccountCircleRounded,
   CallOutlined,
   CottageOutlined,
+  EmailOutlined,
   EventNoteRounded,
 } from "@mui/icons-material";
 
@@ -29,7 +30,7 @@ const UserProfile: React.FC<{
   if (user.userType === "student") {
     return (
       <>
-        <StudentSideMenu
+        <SideMenu
           handleEditModal={handleEditModal}
           handleDeleteModal={handleDeleteModal}
           user={user}
@@ -39,7 +40,7 @@ const UserProfile: React.FC<{
   } else {
     return (
       <>
-        <StudentSideMenu
+        <SideMenu
           handleEditModal={handleEditModal}
           handleDeleteModal={handleDeleteModal}
           user={user}
@@ -51,13 +52,13 @@ const UserProfile: React.FC<{
   return <>{/* <StudentSideMenu student={props.user} /> */}</>;
 };
 
-interface StudentSideMenuProps {
+interface SideMenuProps {
   user: any;
   handleEditModal: () => void;
   handleDeleteModal: () => void;
 }
 
-const StudentSideMenu = (props: StudentSideMenuProps) => {
+const SideMenu = (props: SideMenuProps) => {
   const {
     id,
     batch,
@@ -71,6 +72,7 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
     dob,
     contact,
     parentDetails,
+    userType,
   } = props.user;
 
   return (
@@ -102,62 +104,69 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
         </div>
 
         <div className={styles.detailContainer}>
-          <p className={styles.heading}>Student Details</p>
-          <div className={styles.row}>
-            <div className={styles.col}>
-              <p className={styles.key}>Roll No.</p>
-              <p className={styles.key}>Batch</p>
-              <p className={styles.key}>Class</p>
-              <p className={styles.key}>Course</p>
-            </div>
-            <div className={styles.col}>
-              <p className={styles.value}>20T2121</p>
-              <p className={styles.value}>{batch}</p>
-              <p className={styles.value}>{standard}</p>
-              <p className={styles.value}>{stream}</p>
-            </div>
+          <p className={styles.heading}>{userType} Details</p>
+
+          <div className={styles.detail}>
+            <p className={styles.key}>Roll No.</p>
+            <p className={styles.value}>20T2121</p>
+            {batch && <p className={styles.key}>Batch</p>}
+            {batch && <p className={styles.value}>{batch}</p>}
+            {standard && <p className={styles.key}>Class</p>}
+            {standard && <p className={styles.value}>{standard}</p>}
+            {stream && <p className={styles.key}>Course</p>}
+            {stream && <p className={styles.value}>{stream}</p>}
           </div>
         </div>
 
         <div className={styles.detailContainer}>
           <p className={styles.heading}>About</p>
-          <div className={styles.row}>
-            <div className={styles.col}>
+
+          <div className={styles.detail}>
+            {dob && (
               <p className={styles.key}>
                 <EventNoteRounded />
               </p>
+            )}
+            {dob && <p className={styles.value}>{dob}</p>}
+            {contact && (
               <p className={styles.key}>
                 <CallOutlined />
               </p>
+            )}
+            {contact && <p className={styles.value}>{contact}</p>}
+            {currentAddress && (
               <p className={styles.key}>
                 <CottageOutlined />
               </p>
-            </div>
-            <div className={styles.col} style={{ gap: "25px" }}>
-              <p className={styles.value}>{dob}</p>
-              <p className={styles.value}>{parentDetails?.contact}</p>
-              <p className={styles.value}>{currentAddress}</p>
-            </div>
+            )}
+            {currentAddress && <p className={styles.value}>{currentAddress}</p>}
+            {email && (
+              <p className={styles.key}>
+                <EmailOutlined />
+              </p>
+            )}
+
+            {email && <p className={styles.value}>{email}</p>}
           </div>
         </div>
 
-        <div className={styles.detailContainer}>
-          <p className={styles.heading}>parent Details</p>
-          <div className={styles.row}>
-            <div className={styles.col}>
+        {parentDetails && (
+          <div className={styles.detailContainer}>
+            <p className={styles.heading}>parent Details</p>
+
+            <div className={styles.detail}>
               <p className={styles.key}>
                 <AccountCircleOutlined />
               </p>
+              <p className={styles.value}>{parentDetails?.name}</p>
               <p className={styles.key}>
                 <CallOutlined />
               </p>
-            </div>
-            <div className={styles.col} style={{ gap: "30px" }}>
-              <p className={styles.value}>{parentDetails?.name}</p>
+
               <p className={styles.value}>{parentDetails?.contact}</p>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
