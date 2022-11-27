@@ -397,13 +397,14 @@ interface IToggleProofReadPayload {
   type: string;
 }
 
-const PreviewFullQuestion: React.FC<{
+export const PreviewFullQuestion: React.FC<{
   quillStringQuestion: string;
   quillStringSolution: string;
   previewData: any;
   setQuestions: (currQues: any) => void;
   setPreviewData: (obj: any) => void;
   handleClose: () => void;
+  disableFooter?: boolean;
 }> = ({
   quillStringQuestion,
   quillStringSolution,
@@ -411,6 +412,7 @@ const PreviewFullQuestion: React.FC<{
   setQuestions,
   setPreviewData,
   handleClose,
+  disableFooter,
 }) => {
   const handleToggleProofread = async (checked: any) => {
     console.log(checked);
@@ -508,26 +510,28 @@ const PreviewFullQuestion: React.FC<{
       <RenderWithLatex quillString={quillStringQuestion} />
       <Divider />
       <RenderWithLatex quillString={quillStringSolution} />
-      <div className={styles.footer}>
-        <div className={styles.toggleButton}>
-          Proof Read
-          <ToggleButton
-            checked={previewData?.isProofRead}
-            stopPropagation
-            onChange={(checked: any) => handleToggleProofread(checked)}
-          />
+      {!disableFooter && (
+        <div className={styles.footer}>
+          <div className={styles.toggleButton}>
+            Proof Read
+            <ToggleButton
+              checked={previewData?.isProofRead}
+              stopPropagation
+              onChange={(checked: any) => handleToggleProofread(checked)}
+            />
+          </div>
+          <CustomPopConfirm
+            title="Are you sure?"
+            okText="Delete"
+            cancelText="No"
+            onConfirm={handleDeleteQuestion}
+          >
+            <IconButton>
+              <DeleteOutline />
+            </IconButton>
+          </CustomPopConfirm>
         </div>
-        <CustomPopConfirm
-          title="Are you sure?"
-          okText="Delete"
-          cancelText="No"
-          onConfirm={handleDeleteQuestion}
-        >
-          <IconButton>
-            <DeleteOutline />
-          </IconButton>
-        </CustomPopConfirm>
-      </div>
+      )}
     </>
   );
 };
@@ -726,18 +730,18 @@ const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
   );
 };
 
-function getQuestionFromType(type: string, setData: (data: any) => void) {
-  switch (type) {
-    case "objective":
-      return <Objective setData={setData} />;
-    case "integer":
-      return <Integer setData={setData} />;
-    case "paragraph":
-      return <Paragraph setData={setData} />;
-    case "matrix":
-      return <MatrixMatch setData={setData} />;
-  }
-}
+// function getQuestionFromType(type: string, setData: (data: any) => void) {
+//   switch (type) {
+//     case "objective":
+//       return <Objective setData={setData} />;
+//     case "integer":
+//       return <Integer setData={setData} />;
+//     case "paragraph":
+//       return <Paragraph setData={setData} />;
+//     case "matrix":
+//       return <MatrixMatch setData={setData} />;
+//   }
+// }
 
 function getCorrectAnswers(options: any) {
   return options
