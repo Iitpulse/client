@@ -721,7 +721,10 @@ const CreateQuestion = () => {
                 data,
                 setData,
                 isInitialValuePassed,
-                setIsInitialValuePassed
+                setIsInitialValuePassed,
+                subject.name,
+                chapters,
+                difficulty
               )}
             </section>
             <div className={styles.submitButton}>
@@ -743,12 +746,18 @@ function getQuestionFromType(
   data: any,
   setData: (data: any) => void,
   isInitialValuePassed: boolean,
-  setIsInitialValuePassed: (data: any) => void
+  setIsInitialValuePassed: (data: any) => void,
+  subject: string,
+  chapters: Array<any>,
+  difficulty: string
 ) {
   switch (type.toLowerCase()) {
     case "objective":
       return (
         <Objective
+          subject={subject}
+          chapters={chapters}
+          difficulty={difficulty}
           data={data}
           setData={setData}
           isInitialValuePassed={isInitialValuePassed}

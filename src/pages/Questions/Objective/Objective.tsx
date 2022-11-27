@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Modal } from "../../../components";
+import { Button, Modal, Sidebar } from "../../../components";
 import styles from "./Objective.module.scss";
 import ReactQuill, { Quill } from "react-quill";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
@@ -20,12 +20,16 @@ import { generateOptions, getOptionID } from "../utils";
 
 import { Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../components";
+import { PreviewFullQuestion } from "../Questions";
 
 interface Props {
   setData: (data: any) => void;
   data?: any;
   isInitialValuePassed?: boolean;
   setIsInitialValuePassed?: (value: boolean) => void;
+  subject: string;
+  chapters: Array<any>;
+  difficulty: string;
 }
 
 Quill.register("modules/imageResize", ImageResize);
@@ -35,6 +39,9 @@ const Objective: React.FC<Props> = ({
   data,
   isInitialValuePassed,
   setIsInitialValuePassed,
+  subject,
+  chapters,
+  difficulty,
 }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
@@ -212,7 +219,7 @@ const Objective: React.FC<Props> = ({
     }
   }
   function getCurrentFullPreviewHTMLString() {
-    let res =
+    return (
       values?.en?.question +
       values?.en?.options
         .map(
@@ -223,9 +230,8 @@ const Objective: React.FC<Props> = ({
               idx + 65
             )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
         )
-        .join("");
-    // console.log(res);
-    return res;
+        .join("")
+    );
   }
 
   useEffect(() => {
@@ -276,11 +282,6 @@ const Objective: React.FC<Props> = ({
           <label htmlFor="assertionEnglish"></label> */}
         </div>
         <div className={styles.flexRow}>
-          <Tooltip title="See Preview">
-            <IconButton onClick={handleClickPreview}>
-              <Visibility />
-            </IconButton>
-          </Tooltip>
           <Tooltip title="See Full Preview">
             <IconButton onClick={handleClickFullPreview}>
               <Visibility />
@@ -423,7 +424,7 @@ const Objective: React.FC<Props> = ({
           </FormGroup>
         </div>
       </div>
-      <PreviewHTMLModal
+      {/* <PreviewHTMLModal
         showFooter={false}
         isOpen={previewModalOpen}
         previewData={values}
@@ -431,8 +432,8 @@ const Objective: React.FC<Props> = ({
         quillString={getCurrentHTMLString()}
         setQuestions={() => {}}
         setPreviewData={() => {}}
-      />
-      <PreviewHTMLModal
+      /> */}
+      {/* <PreviewHTMLModal
         showFooter={false}
         isOpen={fullPreviewModalOpen}
         previewData={values}
@@ -440,7 +441,22 @@ const Objective: React.FC<Props> = ({
         quillString={getCurrentFullPreviewHTMLString()}
         setQuestions={() => {}}
         setPreviewData={() => {}}
-      />
+      /> */}
+      <Sidebar
+        title="Preview"
+        open={fullPreviewModalOpen}
+        handleClose={() => setFullPreviewModalOpen(false)}
+        width={"40%"}
+      >
+        <PreviewFullQuestion
+          quillStringQuestion={getCurrentFullPreviewHTMLString()}
+          quillStringSolution={values?.en?.solution}
+          previewData={{ ...values, subject, chapters, difficulty }}
+          setQuestions={() => {}}
+          setPreviewData={() => {}}
+          handleClose={() => setFullPreviewModalOpen(false)}
+        />
+      </Sidebar>
       {/* Just for preview */}
       {/* <div dangerouslySetInnerHTML={{ __html: previewHTML }}></div> */}
     </section>

@@ -397,7 +397,7 @@ interface IToggleProofReadPayload {
   type: string;
 }
 
-const PreviewFullQuestion: React.FC<{
+export const PreviewFullQuestion: React.FC<{
   quillStringQuestion: string;
   quillStringSolution: string;
   previewData: any;
@@ -726,18 +726,18 @@ const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
   );
 };
 
-function getQuestionFromType(type: string, setData: (data: any) => void) {
-  switch (type) {
-    case "objective":
-      return <Objective setData={setData} />;
-    case "integer":
-      return <Integer setData={setData} />;
-    case "paragraph":
-      return <Paragraph setData={setData} />;
-    case "matrix":
-      return <MatrixMatch setData={setData} />;
-  }
-}
+// function getQuestionFromType(type: string, setData: (data: any) => void) {
+//   switch (type) {
+//     case "objective":
+//       return <Objective setData={setData} />;
+//     case "integer":
+//       return <Integer setData={setData} />;
+//     case "paragraph":
+//       return <Paragraph setData={setData} />;
+//     case "matrix":
+//       return <MatrixMatch setData={setData} />;
+//   }
+// }
 
 function getCorrectAnswers(options: any) {
   return options
