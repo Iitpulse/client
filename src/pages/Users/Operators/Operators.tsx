@@ -2,12 +2,12 @@ import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Operators.module.scss";
-import { Button } from "../../../components";
-import { Table } from "antd";
+import { Button, CustomTable, Sidebar, UserProfile } from "../../../components";
+import { Popconfirm, Table } from "antd";
 import { rowSelection } from "../Users";
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
-import { Grid } from "@mui/material";
+import { Grid, IconButton } from "@mui/material";
 import {
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
@@ -16,43 +16,8 @@ import AddUserModal from "../components/AddUserModal";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import { API_USERS } from "../../../utils/api";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
-
-const columns = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    // width: 50,
-    render: (text: string) => (
-      <span style={{ overflow: "ellipsis" }}>{text}</span>
-    ),
-  },
-  // {
-  //   title: "ID",
-  //   dataIndex: "id",
-  //   width: 50,
-  //   // render: (text: string) => <a>{text}</a>,
-  // },
-  {
-    title: "Gender",
-    dataIndex: "gender",
-    render: (text: string) => (
-      <span style={{ textTransform: "capitalize" }}>{text}</span>
-    ),
-  },
-  {
-    title: "Batch",
-    dataIndex: "batch",
-    // width: 100,
-    render: (text: string) => (
-      <span style={{ textTransform: "capitalize" }}> {text}</span>
-    ),
-  },
-  {
-    title: "Contact",
-    dataIndex: "contact",
-    // width: 100,
-  },
-];
+import { Edit, Face } from "@mui/icons-material";
+import deleteIcon from "../../../assets/icons/delete.svg";
 
 const Operators: React.FC<{
   activeTab: number;
@@ -63,13 +28,92 @@ const Operators: React.FC<{
 }> = ({ activeTab, operator, openModal, handleCloseModal, loading }) => {
   // const data: any = [];
   const { operators } = useContext(UsersContext);
+  const [current, setCurrent] = useState<any>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const columns: any = [
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      width: 80,
+      fixed: "left",
+      render: (text: any, record: any) => (
+        <IconButton
+          onClick={() => {
+            setIsSidebarOpen(true);
+            setCurrent(record);
+          }}
+        >
+          {record.gender === "male" ? <Face /> : <Face />}
+        </IconButton>
+      ),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      // width: 50,
+      render: (text: string) => (
+        <span style={{ overflow: "ellipsis" }}>{text}</span>
+      ),
+    },
+    // {
+    //   title: "ID",
+    //   dataIndex: "id",
+    //   width: 50,
+    //   // render: (text: string) => <a>{text}</a>,
+    // },
+    {
+      title: "Gender",
+      dataIndex: "gender",
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}>{text}</span>
+      ),
+    },
+    {
+      title: "Batch",
+      dataIndex: "batch",
+      // width: 100,
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}> {text}</span>
+      ),
+    },
+    {
+      title: "Contact",
+      dataIndex: "contact",
+      // width: 100,
+    },
+  ];
+
   return (
     <div className={styles.container}>
-      <Table
-        rowSelection={{
-          type: "checkbox",
-          ...rowSelection,
-        }}
+      <Sidebar
+        title=""
+        open={isSidebarOpen}
+        width={"25%"}
+        handleClose={() => setIsSidebarOpen(false)}
+        extra={
+          <div className={styles.flexRow}>
+            <IconButton onClick={() => setIsSidebarOpen(false)}>
+              <Edit />
+            </IconButton>
+            <Popconfirm
+              title="Sure to delete?"
+              onConfirm={() => setIsSidebarOpen(false)}
+            >
+              <IconButton>
+                <img src={deleteIcon} alt="Delete" />
+              </IconButton>
+            </Popconfirm>
+          </div>
+        }
+      >
+        <UserProfile
+          user={current}
+          handleDeleteModal={() => {}}
+          handleEditModal={() => {}}
+        />
+      </Sidebar>
+      <CustomTable
         columns={columns}
         dataSource={operators as any}
         loading={loading}
@@ -88,6 +132,7 @@ const Operator: React.FC<{
   handleCloseModal: () => void;
 }> = (props) => {
   const { uploadedBy, handleReset } = props.operator;
+
   const [values, setValues] = useState({} as any);
   const [roles, setRoles] = useState([]);
   const [rolesInfo, setRolesInfo] = useState({

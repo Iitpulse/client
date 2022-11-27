@@ -1,73 +1,93 @@
 @import "../../utils/commons.scss";
 
-.student {
-  @extend .flexCol;
-  .avatar {
-    width: 150px;
-  }
-  .name {
-    margin: 5px 0;
-    font-size: 1.1rem;
-    font-weight: 500;
-  }
-  p {
-    display: inline-block;
-    margin-bottom: 0;
-  }
-  .property {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #262626;
-  }
-  .value {
-    font-weight: 400;
-    font-size: 0.9rem;
-    color: rgb(97, 97, 97);
-  }
-  .icons {
-    button {
-      margin: 5px;
-    }
-  }
-  .class,
-  .course {
-    width: 100%;
-    .property {
-      width: 70px;
-    }
-  }
-  .ageGenderDOB {
-    @extend .flexRow;
-    width: 100%;
-    justify-content: space-between;
-    .age,
-    .gender,
-    .DOB {
-      @extend .flexCol;
-      align-items: flex-start;
-    }
-  }
-  .address,
-  .contact,
-  .parentsContact {
+
+
+.basicDetailContainer{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap:25px;
+  justify-content: baseline;
+  align-items: center;
+  .basicDetail{
     @extend .flexCol;
-    width: 100%;
-    align-items: flex-start;
-  }
-  .class,
-  .course,
-  .ageGenderDOB,
-  .address,
-  .contact,
-  .parentsContact {
-    margin-bottom: 0.4rem;
-  }
-  .buttons {
-    width: 100%;
-    @extend .flexRow;
-    justify-content: space-between;
-    button {
-      min-width: 100px;
+    justify-content: center;
+    align-items: baseline;
+    .name{
+      color:black;
     }
   }
+  .avatar{
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+  }
+
+}
+
+.contact{
+  width: 100%;
+  @extend .flexRow;
+  justify-content: center;
+  position: relative  ;
+  margin-left: -10px;
+    .line{
+      width: 100%;
+      height:1px;
+      background-color: rgba(203, 203, 203, 1);
+      position: absolute;
+      top:50%;
+      left:10px;
+      z-index: 0;
+    }
+    img{
+      padding: 10px;
+      z-index: 1;
+      background-color: white;
+      border-radius: 38%;
+      border: 1px solid rgba(203, 203, 203, 1);
+    }
+}
+
+.detailContainer{
+  margin: 15px 0;
+  @extend .flexCol;
+  justify-content: baseline;
+  align-items: baseline;
+  padding: 10px;
+  border: 1px solid rgba(203, 203, 203, 1);
+  border-radius: 8px;
+  .heading{
+    color: black;
+    font-weight: 500;
+    padding: 10px 15px;
+  }
+  .row{
+    width: 100%;
+    @extend .flexRow;
+    justify-content: flex-start;
+    gap:25px;
+    padding: 15px;
+  }
+  .col{
+    @extend .flexCol;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap:20px;
+    .value{
+      color:black;
+    }
+  }
+}
+.detail{
+  width: 100%;
+  display: grid;
+    grid-template-columns: auto auto;
+    padding: 10px;
+    .value {
+        color: black;
+    }
+    p{
+      padding: 10px;
+    }
 }

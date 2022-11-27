@@ -274,6 +274,7 @@ export interface IUserTeacher {
   password: string;
   contact: number;
   address: string;
+  gender: string;
   parentDetails: { name: string; contact: number };
   institute: string;
   userType: string;

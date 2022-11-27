@@ -8,6 +8,15 @@ import styles from "./UserProfile.module.scss";
 import { CurrentContext } from "../../utils/contexts/CurrentContext";
 import { Button } from "../";
 import { Student } from "../../pages/Users/Students/Students";
+import { CalendarOutlined } from "@ant-design/icons";
+import {
+  AccountCircleOutlined,
+  AccountCircleRounded,
+  CallOutlined,
+  CottageOutlined,
+  EmailOutlined,
+  EventNoteRounded,
+} from "@mui/icons-material";
 
 const UserProfile: React.FC<{
   user: any;
@@ -17,11 +26,21 @@ const UserProfile: React.FC<{
   const [userType, setUserType] = useState<
     "student" | "teacher" | "admin" | "superadmin" | "manager" | "operator" | ""
   >("");
-
+  console.log(user);
   if (user.userType === "student") {
     return (
       <>
-        <StudentSideMenu
+        <SideMenu
+          handleEditModal={handleEditModal}
+          handleDeleteModal={handleDeleteModal}
+          user={user}
+        />
+      </>
+    );
+  } else {
+    return (
+      <>
+        <SideMenu
           handleEditModal={handleEditModal}
           handleDeleteModal={handleDeleteModal}
           user={user}
@@ -33,13 +52,13 @@ const UserProfile: React.FC<{
   return <>{/* <StudentSideMenu student={props.user} /> */}</>;
 };
 
-interface StudentSideMenuProps {
+interface SideMenuProps {
   user: any;
   handleEditModal: () => void;
   handleDeleteModal: () => void;
 }
 
-const StudentSideMenu = (props: StudentSideMenuProps) => {
+const SideMenu = (props: SideMenuProps) => {
   const {
     id,
     batch,
@@ -53,6 +72,125 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
     dob,
     contact,
     parentDetails,
+    userType,
+  } = props.user;
+
+  return (
+    <>
+      <div className={styles.student}>
+        <div className={styles.basicDetailContainer}>
+          <div className={styles.avatarContainer}>
+            <img src={avatar} alt="avatar" className={styles.avatar} />
+          </div>
+          <div className={styles.basicDetail}>
+            <p className={styles.name}>{name}</p>
+            <p className={styles.ageNgender}>
+              ({age} {gender})
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.contact}>
+          <IconButton href={"tel:+91" + contact}>
+            <img src={phone} alt="Phone" />
+          </IconButton>
+          <IconButton
+            target="_blank"
+            href={"https://mail.google.com/mail/?view=cm&fs=1&to=" + email}
+          >
+            <img src={mail} alt="Email" />
+          </IconButton>
+          <div className={styles.line}></div>
+        </div>
+
+        <div className={styles.detailContainer}>
+          <p className={styles.heading}>{userType} Details</p>
+
+          <div className={styles.detail}>
+            <p className={styles.key}>Roll No.</p>
+            <p className={styles.value}>20T2121</p>
+            {batch && <p className={styles.key}>Batch</p>}
+            {batch && <p className={styles.value}>{batch}</p>}
+            {standard && <p className={styles.key}>Class</p>}
+            {standard && <p className={styles.value}>{standard}</p>}
+            {stream && <p className={styles.key}>Course</p>}
+            {stream && <p className={styles.value}>{stream}</p>}
+          </div>
+        </div>
+
+        <div className={styles.detailContainer}>
+          <p className={styles.heading}>About</p>
+
+          <div className={styles.detail}>
+            {dob && (
+              <p className={styles.key}>
+                <EventNoteRounded />
+              </p>
+            )}
+            {dob && <p className={styles.value}>{dob}</p>}
+            {contact && (
+              <p className={styles.key}>
+                <CallOutlined />
+              </p>
+            )}
+            {contact && <p className={styles.value}>{contact}</p>}
+            {currentAddress && (
+              <p className={styles.key}>
+                <CottageOutlined />
+              </p>
+            )}
+            {currentAddress && <p className={styles.value}>{currentAddress}</p>}
+            {email && (
+              <p className={styles.key}>
+                <EmailOutlined />
+              </p>
+            )}
+
+            {email && <p className={styles.value}>{email}</p>}
+          </div>
+        </div>
+
+        {parentDetails && (
+          <div className={styles.detailContainer}>
+            <p className={styles.heading}>parent Details</p>
+
+            <div className={styles.detail}>
+              <p className={styles.key}>
+                <AccountCircleOutlined />
+              </p>
+              <p className={styles.value}>{parentDetails?.name}</p>
+              <p className={styles.key}>
+                <CallOutlined />
+              </p>
+
+              <p className={styles.value}>{parentDetails?.contact}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
+interface TeacherSideMenuProps {
+  user: any;
+  handleEditModal: () => void;
+  handleDeleteModal: () => void;
+}
+
+const TeacherSideMenu = (props: TeacherSideMenuProps) => {
+  const {
+    id,
+    batch,
+    email,
+    name,
+    standard,
+    stream,
+    age,
+    gender,
+    currentAddress,
+    dob,
+    contact,
   } = props.user;
 
   return (
@@ -108,10 +246,6 @@ const StudentSideMenu = (props: StudentSideMenuProps) => {
         <div className={styles.contact}>
           <p className={styles.property}>Contact</p>
           <p className={styles.value}>{contact}</p>
-        </div>
-        <div className={styles.parentsContact}>
-          <p className={styles.property}>Parent's Contact</p>
-          <p className={styles.value}>{parentDetails.contact}</p>
         </div>
       </div>
     </>

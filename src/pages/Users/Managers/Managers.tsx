@@ -2,57 +2,22 @@ import { StyledMUITextField, UserProps } from "../components";
 import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Managers.module.scss";
-import { Button } from "../../../components";
-import { Table } from "antd";
+import { Button, CustomTable, Sidebar, UserProfile } from "../../../components";
+import { Popconfirm, Table } from "antd";
 import { rowSelection } from "../Users";
 import { useContext, useEffect, useState } from "react";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import AddUserModal from "../components/AddUserModal";
 import axios from "axios";
-import { Grid } from "@mui/material";
+import { Grid, IconButton } from "@mui/material";
 import {
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
 } from "../../../components";
 import { API_USERS } from "../../../utils/api";
-
-const columns = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    // width: 50,
-    render: (text: string) => (
-      <span style={{ overflow: "ellipsis" }}>{text}</span>
-    ),
-  },
-  // {
-  //   title: "ID",
-  //   dataIndex: "id",
-  //   width: 50,
-  //   // render: (text: string) => <a>{text}</a>,
-  // },
-  {
-    title: "Gender",
-    dataIndex: "gender",
-    render: (text: string) => (
-      <span style={{ textTransform: "capitalize" }}>{text}</span>
-    ),
-  },
-  {
-    title: "Batch",
-    dataIndex: "batch",
-    // width: 100,
-    render: (text: string) => (
-      <span style={{ textTransform: "capitalize" }}> {text}</span>
-    ),
-  },
-  {
-    title: "Contact",
-    dataIndex: "contact",
-    // width: 100,
-  },
-];
+import { Edit, Face } from "@mui/icons-material";
+import deleteIcon from "../../../assets/icons/delete.svg";
 
 const Managers: React.FC<{
   activeTab: number;
@@ -62,18 +27,95 @@ const Managers: React.FC<{
   loading: boolean;
 }> = ({ activeTab, manager, openModal, handleCloseModal, loading }) => {
   const { managers } = useContext(UsersContext);
-
+  const [current, setCurrent] = useState<any>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const columns: any = [
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      width: 80,
+      fixed: "left",
+      render: (text: any, record: any) => (
+        <IconButton
+          onClick={() => {
+            setIsSidebarOpen(true);
+            setCurrent(record);
+          }}
+        >
+          {record.gender === "male" ? <Face /> : <Face />}
+        </IconButton>
+      ),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      // width: 50,
+      render: (text: string) => (
+        <span style={{ overflow: "ellipsis" }}>{text}</span>
+      ),
+    },
+    // {
+    //   title: "ID",
+    //   dataIndex: "id",
+    //   width: 50,
+    //   // render: (text: string) => <a>{text}</a>,
+    // },
+    {
+      title: "Gender",
+      dataIndex: "gender",
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}>{text}</span>
+      ),
+    },
+    {
+      title: "Batch",
+      dataIndex: "batch",
+      // width: 100,
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}> {text}</span>
+      ),
+    },
+    {
+      title: "Contact",
+      dataIndex: "contact",
+      // width: 100,
+    },
+  ];
   return (
     <div className={styles.container}>
-      <Table
-        rowSelection={{
-          type: "checkbox",
-          ...rowSelection,
-        }}
+      <CustomTable
         columns={columns}
         dataSource={managers as any}
         loading={loading}
       />
+      <Sidebar
+        title=""
+        open={isSidebarOpen}
+        width={"25%"}
+        handleClose={() => setIsSidebarOpen(false)}
+        extra={
+          <div className={styles.flexRow}>
+            <IconButton onClick={() => setIsSidebarOpen(false)}>
+              <Edit />
+            </IconButton>
+            <Popconfirm
+              title="Sure to delete?"
+              onConfirm={() => setIsSidebarOpen(false)}
+            >
+              <IconButton>
+                <img src={deleteIcon} alt="Delete" />
+              </IconButton>
+            </Popconfirm>
+          </div>
+        }
+      >
+        <UserProfile
+          user={current}
+          handleDeleteModal={() => {}}
+          handleEditModal={() => {}}
+        />
+      </Sidebar>
       {openModal && activeTab === 4 && (
         <Manager manager={manager} handleCloseModal={handleCloseModal} />
       )}

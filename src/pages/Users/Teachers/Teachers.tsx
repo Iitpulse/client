@@ -4,14 +4,17 @@ import clsx from "clsx";
 import styles from "./Teachers.module.scss";
 import {
   Button,
+  CustomTable,
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
+  Sidebar,
+  UserProfile,
 } from "../../../components";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import { APIS } from "../../../utils/constants";
-import { Input, Space, Table, Button as AntButton } from "antd";
+import { Input, Space, Table, Button as AntButton, Popconfirm } from "antd";
 import { DataType, rowSelection } from "../Users";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import AddUserModal from "../components/AddUserModal";
@@ -20,10 +23,11 @@ import Highlighter from "react-highlight-words";
 // import type { InputRef } from 'antd';
 import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
-import { Grid } from "@mui/material";
+import { Grid, IconButton } from "@mui/material";
 import { SearchOutlined } from "@ant-design/icons";
 import { API_USERS } from "../../../utils/api";
-
+import { Edit, Face } from "@mui/icons-material";
+import deleteIcon from "../../../assets/icons/delete.svg";
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
@@ -33,6 +37,8 @@ const Teachers: React.FC<{
 }> = ({ activeTab, teacher, openModal, handleCloseModal, loading }) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [current, setCurrent] = useState<any>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const searchInput = useRef<any>(null);
 
   const handleSearch = (
@@ -128,8 +134,24 @@ const Teachers: React.FC<{
         text
       ),
   });
-
-  const columns = [
+  const columns: any = [
+    {
+      title: "View",
+      dataIndex: "view",
+      key: "view",
+      width: 80,
+      fixed: "left",
+      render: (text: any, record: any) => (
+        <IconButton
+          onClick={() => {
+            setIsSidebarOpen(true);
+            setCurrent(record);
+          }}
+        >
+          {record.gender === "male" ? <Face /> : <Face />}
+        </IconButton>
+      ),
+    },
     {
       title: "Name",
       dataIndex: "name",
@@ -164,6 +186,9 @@ const Teachers: React.FC<{
       ],
       onFilter: (value: any, record: any) =>
         record.gender?.indexOf(value) === 0,
+      render: (text: string) => (
+        <span style={{ textTransform: "capitalize" }}>{text}</span>
+      ),
     },
     {
       title: "Institute",
@@ -204,19 +229,44 @@ const Teachers: React.FC<{
   ];
 
   const { teachers } = useContext(UsersContext);
+  console.log({ teachers });
 
   return (
     <div className={styles.container}>
-      <Table
-        rowSelection={{
-          type: "checkbox",
-          ...rowSelection,
-        }}
+      <CustomTable
+        selectable={true}
         columns={columns}
         dataSource={teachers as any}
         loading={loading}
         scroll={{ x: 100 }}
       />
+      <Sidebar
+        title="User Details"
+        open={isSidebarOpen}
+        width={"25%"}
+        handleClose={() => setIsSidebarOpen(false)}
+        extra={
+          <div className={styles.flexRow}>
+            <IconButton onClick={() => setIsSidebarOpen(false)}>
+              <Edit />
+            </IconButton>
+            <Popconfirm
+              title="Sure to delete?"
+              onConfirm={() => setIsSidebarOpen(false)}
+            >
+              <IconButton>
+                <img src={deleteIcon} alt="Delete" />
+              </IconButton>
+            </Popconfirm>
+          </div>
+        }
+      >
+        <UserProfile
+          user={current}
+          handleDeleteModal={() => {}}
+          handleEditModal={() => {}}
+        />
+      </Sidebar>
       {openModal && activeTab === 1 && (
         <Teacher teacher={teacher} handleCloseModal={handleCloseModal} />
       )}

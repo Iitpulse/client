@@ -47,7 +47,7 @@ import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { API_USERS } from "../../../utils/api";
 import { DesktopDatePicker } from "@mui/lab";
-import { Edit, Face, Face3, Person } from "@mui/icons-material";
+import { DeleteOutline, Edit, Face, Face3, Person } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
 
 const Students: React.FC<{
@@ -57,7 +57,6 @@ const Students: React.FC<{
   handleCloseModal: () => void;
   loading: boolean;
 }> = ({ activeTab, student, openModal, handleCloseModal, loading }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { students } = useContext(UsersContext);
   const [currentStudent, setCurrentStudent] = useState<any>(null);
   const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
@@ -66,6 +65,7 @@ const Students: React.FC<{
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleSearch = (
@@ -176,7 +176,7 @@ const Students: React.FC<{
             setCurrentStudent(record);
           }}
         >
-          {record.gender === "male" ? <Face /> : <Face3 />}
+          {record.gender === "male" ? <Face /> : <Face />}
         </IconButton>
       ),
     },
@@ -323,7 +323,7 @@ const Students: React.FC<{
   //   }
   //   fetchStudents();
   // }, []);
-
+  console.log({ students });
   return (
     <div className={styles.container}>
       <CustomTable
@@ -348,7 +348,7 @@ const Students: React.FC<{
         />
       )}
       <Sidebar
-        title="User Details"
+        title=""
         open={isSidebarOpen}
         width={"25%"}
         handleClose={() => setIsSidebarOpen(false)}
@@ -362,7 +362,8 @@ const Students: React.FC<{
               onConfirm={() => setIsSidebarOpen(false)}
             >
               <IconButton>
-                <img src={deleteIcon} alt="Delete" />
+                <DeleteOutline />
+                {/* <img src={deleteIcon} alt="Delete" /> */}
               </IconButton>
             </Popconfirm>
           </div>

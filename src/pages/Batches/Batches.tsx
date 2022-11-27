@@ -1,6 +1,14 @@
 import styles from "./Batches.module.scss";
 import { useContext, useEffect, useState } from "react";
-import { DatePicker, Select, SelectProps, Slider, Table } from "antd";
+import {
+  DatePicker,
+  message,
+  Select,
+  SelectProps,
+  Slider,
+  Space,
+  Table,
+} from "antd";
 import { useNavigate } from "react-router";
 import {
   Button,
@@ -10,7 +18,7 @@ import {
   StyledMUISelect,
 } from "../../components";
 import { styled, Box } from "@mui/system";
-import { TextField } from "@mui/material";
+import { IconButton, TextField } from "@mui/material";
 import clsx from "clsx";
 import closeIcon from "../../assets/icons/close-circle.svg";
 import axios from "axios";
@@ -21,6 +29,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
 import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
 import moment from "moment";
 import { SliderMarks } from "antd/lib/slider";
+import { DeleteOutline } from "@mui/icons-material";
+import deleteIcon from "../../assets/icons/delete.svg";
 interface DataType {
   key: React.Key;
   id: string;
@@ -79,13 +89,31 @@ const Batches = () => {
       const res = await API_USERS().get(`/batch/get`);
       // console.log({ res });
       setData(res?.data);
+      console.log("here", res.data);
     }
 
     if (currentUser?.id) {
       fetchBatch();
     }
   }, [currentUser]);
-
+  const handleDeleteBatch = async (id: string) => {
+    try {
+      const res = await API_USERS().delete(`/batch/delete`, {
+        params: {
+          id,
+        },
+      });
+      if (res?.status === 200) {
+        message.success(res?.data?.message);
+        setData((data) => data.filter((values: any) => values._id !== id));
+      } else {
+        message.error(res?.statusText);
+      }
+      console.log(res);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   const columns = [
     {
       title: "Name",
@@ -99,6 +127,34 @@ const Batches = () => {
       title: "Members",
       dataIndex: "members",
       render: (members: any[]) => members.length,
+    },
+    {
+      title: "Duration",
+      dataIndex: "validity",
+      render: (validity: any) =>
+        `${new Date(validity.from).toLocaleDateString()} to ${new Date(
+          validity.to
+        ).toLocaleDateString()}`,
+    },
+    {
+      title: "Classes",
+      dataIndex: "classes",
+      render: (classes: Array<string>) => classes && classes.join(","),
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (_: any, record: any) => (
+        <Space size="middle">
+          <IconButton
+            onClick={() => {
+              handleDeleteBatch(record._id);
+            }}
+          >
+            <img src={deleteIcon} />
+          </IconButton>
+        </Space>
+      ),
     },
   ];
 
