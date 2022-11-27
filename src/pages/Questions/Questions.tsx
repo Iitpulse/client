@@ -404,6 +404,7 @@ export const PreviewFullQuestion: React.FC<{
   setQuestions: (currQues: any) => void;
   setPreviewData: (obj: any) => void;
   handleClose: () => void;
+  disableFooter?: boolean;
 }> = ({
   quillStringQuestion,
   quillStringSolution,
@@ -411,6 +412,7 @@ export const PreviewFullQuestion: React.FC<{
   setQuestions,
   setPreviewData,
   handleClose,
+  disableFooter,
 }) => {
   const handleToggleProofread = async (checked: any) => {
     console.log(checked);
@@ -508,26 +510,28 @@ export const PreviewFullQuestion: React.FC<{
       <RenderWithLatex quillString={quillStringQuestion} />
       <Divider />
       <RenderWithLatex quillString={quillStringSolution} />
-      <div className={styles.footer}>
-        <div className={styles.toggleButton}>
-          Proof Read
-          <ToggleButton
-            checked={previewData?.isProofRead}
-            stopPropagation
-            onChange={(checked: any) => handleToggleProofread(checked)}
-          />
+      {!disableFooter && (
+        <div className={styles.footer}>
+          <div className={styles.toggleButton}>
+            Proof Read
+            <ToggleButton
+              checked={previewData?.isProofRead}
+              stopPropagation
+              onChange={(checked: any) => handleToggleProofread(checked)}
+            />
+          </div>
+          <CustomPopConfirm
+            title="Are you sure?"
+            okText="Delete"
+            cancelText="No"
+            onConfirm={handleDeleteQuestion}
+          >
+            <IconButton>
+              <DeleteOutline />
+            </IconButton>
+          </CustomPopConfirm>
         </div>
-        <CustomPopConfirm
-          title="Are you sure?"
-          okText="Delete"
-          cancelText="No"
-          onConfirm={handleDeleteQuestion}
-        >
-          <IconButton>
-            <DeleteOutline />
-          </IconButton>
-        </CustomPopConfirm>
-      </div>
+      )}
     </>
   );
 };

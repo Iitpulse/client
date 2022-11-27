@@ -455,6 +455,7 @@ const Objective: React.FC<Props> = ({
           setQuestions={() => {}}
           setPreviewData={() => {}}
           handleClose={() => setFullPreviewModalOpen(false)}
+          disableFooter
         />
       </Sidebar>
       {/* Just for preview */}
