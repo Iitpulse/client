@@ -716,16 +716,18 @@ const CreateQuestion = () => {
         ) : (
           <>
             <section className={styles.main}>
-              {getQuestionFromType(
-                type,
-                data,
-                setData,
-                isInitialValuePassed,
-                setIsInitialValuePassed,
-                subject.name,
-                chapters,
-                difficulty
-              )}
+              {type &&
+                data &&
+                getQuestionFromType(
+                  type,
+                  data,
+                  setData,
+                  isInitialValuePassed,
+                  setIsInitialValuePassed,
+                  subject?.name,
+                  chapters,
+                  difficulty
+                )}
             </section>
             <div className={styles.submitButton}>
               <Button onClick={handleSubmitQuestion}>
