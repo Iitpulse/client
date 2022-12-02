@@ -599,6 +599,7 @@ const CreateQuestion = () => {
       message.success("ERR_CREATE_QUESTION" + error);
     }
   }
+
   // useEffect(() => {
   //   console.log("%cRender End", "color:brown;font-size:14px");
   //   console.count("Render End");
@@ -675,11 +676,9 @@ const CreateQuestion = () => {
                 <CreatableSelect
                   multiple
                   onAddModalSubmit={handleAddTopic}
-                  options={
-                    topicOptions.map((topic: any) => ({
-                      name: topic,
-                    })) || []
-                  }
+                  options={topicOptions?.map((topic: any) => ({
+                    name: topic,
+                  }))}
                   chapters={subject?.chapters}
                   setValue={setTopics}
                   disabled={Boolean(!chapters?.length)}
@@ -725,6 +724,7 @@ const CreateQuestion = () => {
                   setIsInitialValuePassed,
                   subject?.name,
                   chapters,
+                  topics,
                   difficulty
                 )}
             </section>
@@ -750,6 +750,7 @@ function getQuestionFromType(
   setIsInitialValuePassed: (data: any) => void,
   subject: string,
   chapters: Array<any>,
+  topics: Array<any>,
   difficulty: string
 ) {
   switch (type.toLowerCase()) {
@@ -758,6 +759,7 @@ function getQuestionFromType(
         <Objective
           subject={subject}
           chapters={chapters}
+          topics={topics}
           difficulty={difficulty}
           data={data}
           setData={setData}

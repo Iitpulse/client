@@ -29,6 +29,7 @@ interface Props {
   setIsInitialValuePassed?: (value: boolean) => void;
   subject: string;
   chapters: Array<any>;
+  topics: Array<any>;
   difficulty: string;
 }
 
@@ -41,6 +42,7 @@ const Objective: React.FC<Props> = ({
   setIsInitialValuePassed,
   subject,
   chapters,
+  topics,
   difficulty,
 }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
@@ -451,7 +453,7 @@ const Objective: React.FC<Props> = ({
         <PreviewFullQuestion
           quillStringQuestion={getCurrentFullPreviewHTMLString()}
           quillStringSolution={values?.en?.solution}
-          previewData={{ ...values, subject, chapters, difficulty }}
+          previewData={{ ...values, subject, chapters, topics, difficulty }}
           setQuestions={() => {}}
           setPreviewData={() => {}}
           handleClose={() => setFullPreviewModalOpen(false)}

@@ -488,8 +488,10 @@ export const PreviewFullQuestion: React.FC<{
           </h4>
           {" > "}
           <h4>
-            {previewData?.chapters &&
-              getTopics(previewData?.chapters)?.join(", ")}
+            {previewData.topics
+              ? previewData?.topics?.map((topic: any) => topic.name).join(", ")
+              : previewData?.chapters &&
+                getTopics(previewData?.chapters)?.join(", ")}
           </h4>
         </div>
         <div>
