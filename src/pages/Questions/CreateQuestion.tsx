@@ -471,10 +471,11 @@ const CreateQuestion = () => {
             let topicArray = topics.map((topic) => topic.name);
             return {
               name: chapter.name,
-              topics:
-                chapter.topics.filter((value: any) =>
-                  topicArray.includes(value)
-                ) || [],
+              topics: topicArray?.length
+                ? chapter.topics.filter((value: any) =>
+                    topicArray.includes(value)
+                  )
+                : [],
             };
           }),
           difficulty: difficulty || "unset",
