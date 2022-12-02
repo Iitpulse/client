@@ -109,10 +109,10 @@ function checkDataValidity(data: any, setError: any) {
     setError({ ...defaultErrorObject, type: true });
     return { state: false, message: '"Please select a question type"' };
   }
-  if (!data.difficulty) {
-    setError({ ...defaultErrorObject, difficulty: true });
-    return { state: false, message: '"Please select a difficulty level"' };
-  }
+  // if (!data.difficulty) {
+  //   setError({ ...defaultErrorObject, difficulty: true });
+  //   return { state: false, message: '"Please select a difficulty level"' };
+  // }
   if (!data.subject) {
     setError({ ...defaultErrorObject, subject: true });
     return { state: false, message: '"Please select a subject"' };
@@ -125,10 +125,10 @@ function checkDataValidity(data: any, setError: any) {
     setError({ ...defaultErrorObject, chapters: true });
     return { state: false, message: '"Please select at least one chapter"' };
   }
-  if (!checkTopicValidity(data?.chapters)) {
-    setError({ ...defaultErrorObject, topics: true });
-    return { state: false, message: '"Please select at least one topic"' };
-  }
+  // if (!checkTopicValidity(data?.chapters)) {
+  //   setError({ ...defaultErrorObject, topics: true });
+  //   return { state: false, message: '"Please select at least one topic"' };
+  // }
   if (!data.sources?.length) {
     setError({ ...defaultErrorObject, sources: true });
     return { state: false, message: '"Please select at least one source"' };
@@ -438,7 +438,7 @@ const CreateQuestion = () => {
       });
       setSubject(res.data.data);
     } catch (err) {
-      console.log(err);
+      console.log("ERR_ADD_TOPIC", err);
       message.error("Error adding topic");
     }
 
@@ -471,12 +471,13 @@ const CreateQuestion = () => {
             let topicArray = topics.map((topic) => topic.name);
             return {
               name: chapter.name,
-              topics: chapter.topics.filter((value: any) =>
-                topicArray.includes(value)
-              ),
+              topics:
+                chapter.topics.filter((value: any) =>
+                  topicArray.includes(value)
+                ) || [],
             };
           }),
-          difficulty,
+          difficulty: difficulty || "unset",
           exams: exams.map((exam: any) => exam.name),
           sources: sources.map((source) => source.name),
           createdAt: new Date().toISOString(),
@@ -507,7 +508,6 @@ const CreateQuestion = () => {
                 },
                 correctAnswers: getCorrectAnswers(data.en.options),
               };
-              console.log({ finalQuestion });
               // const fetchQuestion =  async () => {
               //   return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
               // };
@@ -515,10 +515,8 @@ const CreateQuestion = () => {
 
               let dataValid = checkDataValidity(finalQuestion, setError);
               if (!dataValid.state) {
-                console.log("This means error");
                 message.error(dataValid?.message);
               }
-              console.log({ dataValid, finalQuestion });
               if (dataValid?.state) {
                 if (id) {
                   let loading = message.loading("Updating Question...");
@@ -538,10 +536,11 @@ const CreateQuestion = () => {
                       finalQuestion
                     );
                   }
-                  const temp = Array(50)
-                    .fill(null)
-                    .map(() => createNewQuestion());
-                  await Promise.all(temp);
+                  await createNewQuestion();
+                  // const temp = Array(50)
+                  //   .fill(null)
+                  //   .map(() => createNewQuestion());
+                  // await Promise.all(temp);
                   loading();
                   message.success("Question created successfully");
                   setData({});
@@ -597,7 +596,7 @@ const CreateQuestion = () => {
         }
       }
     } catch (error) {
-      message.success("Error" + error);
+      message.success("ERR_CREATE_QUESTION" + error);
     }
   }
   // useEffect(() => {
