@@ -117,10 +117,10 @@ function checkDataValidity(data: any, setError: any) {
     setError({ ...defaultErrorObject, subject: true });
     return { state: false, message: '"Please select a subject"' };
   }
-  if (!data.exams?.length) {
-    setError({ ...defaultErrorObject, exams: true });
-    return { state: false, message: '"Please select at least one exam"' };
-  }
+  // if (!data.exams?.length) {
+  //   setError({ ...defaultErrorObject, exams: true });
+  //   return { state: false, message: '"Please select at least one exam"' };
+  // }
   if (!data.chapters?.length) {
     setError({ ...defaultErrorObject, chapters: true });
     return { state: false, message: '"Please select at least one chapter"' };
@@ -595,6 +595,12 @@ const CreateQuestion = () => {
           default:
             return;
         }
+        setTopics([]);
+        setChapters([]);
+        setSubject(undefined);
+        setDifficulty("unset");
+        setExams([]);
+        setSources([]);
       }
     } catch (error) {
       message.success("ERR_CREATE_QUESTION" + error);
