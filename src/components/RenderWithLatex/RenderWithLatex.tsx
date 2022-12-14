@@ -25,7 +25,13 @@ const RenderWithLatex: React.FC<Props> = ({ quillString }) => {
 
       [...pTags]?.forEach((p) => {
         let innerHTML = p.innerHTML;
-        innerHTML = innerHTML.replace("\\[", "$").replace("\\]", "$");
+        innerHTML = innerHTML
+          // replace '\\[' with '$'
+          .replace(/\\\\\[/g, "$")
+          // replace '\\]' with '$'
+          .replace(/\\\\\]/g, "$")
+          // replace '\[' with '$'
+          .replace(/\\\[|\\\]/g, "$");
 
         // regex extract value between $ and $
         let regexBoundaries = /\$.*?\$/g;
