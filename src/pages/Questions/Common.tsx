@@ -60,5 +60,6 @@ export const formats = [
   "indent",
   "link",
   "image",
+  "width",
   "formula", // NOT WORKING YET
 ];
