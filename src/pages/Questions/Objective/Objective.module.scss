@@ -79,3 +79,10 @@
     @extend .flexRow;
   }
 }
+.rawInputForm {
+  width: 100%;
+  @extend .flexCol;
+  .rawInput {
+    width: 100%;
+  }
+}

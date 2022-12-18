@@ -12,6 +12,7 @@ import {
   FormGroup,
   IconButton,
   Tooltip,
+  TextField,
 } from "@mui/material";
 import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
@@ -496,17 +497,19 @@ const Objective: React.FC<Props> = ({
       </Sidebar>
       <Sidebar
         title="Parse Options"
-        width="40%"
+        width="600px"
         open={parseInputOpen}
         handleClose={() => setParseInputOpen(false)}
       >
-        <form onSubmit={handleParseOptions}>
-          <InputField
+        <form onSubmit={handleParseOptions} className={styles.rawInputForm}>
+          <TextField
+            className={styles.rawInput}
             id="raw-input"
             label="Raw Input Value"
             value={rawInputToBeParsed}
             onChange={(e) => setRawInputToBeParsed(e.target.value)}
             type="text"
+            variant="outlined"
             multiline
           />
           <Button>Submit</Button>
