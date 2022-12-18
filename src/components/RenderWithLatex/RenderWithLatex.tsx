@@ -24,44 +24,30 @@ const RenderWithLatex: React.FC<Props> = ({ quillString }) => {
       let pTags = doc.getElementsByTagName("p");
 
       [...pTags]?.forEach((p) => {
-        let innerHTML = p.innerHTML;
-        innerHTML = innerHTML
-          // replace '\\[' with '$'
-          .replace(/\\\\\[/g, "$")
-          // replace '\\]' with '$'
-          .replace(/\\\\\]/g, "$")
-          // replace '\[' with '$'
-          .replace(/\\\[|\\\]/g, "$");
+        // Regular expression to match KaTeX strings enclosed in $ or \[ and ]\
+        const regex =
+          /\$(.*?)\$|\\\[(.*?)\\\]|\\\[(.*?)\]\\|\\\[(.*?)\\|\[(.*?)\]\|\[(.*?)\\/g;
 
-        // regex extract value between $ and $
-        let regexBoundaries = /\$.*?\$/g;
+        // Replace the math string with the rendered KaTeX HTML
+        const newSentence = p.innerHTML.replace(regex, (match) => {
+          // Extract the KaTeX string from the match
+          const innerHTML = match
+            .replace(/\$/g, "")
+            .replace(/\\\[/g, "")
+            .replace(/\\\]/g, "");
 
-        let matches = innerHTML.match(regexBoundaries);
-
-        if (matches !== null && matches?.length) {
-          // Reset the innerHTML to avoid duplication of data
-          p.innerHTML = "";
-
-          // Split the innerHTML by the matches while also keeping the matches
-          let allValues = splitAndKeepDelimiters(innerHTML, matches);
-
-          allValues.forEach((item: any) => {
-            if (item?.length) {
-              if (item.startsWith("$") && item.endsWith("$")) {
-                const withMath = katex.renderToString(item.replace(/\$/g, ""), {
-                  throwOnError: false,
-                });
-                let span = document.createElement("span");
-                span.innerHTML = withMath;
-                p.appendChild(span);
-              } else {
-                let span = document.createElement("span");
-                span.innerHTML = item;
-                p.appendChild(span);
-              }
-            }
+          // Parse the KaTeX string and render it as an HTML string
+          const html = katex.renderToString(innerHTML, {
+            // displayMode: true,
+            throwOnError: false,
           });
-        }
+
+          // Return the rendered HTML, followed by a line break if the math string was enclosed in $
+          return match.startsWith("$") ? html + "<br>" : html;
+        });
+
+        // Append the new sentence to the target element
+        p.innerHTML = newSentence;
       });
 
       setPreviewHTML(doc.body.innerHTML);
