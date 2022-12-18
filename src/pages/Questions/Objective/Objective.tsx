@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Button, Modal, Sidebar } from "../../../components";
+import React, { useEffect, useRef, useState } from "react";
+import { Button, InputField, Modal, Sidebar } from "../../../components";
 import styles from "./Objective.module.scss";
 import ReactQuill, { Quill } from "react-quill";
 import Tabs, { tabsClasses } from "@mui/material/Tabs";
@@ -16,9 +16,9 @@ import {
 import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
-import { generateOptions, getOptionID } from "../utils";
+import { extractOptions, generateOptions, getOptionID } from "../utils";
 
-import { Visibility } from "@mui/icons-material";
+import { AutoFixHigh, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../components";
 import { PreviewFullQuestion } from "../Questions";
 
@@ -54,6 +54,8 @@ const Objective: React.FC<Props> = ({
   const [previewHTML, setPreviewHTML] = useState("");
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [fullPreviewModalOpen, setFullPreviewModalOpen] = useState(false);
+  const [parseInputOpen, setParseInputOpen] = useState(false);
+  const [rawInputToBeParsed, setRawInputToBeParsed] = useState("");
 
   const [values, setValues] = useState(() => {
     let tempOptions = generateOptions(answerType, 4);
@@ -268,6 +270,33 @@ const Objective: React.FC<Props> = ({
     }
   }, [data, isInitialValuePassed]);
 
+  function handleParseOptions(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    let parsed = extractOptions(rawInputToBeParsed);
+    let vals = [parsed.a, parsed.b, parsed.c, parsed.d];
+    setValues((prev) => ({
+      ...prev,
+      en: {
+        ...prev.en,
+        question: parsed.precedingText,
+        options: prev.en.options.map((option: any, i: number) => ({
+          ...option,
+          value: vals[i],
+          isCorrectAnswer: false,
+        })),
+      },
+      hi: {
+        ...prev.hi,
+        options: prev.hi.options.map((option: any, i: number) => ({
+          ...option,
+          value: vals[i],
+          isCorrectAnswer: false,
+        })),
+      },
+    }));
+    setOptionsCount(vals.length);
+  }
+
   return (
     <section className={styles.container}>
       <div className={styles.header}>
@@ -284,6 +313,11 @@ const Objective: React.FC<Props> = ({
           <label htmlFor="assertionEnglish"></label> */}
         </div>
         <div className={styles.flexRow}>
+          <Tooltip title="Parse Options">
+            <IconButton onClick={() => setParseInputOpen(true)}>
+              <AutoFixHigh />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="See Full Preview">
             <IconButton onClick={handleClickFullPreview}>
               <Visibility />
@@ -459,6 +493,24 @@ const Objective: React.FC<Props> = ({
           handleClose={() => setFullPreviewModalOpen(false)}
           disableFooter
         />
+      </Sidebar>
+      <Sidebar
+        title="Parse Options"
+        width="40%"
+        open={parseInputOpen}
+        handleClose={() => setParseInputOpen(false)}
+      >
+        <form onSubmit={handleParseOptions}>
+          <InputField
+            id="raw-input"
+            label="Raw Input Value"
+            value={rawInputToBeParsed}
+            onChange={(e) => setRawInputToBeParsed(e.target.value)}
+            type="text"
+            multiline
+          />
+          <Button>Submit</Button>
+        </form>
       </Sidebar>
       {/* Just for preview */}
       {/* <div dangerouslySetInnerHTML={{ __html: previewHTML }}></div> */}
