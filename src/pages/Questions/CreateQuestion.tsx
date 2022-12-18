@@ -48,7 +48,7 @@ export const questionTypes = [
 // ];
 
 // export const subjectOptions = ["Physics", "Mathematics", "Chemistry"];
-export const difficultyOptions = ["Easy", "Medium", "Hard"];
+export const difficultyOptions = ["Easy", "Medium", "Hard", "Not Decided"];
 // export const examOptions = ["JEE MAINS", "JEE ADVANCED", "NEET UG"];
 // export const sourceOptions = ["Bansal Classes", "Allen", "Catalyser"];
 
@@ -517,6 +517,7 @@ const CreateQuestion = () => {
               let dataValid = checkDataValidity(finalQuestion, setError);
               if (!dataValid.state) {
                 message.error(dataValid?.message);
+                return;
               }
               if (dataValid?.state) {
                 if (id) {
