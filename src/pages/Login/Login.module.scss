@@ -1,17 +1,19 @@
 @import "../../utils/commons.scss";
 
 .container {
+   
   @extend .flexCol;
   justify-content: center;
+  align-items: center;
   height: 100vh;
   form {
     @extend .flexCol;
     justify-content: center;
-    margin-top: 3rem;
-    border: 2px solid rgba(0, 0, 0, 0.2);
+    gap:15px;
+  
     // background: rgba(0, 0, 0, 0.04);
     border-radius: 5px;
-    padding: 1.5rem;
+    // padding: 1.5rem;
     position: relative;
     padding-bottom: 0.5rem;
     overflow: hidden;
@@ -23,8 +25,10 @@
       min-width: 300px;
     }
     button {
+      width: 100%;
       margin-top: 0.5rem;
     }
+    
 
     .error {
       position: absolute;
@@ -50,4 +54,30 @@
       color: white;
     }
   }
+  .formContainer{
+    @extend .flexCol;
+    gap: 35px;
+    justify-content: flex-start;
+    align-items: center;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    padding: 4% 4%;
+    border-radius: 10px;
+    .logo{
+      height:60px;
+    }
+    img+p{
+      color:rgba(117, 117, 117, 1);
+      font-weight: 400;
+      font-size: 15px;
+    }
+    a{
+      color:rgba(185, 185, 185, 1);
+    }
+  }
+}
+.graybg{
+  background-color: #F1F1F1;
+}
+.whitebg{
+  background-color: white;
 }

@@ -16,6 +16,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import { Visibility } from "@mui/icons-material";
 import { VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
+import { Link } from "react-router-dom";
+import { message } from "antd";
 
 const Login = () => {
   const { currentUser, setCurrentUser } = useContext(AuthContext);
@@ -37,7 +39,7 @@ const Login = () => {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-
+    message.loading({ content: "Logging in", key: "loader" });
     try {
       const response = await API_USERS().post(`/auth/login/`, {
         email,
@@ -72,53 +74,65 @@ const Login = () => {
       console.log("True error", error);
       if (error?.response?.data) {
         setError(error.response.data.message);
+        message.error(error.response.data.message);
       } else {
+        message.error("Network Error");
         setError("Network Error");
       }
       setLoading(false);
+      message.destroy("loader");
     }
   }
 
   return (
     <div className={styles.container}>
-      <img src={logo} alt="iitpulse" />
-      <form onSubmit={handleSubmit}>
-        <TextField
-          id="email"
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          type="email"
-          disabled={loading}
-          sx={{ m: 1, width: "42ch" }}
-        />
-        <FormControl sx={{ m: 1, width: "42ch" }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-password">
-            Password
-          </InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-password"
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            endAdornment={
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label="toggle password visibility"
-                  onClick={() => {
-                    setShowPassword((state) => !state);
-                  }}
-                  edge="end"
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            }
-            label="Password"
+      <div className={styles.formContainer}>
+        <img src={logo} className={styles.logo} alt="iitpulse" />
+        <p>Please enter your email and password</p>
+        <form onSubmit={handleSubmit}>
+          <TextField
+            className={email.trim().length > 0 ? styles.whitebg : styles.graybg}
+            id="email"
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
             disabled={loading}
+            sx={{ m: 1, width: "42ch" }}
           />
-        </FormControl>
-        {/* <TextField
+          <FormControl sx={{ m: 1, width: "42ch" }} variant="outlined">
+            <InputLabel htmlFor="outlined-adornment-password">
+              Password
+            </InputLabel>
+            <OutlinedInput
+              className={
+                password.trim().length > 0 ? styles.whitebg : styles.graybg
+              }
+              id="outlined-adornment-password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              endAdornment={
+                <InputAdornment
+                  position="end"
+                  style={{ backgroundColor: "#F1F1F1" }}
+                >
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => {
+                      setShowPassword((state) => !state);
+                    }}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
+              label="Password"
+              disabled={loading}
+            />
+          </FormControl>
+          {/* <TextField
           id="password"
           label="Password"
           value={password}
@@ -126,12 +140,12 @@ const Login = () => {
           type="password"
           disabled={loading}
         /> */}
-        <Button title="Submit" type="submit" disabled={loading}>
-          Submit
-        </Button>
-        {!loading && error && <span className={styles.error}>{error}</span>}
-        {!error && loading && <LinearProgress className={styles.loading} />}
-      </form>
+          <Button title="Submit" type="submit" disabled={loading}>
+            Log in
+          </Button>
+          <Link to="/">Forgot your password?</Link>
+        </form>
+      </div>
     </div>
   );
 };
