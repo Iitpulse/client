@@ -80,8 +80,8 @@ const Login = () => {
         setError("Network Error");
       }
       setLoading(false);
-      message.destroy("loader");
     }
+    message.destroy("loader");
   }
 
   return (
