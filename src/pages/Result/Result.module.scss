@@ -53,12 +53,14 @@
     border-radius: 10px;
     .header {
       padding: 2rem;
+      padding-bottom: 0;
       h3 {
         color: white;
       }
     }
     .content {
       padding: 2rem;
+      padding-top: 1rem;
     }
     .subjectName {
       color: var(--clr-success);
@@ -155,32 +157,40 @@
 .card_primary {
   .header {
     * {
-      color: white;
+      color:black;
     }
-    background: var(--clr-primary);
+    .subjectName{
+      color: var(--clr-primary) !important;
+    }
   }
 }
 .card_success {
   .header {
-    * {
-      color: white;
+    *{
+      color:black;
+    } 
+    .subjectName{
+      color: var(--clr-success) !important;
     }
-    background: var(--clr-success);
   }
 }
 .card_warning {
   .header {
-    * {
-      color: white;
+    *{
+      color:black;
+    } 
+    .subjectName{
+      color: var(--clr-warning) !important;
     }
-    background: var(--clr-warning);
   }
 }
 .card_error {
   .header {
     * {
-      color: white;
+      color:black;
     }
-    background: var(--clr-error);
+    .subjectName{
+      color: var(--clr-error) !important;
+    }
   }
 }

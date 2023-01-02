@@ -34,6 +34,7 @@ import { useParams } from "react-router";
 import { hasPatternPemissions } from "./utils";
 import AddIcon from "@mui/icons-material/Add";
 import MainLayout from "../../layouts/MainLayout";
+import duplicateIcon from "../../assets/icons/duplicate.svg";
 const sampleSection = {
   id: "", // PT_SE_PHY123
   name: "",
@@ -122,9 +123,15 @@ const CreatePattern = () => {
       },
     ]);
   }
-
+  function handleDuplicateSection(id: string) {
+    const section = sections.find((data) => data.id === id);
+    if (!section) return;
+    setSections([...sections, { ...section, id: `${Math.random() * 100}` }]);
+    message.success("Duplicated successfully..");
+  }
   function handleDeleteSection(id: string) {
     setSections(sections.filter((section) => section.id !== id));
+    message.success("Deleted successfully..");
   }
 
   async function handleClickSubmit() {
@@ -215,6 +222,7 @@ const CreatePattern = () => {
                 {sections.map((section, i) => (
                   <Section
                     key={i}
+                    handleDuplicateSection={handleDuplicateSection}
                     section={section}
                     setSection={handleChangeSection}
                     handleDeleteSection={handleDeleteSection}
@@ -264,9 +272,17 @@ const Section: React.FC<{
   section: ISection;
   setSection: (id: string, data: any) => void;
   handleDeleteSection: (id: string) => void;
+  handleDuplicateSection: (id: string) => void;
   index: number;
   subjects: Array<any>;
-}> = ({ section, setSection, handleDeleteSection, index, subjects }) => {
+}> = ({
+  section,
+  setSection,
+  handleDeleteSection,
+  index,
+  subjects,
+  handleDuplicateSection,
+}) => {
   function handleChangeSubSection(id: string, data: any) {
     setSection(section.id, {
       ...section,
@@ -307,16 +323,28 @@ const Section: React.FC<{
       <CustomAccordionSummary>
         <div className={styles.accordionHeader}>
           <div>{section.name || `Section ${index + 1}`}</div>
-          <Tooltip title="Delete Section" placement="top">
-            <IconButton
-              onClick={(e: any) => {
-                e.stopPropagation();
-                handleDeleteSection(section.id);
-              }}
-            >
-              <img src={deleteIcon} alt="Delete Section" />
-            </IconButton>
-          </Tooltip>
+          <div>
+            <Tooltip title="Duplicate Section" placement="top">
+              <IconButton
+                onClick={(e: any) => {
+                  e.stopPropagation();
+                  handleDuplicateSection(section.id);
+                }}
+              >
+                <img src={duplicateIcon} alt="Duplicate Section" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete Section" placement="top">
+              <IconButton
+                onClick={(e: any) => {
+                  e.stopPropagation();
+                  handleDeleteSection(section.id);
+                }}
+              >
+                <img src={deleteIcon} alt="Delete Section" />
+              </IconButton>
+            </Tooltip>
+          </div>
         </div>
       </CustomAccordionSummary>
       <CustomAccordionDetails>
