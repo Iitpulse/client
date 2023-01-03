@@ -262,7 +262,7 @@ export const QUESTION_COLS_ALL = [
     title: "Question",
     dataIndex: "en",
     key: "question",
-    width: 350,
+    width: 200,
     searchable: true,
     render: (en: any) => (
       <div style={{ maxHeight: "50px", overflow: "hidden" }}>

@@ -296,6 +296,7 @@ const Objective: React.FC<Props> = ({
       },
     }));
     setOptionsCount(vals.length);
+    setParseInputOpen(false);
   }
 
   return (

@@ -33,48 +33,23 @@ import { API_QUESTIONS } from "../../utils/api";
 import PrintIcon from "@mui/icons-material/Print";
 import sheetIcon from "../../assets/icons/sheets.svg";
 import MainLayout from "../../layouts/MainLayout";
-import { Divider, message, Tag } from "antd";
+import { Divider, message, Select, Tag } from "antd";
 import { ToggleButton } from "../../components";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
 import Edit from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import { getTopics } from "../../utils/constants";
+import { TestContext } from "../../utils/contexts/TestContext";
+import type { CustomTagProps } from "rc-select/lib/BaseSelect";
+import { Input } from "antd";
+const { Search } = Input;
+
 export const questionTypes = [
   { name: "Objective", value: "objective" },
   // { name: "Multiple Correct", value: "multiple" },
   { name: "Integer Type", value: "integer" },
   { name: "Paragraph", value: "paragraph" },
   { name: "Matrix Match", value: "matrix" },
-];
-
-export const subjects = [
-  {
-    name: "Physics",
-    value: "physics",
-  },
-  {
-    name: "Mathematics",
-    value: "mathematics",
-  },
-  {
-    name: "Chemistry",
-    value: "chemistry",
-  },
-];
-
-export const chapters = [
-  {
-    name: "Fluid Mechanics",
-    value: "fluidMechanics",
-  },
-  {
-    name: "Sets Relation and Functions",
-    value: "setsRelationAndFunction",
-  },
-  {
-    name: "Phenol",
-    value: "phenol",
-  },
 ];
 
 // export const topicOptions = [
@@ -139,8 +114,14 @@ const Questions = () => {
   const [globalSearch, setGlobalSearch] = useState<string>("");
   const globalSearchRef = useRef<any>(null);
   const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
+  const [filterSubjects, setFilterSubjects] = useState<any>([]);
+  const [filterChapters, setFilterChapters] = useState<any>([]);
+  const [filterTopics, setFilterTopics] = useState<any>([]);
+  const [topicOptions, setTopicOptions] = useState<any>([]);
+  const [chapterOptions, setChapterOptions] = useState<any>([]);
 
   const { currentUser } = useContext(AuthContext);
+  const { subjects } = useContext(TestContext);
 
   const tableRef = useRef<any>(null);
 
@@ -253,6 +234,89 @@ const Questions = () => {
     debounceGlobalSearch();
   }, [globalSearch]);
 
+  const typeOptions = [
+    { label: "Single", value: "single" },
+    { label: "Multiple", value: "multiple" },
+    { label: "Integer", value: "integer" },
+    { label: "Paragraph", value: "paragraph" },
+    { label: "Matrix", value: "matrix" },
+  ];
+
+  const difficultyOptions = [
+    { label: "Easy", value: "easy" },
+    { label: "Medium", value: "medium" },
+    { label: "Hard", value: "hard" },
+  ];
+
+  function handleChangeType(values: string[]) {}
+  function handleChangeDifficulty(values: string[]) {}
+  function handleChangeSubjects(_: any, options: any[]) {
+    setFilterSubjects(options);
+  }
+  function handleChangeChapters(_: any, options: any) {
+    setFilterChapters(options);
+  }
+  function handleChangeTopics(values: string[]) {
+    setFilterTopics(values);
+  }
+
+  const tagRender = (props: CustomTagProps) => {
+    const { label, value, closable, onClose } = props;
+    const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    return (
+      <Tag
+        color={
+          value === "easy" ? "green" : value === "medium" ? "yellow" : "red"
+        }
+        onMouseDown={onPreventMouseDown}
+        closable={closable}
+        onClose={onClose}
+        style={{ marginRight: 3 }}
+      >
+        {label}
+      </Tag>
+    );
+  };
+
+  useEffect(() => {
+    function getSelectSubjectChapters(): any[] {
+      let chapters: any[] = [];
+      filterSubjects?.forEach((subject: any) => {
+        if (subject.chapters)
+          chapters.push(
+            ...subject.chapters?.map((chapter: any) => ({
+              label: `[${subject.name?.slice(0, 1)}] ${chapter.name}`,
+              value: chapter.name,
+              ...chapter,
+            }))
+          );
+      });
+      return chapters;
+    }
+    if (filterSubjects?.length) setChapterOptions(getSelectSubjectChapters());
+    else setChapterOptions([]);
+  }, [filterSubjects]);
+
+  useEffect(() => {
+    function getSelectedChapterTopics(): any[] {
+      let topics = new Set();
+      filterChapters?.forEach((chapter: any) => {
+        if (chapter.topics) topics.add([...chapter.topics]);
+      });
+      return [...topics]
+        .filter((topic: any) => topic?.length)
+        .map((topic: any) => ({
+          label: topic,
+          value: topic,
+        }));
+    }
+    if (filterChapters?.length) setTopicOptions(getSelectedChapterTopics());
+    else setTopicOptions([]);
+  }, [filterChapters]);
+
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
       <Card classes={[styles.container]}>
@@ -260,8 +324,43 @@ const Questions = () => {
           <>
             {isCreatePermitted && (
               <>
-                <div className={styles.flexRow}>
-                  <InputField
+                <div className={styles.questionsHeader}>
+                  <div className={styles.searchAndPrint}>
+                    <Search
+                      ref={globalSearchRef}
+                      placeholder="Search Question"
+                      allowClear
+                      enterButton
+                      loading={loading}
+                      onSearch={setGlobalSearch}
+                      style={{
+                        maxWidth: 500,
+                      }}
+                    />
+                    <div>
+                      <IconButton onClick={handlePrint}>
+                        <PrintIcon />
+                      </IconButton>
+
+                      <IconButton>
+                        <CSVLink filename={"Questions.csv"} data={questions}>
+                          <img
+                            src={sheetIcon}
+                            width="21px"
+                            alt="Sheet"
+                            height="21px"
+                          />
+                        </CSVLink>
+                      </IconButton>
+                    </div>
+                    <Button
+                      onClick={() => navigate("/questions/new")}
+                      icon={<AddIcon />}
+                    >
+                      Add New
+                    </Button>
+                  </div>
+                  {/* <InputField
                     ref={globalSearchRef}
                     id="globalSearch"
                     label=""
@@ -269,36 +368,81 @@ const Questions = () => {
                     value={globalSearch}
                     onChange={(e: any) => setGlobalSearch(e.target.value)}
                     type="text"
-                  />
+                  /> */}
 
-                  <div>
-                    <IconButton onClick={handlePrint}>
-                      <PrintIcon />
-                    </IconButton>
-
-                    <IconButton>
-                      <CSVLink filename={"Questions.csv"} data={questions}>
-                        <img
-                          src={sheetIcon}
-                          width="21px"
-                          alt="Sheet"
-                          height="21px"
-                        />
-                      </CSVLink>
-                    </IconButton>
+                  <div className={styles.filters}>
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      placeholder="Type"
+                      onChange={handleChangeType}
+                      options={typeOptions}
+                      maxTagCount="responsive"
+                      showArrow
+                      style={{
+                        minWidth: 180,
+                      }}
+                    />
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      placeholder="Difficulty"
+                      tagRender={tagRender}
+                      onChange={handleChangeDifficulty}
+                      options={difficultyOptions}
+                      maxTagCount="responsive"
+                      showArrow
+                      style={{
+                        minWidth: 180,
+                      }}
+                    />
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      placeholder="Subject"
+                      onChange={handleChangeSubjects}
+                      options={subjects?.map((item: any) => ({
+                        label: item.name,
+                        value: item.name,
+                        ...item,
+                      }))}
+                      maxTagCount="responsive"
+                      showArrow
+                      style={{
+                        minWidth: 180,
+                      }}
+                    />
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      placeholder="Chapter(s)"
+                      onChange={handleChangeChapters}
+                      options={chapterOptions}
+                      maxTagCount="responsive"
+                      showArrow
+                      style={{
+                        minWidth: 180,
+                      }}
+                    />
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      placeholder="Topic(s)"
+                      onChange={setFilterTopics}
+                      options={topicOptions}
+                      maxTagCount="responsive"
+                      showArrow
+                      style={{
+                        minWidth: 180,
+                      }}
+                    />
                   </div>
-                  <Button
-                    onClick={() => navigate("/questions/new")}
-                    icon={<AddIcon />}
-                  >
-                    Add New
-                  </Button>
                 </div>
               </>
             )}
             <Divider style={{ margin: "1rem 0" }} />
 
-            <div>
+            <div className={styles.tableContainer}>
               <QuestionsTable
                 loading={loading}
                 dataSource={questions?.map((question: any) => ({
@@ -307,9 +451,9 @@ const Questions = () => {
                 }))}
                 cols={[
                   {
-                    title: "Preview",
-                    key: "preview",
-                    width: 120,
+                    title: "View",
+                    key: "view",
+                    width: 70,
                     fixed: "left",
                     render: (text: any, record: any) => (
                       <IconButton
