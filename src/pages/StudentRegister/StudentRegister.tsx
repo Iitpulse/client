@@ -3,12 +3,18 @@ import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepButton from "@mui/material/StepButton";
 import { useState } from "react";
+import AccountDetails, {
+  AccountDetailsValues,
+} from "./components/AccountDetails";
 import PersonalDetails, {
   PersonalDetailsValues,
 } from "./components/PersonalDetails";
+import AcademicDetails, {
+  AcademicDetailsValues,
+} from "./components/AcademicDetails";
 
 const StudentRegister: React.FC = () => {
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(1);
 
   const stepsHeader: string[] = [
     "Create Account",
@@ -16,7 +22,13 @@ const StudentRegister: React.FC = () => {
     "Academic Details",
   ];
 
+  function handleSubmitAccountDetails(values: AccountDetailsValues) {
+    console.log(values);
+  }
   function handleSubmitPersonalDetails(values: PersonalDetailsValues) {
+    console.log(values);
+  }
+  function handleSubmitAcademicDetails(values: AcademicDetailsValues) {
     console.log(values);
   }
 
@@ -28,17 +40,28 @@ const StudentRegister: React.FC = () => {
           <Stepper nonLinear activeStep={activeStep}>
             {stepsHeader.map((label, index) => (
               <Step key={label} completed={false}>
-                <StepButton color="inherit">{label}</StepButton>
+                <StepButton
+                  color="inherit"
+                  onClick={() => {
+                    setActiveStep(index);
+                  }}
+                >
+                  {label}
+                </StepButton>
               </Step>
             ))}
           </Stepper>
         </div>
         <div className={styles.stepsContent}>
           {activeStep === 0 && (
+            <AccountDetails handleSubmit={handleSubmitAccountDetails} />
+          )}
+          {activeStep === 1 && (
             <PersonalDetails handleSubmit={handleSubmitPersonalDetails} />
           )}
-          {activeStep === 1 && <div>Step 2</div>}
-          {activeStep === 2 && <div>Step 3</div>}
+          {activeStep === 2 && (
+            <AcademicDetails handleSubmit={handleSubmitAcademicDetails} />
+          )}
         </div>
       </div>
     </div>
