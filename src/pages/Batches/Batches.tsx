@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import {
   DatePicker,
   message,
+  Popconfirm,
   Select,
   SelectProps,
   Slider,
@@ -33,6 +34,7 @@ import { SliderMarks } from "antd/lib/slider";
 import { DeleteOutline } from "@mui/icons-material";
 import deleteIcon from "../../assets/icons/delete.svg";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
+import { TestContext } from "../../utils/contexts/TestContext";
 interface DataType {
   key: React.Key;
   id: string;
@@ -122,8 +124,9 @@ const Batches = () => {
       dataIndex: "name",
     },
     {
-      title: "Exam",
-      dataIndex: "exam",
+      title: "Exam(s)",
+      dataIndex: "exams",
+      render: (exams: any[]) => exams?.join(", "),
     },
     {
       title: "Members",
@@ -131,7 +134,7 @@ const Batches = () => {
       render: (members: any[]) => members?.length,
     },
     {
-      title: "Duration",
+      title: "Validity",
       dataIndex: "validity",
       render: (validity: any) =>
         `${new Date(validity.from).toLocaleDateString()} to ${new Date(
@@ -148,12 +151,15 @@ const Batches = () => {
       key: "action",
       render: (_: any, record: any) => (
         <Space size="middle">
-          <IconButton
-            onClick={() => {
-              handleDeleteBatch(record._id);
-            }}
-          >
-            <img src={deleteIcon} alt="delete" />
+          <IconButton>
+            <Popconfirm
+              title="Sure to delete this batch?"
+              onConfirm={() => {
+                handleDeleteBatch(record._id);
+              }}
+            >
+              <img src={deleteIcon} alt="delete" />
+            </Popconfirm>
           </IconButton>
         </Space>
       ),
@@ -202,18 +208,16 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   const [roles, setRoles] = useState<any>([]);
   const [values, setValues] = useState({} as any);
 
-  function handleChangeValidity(newValue: any) {
-    setValidity(newValue);
-  }
-
   const { currentUser } = useContext(AuthContext);
   const { allRoles } = useContext(PermissionsContext);
+  const { exams: examOptions } = useContext(TestContext);
 
   useEffect(() => {
     if (allRoles) {
+      console.log({ allRoles });
       const options = allRoles.map((value: any) => ({
         value: value.id,
-        label: value.name,
+        name: value.name,
       }));
       setRoleOptions(options);
     }
@@ -230,10 +234,10 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
     e.preventDefault();
     try {
       const finalData = {
-        id: "IITP_" + Math.floor(Math.random() * 1000000),
         name: values.batchName,
-        exam: "JEEMAINS",
-        institute: "IITP",
+        exams: values.exams?.map((exam: any) => exam.name),
+        medium: values.medium,
+        institute: currentUser?.instituteId,
         validity: {
           from: moment(validity[0]).toISOString(),
           to: moment(validity[1]).toISOString(),
@@ -268,7 +272,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
     <Sidebar
       title="Create New Batch"
       open={toggleSideBar}
-      width="30%"
+      width="350px"
       handleClose={handleClose}
     >
       <form onSubmit={handleSubmit}>
@@ -290,6 +294,31 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
           </div>
           <CreatableSelect
             multiple
+            onAddModalSubmit={() => {}}
+            options={examOptions.map((exam: any) => ({
+              name: exam.name,
+            }))}
+            setValue={(vals: any) => {
+              setValues({ ...values, exams: vals });
+            }}
+            value={values.exams}
+            label={"Exam(s)"}
+            id="Exams"
+          />
+          <StyledMUISelect
+            options={[
+              { name: "Hindi", value: "hindi" },
+              { name: "English", value: "english" },
+            ]}
+            value={values.medium}
+            label="Medium"
+            // @ts-ignore
+            onChange={(val: string) => {
+              setValues({ ...values, medium: val });
+            }}
+          />
+          <CreatableSelect
+            multiple
             options={options}
             setValue={setClasses}
             value={classes}
@@ -300,7 +329,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
           <MUIChipsAutocomplete
             label="Role(s)"
             value={roles}
-            options={roleOptions?.options}
+            options={roleOptions || []}
             onChange={setRoles}
             error={false}
             helperText=""

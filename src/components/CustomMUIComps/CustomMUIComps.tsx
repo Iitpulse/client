@@ -70,10 +70,6 @@ export const MUIChipsAutocomplete: React.FC<MUIAutocompleteProps> = ({
   helperText = "",
   ...rest
 }) => {
-  useEffect(() => {
-    console.log({ value });
-  });
-
   return (
     <Autocomplete
       multiple
