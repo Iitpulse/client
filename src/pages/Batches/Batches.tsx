@@ -14,6 +14,7 @@ import {
   Button,
   Card,
   CreatableSelect,
+  MUIChipsAutocomplete,
   Sidebar,
   StyledMUISelect,
 } from "../../components";
@@ -31,6 +32,7 @@ import moment from "moment";
 import { SliderMarks } from "antd/lib/slider";
 import { DeleteOutline } from "@mui/icons-material";
 import deleteIcon from "../../assets/icons/delete.svg";
+import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
 interface DataType {
   key: React.Key;
   id: string;
@@ -126,7 +128,7 @@ const Batches = () => {
     {
       title: "Members",
       dataIndex: "members",
-      render: (members: any[]) => members.length,
+      render: (members: any[]) => members?.length,
     },
     {
       title: "Duration",
@@ -151,7 +153,7 @@ const Batches = () => {
               handleDeleteBatch(record._id);
             }}
           >
-            <img src={deleteIcon} />
+            <img src={deleteIcon} alt="delete" />
           </IconButton>
         </Space>
       ),
@@ -196,13 +198,26 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   const [batch, setBatch] = useState();
   const [validity, setValidity] = useState([]);
   const [classes, setClasses] = useState<any>([]);
-
+  const [roleOptions, setRoleOptions] = useState<any>([]);
+  const [roles, setRoles] = useState<any>([]);
   const [values, setValues] = useState({} as any);
+
   function handleChangeValidity(newValue: any) {
     setValidity(newValue);
   }
 
   const { currentUser } = useContext(AuthContext);
+  const { allRoles } = useContext(PermissionsContext);
+
+  useEffect(() => {
+    if (allRoles) {
+      const options = allRoles.map((value: any) => ({
+        value: value.id,
+        label: value.name,
+      }));
+      setRoleOptions(options);
+    }
+  }, [allRoles]);
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
@@ -213,27 +228,31 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     // handleReset();
     e.preventDefault();
-    const finalData = {
-      id: "IITP_" + Math.floor(Math.random() * 1000000),
-      name: values.batchName,
-      exam: "JEEMAINS",
-      institute: "IITP",
-      validity: {
-        from: moment(validity[0]).toISOString(),
-        to: moment(validity[1]).toISOString(),
-      },
-      classes: classes.map((value: any) => value.name),
-      createdBy: {
-        userType: currentUser?.userType,
-        id: currentUser?.id,
-      },
-      createdAt: new Date().toISOString(),
-      modifiedAt: new Date().toISOString(),
-      members: [],
-    };
-    const res = await API_USERS().post(`/batch/create`, finalData);
-    if (res.status === 200) {
-      alert("Succesfully Created");
+    try {
+      const finalData = {
+        id: "IITP_" + Math.floor(Math.random() * 1000000),
+        name: values.batchName,
+        exam: "JEEMAINS",
+        institute: "IITP",
+        validity: {
+          from: moment(validity[0]).toISOString(),
+          to: moment(validity[1]).toISOString(),
+        },
+        classes: classes.map((value: any) => value.name),
+        createdBy: {
+          userType: currentUser?.userType,
+          id: currentUser?.id,
+        },
+        createdAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
+        members: [],
+        roles: roles.map((value: any) => value.value),
+      };
+      const res = await API_USERS().post(`/batch/create`, finalData);
+      message.success(res?.data?.message);
+    } catch (error: any) {
+      console.log("ERROR_CREATE_BATCH", error);
+      message.error(error?.response?.data?.message);
     }
     // console.log({ res });
   }
@@ -277,6 +296,14 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
             label={"Classes"}
             id="Classes"
             onAddModalSubmit={function (value: any): void {}}
+          />
+          <MUIChipsAutocomplete
+            label="Role(s)"
+            value={roles}
+            options={roleOptions?.options}
+            onChange={setRoles}
+            error={false}
+            helperText=""
           />
         </div>
         <div className={styles.buttons}>

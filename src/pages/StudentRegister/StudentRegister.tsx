@@ -1,8 +1,6 @@
-import styles from "./StudentRegister.module.scss";
-import Stepper from "@mui/material/Stepper";
-import Step from "@mui/material/Step";
-import StepButton from "@mui/material/StepButton";
 import { useState } from "react";
+import styles from "./StudentRegister.module.scss";
+import { Stepper, Step, StepButton } from "@mui/material";
 import AccountDetails, {
   AccountDetailsValues,
 } from "./components/AccountDetails";
@@ -12,9 +10,16 @@ import PersonalDetails, {
 import AcademicDetails, {
   AcademicDetailsValues,
 } from "./components/AcademicDetails";
+import { API_USERS } from "../../utils/api";
+import { message } from "antd";
 
 const StudentRegister: React.FC = () => {
-  const [activeStep, setActiveStep] = useState(1);
+  const [activeStep, setActiveStep] = useState(0);
+  const [values, setValues] = useState({
+    accountDetails: {} as AccountDetailsValues,
+    personalDetails: {} as PersonalDetailsValues,
+    academicDetails: {} as AcademicDetailsValues,
+  });
 
   const stepsHeader: string[] = [
     "Create Account",
@@ -22,14 +27,43 @@ const StudentRegister: React.FC = () => {
     "Academic Details",
   ];
 
-  function handleSubmitAccountDetails(values: AccountDetailsValues) {
-    console.log(values);
+  function handleSubmitAccountDetails(vals: AccountDetailsValues) {
+    console.log(vals);
+    setValues({
+      ...values,
+      accountDetails: vals,
+    });
+    setActiveStep(1);
   }
-  function handleSubmitPersonalDetails(values: PersonalDetailsValues) {
-    console.log(values);
+  function handleSubmitPersonalDetails(vals: PersonalDetailsValues) {
+    console.log(vals);
+    setValues({
+      ...values,
+      personalDetails: vals,
+    });
   }
-  function handleSubmitAcademicDetails(values: AcademicDetailsValues) {
-    console.log(values);
+  function handleSubmitAcademicDetails(vals: AcademicDetailsValues) {
+    console.log(vals);
+    setValues({
+      ...values,
+      academicDetails: vals,
+    });
+    let finalvalues: any = {
+      ...values.accountDetails,
+      ...values.personalDetails,
+      ...vals,
+    };
+    createStudentAccount(finalvalues);
+  }
+
+  async function createStudentAccount(finalVals: any) {
+    try {
+      const res = await API_USERS().post(`/student/create`, finalVals);
+      message.success("Student account created successfully");
+    } catch (error) {
+      console.log("ERROR_CREATING_STUDENT_ACCOUNT", error);
+      message.error("Error creating student account");
+    }
   }
 
   return (
@@ -39,7 +73,7 @@ const StudentRegister: React.FC = () => {
         <div className={styles.stepsHeader}>
           <Stepper nonLinear activeStep={activeStep}>
             {stepsHeader.map((label, index) => (
-              <Step key={label} completed={false}>
+              <Step key={label} completed={activeStep > index}>
                 <StepButton
                   color="inherit"
                   onClick={() => {
