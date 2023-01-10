@@ -41,6 +41,7 @@ const StudentRegister: React.FC = () => {
       ...values,
       personalDetails: vals,
     });
+    setActiveStep(2);
   }
   function handleSubmitAcademicDetails(vals: AcademicDetailsValues) {
     console.log(vals);
@@ -52,7 +53,23 @@ const StudentRegister: React.FC = () => {
       ...values.accountDetails,
       ...values.personalDetails,
       ...vals,
+      createdAt: new Date().toISOString(),
+      modifiedAt: new Date().toISOString(),
+      createdBy: {
+        id: "self",
+        userType: "student",
+      },
+      userType: "student",
+      roles: [],
     };
+    finalvalues.parentDetails = {
+      name: finalvalues.parentName,
+      contact: finalvalues.parentContact,
+    };
+    finalvalues.email = finalvalues.email.toLowerCase();
+    delete finalvalues.parentName;
+    delete finalvalues.parentContact;
+    delete finalvalues.confirmPassword;
     createStudentAccount(finalvalues);
   }
 

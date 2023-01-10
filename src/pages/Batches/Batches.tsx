@@ -15,34 +15,22 @@ import {
   Button,
   Card,
   CreatableSelect,
+  CustomTable,
   MUIChipsAutocomplete,
   Sidebar,
   StyledMUISelect,
 } from "../../components";
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
-import clsx from "clsx";
-import closeIcon from "../../assets/icons/close-circle.svg";
-import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_USERS } from "../../utils/api";
 import MainLayout from "../../layouts/MainLayout";
-import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
 import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
 import moment from "moment";
-import { SliderMarks } from "antd/lib/slider";
-import { DeleteOutline } from "@mui/icons-material";
 import deleteIcon from "../../assets/icons/delete.svg";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
 import { TestContext } from "../../utils/contexts/TestContext";
-interface DataType {
-  key: React.Key;
-  id: string;
-  name: string;
-  exam: string;
-  createdAt: string;
-  status: string;
-}
+import { capitalizeFirstLetter } from "../../utils";
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -66,41 +54,34 @@ const StyledMUITextField = styled(TextField)(() => {
   };
 });
 
-const rowSelection = {
-  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-    console.log(
-      `selectedRowKeys: ${selectedRowKeys}`,
-      "selectedRows: ",
-      selectedRows
-    );
-  },
-  getCheckboxProps: (record: DataType) => ({
-    disabled: record.name === "Disabled User", // Column configuration not to be checked
-    name: record.name,
-  }),
-};
-
 const Batches = () => {
   const [data, setData] = useState([]);
-
+  const [loading, setLoading] = useState(false);
   const [toggleSideBar, setToggleSideBar] = useState(false);
-  const navigate = useNavigate();
 
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
     async function fetchBatch() {
-      const res = await API_USERS().get(`/batch/get`);
-      // console.log({ res });
-      setData(res?.data);
-      console.log("here", res.data);
+      setLoading(true);
+      try {
+        const res = await API_USERS().get(`/batch/get`);
+        // console.log({ res });
+        setData(res?.data);
+      } catch (error) {
+        console.log("ERROR_FETCH_BATCH", error);
+        message.error("Error fetching batch");
+      }
+      setLoading(false);
     }
 
     if (currentUser?.id) {
       fetchBatch();
     }
   }, [currentUser]);
+
   const handleDeleteBatch = async (id: string) => {
+    setLoading(true);
     try {
       const res = await API_USERS().delete(`/batch/delete`, {
         params: {
@@ -113,12 +94,17 @@ const Batches = () => {
       } else {
         message.error(res?.statusText);
       }
-      console.log(res);
     } catch (err) {
       console.log(err);
     }
+    setLoading(false);
   };
+
   const columns = [
+    {
+      title: "Code",
+      dataIndex: "joiningCode",
+    },
     {
       title: "Name",
       dataIndex: "name",
@@ -129,9 +115,24 @@ const Batches = () => {
       render: (exams: any[]) => exams?.join(", "),
     },
     {
+      title: "Medium",
+      dataIndex: "medium",
+      render: (medium: string) => capitalizeFirstLetter(medium),
+    },
+    {
       title: "Members",
       dataIndex: "members",
       render: (members: any[]) => members?.length,
+    },
+    {
+      title: "Classes",
+      dataIndex: "classes",
+      render: (classes: Array<string>) => classes && classes.join(","),
+    },
+    {
+      title: "Roles",
+      dataIndex: "roles",
+      render: (roles: any[]) => roles?.join(", "),
     },
     {
       title: "Validity",
@@ -142,26 +143,19 @@ const Batches = () => {
         ).toLocaleDateString()}`,
     },
     {
-      title: "Classes",
-      dataIndex: "classes",
-      render: (classes: Array<string>) => classes && classes.join(","),
-    },
-    {
-      title: "Action",
-      key: "action",
+      title: "Delete",
+      key: "delete",
       render: (_: any, record: any) => (
-        <Space size="middle">
-          <IconButton>
-            <Popconfirm
-              title="Sure to delete this batch?"
-              onConfirm={() => {
-                handleDeleteBatch(record._id);
-              }}
-            >
-              <img src={deleteIcon} alt="delete" />
-            </Popconfirm>
-          </IconButton>
-        </Space>
+        <IconButton>
+          <Popconfirm
+            title="Sure to delete this batch?"
+            onConfirm={() => {
+              handleDeleteBatch(record._id);
+            }}
+          >
+            <img src={deleteIcon} alt="delete" />
+          </Popconfirm>
+        </IconButton>
       ),
     },
   ];
@@ -178,11 +172,11 @@ const Batches = () => {
           />
         </div>
         <div className={styles.data}>
-          <Table
-            rowSelection={{
-              type: "checkbox",
-              ...rowSelection,
+          <CustomTable
+            scroll={{
+              x: 1000,
             }}
+            loading={loading}
             columns={columns}
             dataSource={data}
           />

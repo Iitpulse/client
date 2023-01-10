@@ -7,7 +7,7 @@ import styles from "../StudentRegister.module.scss";
 const PersonalDetailsSchema = z.object({
   name: z.string().min(3).max(50),
   dob: z.string(),
-  aadhar: z.string().length(12),
+  aadhaar: z.string().length(12),
   city: z.string().max(50),
   state: z.string().max(50),
   gender: z.string(),
@@ -21,7 +21,7 @@ const PersonalDetailsSchema = z.object({
 const defaultState = {
   name: "",
   dob: "",
-  aadhar: "",
+  aadhaar: "",
   city: "",
   state: "",
   parentName: "",
@@ -126,13 +126,13 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         />
         <StyledMUITextField
           required
-          id="aadhar"
-          value={values.aadhar}
-          error={errors.aadhar}
-          helperText={helperTexts.aadhar}
+          id="aadhaar"
+          value={values.aadhaar}
+          error={errors.aadhaar}
+          helperText={helperTexts.aadhaar}
           type="number"
           onChange={handleChangeValues}
-          label="Aadhar Number"
+          label="Aadhaar Number"
           variant="outlined"
         />
         <StyledMUITextField
