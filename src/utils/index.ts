@@ -75,3 +75,7 @@ export const flattendPermissions = () => {
 export function roundToOne(num: number) {
   return Number(num).toFixed(1);
 }
+
+export function capitalizeFirstLetter(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

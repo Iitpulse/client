@@ -1,21 +1,43 @@
 import { StyledMUITextField } from "../../Users/components";
 import z from "zod";
 import { Button, StyledMUISelect } from "../../../components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
 
 const PersonalDetailsSchema = z.object({
   name: z.string().min(3).max(50),
   dob: z.string(),
-  aadhar: z.number(),
-  city: z.string().min(8).max(50),
-  state: z.string().min(8).max(50),
-  currentAddress: z.string().min(8).max(150),
-  permanentAddress: z.string().min(8).max(150),
-  parentName: z.string().min(8).max(50),
-  parentContact: z.number(),
-  contact: z.number(),
+  aadhaar: z.string().length(12),
+  city: z.string().max(50),
+  state: z.string().max(50),
+  gender: z.string(),
+  currentAddress: z.string().min(5).max(150),
+  permanentAddress: z.string().min(5).max(150),
+  parentName: z.string(),
+  parentContact: z.string().length(10),
+  contact: z.string().length(10),
 });
+
+const defaultState = {
+  name: "",
+  dob: "",
+  aadhaar: "",
+  city: "",
+  state: "",
+  parentName: "",
+  parentContact: "",
+  contact: "",
+  currentAddress: "",
+  permanentAddress: "",
+};
+
+function getErrorDefaultState(valuesObj: typeof defaultState) {
+  const errorObj: any = {};
+  Object.keys(valuesObj).forEach((key) => {
+    errorObj[key] = false;
+  });
+  return errorObj;
+}
 
 export type PersonalDetailsValues = z.infer<typeof PersonalDetailsSchema>;
 
@@ -25,66 +47,32 @@ interface Props {
 
 const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [gender, setGender] = useState("");
-  const [values, setValues] = useState({
-    name: "",
-    dob: "",
-    aadhar: "",
-    city: "",
-    state: "",
-    parentName: "",
-    parentContact: "",
-    contact: "",
-    currentAddress: "",
-    permanentAddress: "",
-  });
-  const [errors, setErrors] = useState({
-    name: false,
-    dob: false,
-    aadhar: false,
-    city: false,
-    state: false,
-    parentName: false,
-    parentContact: false,
-    contact: false,
-    currentAddress: false,
-    permanentAddress: false,
-  });
-  const [helperTexts, setHelperTexts] = useState({
-    name: "",
-    dob: "",
-    aadhar: "",
-    city: "",
-    state: "",
-    parentName: "",
-    parentContact: "",
-    contact: "",
-    currentAddress: "",
-    permanentAddress: "",
-  });
+  const [values, setValues] = useState(defaultState);
+  const [errors, setErrors] = useState(getErrorDefaultState(defaultState));
+  const [helperTexts, setHelperTexts] = useState(defaultState);
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
-    const numFields = ["parentContact", "aadhar", "contact"];
-    if (numFields.includes(id)) {
-      setValues((prevState) => ({
-        ...prevState,
-        [id]: parseInt(value),
-      }));
-    } else {
-      setValues((prevState) => ({
-        ...prevState,
-        [id]: value,
-      }));
-    }
+    setValues((prevState) => ({
+      ...prevState,
+      [id]: value,
+    }));
   }
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const isValid = PersonalDetailsSchema.safeParse(values);
+    setErrors(getErrorDefaultState(defaultState));
+    setHelperTexts(defaultState);
+    let finalValues: PersonalDetailsValues = {
+      ...values,
+      gender,
+      dob: new Date(values.dob).toISOString(),
+    };
+    const isValid = PersonalDetailsSchema.safeParse(finalValues);
     if (!isValid.success) {
       console.log(isValid);
       isValid.error.issues.forEach((issue) => {
-        setErrors((prevState) => ({
+        setErrors((prevState: any) => ({
           ...prevState,
           [issue.path[0]]: true,
         }));
@@ -105,6 +93,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           id="name"
           required
           label="Name"
+          autoComplete="name"
           value={values.name}
           onChange={handleChangeValues}
           variant="outlined"
@@ -123,6 +112,10 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         <StyledMUITextField
           required
           id="dob"
+          inputProps={{
+            min: "2000-01-01",
+            max: new Date().toLocaleDateString("en-ca"),
+          }}
           value={values.dob}
           error={errors.dob}
           helperText={helperTexts.dob}
@@ -133,13 +126,13 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         />
         <StyledMUITextField
           required
-          id="aadhar"
-          value={values.aadhar}
-          error={errors.aadhar}
-          helperText={helperTexts.aadhar}
+          id="aadhaar"
+          value={values.aadhaar}
+          error={errors.aadhaar}
+          helperText={helperTexts.aadhaar}
           type="number"
           onChange={handleChangeValues}
-          label="Aadhar Number"
+          label="Aadhaar Number"
           variant="outlined"
         />
         <StyledMUITextField

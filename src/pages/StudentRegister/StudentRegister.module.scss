@@ -8,8 +8,8 @@
   .content {
     max-width: 500px;
     width: 100%;
-    text-align: center;
     h2 {
+      text-align: center;
       margin: 2rem 0;
     }
   }
@@ -20,12 +20,12 @@
     gap: 1.5rem;
     margin-top: 2rem;
   }
-  .regFormGrid{
+  .regFormGrid {
     margin-top: 2rem;
     @extend .flexRow;
     flex-wrap: wrap;
-    gap:1.5rem;
-    >div{
+    gap: 1.5rem;
+    > div {
       flex: 1;
       min-width: 200px;
     }

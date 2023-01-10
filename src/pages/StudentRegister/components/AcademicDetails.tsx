@@ -6,7 +6,25 @@ import styles from "../StudentRegister.module.scss";
 
 const AcademicDetailsSchema = z.object({
   school: z.string().min(3).max(50),
+  standard: z.string(),
+  medium: z.string(),
+  stream: z.string(),
 });
+
+const defaultState = {
+  school: "",
+  standard: "",
+  medium: "",
+  stream: "",
+};
+
+function getErrorDefaultState(valuesObj: typeof defaultState) {
+  const errorObj: any = {};
+  Object.keys(valuesObj).forEach((key) => {
+    errorObj[key] = false;
+  });
+  return errorObj;
+}
 
 export type AcademicDetailsValues = z.infer<typeof AcademicDetailsSchema>;
 
@@ -15,15 +33,9 @@ interface Props {
 }
 
 const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
-  const [values, setValues] = useState({
-    school: "",
-  });
-  const [errors, setErrors] = useState({
-    school: false,
-  });
-  const [helperTexts, setHelperTexts] = useState({
-    school: "",
-  });
+  const [values, setValues] = useState(defaultState);
+  const [errors, setErrors] = useState(getErrorDefaultState(defaultState));
+  const [helperTexts, setHelperTexts] = useState(defaultState);
   const [stream, setStream] = useState("");
   const [standard, setStandard] = useState("");
   const [medium, setMedium] = useState("");
@@ -38,11 +50,19 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const isValid = AcademicDetailsSchema.safeParse(values);
+    setErrors(getErrorDefaultState(defaultState));
+    setHelperTexts(defaultState);
+    const finalValues: AcademicDetailsValues = {
+      ...values,
+      standard,
+      medium,
+      stream,
+    };
+    const isValid = AcademicDetailsSchema.safeParse(finalValues);
     if (!isValid.success) {
       console.log(isValid);
       isValid.error.issues.forEach((issue) => {
-        setErrors((prevState) => ({
+        setErrors((prevState: any) => ({
           ...prevState,
           [issue.path[0]]: true,
         }));
@@ -62,6 +82,8 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
         id="school"
         required
         label="School"
+        error={errors.school}
+        helperText={helperTexts.school}
         value={values.school}
         onChange={handleChangeValues}
         variant="outlined"
@@ -82,7 +104,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
           { name: "English", value: "english" },
         ]}
         value={medium}
-        label="Standard"
+        label="Medium"
         onChange={setMedium}
       />
       <StyledMUISelect
@@ -98,7 +120,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
         onChange={setStream}
       />
 
-      <Button type="submit">Create Account</Button>
+      <Button type="submit">Submit</Button>
     </form>
   );
 };
