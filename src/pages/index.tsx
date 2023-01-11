@@ -11,3 +11,4 @@ export { default as Result } from "./Result/Result";
 export { default as Error } from "./Error/Error";
 export { default as EditRole } from "./Roles/EditRole/EditRole";
 export { default as DetailedAnalysis } from "./DetailedAnalysis/DetailedAnalysis";
+export { default as StudentRegister } from "./StudentRegister/StudentRegister";

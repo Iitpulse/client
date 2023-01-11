@@ -13,6 +13,7 @@ import {
   EditRole,
   Error,
   DetailedAnalysis,
+  StudentRegister,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -165,6 +166,10 @@ const App = () => {
                     <Route
                       path="/users"
                       element={<PrivateRoute component={Users} name="Users" />}
+                    />
+                    <Route
+                      path="/student-register"
+                      element={<StudentRegister />}
                     />
                   </Routes>
                 </TestsContextProvider>

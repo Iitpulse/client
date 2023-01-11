@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import {
   DatePicker,
   message,
+  Popconfirm,
   Select,
   SelectProps,
   Slider,
@@ -14,31 +15,22 @@ import {
   Button,
   Card,
   CreatableSelect,
+  CustomTable,
+  MUIChipsAutocomplete,
   Sidebar,
   StyledMUISelect,
 } from "../../components";
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
-import clsx from "clsx";
-import closeIcon from "../../assets/icons/close-circle.svg";
-import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_USERS } from "../../utils/api";
 import MainLayout from "../../layouts/MainLayout";
-import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
 import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
 import moment from "moment";
-import { SliderMarks } from "antd/lib/slider";
-import { DeleteOutline } from "@mui/icons-material";
 import deleteIcon from "../../assets/icons/delete.svg";
-interface DataType {
-  key: React.Key;
-  id: string;
-  name: string;
-  exam: string;
-  createdAt: string;
-  status: string;
-}
+import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
+import { TestContext } from "../../utils/contexts/TestContext";
+import { capitalizeFirstLetter } from "../../utils";
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -62,41 +54,34 @@ const StyledMUITextField = styled(TextField)(() => {
   };
 });
 
-const rowSelection = {
-  onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-    console.log(
-      `selectedRowKeys: ${selectedRowKeys}`,
-      "selectedRows: ",
-      selectedRows
-    );
-  },
-  getCheckboxProps: (record: DataType) => ({
-    disabled: record.name === "Disabled User", // Column configuration not to be checked
-    name: record.name,
-  }),
-};
-
 const Batches = () => {
   const [data, setData] = useState([]);
-
+  const [loading, setLoading] = useState(false);
   const [toggleSideBar, setToggleSideBar] = useState(false);
-  const navigate = useNavigate();
 
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
     async function fetchBatch() {
-      const res = await API_USERS().get(`/batch/get`);
-      // console.log({ res });
-      setData(res?.data);
-      console.log("here", res.data);
+      setLoading(true);
+      try {
+        const res = await API_USERS().get(`/batch/get`);
+        // console.log({ res });
+        setData(res?.data);
+      } catch (error) {
+        console.log("ERROR_FETCH_BATCH", error);
+        message.error("Error fetching batch");
+      }
+      setLoading(false);
     }
 
     if (currentUser?.id) {
       fetchBatch();
     }
   }, [currentUser]);
+
   const handleDeleteBatch = async (id: string) => {
+    setLoading(true);
     try {
       const res = await API_USERS().delete(`/batch/delete`, {
         params: {
@@ -109,32 +94,35 @@ const Batches = () => {
       } else {
         message.error(res?.statusText);
       }
-      console.log(res);
     } catch (err) {
       console.log(err);
     }
+    setLoading(false);
   };
+
   const columns = [
+    {
+      title: "Code",
+      dataIndex: "joiningCode",
+    },
     {
       title: "Name",
       dataIndex: "name",
     },
     {
-      title: "Exam",
-      dataIndex: "exam",
+      title: "Exam(s)",
+      dataIndex: "exams",
+      render: (exams: any[]) => exams?.join(", "),
+    },
+    {
+      title: "Medium",
+      dataIndex: "medium",
+      render: (medium: string) => capitalizeFirstLetter(medium),
     },
     {
       title: "Members",
       dataIndex: "members",
-      render: (members: any[]) => members.length,
-    },
-    {
-      title: "Duration",
-      dataIndex: "validity",
-      render: (validity: any) =>
-        `${new Date(validity.from).toLocaleDateString()} to ${new Date(
-          validity.to
-        ).toLocaleDateString()}`,
+      render: (members: any[]) => members?.length,
     },
     {
       title: "Classes",
@@ -142,18 +130,32 @@ const Batches = () => {
       render: (classes: Array<string>) => classes && classes.join(","),
     },
     {
-      title: "Action",
-      key: "action",
+      title: "Roles",
+      dataIndex: "roles",
+      render: (roles: any[]) => roles?.join(", "),
+    },
+    {
+      title: "Validity",
+      dataIndex: "validity",
+      render: (validity: any) =>
+        `${new Date(validity.from).toLocaleDateString()} to ${new Date(
+          validity.to
+        ).toLocaleDateString()}`,
+    },
+    {
+      title: "Delete",
+      key: "delete",
       render: (_: any, record: any) => (
-        <Space size="middle">
-          <IconButton
-            onClick={() => {
+        <IconButton>
+          <Popconfirm
+            title="Sure to delete this batch?"
+            onConfirm={() => {
               handleDeleteBatch(record._id);
             }}
           >
-            <img src={deleteIcon} />
-          </IconButton>
-        </Space>
+            <img src={deleteIcon} alt="delete" />
+          </Popconfirm>
+        </IconButton>
       ),
     },
   ];
@@ -170,11 +172,11 @@ const Batches = () => {
           />
         </div>
         <div className={styles.data}>
-          <Table
-            rowSelection={{
-              type: "checkbox",
-              ...rowSelection,
+          <CustomTable
+            scroll={{
+              x: 1000,
             }}
+            loading={loading}
             columns={columns}
             dataSource={data}
           />
@@ -196,13 +198,24 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   const [batch, setBatch] = useState();
   const [validity, setValidity] = useState([]);
   const [classes, setClasses] = useState<any>([]);
-
+  const [roleOptions, setRoleOptions] = useState<any>([]);
+  const [roles, setRoles] = useState<any>([]);
   const [values, setValues] = useState({} as any);
-  function handleChangeValidity(newValue: any) {
-    setValidity(newValue);
-  }
 
   const { currentUser } = useContext(AuthContext);
+  const { allRoles } = useContext(PermissionsContext);
+  const { exams: examOptions } = useContext(TestContext);
+
+  useEffect(() => {
+    if (allRoles) {
+      console.log({ allRoles });
+      const options = allRoles.map((value: any) => ({
+        value: value.id,
+        name: value.name,
+      }));
+      setRoleOptions(options);
+    }
+  }, [allRoles]);
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
@@ -213,27 +226,31 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     // handleReset();
     e.preventDefault();
-    const finalData = {
-      id: "IITP_" + Math.floor(Math.random() * 1000000),
-      name: values.batchName,
-      exam: "JEEMAINS",
-      institute: "IITP",
-      validity: {
-        from: moment(validity[0]).toISOString(),
-        to: moment(validity[1]).toISOString(),
-      },
-      classes: classes.map((value: any) => value.name),
-      createdBy: {
-        userType: currentUser?.userType,
-        id: currentUser?.id,
-      },
-      createdAt: new Date().toISOString(),
-      modifiedAt: new Date().toISOString(),
-      members: [],
-    };
-    const res = await API_USERS().post(`/batch/create`, finalData);
-    if (res.status === 200) {
-      alert("Succesfully Created");
+    try {
+      const finalData = {
+        name: values.batchName,
+        exams: values.exams?.map((exam: any) => exam.name),
+        medium: values.medium,
+        institute: currentUser?.instituteId,
+        validity: {
+          from: moment(validity[0]).toISOString(),
+          to: moment(validity[1]).toISOString(),
+        },
+        classes: classes.map((value: any) => value.name),
+        createdBy: {
+          userType: currentUser?.userType,
+          id: currentUser?.id,
+        },
+        createdAt: new Date().toISOString(),
+        modifiedAt: new Date().toISOString(),
+        members: [],
+        roles: roles.map((value: any) => value.value),
+      };
+      const res = await API_USERS().post(`/batch/create`, finalData);
+      message.success(res?.data?.message);
+    } catch (error: any) {
+      console.log("ERROR_CREATE_BATCH", error);
+      message.error(error?.response?.data?.message);
     }
     // console.log({ res });
   }
@@ -249,7 +266,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
     <Sidebar
       title="Create New Batch"
       open={toggleSideBar}
-      width="30%"
+      width="350px"
       handleClose={handleClose}
     >
       <form onSubmit={handleSubmit}>
@@ -271,12 +288,45 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
           </div>
           <CreatableSelect
             multiple
+            onAddModalSubmit={() => {}}
+            options={examOptions.map((exam: any) => ({
+              name: exam.name,
+            }))}
+            setValue={(vals: any) => {
+              setValues({ ...values, exams: vals });
+            }}
+            value={values.exams}
+            label={"Exam(s)"}
+            id="Exams"
+          />
+          <StyledMUISelect
+            options={[
+              { name: "Hindi", value: "hindi" },
+              { name: "English", value: "english" },
+            ]}
+            value={values.medium}
+            label="Medium"
+            // @ts-ignore
+            onChange={(val: string) => {
+              setValues({ ...values, medium: val });
+            }}
+          />
+          <CreatableSelect
+            multiple
             options={options}
             setValue={setClasses}
             value={classes}
             label={"Classes"}
             id="Classes"
             onAddModalSubmit={function (value: any): void {}}
+          />
+          <MUIChipsAutocomplete
+            label="Role(s)"
+            value={roles}
+            options={roleOptions || []}
+            onChange={setRoles}
+            error={false}
+            helperText=""
           />
         </div>
         <div className={styles.buttons}>
