@@ -262,10 +262,10 @@ export const QUESTION_COLS_ALL = [
     title: "Question",
     dataIndex: "en",
     key: "question",
-    width: 200,
+    width: 400,
     searchable: true,
     render: (en: any) => (
-      <div style={{ maxHeight: "50px", overflow: "hidden" }}>
+      <div>
         <RenderWithLatex quillString={en?.question} />
       </div>
     ),
@@ -304,26 +304,26 @@ export const QUESTION_COLS_ALL = [
     // render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
     width: 150,
   },
-  {
-    title: "Chapter(s)",
-    dataIndex: "chapters",
-    key: "chapter",
-    searchable: true,
-    render: (chapters: any) => (
-      <p>{chapters?.map((value: any) => value.name)?.join(", ")}</p>
-    ),
-    width: 150,
-  },
-  {
-    title: "Topic(s)",
-    dataIndex: "topics",
-    key: "topic",
-    searchable: true,
-    render: (topics: any, record: any) => (
-      <p>{getTopics(record.chapters)?.join(", ")}</p>
-    ),
-    width: 150,
-  },
+  // {
+  //   title: "Chapter(s)",
+  //   dataIndex: "chapters",
+  //   key: "chapter",
+  //   searchable: true,
+  //   render: (chapters: any) => (
+  //     <p>{chapters?.map((value: any) => value.name)?.join(", ")}</p>
+  //   ),
+  //   width: 150,
+  // },
+  // {
+  //   title: "Topic(s)",
+  //   dataIndex: "topics",
+  //   key: "topic",
+  //   searchable: true,
+  //   render: (topics: any, record: any) => (
+  //     <p>{getTopics(record.chapters)?.join(", ")}</p>
+  //   ),
+  //   width: 150,
+  // },
   {
     title: "Proof Read?",
     dataIndex: "isProofRead",
