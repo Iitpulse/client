@@ -161,7 +161,10 @@ const Questions = () => {
       <PreviewFullQuestion
         setQuestions={setQuestions}
         setPreviewData={setPreviewData}
-        handleClose={() => setSideBarOpen(false)}
+        handleClose={() => {
+          setSideBarOpen(false);
+          setPreviewData({});
+        }}
         quillStringQuestion={quillStringForPreview}
         quillStringSolution={previewData?.en?.solution}
         previewData={previewData}
@@ -299,6 +302,10 @@ const Questions = () => {
     if (filterSubjects?.length) setChapterOptions(getSelectSubjectChapters());
     else setChapterOptions([]);
   }, [filterSubjects]);
+
+  useEffect(() => {
+    console.log({ previewData });
+  });
 
   useEffect(() => {
     function getSelectedChapterTopics(): any[] {
@@ -487,11 +494,18 @@ const Questions = () => {
             <Sidebar
               title="Preview"
               open={sidebarOpen}
-              handleClose={() => setSideBarOpen(false)}
+              handleClose={() => {
+                setSideBarOpen(false);
+                setPreviewData({});
+              }}
               width={"40%"}
               extra={
                 <IconButton
-                  onClick={() => navigate(`/questions/edit/${previewData?.id}`)}
+                  onClick={() =>
+                    navigate(`/questions/edit/${previewData?.id}`, {
+                      state: { type: previewData?.type },
+                    })
+                  }
                 >
                   <Edit />
                 </IconButton>

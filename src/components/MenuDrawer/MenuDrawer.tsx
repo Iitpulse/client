@@ -260,7 +260,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
       <Profile
         isCollapsed={isCollapsed}
         image={profilePlaceholder}
-        name={currentUser?.email || "User"}
+        email={currentUser?.email || "User"}
         userType={currentUser?.userType || "NA"}
       />
     </div>
@@ -269,7 +269,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
 
 interface ProfileProps {
   image: string;
-  name: string;
+  email: string;
   userType: string;
   isCollapsed: boolean;
 }
@@ -292,7 +292,7 @@ const Profile = (props: ProfileProps) => {
       </div>
       {props.isCollapsed || (
         <div className={styles.textContainer}>
-          <span>{props.name}</span>
+          <span>{props.email}</span>
           <span>({props.userType})</span>
         </div>
       )}

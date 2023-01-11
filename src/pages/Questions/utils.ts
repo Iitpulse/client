@@ -47,3 +47,150 @@ export function extractOptions(string: string): {
 
   return values;
 }
+
+export function checkTopicValidity(chapters: any) {
+  for (let i = 0; i < chapters.length; i++)
+    if (chapters[i].topics.length > 0) return true;
+
+  return false;
+}
+
+export function checkQuillParaValidity(para: any) {
+  const stringToBeReplacedWithEmptySpace = ["<p>", "</p>", "</br>", "<br>"];
+  const regex = new RegExp(stringToBeReplacedWithEmptySpace.join("|"), "gi");
+  para = para.replace(regex, () => "");
+  console.log({ para });
+  if (!para) return false;
+  return true;
+}
+
+export function checkOptionsValidity(options: any) {
+  if (options.length < 4) return false;
+  for (let i = 0; i < options.length; i++) {
+    if (
+      !options[i].value ||
+      !options[i].id ||
+      !checkQuillParaValidity(options[i].value)
+    ) {
+      console.log(options[i]);
+      return false;
+    }
+  }
+  return true;
+}
+
+export function checkQuestionValidity(
+  data: any,
+  setError: any,
+  defaultErrorObject: any
+) {
+  // Checking Question Core Fields - Start
+  if (!data.type) {
+    setError({ ...defaultErrorObject, type: true });
+    return { state: false, message: '"Please select a question type"' };
+  }
+  // if (!data.difficulty) {
+  //   setError({ ...defaultErrorObject, difficulty: true });
+  //   return { state: false, message: '"Please select a difficulty level"' };
+  // }
+  if (!data.subject) {
+    setError({ ...defaultErrorObject, subject: true });
+    return { state: false, message: '"Please select a subject"' };
+  }
+  // if (!data.exams?.length) {
+  //   setError({ ...defaultErrorObject, exams: true });
+  //   return { state: false, message: '"Please select at least one exam"' };
+  // }
+  if (!data.chapters?.length) {
+    setError({ ...defaultErrorObject, chapters: true });
+    return { state: false, message: '"Please select at least one chapter"' };
+  }
+  // if (!checkTopicValidity(data?.chapters)) {
+  //   setError({ ...defaultErrorObject, topics: true });
+  //   return { state: false, message: '"Please select at least one topic"' };
+  // }
+  if (!data.sources?.length) {
+    setError({ ...defaultErrorObject, sources: true });
+    return { state: false, message: '"Please select at least one source"' };
+  }
+  // Checking Question Core Fields - End
+
+  // Checking Question Type Dependent Fields - Start
+
+  switch (data.type) {
+    case "single":
+    case "multiple":
+      {
+        const enQuestion = checkQuillParaValidity(data.en.question);
+        const enOptions = checkOptionsValidity(data.en.options);
+        const enSolution = checkQuillParaValidity(data.en.solution);
+        if (!enQuestion) {
+          setError({ ...defaultErrorObject, en: true });
+          return {
+            state: false,
+            message: "Please enter a valid question(English)",
+          };
+        }
+        if (!enOptions) {
+          setError({ ...defaultErrorObject, en: true });
+          return {
+            state: false,
+            message: "Make sure no option field is blank(English)",
+          };
+        }
+        if (!enSolution) {
+          setError({ ...defaultErrorObject, en: true });
+          return {
+            state: false,
+            message: "Please enter a valid solution(English)",
+          };
+        }
+        if (data?.correctAnswers?.length < 1) {
+          setError({ ...defaultErrorObject, correctAnswers: true });
+          return {
+            state: false,
+            message: "At least one correct answer is required",
+          };
+        }
+      }
+      break;
+    case "integer":
+      {
+        if (
+          data.correctAnswer.from.toString() === "" ||
+          data.correctAnswer.to.toString() === ""
+        ) {
+          setError({ ...defaultErrorObject, correctAnswers: true });
+          return {
+            state: false,
+            message: "Please enter a valid range in FROM and TO",
+          };
+        }
+      }
+      break;
+    case "paragraph":
+      {
+      }
+      break;
+    case "matrix":
+      {
+      }
+      break;
+    default: {
+      setError({ ...defaultErrorObject, type: true });
+      return { state: false, message: '"Please select a valid question type"' };
+    }
+  }
+
+  // Checking Question Type Dependent Fields - Ends
+
+  // if (
+  //   !checkQuilParaValidity(data.hi.question, setMessage) ||
+  //   !checkOptionsValidity(data.hi.options, setMessage) ||
+  //   !checkQuilParaValidity(data.hi.solution, setMessage)
+  // ) {
+  //   setError({ ...defaultErrorObject, hi: true });
+  //   return false;
+  // }
+  return { state: true, message: "" };
+}

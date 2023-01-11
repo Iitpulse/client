@@ -12,15 +12,31 @@ import { getOptionID } from "../utils";
 
 interface Props {
   setData: (data: any) => void;
+  data?: any;
+  isInitialValuePassed?: boolean;
+  setIsInitialValuePassed?: (value: boolean) => void;
+  subject: string;
+  chapters: Array<any>;
+  topics: Array<any>;
+  difficulty: string;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Integer: React.FC<Props> = ({ setData }) => {
+const Integer: React.FC<Props> = ({
+  setData,
+  data,
+  isInitialValuePassed,
+  setIsInitialValuePassed,
+  subject,
+  chapters,
+  topics,
+  difficulty,
+}) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [tab, setTab] = useState(0);
-  const [optionsCount, setOptionsCount] = useState(4);
+  // const [optionsCount, setOptionsCount] = useState(4);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
   const [answerType, setAnswerType] = useState<string>("integer");
   const [from, setFrom] = useState<string>("");
@@ -28,38 +44,66 @@ const Integer: React.FC<Props> = ({ setData }) => {
   const [values, setValues] = useState({
     en: {
       question: "",
-      options: [
-        ...Array(optionsCount).fill({
-          id: Date.now().toString(),
-          value: "",
-          isCorrectAnswer: false,
-        }),
-      ],
+      // options: [
+      //   ...Array(optionsCount).fill({
+      //     id: Date.now().toString(),
+      //     value: "",
+      //     isCorrectAnswer: false,
+      //   }),
+      // ],
       solution: "",
     },
     hi: {
       question: "",
-      options: [
-        ...Array(optionsCount).fill({
-          id: Date.now().toString(),
-          value: "",
-          isCorrectAnswer: false,
-        }),
-      ],
+      // options: [
+      //   ...Array(optionsCount).fill({
+      //     id: Date.now().toString(),
+      //     value: "",
+      //     isCorrectAnswer: false,
+      //   }),
+      // ],
       solution: "",
     },
+    isProofRead: false,
+    id: "",
+    type: "",
   });
 
   useEffect(() => {
     setData({
       ...values,
       type: answerType,
-      correctAnswers: {
+      correctAnswer: {
         from,
         to,
       },
     });
   }, [values, setData, answerType, from, to]);
+
+  useEffect(() => {
+    if (!isInitialValuePassed) {
+      if (data?._id) {
+        console.log("YOHO", { data });
+        setValues({
+          en: {
+            question: data?.en?.question,
+            solution: data?.en?.solution,
+          },
+          hi: data.hi,
+          isProofRead: data.isProofRead,
+          id: data._id ?? "",
+          type: data.type,
+        });
+
+        setAnswerType(data.type);
+        setTo(data?.correctAnswer?.to);
+        setFrom(data?.correctAnswer?.from);
+        console.log({ test: data });
+        //@ts-ignore
+        setIsInitialValuePassed(true);
+      }
+    }
+  }, [data, isInitialValuePassed]);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
@@ -83,9 +127,9 @@ const Integer: React.FC<Props> = ({ setData }) => {
       ...values,
       [currentLanguage]: {
         ...values[currentLanguage],
-        options: values[currentLanguage].options.map((option, i) =>
-          i === index ? { ...option, value } : option
-        ),
+        // options: values[currentLanguage].options.map((option, i) =>
+        //   i === index ? { ...option, value } : option
+        // ),
       },
     });
   }
@@ -196,6 +240,7 @@ const Integer: React.FC<Props> = ({ setData }) => {
           id="from"
           label="From"
           value={from}
+          type="number"
           onChange={(e: any) => setFrom(e.target.value)}
           variant="outlined"
         />
@@ -203,10 +248,10 @@ const Integer: React.FC<Props> = ({ setData }) => {
           id="to"
           label="To"
           value={to}
+          type="number"
           onChange={(e: any) => setTo(e.target.value)}
           variant="outlined"
         />
-        <Button type="button">Submit</Button>
         {/* <RadioGroup
           row
           aria-labelledby="answer-type"
@@ -226,7 +271,7 @@ const Integer: React.FC<Props> = ({ setData }) => {
             onChange={handleChangeAnswerType}
           />
         </RadioGroup> */}
-        {/* <div className={styles.correctAnswers}>
+        {/* <div className={styles.correctAnswer}>
           <FormGroup row>
             {values[currentLanguage].options.map((option, i) => (
               <FormControlLabel

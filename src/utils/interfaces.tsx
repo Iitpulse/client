@@ -180,7 +180,7 @@ export interface IQuestionInteger extends IQuestionCore {
     question: string;
     solution: string; // QuillJS_HTMLString
   };
-  correctAnswers: {
+  correctAnswer: {
     from: number;
     to: number;
   };
