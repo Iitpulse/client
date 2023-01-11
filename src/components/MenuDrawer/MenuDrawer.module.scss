@@ -189,6 +189,10 @@
   }
   .textContainer {
     @extend .flexCol;
+    span:first-child {
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
     span:last-child {
       font-size: 0.7rem;
       text-transform: uppercase;

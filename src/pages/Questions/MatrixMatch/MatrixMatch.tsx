@@ -320,7 +320,6 @@ const MatrixMatch: React.FC<Props> = ({ setData }) => {
             <IconButton onClick={() => handleAddRowsCols("col")}>+</IconButton>
           </div>
         </div>
-        <Button type="button">Submit</Button>
         {/* <RadioGroup
           row
           aria-labelledby="answer-type"
