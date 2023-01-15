@@ -360,7 +360,7 @@ const CreateQuestion = () => {
       );
       setTopics((prev: any) => {
         return chapters?.find((chapter: any) => chapter.name === topic.chapter)
-          ? [...prev, topic.topic]
+          ? [...prev, { name: topic.topic }]
           : [...prev];
       });
       setChapters((prev: any) => {
@@ -386,6 +386,7 @@ const CreateQuestion = () => {
 
     // console.log({ res });
   }
+  console.log(chapters, topics, topicOptions);
   async function handleAddSource(source: string) {
     const res = await API_QUESTIONS().post("/source/create", {
       source,
@@ -522,6 +523,7 @@ const CreateQuestion = () => {
               }
               console.log("INTEGER", { finalQuestion }, "After Validation");
               let res = "";
+
               if (dataValid.state) {
                 if (id) {
                   let loading = message.loading("Updating Question...");
