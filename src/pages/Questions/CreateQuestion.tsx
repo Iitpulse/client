@@ -431,7 +431,9 @@ const CreateQuestion = () => {
         switch (data.type) {
           // allow fall through
           // eslint-disable-next-line no-fallthrough
+          // @ts-ignore
           case "single":
+          // @ts-ignore
           // eslint-disable-next-line no-fallthrough
           case "multiple":
             {
