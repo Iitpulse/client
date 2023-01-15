@@ -474,6 +474,18 @@ const Questions = () => {
                       </IconButton>
                     ),
                   },
+                  {
+                    title: "Question",
+                    dataIndex: "en",
+                    key: "question",
+                    width: 400,
+                    searchable: true,
+                    render: (en: any) => (
+                      <div className={styles.questionContainerTable}>
+                        <RenderWithLatex quillString={en?.question} />
+                      </div>
+                    ),
+                  },
                   ...QUESTION_COLS_ALL,
                 ]}
                 height="60vh"
