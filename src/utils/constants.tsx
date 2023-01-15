@@ -258,18 +258,7 @@ export const QUESTION_COLS_ALL = [
   //     </p>
   //   ),
   // },
-  {
-    title: "Question",
-    dataIndex: "en",
-    key: "question",
-    width: 400,
-    searchable: true,
-    render: (en: any) => (
-      <div>
-        <RenderWithLatex quillString={en?.question} />
-      </div>
-    ),
-  },
+
   {
     title: "Type",
     dataIndex: "type",

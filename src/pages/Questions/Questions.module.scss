@@ -212,6 +212,7 @@
   justify-content: space-between;
   bottom: 0;
   left: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 .previewBreadCumb {
   @extend .flexRow;
@@ -227,6 +228,32 @@
       max-width: 100px;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+  }
+}
+// .questionContainerTable {
+//   max-height: 300px;
+//   overflow: hidden;
+// }
+.detailsContainer {
+  background-color: rgb(250, 250, 250);
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 1rem;
+  .detailsHeader {
+    @extend .flexRow;
+    justify-content: space-between;
+  }
+  .detailsMid {
+    @extend .flexCol;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-top: 1rem;
+    > div > p {
+      margin: 0.3em 0;
     }
   }
 }
