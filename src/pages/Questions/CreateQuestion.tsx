@@ -429,7 +429,10 @@ const CreateQuestion = () => {
         };
 
         switch (data.type) {
+          // allow fall through
+          // eslint-disable-next-line no-fallthrough
           case "single":
+          // eslint-disable-next-line no-fallthrough
           case "multiple":
             {
               // console.log("here ", { data });
