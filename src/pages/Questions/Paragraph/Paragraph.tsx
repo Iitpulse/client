@@ -20,11 +20,27 @@ import { generateOptions, getOptionID } from "../utils";
 
 interface Props {
   setData: (data: any) => void;
+  data?: any;
+  isInitialValuePassed?: boolean;
+  setIsInitialValuePassed?: (value: boolean) => void;
+  subject: string;
+  chapters: Array<any>;
+  topics: Array<any>;
+  difficulty: string;
 }
 
 Quill.register("modules/imageResize", ImageResize);
 
-const Paragraph: React.FC<Props> = ({ setData }) => {
+const Paragraph: React.FC<Props> = ({
+  setData,
+  data,
+  isInitialValuePassed,
+  setIsInitialValuePassed,
+  subject,
+  chapters,
+  topics,
+  difficulty,
+}) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
@@ -48,6 +64,9 @@ const Paragraph: React.FC<Props> = ({ setData }) => {
     ];
   });
 
+  useEffect(() => {
+    console.log({ paragraph });
+  });
   function handlChangeQuestionsCount(type: "increment" | "decrement") {
     if (type === "increment") {
       let tempOptions = generateOptions("single", 4);

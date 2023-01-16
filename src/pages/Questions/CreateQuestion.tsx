@@ -819,9 +819,31 @@ function getQuestionFromType(
         />
       );
     case "paragraph":
-      return <Paragraph setData={setData} />;
+      return (
+        <Paragraph
+          subject={subject}
+          chapters={chapters}
+          topics={topics}
+          difficulty={difficulty}
+          data={data}
+          setData={setData}
+          isInitialValuePassed={isInitialValuePassed}
+          setIsInitialValuePassed={setIsInitialValuePassed}
+        />
+      );
     case "matrix":
-      return <MatrixMatch setData={setData} />;
+      return (
+        <MatrixMatch
+          subject={subject}
+          chapters={chapters}
+          topics={topics}
+          difficulty={difficulty}
+          data={data}
+          setData={setData}
+          isInitialValuePassed={isInitialValuePassed}
+          setIsInitialValuePassed={setIsInitialValuePassed}
+        />
+      );
   }
 }
 
