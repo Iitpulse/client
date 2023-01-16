@@ -48,6 +48,7 @@ import { getTopics } from "../../utils/constants";
 import { TestContext } from "../../utils/contexts/TestContext";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { Input } from "antd";
+import { AnyNaptrRecord } from "dns";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -330,13 +331,12 @@ const Questions = () => {
     else setTopicOptions([]);
   }, [filterChapters]);
 
-  const handleToggleProofread = async (checked: any) => {
-    console.log(checked);
-    let obj = { ...previewData, isProofRead: checked };
+  const handleToggleProofread = async (checked: any, question: any) => {
+    let obj = { ...question, isProofRead: checked };
     let payload: IToggleProofReadPayload = {
-      id: previewData.id,
+      id: question.id,
       isProofRead: checked,
-      type: previewData.type,
+      type: question.type,
     };
     try {
       const res = await API_QUESTIONS().patch(`/toggleproofread`, {
@@ -346,20 +346,19 @@ const Questions = () => {
         console.log(res);
         setQuestions((currQues: any) => {
           let arr = currQues.map((el: any) => {
-            return el.id !== previewData.id ? el : obj;
+            return el.id !== question.id ? el : obj;
           });
           console.log(arr);
           return arr;
         });
-        setPreviewData(obj);
       }
-      console.log(previewData);
     } catch (err) {
       console.log(err);
     }
   };
-  const handleDeleteQuestion = async () => {
-    const type = previewData.type;
+  const handleDeleteQuestion = async (question: any) => {
+    setLoading(true);
+    const type: any = question.type;
     let url;
     switch (type) {
       case "single":
@@ -372,28 +371,28 @@ const Questions = () => {
       default:
         console.log(type);
     }
-    console.log({ url, type, previewData });
+
     if (url) {
       try {
         const res = await API_QUESTIONS().delete(url, {
           data: {
-            id: previewData.id,
+            id: question.id,
           },
         });
         console.log(res);
         message.success("Deleted successfully!");
         setQuestions((currQues: any) => {
           let arr = currQues.filter((el: any) => {
-            return el.id !== previewData.id;
+            return el.id !== question.id;
           });
           console.log(arr);
           return arr;
         });
-        console.log(previewData);
       } catch (err) {
         console.log(err);
       }
     }
+    setLoading(false);
   };
 
   function getCombinedQuestion(question: any) {
@@ -616,10 +615,10 @@ const Questions = () => {
                           <div className={styles.toggleButton}>
                             Proof Read
                             <ToggleButton
-                              checked={previewData.isProofRead}
+                              checked={question.isProofRead}
                               stopPropagation
                               onChange={(checked: any) =>
-                                handleToggleProofread(checked)
+                                handleToggleProofread(checked, question)
                               }
                             />
                           </div>
@@ -636,7 +635,7 @@ const Questions = () => {
                             title="Are you sure?"
                             okText="Delete"
                             cancelText="No"
-                            onConfirm={handleDeleteQuestion}
+                            onConfirm={() => handleDeleteQuestion(question)}
                           >
                             <IconButton>
                               <DeleteOutline />
