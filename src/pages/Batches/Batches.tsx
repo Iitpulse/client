@@ -31,6 +31,7 @@ import deleteIcon from "../../assets/icons/delete.svg";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { capitalizeFirstLetter } from "../../utils";
+import AddIcon from "@mui/icons-material/Add";
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -164,11 +165,15 @@ const Batches = () => {
     <MainLayout name="Batches">
       <Card classes={[styles.container]}>
         <div className={styles.header}>
-          <Button onClick={() => setToggleSideBar(true)}>Create New</Button>
+          <Button onClick={() => setToggleSideBar(true)} icon={<AddIcon />}>
+            Create New
+          </Button>
 
           <CreateNewBatch
             handleClose={() => setToggleSideBar(false)}
             toggleSideBar={toggleSideBar}
+            setLoading={setLoading}
+            setBatches={setData}
           />
         </div>
         <div className={styles.data}>
@@ -190,10 +195,14 @@ const Batches = () => {
 interface CreateNewBatchProps {
   handleClose: () => void;
   toggleSideBar: boolean;
+  setLoading: (loading: boolean) => void;
+  setBatches: any;
 }
 const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   handleClose,
   toggleSideBar,
+  setLoading,
+  setBatches,
 }) => {
   const [batch, setBatch] = useState();
   const [validity, setValidity] = useState([]);
@@ -226,6 +235,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     // handleReset();
     e.preventDefault();
+    setLoading(true);
     try {
       const finalData = {
         name: values.batchName,
@@ -247,11 +257,18 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         roles: roles.map((value: any) => value.value),
       };
       const res = await API_USERS().post(`/batch/create`, finalData);
+      setBatches((prev: any) => [...prev, res?.data?.data]);
+      setValues({});
+      setClasses([]);
+      setRoles([]);
+
+      handleClose();
       message.success(res?.data?.message);
     } catch (error: any) {
       console.log("ERROR_CREATE_BATCH", error);
       message.error(error?.response?.data?.message);
     }
+    setLoading(false);
     // console.log({ res });
   }
   const options = [

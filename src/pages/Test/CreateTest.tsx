@@ -141,9 +141,8 @@ const CreateTest = () => {
   }, [test]);
 
   async function handleClickSubmit() {
-    console.log({ test });
-
     if (currentUser) {
+      const creatingTest = message.loading("Creating Test", 0);
       try {
         let finalTest = {
           ...test,
@@ -174,9 +173,11 @@ const CreateTest = () => {
         console.log({ finalTest });
         // if (finalTest) return;
         let response = await API_TESTS().post(`/test/create`, finalTest);
+        creatingTest();
         message.success("Test Created Successfully");
         console.log({ response });
       } catch (error: any) {
+        creatingTest();
         message.error("Error: " + error?.response?.data?.message);
       }
       // const id = ``
