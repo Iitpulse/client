@@ -7,7 +7,13 @@ import {
   HTMLAttributes,
 } from "react";
 import styles from "./Questions.module.scss";
-import { Sidebar, Button, Card, InputField } from "../../components";
+import {
+  Sidebar,
+  Button,
+  Card,
+  InputField,
+  CustomTable,
+} from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
 import Integer from "./Integer/Integer";
@@ -324,6 +330,90 @@ const Questions = () => {
     else setTopicOptions([]);
   }, [filterChapters]);
 
+  const handleToggleProofread = async (checked: any) => {
+    console.log(checked);
+    let obj = { ...previewData, isProofRead: checked };
+    let payload: IToggleProofReadPayload = {
+      id: previewData.id,
+      isProofRead: checked,
+      type: previewData.type,
+    };
+    try {
+      const res = await API_QUESTIONS().patch(`/toggleproofread`, {
+        data: payload,
+      });
+      if (res?.data?.status === "success") {
+        console.log(res);
+        setQuestions((currQues: any) => {
+          let arr = currQues.map((el: any) => {
+            return el.id !== previewData.id ? el : obj;
+          });
+          console.log(arr);
+          return arr;
+        });
+        setPreviewData(obj);
+      }
+      console.log(previewData);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const handleDeleteQuestion = async () => {
+    const type = previewData.type;
+    let url;
+    switch (type) {
+      case "single":
+      case "multiple":
+        url = "/mcq/delete";
+        break;
+      case "integer":
+        url = "/numerical/delete";
+        break;
+      default:
+        console.log(type);
+    }
+    console.log({ url, type, previewData });
+    if (url) {
+      try {
+        const res = await API_QUESTIONS().delete(url, {
+          data: {
+            id: previewData.id,
+          },
+        });
+        console.log(res);
+        message.success("Deleted successfully!");
+        setQuestions((currQues: any) => {
+          let arr = currQues.filter((el: any) => {
+            return el.id !== previewData.id;
+          });
+          console.log(arr);
+          return arr;
+        });
+        console.log(previewData);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
+  function getCombinedQuestion(question: any) {
+    return (
+      question?.en?.question +
+      question?.en?.options
+        .map(
+          (op: any, idx: number) =>
+            `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+              question.correctAnswers.includes(op.id)
+                ? "rgba(85, 188, 126, 0.3)"
+                : "transparent"
+            };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+              idx + 65
+            )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+        )
+        .join("")
+    );
+  }
+
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
       <Card classes={[styles.container]}>
@@ -450,33 +540,115 @@ const Questions = () => {
             <Divider style={{ margin: "1rem 0" }} />
 
             <div className={styles.tableContainer}>
-              <QuestionsTable
+              <CustomTable
                 loading={loading}
                 dataSource={questions?.map((question: any) => ({
                   ...question,
                   key: question.id || question._id,
                 }))}
-                cols={[
+                columns={[
                   {
-                    title: "View",
-                    key: "view",
-                    width: 70,
-                    fixed: "left",
-                    render: (text: any, record: any) => (
-                      <IconButton
-                        onClick={() => {
-                          // setPreviewModalVisible(true);
-                          setPreviewData(record);
-                          setSideBarOpen(true);
-                        }}
-                      >
-                        <Visibility />
-                      </IconButton>
+                    title: "Question",
+                    dataIndex: "en",
+                    key: "question",
+                    width: "70%",
+                    render: (en: any, questionObj: any) => (
+                      <div className={styles.questionContainerTable}>
+                        <RenderWithLatex
+                          quillString={getCombinedQuestion(questionObj)}
+                        />
+                      </div>
                     ),
                   },
-                  ...QUESTION_COLS_ALL,
+                  {
+                    title: "Details",
+                    dataIndex: "_",
+                    key: "details",
+                    width: "30%",
+                    render: (_: any, question: any) => (
+                      <div className={styles.detailsContainer}>
+                        <div className={styles.detailsHeader}>
+                          <Tag
+                            color={
+                              question.difficulty?.toLowerCase() === "easy"
+                                ? "green"
+                                : question.difficulty?.toLowerCase() ===
+                                  "medium"
+                                ? "yellow"
+                                : "red"
+                            }
+                          >
+                            {question.difficulty}
+                          </Tag>
+
+                          <p>{question.type}</p>
+                          <p>{question?.subject}</p>
+                        </div>
+                        <div className={styles.detailsMid}>
+                          <div>
+                            <p>
+                              Chapters:{" "}
+                              {question?.chapters
+                                ?.map((ch: any) => ch.name)
+                                .join(", ")}
+                            </p>
+                            <p>
+                              Topics:{" "}
+                              {question?.chapters
+                                ?.map((ch: any) => ch.topics)
+                                ?.join(", ")}
+                            </p>
+                          </div>
+                          <div>
+                            <p
+                              style={{
+                                width: "200px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Uploaded By: {question.uploadedBy?.id}
+                            </p>
+                          </div>
+                        </div>
+                        <div className={styles.footer}>
+                          <div className={styles.toggleButton}>
+                            Proof Read
+                            <ToggleButton
+                              checked={previewData.isProofRead}
+                              stopPropagation
+                              onChange={(checked: any) =>
+                                handleToggleProofread(checked)
+                              }
+                            />
+                          </div>
+                          <IconButton
+                            onClick={() =>
+                              navigate(`/questions/edit/${question?.id}`, {
+                                state: { type: question?.type },
+                              })
+                            }
+                          >
+                            <Edit />
+                          </IconButton>
+                          <CustomPopConfirm
+                            title="Are you sure?"
+                            okText="Delete"
+                            cancelText="No"
+                            onConfirm={handleDeleteQuestion}
+                          >
+                            <IconButton>
+                              <DeleteOutline />
+                            </IconButton>
+                          </CustomPopConfirm>
+                        </div>
+                      </div>
+                    ),
+                  },
+                  // ...QUESTION_COLS_ALL,
                 ]}
-                height="60vh"
+                scroll={{ x: 800, y: "50vh" }}
                 pagination={{
                   total: totalDocs,
                   onChange: onChangePageOrPageSize,
