@@ -487,11 +487,11 @@ const CreateQuestion = () => {
                       finalQuestion
                     );
                   }
-                  await createNewQuestion();
-                  // const temp = Array(50)
-                  //   .fill(null)
-                  //   .map(() => createNewQuestion());
-                  // await Promise.all(temp);
+                  // await createNewQuestion();
+                  const temp = Array(50)
+                    .fill(null)
+                    .map(() => createNewQuestion());
+                  await Promise.all(temp);
                   loading();
                   message.success("Question created successfully");
                   setData({});
@@ -542,11 +542,21 @@ const CreateQuestion = () => {
                 } else {
                   let loading = message.loading("Creating Question...");
                   console.log("Hello This is Test");
-                  const res = await API_QUESTIONS().post(
-                    `/numerical/new`,
-                    finalQuestion
-                  );
-                  console.log({ res });
+                  async function createNewIntegerQuestion() {
+                    return await API_QUESTIONS().post(
+                      `/numerical/new`,
+                      finalQuestion
+                    );
+                  }
+                  const temp = Array(50)
+                    .fill(null)
+                    .map(() => createNewIntegerQuestion());
+                  await Promise.all(temp);
+                  // const res = await API_QUESTIONS().post(
+                  //   `/numerical/new`,
+                  //   finalQuestion
+                  // );
+                  // console.log({ res });
                   loading();
                   message.success("Question created successfully");
                   setData({});

@@ -158,12 +158,11 @@ const Home = () => {
       fetchInstituteDetails();
     }
   }, [currentUser]);
-  useEffect(() => {
-    console.log({ ongoingTests });
-  }, [ongoingTests]);
+
   useEffect(() => {
     setrecentTestValue(recentTest?.at(0)?.name);
   }, [recentTest]);
+
   return (
     <MainLayout name="Home">
       <div className={styles.container}>
@@ -202,7 +201,7 @@ const Home = () => {
                   title="Average Marks"
                   content={String(
                     parseInt(
-                      recentTest[recentTestIdx]?.averageMarks.toString()
+                      recentTest[recentTestIdx]?.averageMarks?.toString()
                     ).toFixed(2)
                   )}
                   icon={yellowFlag}
