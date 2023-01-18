@@ -396,21 +396,32 @@ const Questions = () => {
   };
 
   function getCombinedQuestion(question: any) {
-    return (
-      question?.en?.question +
-      question?.en?.options
-        .map(
-          (op: any, idx: number) =>
-            `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
-              question.correctAnswers.includes(op.id)
-                ? "rgba(85, 188, 126, 0.3)"
-                : "transparent"
-            };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
-              idx + 65
-            )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
-        )
-        .join("")
-    );
+    if (question.type === "single" || question.type === "multiple") {
+      return (
+        question?.en?.question +
+        question?.en?.options
+          .map(
+            (op: any, idx: number) =>
+              `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+                question.correctAnswers.includes(op.id)
+                  ? "rgba(85, 188, 126, 0.3)"
+                  : "transparent"
+              };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+                idx + 65
+              )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+          )
+          .join("")
+      );
+    } else if (question.type === "integer") {
+      return (
+        question?.en?.question +
+        "<br />From: " +
+        question?.correctAnswer?.from +
+        " | To: " +
+        question?.correctAnswer?.to
+      );
+    }
+    return "";
   }
 
   return (
@@ -556,6 +567,12 @@ const Questions = () => {
                         <RenderWithLatex
                           quillString={getCombinedQuestion(questionObj)}
                         />
+                        <div className={styles.solutionContainer}>
+                          <p>Solution</p>
+                          <RenderWithLatex
+                            quillString={questionObj.en.solution}
+                          />
+                        </div>
                       </div>
                     ),
                   },
