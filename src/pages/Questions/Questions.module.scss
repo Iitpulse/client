@@ -256,9 +256,10 @@
       margin: 0.3em 0;
     }
   }
-  .solutionContainer {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: rgba(0, 0, 0, 0.05);
-  }
+}
+.solutionContainer {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.3rem;
 }
