@@ -86,16 +86,21 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   const [recentTest, setRecentTest] = useState<any>(defaultRecentTestContext);
   const [subjects, setsubjects] = useState<any>([]);
 
-  const { currentUser } = useContext(AuthContext);
-
+  const { currentUser, userDetails } = useContext(AuthContext);
+  console.log(currentUser, userDetails);
   async function fetchTest(
     status: "active" | "ongoing" | "inactive" | "expired",
     cb?: (error: any, data: any[]) => void
   ) {
     try {
+      let batch = "";
+      if (currentUser?.userType === "student" && userDetails?.batch)
+        batch = userDetails?.batch;
+      // console.log(batch, currentUser?.userType, userDetails);
       const res = await API_TESTS().get(`/test`, {
         params: {
           status,
+          batch,
         },
       });
       if (cb) cb(null, res.data);
@@ -138,15 +143,17 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
       if (res.data?.length > 0) {
         // console.log({ res });
         const recent = res.data;
-        console.log(recent);
+        // console.log(recent);
         setRecentTest(recent);
       }
     }
-    fetchTest("ongoing");
+    if (userDetails) {
+      fetchTest("ongoing");
+    }
     fetchExams();
     fetchSubjects();
     fetchRecentTest();
-  }, [currentUser]);
+  }, [currentUser, userDetails]);
 
   return (
     <TestContext.Provider

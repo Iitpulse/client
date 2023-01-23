@@ -15,6 +15,7 @@ export interface IUserDetails {
   email: string;
   userType: string;
   institute: string;
+  batch: string;
   roles: {
     [key: string]: {
       id: string;
