@@ -110,6 +110,13 @@ const CreateTest = () => {
   ];
 
   function onChangeInput(e: any) {
+    if (e.target.id === "name") {
+      const regex = /[^a-zA-Z0-9-_ ]/g;
+      if (regex.test(e.target.value)) {
+        message.error("Cannot use special characters except -, _ and space");
+        return;
+      }
+    }
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   }
 
