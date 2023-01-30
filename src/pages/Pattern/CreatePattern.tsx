@@ -136,7 +136,7 @@ const CreatePattern = () => {
 
   async function handleClickSubmit() {
     try {
-      if (currentUser) {
+      if (currentUser && name!="" && exam!="" && durationInMinutes!="" && sections.length) {
         const pattern: IPattern = {
           id: `${currentUser.instituteId}_${name
             .replace(/ /g, "")
@@ -170,6 +170,9 @@ const CreatePattern = () => {
         // const res = await API_TESTS().post(`/pattern/create`, pattern);
         // message.success("Pattern created successfully");
         // console.log({ res });
+      }
+      else{
+        message.error("Kindly fill all the Details")
       }
     } catch (error) {
       message.error("Error creating pattern");
