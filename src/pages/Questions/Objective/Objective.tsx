@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { SetStateAction, useEffect, useRef, useState } from "react";
 import { Button, InputField, Modal, Sidebar } from "../../../components";
 import styles from "./Objective.module.scss";
 import ReactQuill, { Quill } from "react-quill";
@@ -24,7 +24,7 @@ import { PreviewHTMLModal } from "../components";
 import { PreviewFullQuestion } from "../Questions";
 
 interface Props {
-  setData: (data: any) => void;
+  setData: React.Dispatch<React.SetStateAction<any>>;
   data?: any;
   isInitialValuePassed?: boolean;
   setIsInitialValuePassed?: (value: boolean) => void;

@@ -17,6 +17,9 @@ import { formats, modules, TabPanel } from "../Common";
 import ImageResize from "quill-image-resize-module-react";
 import clsx from "clsx";
 import { generateOptions, getOptionID } from "../utils";
+import { StyledMUISelect } from "../components";
+import Objective from "../Objective/Objective";
+import Integer from "../Integer/Integer";
 
 interface Props {
   setData: (data: any) => void;
@@ -30,6 +33,8 @@ interface Props {
 }
 
 Quill.register("modules/imageResize", ImageResize);
+
+const questionTypes = [{ name: "objective" }, { name: "integer" }];
 
 const Paragraph: React.FC<Props> = ({
   setData,
@@ -46,7 +51,7 @@ const Paragraph: React.FC<Props> = ({
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
   const [paragraph, setParagraph] = useState("");
 
-  const [questions, setQuestions] = useState(() => {
+  const [questions, setQuestions] = useState<Array<any>>(() => {
     let tempOptions = generateOptions("single", 4);
     return [
       {
@@ -60,13 +65,13 @@ const Paragraph: React.FC<Props> = ({
           options: tempOptions,
           solution: "",
         },
+        isProofRead: false,
+        id: "",
+        type: "",
       },
     ];
   });
 
-  useEffect(() => {
-    console.log({ paragraph });
-  });
   function handlChangeQuestionsCount(type: "increment" | "decrement") {
     if (type === "increment") {
       let tempOptions = generateOptions("single", 4);
@@ -83,6 +88,9 @@ const Paragraph: React.FC<Props> = ({
             options: tempOptions,
             solution: "",
           },
+          isProofRead: false,
+          id: "",
+          type: "",
         },
       ]);
     } else {
@@ -90,9 +98,24 @@ const Paragraph: React.FC<Props> = ({
     }
   }
 
-  // useEffect(() => {
-  //   setData({ ...questions.map });
-  // }, [questions, setData, answerType]);
+  function handleChangeData(values: any, idx: number) {
+    console.log({ values, idx });
+    setQuestions(
+      questions.map((question, i) => (i === idx ? values : question))
+    );
+  }
+
+  useEffect(() => {
+    setData({
+      paragraph,
+      questions,
+      type: "paragraph",
+    });
+  }, [questions]);
+
+  useEffect(() => {
+    console.log({ questions });
+  }, [questions]);
 
   return (
     <section className={styles.container}>
@@ -147,10 +170,23 @@ const Paragraph: React.FC<Props> = ({
         />
         <br />
         <hr />
-        <br />
-        {questions.map((_, i) => (
-          <Question currentLanguage={currentLanguage} idx={i + 1} />
-        ))}
+        <div className={styles.paraQuestionsContainer}>
+          <div></div>
+          {questions.map((_, i) => (
+            <Question
+              key={i}
+              currentLanguage={currentLanguage}
+              idx={i}
+              subject={subject}
+              chapters={chapters}
+              topics={topics}
+              difficulty={difficulty}
+              data={questions[i]}
+              setData={handleChangeData}
+              isInitialValuePassed={false}
+            />
+          ))}
+        </div>
       </section>
     </section>
   );
@@ -161,271 +197,69 @@ export default Paragraph;
 const Question: React.FC<{
   currentLanguage: "en" | "hi";
   idx: number;
-}> = ({ currentLanguage, idx }) => {
-  const [tab, setTab] = useState(0);
-  const [optionsCount, setOptionsCount] = useState(4);
-  const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
-
-  const [values, setValues] = useState<any>(() => {
-    let tempOptions = generateOptions(answerType, 4);
-    return {
-      en: {
-        question: "",
-        options: tempOptions,
-        solution: "",
-      },
-      hi: {
-        question: "",
-        options: tempOptions,
-        solution: "",
-      },
-    };
+  subject: string;
+  chapters: Array<any>;
+  topics: Array<any>;
+  difficulty: string;
+  data: any;
+  setData: (data: any, idx: number) => void;
+  isInitialValuePassed: boolean;
+}> = ({
+  currentLanguage,
+  idx,
+  subject,
+  chapters,
+  topics,
+  difficulty,
+  data,
+  setData,
+  isInitialValuePassed,
+}) => {
+  const [type, setType] = useState("objective");
+  const [localData, setLocalData] = useState(data);
+  const [error, setError] = useState({
+    type: false,
   });
 
   useEffect(() => {
-    console.log({ values });
-  }, [values]);
-
-  function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
-    setTab(newValue);
-  }
-
-  function handleChaneOptionsCount(type: "increment" | "decrement") {
-    if (type === "increment") {
-      let optionId = getOptionID(answerType, optionsCount + 1);
-      setOptionsCount((prev) => prev + 1);
-      setValues({
-        ...values,
-        en: {
-          ...values.en,
-          options: [
-            ...values.en.options,
-            { id: optionId, value: "", isCorrectAnswer: false },
-          ],
-        },
-        hi: {
-          ...values.hi,
-          options: [
-            ...values.hi.options,
-            { id: optionId, value: "", isCorrectAnswer: false },
-          ],
-        },
-      });
-    } else {
-      if (optionsCount > 1) {
-        // Don't allow to decrement below 1 as there has to be at least 1 option
-        setOptionsCount((prev) => prev - 1);
-        setValues({
-          ...values,
-          en: {
-            ...values.en,
-            options: values.en.options.slice(0, optionsCount - 1),
-          },
-          hi: {
-            ...values.hi,
-            options: values.hi.options.slice(0, optionsCount - 1),
-          },
-        });
-      }
-    }
-  }
-
-  function handleChangeAnswerType(e: any) {
-    setValues({
-      ...values,
-      en: {
-        ...values.en,
-        options: values.en.options.map((option: any) => ({
-          ...option,
-          isCorrectAnswer: false,
-        })),
-      },
-      hi: {
-        ...values.hi,
-        options: values.hi.options.map((option: any) => ({
-          ...option,
-          isCorrectAnswer: false,
-        })),
-      },
-    });
-    setAnswerType(e.target.value);
-  }
-
-  function handleChangeCorrectAnswer(e: any, optionIdx: number) {
-    setValues({
-      ...values,
-      en: {
-        ...values.en,
-        options: values.en.options.map(
-          (option: any, i: number) =>
-            i === optionIdx
-              ? { ...option, isCorrectAnswer: e.target.checked }
-              : answerType === "single"
-              ? { ...option, isCorrectAnswer: false } // Setting other values to false in case of single correct
-              : option // nothing happens with multiple correct
-        ),
-      },
-      hi: {
-        ...values.hi,
-        options: values.hi.options.map(
-          (option: any, i: number) =>
-            i === optionIdx
-              ? { ...option, isCorrectAnswer: e.target.checked }
-              : answerType === "single"
-              ? { ...option, isCorrectAnswer: false } // Setting other values to false in case of single correct
-              : option // nothing happens with multiple correct
-        ),
-      },
-    });
-  }
-
-  function handleChangeEditor(id: string, value: string, index?: number) {
-    if (id === "question" || id === "solution") {
-      setValues({
-        ...values,
-        [currentLanguage]: {
-          ...values[currentLanguage],
-          [id]: value,
-        },
-      });
-      return;
-    }
-
-    setValues({
-      ...values,
-      [currentLanguage]: {
-        ...values[currentLanguage],
-        options: values[currentLanguage].options.map((option: any, i: number) =>
-          i === index ? { ...option, value } : option
-        ),
-      },
-    });
-  }
+    setData(localData, idx);
+  }, [localData]);
 
   return (
     <div className={styles.question}>
-      <p>Question {idx}</p>
-      <div className={styles.tabsContainer}>
-        <Tabs
-          value={tab}
-          onChange={handleChangeTab}
-          variant="scrollable"
-          scrollButtons="auto"
-          className={styles.tabs}
-          sx={{
-            [`& .${tabsClasses.scrollButtons}`]: {
-              "&.Mui-disabled": { opacity: 0.3 },
-            },
-            ".css-1h9z7r5-MuiButtonBase-root-MuiTab-root.Mui-selected": {
-              backgroundColor: "#f5f5f5",
-              borderRadius: "5px",
-            },
-            ".css-1aquho2-MuiTabs-indicator": {
-              display: "none",
-            },
-          }}
-        >
-          <Tab label="Question" />
-          {Array(optionsCount)
-            .fill(0)
-            .map((_, index) => (
-              <Tab
-                label={`Option ${String.fromCharCode(65 + index)}`}
-                key={index}
-                className={
-                  values[currentLanguage].options[index].isCorrectAnswer
-                    ? styles.correctAnswer
-                    : ""
-                }
-              />
-            ))}
-          <Tab label="Solution" />
-        </Tabs>
-        <div className={styles.optionsCounter}>
-          <IconButton onClick={() => handleChaneOptionsCount("decrement")}>
-            -
-          </IconButton>
-          <span className={styles.count}>{optionsCount}</span>
-          <IconButton onClick={() => handleChaneOptionsCount("increment")}>
-            +
-          </IconButton>
-        </div>
-      </div>
-
-      <TabPanel value={tab} index={0}>
-        <div className={styles.editor}>
-          <ReactQuill
-            theme="snow"
-            value={values[currentLanguage].question}
-            onChange={(val: string) => handleChangeEditor("question", val)}
-            modules={modules}
-            formats={formats}
-            bounds={styles.editor}
-          />
-        </div>
-      </TabPanel>
-      {values[currentLanguage].options.map((_: any, index: number) => (
-        <TabPanel value={tab} index={index + 1} key={index}>
-          <div className={styles.editor}>
-            <ReactQuill
-              theme="snow"
-              value={values[currentLanguage].options[index].value}
-              onChange={(val: string) =>
-                handleChangeEditor("option", val, index)
-              }
-              modules={modules}
-              formats={formats}
-              bounds={styles.editor}
-            />
-          </div>
-        </TabPanel>
-      ))}
-      <TabPanel value={tab} index={values[currentLanguage].options.length + 1}>
-        <div className={styles.editor}>
-          <ReactQuill
-            theme="snow"
-            value={values[currentLanguage].solution}
-            onChange={(val: string) => handleChangeEditor("solution", val)}
-            modules={modules}
-            formats={formats}
-            bounds={styles.editor}
-          />
-        </div>
-      </TabPanel>
-      <div className={styles.actions}>
-        <RadioGroup
-          row
-          aria-labelledby="answer-type"
-          name="answer-type-radio-group"
-          value={answerType}
-        >
-          <FormControlLabel
-            value="single"
-            control={<Radio />}
-            label="Single Correct"
-            onChange={handleChangeAnswerType}
-          />
-          <FormControlLabel
-            value="multiple"
-            control={<Radio />}
-            label="Multiple Correct"
-            onChange={handleChangeAnswerType}
-          />
-        </RadioGroup>
-        <div className={styles.correctAnswers}>
-          <FormGroup row>
-            {values[currentLanguage].options.map((option: any, i: number) => (
-              <FormControlLabel
-                control={answerType === "single" ? <Radio /> : <Checkbox />}
-                label={String.fromCharCode(65 + i)} // Using ASCII for generating characters through index
-                key={i}
-                checked={option.isCorrectAnswer}
-                onChange={(e: any) => handleChangeCorrectAnswer(e, i)}
-              />
-            ))}
-          </FormGroup>
-        </div>
-      </div>
+      <StyledMUISelect
+        label={"Type"}
+        options={questionTypes}
+        state={type}
+        onChange={setType}
+        error={error.type}
+      />
+      <br />
+      <br />
+      {type === "objective" ? (
+        <Objective
+          subject={subject}
+          chapters={chapters}
+          topics={topics}
+          difficulty={difficulty}
+          data={data}
+          setData={setLocalData}
+          isInitialValuePassed={isInitialValuePassed}
+        />
+      ) : (
+        <Integer
+          subject={subject}
+          chapters={chapters}
+          topics={topics}
+          difficulty={difficulty}
+          data={data}
+          setData={setLocalData}
+          isInitialValuePassed={isInitialValuePassed}
+        />
+      )}
+      <br />
+      <hr />
+      <br />
     </div>
   );
 };

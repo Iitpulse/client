@@ -401,9 +401,10 @@ const CreateQuestion = () => {
     console.log({ data });
     try {
       if (currentUser) {
+        console.log("Im inside");
         let questionCore = {
           id: id ? id : Date.now().toString(),
-          type: data.type,
+          type,
           subject: subject?.name,
           chapters: chapters.map((chapter: any) => {
             let topicArray = topics.map((topic) => topic.name);
@@ -427,6 +428,8 @@ const CreateQuestion = () => {
             id: currentUser.id,
           },
         };
+
+        console.log({ questionCore });
 
         switch (data.type) {
           // allow fall through
