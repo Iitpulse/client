@@ -67,7 +67,7 @@ const Batches = () => {
       setLoading(true);
       try {
         const res = await API_USERS().get(`/batch/get`);
-        // console.log({ res });
+        console.log({ res });
         setData(res?.data);
       } catch (error) {
         console.log("ERROR_FETCH_BATCH", error);
@@ -139,8 +139,8 @@ const Batches = () => {
       title: "Validity",
       dataIndex: "validity",
       render: (validity: any) =>
-        `${new Date(validity.from).toLocaleDateString()} to ${new Date(
-          validity.to
+        `${new Date(validity?.from).toLocaleDateString()} to ${new Date(
+          validity?.to
         ).toLocaleDateString()}`,
     },
     {
@@ -256,6 +256,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         members: [],
         roles: roles.map((value: any) => value.value),
       };
+      console.log({ finalData });
       const res = await API_USERS().post(`/batch/create`, finalData);
       setBatches((prev: any) => [...prev, res?.data?.data]);
       setValues({});

@@ -19,7 +19,7 @@ const CustomDateRangePicker: React.FC<{
 }> = ({ onChange, value, showTime }) => (
   <RangePicker
     showTime={Boolean(showTime)}
-    disabledDate={disabledDate}
+    // disabledDate={disabledDate}
     onChange={onChange}
     // format="DD-MM-YYYY"
     value={value}

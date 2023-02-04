@@ -110,6 +110,13 @@ const CreateTest = () => {
   ];
 
   function onChangeInput(e: any) {
+    if (e.target.id === "name") {
+      const regex = /[^a-zA-Z0-9-_ ]/g;
+      if (regex.test(e.target.value)) {
+        message.error("Cannot use special characters except -, _ and space");
+        return;
+      }
+    }
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   }
 
@@ -441,47 +448,84 @@ const SubSection: React.FC<{
     };
   });
 
-  async function generateQuestions() {
+  async function generateQuestions(type: string) {
     setLoading(true);
     try {
       const rejectedQuestions = JSON.parse(
         localStorage.getItem(TEST_GENERAL.REJECTED_QUESTIONS) || "[]"
       );
-      const { data } = await API_QUESTIONS().get(`/mcq/autogenerate`, {
-        params: {
-          type,
-          difficulties: {
-            easy: parseInt(easy),
-            medium: parseInt(medium),
-            hard: parseInt(hard),
+      let res: any = null;
+      if (type === "single" || type === "multiple") {
+        res = await API_QUESTIONS().get(`/mcq/autogenerate`, {
+          params: {
+            type,
+            difficulties: {
+              easy: parseInt(easy),
+              medium: parseInt(medium),
+              hard: parseInt(hard),
+            },
+            rejectedQuestions,
+            subject,
+            totalQuestions: subSection.totalQuestions,
           },
-          rejectedQuestions,
-          subject,
-          totalQuestions: subSection.totalQuestions,
-        },
-      });
-      let withAttemptedByForOptions = [...data];
-      withAttemptedByForOptions.forEach((ques) => {
-        ques.en.options.forEach((option: any) => {
-          option["attemptedBy"] = 0;
         });
+        let data: any = res.data;
 
-        ques.hi.options.forEach((option: any) => {
-          option["attemptedBy"] = 0;
+        let withAttemptedByForOptions = [...data];
+        withAttemptedByForOptions.forEach((ques) => {
+          ques.en.options.forEach((option: any) => {
+            option["attemptedBy"] = 0;
+          });
+
+          ques.hi.options.forEach((option: any) => {
+            option["attemptedBy"] = 0;
+          });
         });
-      });
-      setTempQuestions(withAttemptedByForOptions);
-      console.log({ withAttemptedByForOptions });
-      handleUpdateSubSection(subSection.id, {
-        questions: withAttemptedByForOptions,
-      });
+        setTempQuestions(withAttemptedByForOptions);
+        console.log({ withAttemptedByForOptions });
+        handleUpdateSubSection(subSection.id, {
+          questions: withAttemptedByForOptions,
+        });
+      } else if (type === "integer") {
+        res = await API_QUESTIONS().get(`/numerical/autogenerate`, {
+          params: {
+            type,
+            difficulties: {
+              easy: parseInt(easy),
+              medium: parseInt(medium),
+              hard: parseInt(hard),
+            },
+            rejectedQuestions,
+            subject,
+            totalQuestions: subSection.totalQuestions,
+          },
+        });
+        let data: any = res.data;
+
+        let withAttemptedByForOptions = [...data];
+        // withAttemptedByForOptions.forEach((ques) => {
+        //   ques.en.options.forEach((option: any) => {
+        //     option["attemptedBy"] = 0;
+        //   });
+
+        //   ques.hi.options.forEach((option: any) => {
+        //     option["attemptedBy"] = 0;
+        //   });
+        // });
+        setTempQuestions(withAttemptedByForOptions);
+        console.log({ withAttemptedByForOptions });
+        handleUpdateSubSection(subSection.id, {
+          questions: withAttemptedByForOptions,
+        });
+      }
     } catch (error: any) {
+      console.log(error);
       message.error(error?.response?.data?.message);
     }
     setLoading(false);
   }
 
-  function handleClickAutoGenerate(e: any, rejected?: string) {
+  function handleClickAutoGenerate(type: any, rejected?: string) {
     if (rejected) {
       const prevRejected = JSON.parse(
         localStorage.getItem(TEST_GENERAL.REJECTED_QUESTIONS) || "[]"
@@ -492,7 +536,7 @@ const SubSection: React.FC<{
         JSON.stringify(newRejected)
       );
     }
-    generateQuestions();
+    generateQuestions(type);
     // setTempQuestions(newQuestions);
   }
 
@@ -536,7 +580,9 @@ const SubSection: React.FC<{
           >
             + Add Question
           </div>
-          <Button onClick={handleClickAutoGenerate}>Auto Generate</Button>
+          <Button onClick={() => handleClickAutoGenerate(type)}>
+            Auto Generate
+          </Button>
         </div>
         <div className={styles.inputSection}>
           <InputField

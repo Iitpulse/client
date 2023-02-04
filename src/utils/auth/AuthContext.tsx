@@ -31,10 +31,12 @@ const AuthContextProvider = (props: ProviderProps) => {
 
   useEffect(() => {
     const user = localStorage.getItem(AUTH_TOKEN);
-    async function getUserDetails(id: string) {
-      const res = await API_USERS().get("/student/single", {
-        params: id,
+    async function getUserDetails(id: string, userType: string) {
+      console.log(id);
+      const res = await API_USERS().get(`/${userType}/single`, {
+        params: { id },
       });
+      console.log({ id, res });
       setuserDetails(res.data);
     }
     if (user) {
@@ -62,7 +64,8 @@ const AuthContextProvider = (props: ProviderProps) => {
         instituteId: decoded.instituteId,
         roles: newRoles,
       });
-      getUserDetails(decoded.id);
+
+      getUserDetails(decoded.id, decoded.userType);
     }
   }, [navigate]);
 

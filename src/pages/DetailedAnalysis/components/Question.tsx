@@ -67,7 +67,7 @@ const Question = (props: QuestionProps) => {
   } = props;
   //   console.log({ correctAnswersTest });
   let totalStudentAttempted = 0;
-  en.options.forEach((option: any) => {
+  en.options?.forEach((option: any) => {
     totalStudentAttempted += option.attemptedBy;
   });
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -113,7 +113,7 @@ const Question = (props: QuestionProps) => {
             <RenderWithLatex quillString={en?.question} />
           </h5>
           <div className={styles.options}>
-            {en?.options.map((item: any, index: number) => (
+            {en?.options?.map((item: any, index: number) => (
               <p
                 className={getOptionStyles(index)}
                 style={{
@@ -178,7 +178,7 @@ const Question = (props: QuestionProps) => {
             </div>
           </div>
           <div className={styles.optionPercentageWrapper}>
-            {en?.options.map((option: any, index: number) => {
+            {en?.options?.map((option: any, index: number) => {
               const selectedBy = totalStudentAttempted
                 ? roundOffToOneDecimal(
                     (option?.attemptedBy / totalStudentAttempted) * 100

@@ -123,9 +123,10 @@ const Questions = () => {
   const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
   const [filterSubjects, setFilterSubjects] = useState<any>([]);
   const [filterChapters, setFilterChapters] = useState<any>([]);
-  const [filterTopics, setFilterTopics] = useState<any>([]);
+  const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
+  const [topics, setTopics] = useState<any>([]);
 
   const { currentUser } = useContext(AuthContext);
   const { subjects } = useContext(TestContext);
@@ -266,8 +267,9 @@ const Questions = () => {
   function handleChangeChapters(_: any, options: any) {
     setFilterChapters(options);
   }
-  function handleChangeTopics(values: string[]) {
-    setFilterTopics(values);
+  function handleChangeTopics(options: String[]) {
+    console.log(options);
+    setFilterTopics(options);
   }
 
   const tagRender = (props: CustomTagProps) => {
@@ -310,9 +312,29 @@ const Questions = () => {
     else setChapterOptions([]);
   }, [filterSubjects]);
 
-  useEffect(() => {
-    console.log({ previewData });
-  });
+  // useEffect(() => {
+  //   function topicsKeLiye(): any[] {
+  //     let t: any[] = [];
+  //     filterTopics?.forEach((topicc: any) => {
+  //         if(topicc){
+  //           t.push(
+  //             ...topicc?.map((topic: any) => ({
+  //               label: topic,
+  //               value: topic,
+  //             }))
+  //           );
+  //         }
+  //     });
+  //     console.log(t);
+  //     return t;
+  //   }
+  //   if (filterTopics?.length) setTopics(topicsKeLiye());
+  //   else setTopics([]);
+  // }, [filterTopics]);
+
+  // useEffect(() => {
+  //   console.log({ previewData });
+  // });
 
   useEffect(() => {
     function getSelectedChapterTopics(): any[] {
@@ -320,16 +342,19 @@ const Questions = () => {
       filterChapters?.forEach((chapter: any) => {
         if (chapter.topics) topics.add([...chapter.topics]);
       });
+      // console.log(topics);
       return [...topics]
         .filter((topic: any) => topic?.length)
         .map((topic: any) => ({
-          label: topic,
-          value: topic,
+          label: topic[0],
+          value: topic[0],
         }));
     }
     if (filterChapters?.length) setTopicOptions(getSelectedChapterTopics());
     else setTopicOptions([]);
+    // console.log(topicOptions);
   }, [filterChapters]);
+
 
   const handleToggleProofread = async (checked: any, question: any) => {
     let obj = { ...question, isProofRead: checked };
@@ -535,7 +560,7 @@ const Questions = () => {
                       mode="multiple"
                       allowClear
                       placeholder="Topic(s)"
-                      onChange={setFilterTopics}
+                      onChange={handleChangeTopics}
                       options={topicOptions}
                       maxTagCount="responsive"
                       showArrow

@@ -13,6 +13,13 @@ import { generateOptions } from "../utils";
 
 interface Props {
   setData: (data: any) => void;
+  data?: any;
+  isInitialValuePassed?: boolean;
+  setIsInitialValuePassed?: (value: boolean) => void;
+  subject: string;
+  chapters: Array<any>;
+  topics: Array<any>;
+  difficulty: string;
 }
 
 Quill.register("modules/imageResize", ImageResize);
