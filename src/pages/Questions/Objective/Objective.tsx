@@ -32,6 +32,7 @@ interface Props {
   chapters: Array<any>;
   topics: Array<any>;
   difficulty: string;
+  isComingFromParagraph?: boolean;
 }
 
 Quill.register("modules/imageResize", ImageResize);
@@ -44,6 +45,7 @@ const Objective: React.FC<Props> = ({
   subject,
   chapters,
   topics,
+  isComingFromParagraph,
   difficulty,
 }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
@@ -240,13 +242,13 @@ const Objective: React.FC<Props> = ({
   }
 
   useEffect(() => {
-    console.log({ values });
+    // console.log({ values });
   });
 
   useEffect(() => {
     if (!isInitialValuePassed) {
       if (data?._id) {
-        console.log("YOHO", { data });
+        // console.log("YOHO", { data });
         setValues({
           en: {
             question: data?.en?.question,
@@ -268,6 +270,30 @@ const Objective: React.FC<Props> = ({
         //@ts-ignore
         setIsInitialValuePassed(true);
       }
+    }
+    if (isComingFromParagraph && !isInitialValuePassed) {
+      // if (data?._id) {
+      console.log("FUCK OFF I WANT TO TEST THIS", { data });
+      setValues({
+        en: {
+          question: data?.en?.question,
+          options: data?.en?.options.map((option: any) => ({
+            ...option,
+            // isCorrectAnswer: data?.correctAnswers.includes(option.id),
+          })),
+          solution: data?.en?.solution,
+        },
+        hi: data.hi,
+        isProofRead: data.isProofRead,
+        id: data._id ?? "",
+        type: data.type,
+      });
+
+      setAnswerType(data.type);
+      setOptionsCount(data.en.options.length);
+
+      //@ts-ignore
+      setIsInitialValuePassed(true);
     }
   }, [data, isInitialValuePassed]);
 

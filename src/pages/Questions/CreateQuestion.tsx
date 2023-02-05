@@ -149,9 +149,7 @@ const CreateQuestion = () => {
       type: type === questionTypes[0].name ? "single" : type,
     }));
   }, [type]);
-  useEffect(() => {
-    console.log({ data, type });
-  });
+
   useEffect(() => {
     async function getQuestionData() {
       setIsLoading(true);
@@ -206,7 +204,7 @@ const CreateQuestion = () => {
           sub?.name?.toLowerCase() === questionData?.subject?.toLowerCase()
         );
       });
-      console.log({ fetched: res.data });
+      // console.log({ fetched: res.data });
       // questionData.chapters?.map((chapter: any) => subject.chapters.find((chap: any) => chap.name === chapter))
       let chapters: any = subject.chapters.filter(
         (chap: any) =>
@@ -230,7 +228,7 @@ const CreateQuestion = () => {
       //   { mainData: res.data },
       //   { subject, chapters, topics, subjectOptions }
       // );
-      console.log({ questionData });
+
       setData(questionData);
       setSubject(subject || {});
       setChapters(chapters || []);
@@ -380,13 +378,11 @@ const CreateQuestion = () => {
       });
       setSubject(res.data.data);
     } catch (err) {
-      console.log("ERR_ADD_TOPIC", err);
       message.error("Error adding topic");
     }
 
     // console.log({ res });
   }
-  console.log(chapters, topics, topicOptions);
   async function handleAddSource(source: string) {
     const res = await API_QUESTIONS().post("/source/create", {
       source,
@@ -395,10 +391,14 @@ const CreateQuestion = () => {
     // console.log({ res });
   }
 
+  useEffect(() => {
+    console.log({ data });
+  }, [data]);
+
   async function handleSubmitQuestion() {
     //check if the url has edit in it then update the question
     // else create a new question
-    console.log({ data });
+    // console.log({ data });
     try {
       if (currentUser) {
         console.log("Im inside");
@@ -429,7 +429,7 @@ const CreateQuestion = () => {
           },
         };
 
-        console.log({ questionCore });
+        // console.log({ questionCore });
 
         switch (data.type) {
           // allow fall through
@@ -458,7 +458,7 @@ const CreateQuestion = () => {
               // const fetchQuestion =  async () => {
               //   return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
               // };
-              console.log("OBJECTIVE", { finalQuestion }, "Before Validation");
+              // console.log("OBJECTIVE", { finalQuestion }, "Before Validation");
               let res = "";
 
               let dataValid = checkQuestionValidity(
@@ -470,7 +470,7 @@ const CreateQuestion = () => {
                 message.error(dataValid?.message);
                 return;
               }
-              console.log("OBJECTIVE", { finalQuestion }, "After Validation");
+              // console.log("OBJECTIVE", { finalQuestion }, "After Validation");
               if (dataValid?.state) {
                 if (id) {
                   let loading = message.loading("Updating Question...");
@@ -518,7 +518,7 @@ const CreateQuestion = () => {
                 },
                 correctAnswer: data.correctAnswer ?? { from: "", to: "" },
               };
-              console.log("INTEGER", { finalQuestion }, "Before Validation");
+              // console.log("INTEGER", { finalQuestion }, "Before Validation");
               let dataValid = checkQuestionValidity(
                 finalQuestion,
                 setError,
@@ -529,7 +529,7 @@ const CreateQuestion = () => {
                 message.error(dataValid?.message);
                 return;
               }
-              console.log("INTEGER", { finalQuestion }, "After Validation");
+              // console.log("INTEGER", { finalQuestion }, "After Validation");
               let res = "";
 
               if (dataValid.state) {
@@ -540,11 +540,11 @@ const CreateQuestion = () => {
                     finalQuestion
                   );
                   loading();
-                  console.log({ res });
+                  // console.log({ res });
                   message.success("Question Updated successfully");
                 } else {
                   let loading = message.loading("Creating Question...");
-                  console.log("Hello This is Test");
+                  // console.log("Hello This is Test");
                   async function createNewIntegerQuestion() {
                     return await API_QUESTIONS().post(
                       `/numerical/new`,
@@ -560,7 +560,7 @@ const CreateQuestion = () => {
                   //   `/numerical/new`,
                   //   finalQuestion
                   // );
-                  console.log({ res });
+                  // console.log({ res });
                   loading();
                   message.success("Question created successfully");
                   setData({});
@@ -575,8 +575,9 @@ const CreateQuestion = () => {
               const finalQuestion: IQuestionParagraph = {
                 ...questionCore,
                 questions: data.questions,
+                paragraph: data.paragraph,
               };
-              console.log("PARAGRAPH", { finalQuestion }, "Before Validation");
+              // console.log("PARAGRAPH", { finalQuestion }, "Before Validation");
               let dataValid = checkQuestionValidity(
                 finalQuestion,
                 setError,
@@ -586,22 +587,27 @@ const CreateQuestion = () => {
                 message.error(dataValid?.message);
                 return;
               }
-              console.log("PARAGRAPH", { finalQuestion }, "After Validation");
+              // console.log("PARAGRAPH", { finalQuestion }, "After Validation");
               if (dataValid.state) {
                 if (id) {
                   let loading = message.loading("Updating Question...");
+
                   const res = await API_QUESTIONS().put(
                     `/paragraph/update/${id}`,
                     finalQuestion
                   );
+
                   loading();
                   message.success("Question Updated successfully");
                 } else {
                   let loading = message.loading("Creating Question...");
+                  console.log({ finalQuestion });
+                  // return;
                   const res = await API_QUESTIONS().post(
                     `/paragraph/new`,
                     finalQuestion
                   );
+                  console.log({ res });
                   loading();
                   message.success("Question created successfully");
                   setData({});
@@ -615,7 +621,7 @@ const CreateQuestion = () => {
                 ...questionCore,
                 correctAnswers: data.correctAnswers,
               };
-              console.log("MATRIX", { finalQuestion }, "Before Validation");
+              // console.log("MATRIX", { finalQuestion }, "Before Validation");
               let dataValid = checkQuestionValidity(
                 finalQuestion,
                 setError,
@@ -625,7 +631,7 @@ const CreateQuestion = () => {
                 message.error(dataValid?.message);
                 return;
               }
-              console.log("MATRIX", { finalQuestion }, "After Validation");
+              // console.log("MATRIX", { finalQuestion }, "After Validation");
               if (dataValid.state) {
                 if (id) {
                   let loading = message.loading("Updating Question...");
