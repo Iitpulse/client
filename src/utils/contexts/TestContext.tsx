@@ -87,7 +87,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   const [subjects, setsubjects] = useState<any>([]);
 
   const { currentUser, userDetails } = useContext(AuthContext);
-  console.log(currentUser, userDetails);
+  // console.log(currentUser, userDetails);
   async function fetchTest(
     status: "active" | "ongoing" | "inactive" | "expired",
     cb?: (error: any, data: any[]) => void

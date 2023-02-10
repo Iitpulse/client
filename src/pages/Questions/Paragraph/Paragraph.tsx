@@ -94,7 +94,11 @@ const Paragraph: React.FC<Props> = ({
         },
       ]);
     } else {
-      setQuestions(questions.slice(0, questions.length - 1));
+      setQuestions(
+        questions.length > 1
+          ? questions.slice(0, questions.length - 1)
+          : questions
+      );
     }
   }
 
@@ -106,12 +110,33 @@ const Paragraph: React.FC<Props> = ({
   }
 
   useEffect(() => {
-    setData({
-      paragraph,
-      questions,
-      type: "paragraph",
-    });
+    if (isInitialValuePassed) {
+      setData({
+        paragraph,
+        questions,
+        type: "paragraph",
+      });
+      console.log({ yohohoyohoho: "sdfs", questions });
+    }
   }, [questions]);
+
+  useEffect(() => {
+    if (!isInitialValuePassed) {
+      if (data?._id) {
+        console.log("YOHO", { data });
+        setData({
+          paragraph: data?.paragraph,
+          questions: data?.questions,
+          type: "paragraph",
+        });
+        setQuestions(data?.questions);
+        console.log({ questionsHola: data?.questions });
+        setParagraph(data?.paragraph);
+        //@ts-ignore
+        setIsInitialValuePassed(true);
+      }
+    }
+  }, [data, isInitialValuePassed]);
 
   useEffect(() => {
     console.log({ questions });
@@ -183,6 +208,7 @@ const Paragraph: React.FC<Props> = ({
               difficulty={difficulty}
               data={questions[i]}
               setData={handleChangeData}
+              setIsInitialValuePassed={setIsInitialValuePassed}
               isInitialValuePassed={false}
             />
           ))}
@@ -204,6 +230,7 @@ const Question: React.FC<{
   data: any;
   setData: (data: any, idx: number) => void;
   isInitialValuePassed: boolean;
+  setIsInitialValuePassed?: (value: boolean) => void;
 }> = ({
   currentLanguage,
   idx,
@@ -214,16 +241,93 @@ const Question: React.FC<{
   data,
   setData,
   isInitialValuePassed,
+  setIsInitialValuePassed,
 }) => {
-  const [type, setType] = useState("objective");
+  const [type, setType] = useState(
+    (data.type === "single" || data.type === "multiple"
+      ? "objective"
+      : data.type) || "objective"
+  );
   const [localData, setLocalData] = useState(data);
+  const [isInitialValuePassedLocal, setIsInitialValuePassedLocal] =
+    useState(false);
   const [error, setError] = useState({
     type: false,
   });
 
   useEffect(() => {
-    setData(localData, idx);
+    if (isInitialValuePassed) {
+      setData(localData, idx);
+      setType(
+        (data.type === "single" || data.type === "multiple"
+          ? "objective"
+          : data.type) || "objective"
+      );
+      setIsInitialValuePassedLocal(true);
+    } else {
+      setData(data, idx);
+      console.log({ testingtheType: data.type });
+      setIsInitialValuePassedLocal(true);
+    }
   }, [localData]);
+
+  useEffect(() => {
+    if (type === "objective" && isInitialValuePassedLocal) {
+      //paas objective template in set data along with idx
+      console.log("To Objective");
+      let tempOptions = generateOptions("single", 4);
+      setData(
+        {
+          en: {
+            question: "",
+            options: tempOptions,
+            solution: "",
+          },
+          hi: {
+            question: "",
+            options: tempOptions,
+            solution: "",
+          },
+          isProofRead: false,
+          id: "",
+          type: "objective",
+        },
+        idx
+      );
+    } else if (type === "integer" && isInitialValuePassedLocal) {
+      //pass integer template in set data along with idx
+      console.log("To Integer");
+      setData(
+        {
+          en: {
+            question: "",
+            solution: "",
+          },
+          hi: {
+            question: "",
+            solution: "",
+          },
+          isProofRead: false,
+          id: "",
+          type: "integer",
+          correctAnswer: {
+            from: "",
+            to: "",
+          },
+        },
+        idx
+      );
+    }
+    console.log("heyyaa", {
+      type,
+      isInitialValuePassed,
+      isInitialValuePassedLocal,
+    });
+  }, [type]);
+
+  useEffect(() => {
+    console.log({ isInitialValuePassedLocal });
+  }, [isInitialValuePassedLocal]);
 
   return (
     <div className={styles.question}>
@@ -236,25 +340,31 @@ const Question: React.FC<{
       />
       <br />
       <br />
-      {type === "objective" ? (
+      {data.type === "objective" ||
+      data.type === "multiple" ||
+      data.type === "single" ? (
         <Objective
           subject={subject}
           chapters={chapters}
           topics={topics}
           difficulty={difficulty}
           data={data}
+          isComingFromParagraph={true}
           setData={setLocalData}
           isInitialValuePassed={isInitialValuePassed}
+          setIsInitialValuePassed={setIsInitialValuePassed}
         />
       ) : (
         <Integer
           subject={subject}
           chapters={chapters}
           topics={topics}
+          isComingFromParagraph={true}
           difficulty={difficulty}
           data={data}
           setData={setLocalData}
           isInitialValuePassed={isInitialValuePassed}
+          setIsInitialValuePassed={setIsInitialValuePassed}
         />
       )}
       <br />

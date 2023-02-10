@@ -189,6 +189,7 @@ export interface IQuestionInteger extends IQuestionCore {
 
 export interface IQuestionParagraph extends IQuestionCore {
   questions: Array<IQuestionObjective | IQuestionInteger>;
+  paragraph: string; // QuillJS_HTMLString
 }
 
 export interface IQuestionMatrix extends IQuestionCore {

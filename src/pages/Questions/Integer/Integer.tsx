@@ -19,6 +19,7 @@ interface Props {
   chapters: Array<any>;
   topics: Array<any>;
   difficulty: string;
+  isComingFromParagraph?: boolean;
 }
 
 Quill.register("modules/imageResize", ImageResize);
@@ -30,6 +31,7 @@ const Integer: React.FC<Props> = ({
   setIsInitialValuePassed,
   subject,
   chapters,
+  isComingFromParagraph,
   topics,
   difficulty,
 }) => {
@@ -103,7 +105,34 @@ const Integer: React.FC<Props> = ({
         setIsInitialValuePassed(true);
       }
     }
+    if (isComingFromParagraph && !isInitialValuePassed) {
+      // if (data?._id) {
+      console.log("FUCK OFF I WANT TO TEST THIS", { data });
+
+      setValues({
+        en: {
+          question: data?.en?.question,
+          solution: data?.en?.solution,
+        },
+        hi: data.hi,
+        isProofRead: data.isProofRead,
+        id: data._id ?? "",
+        type: data.type,
+      });
+      setTo(data?.correctAnswer?.to);
+      setFrom(data?.correctAnswer?.from);
+
+      setAnswerType(data.type);
+
+      //@ts-ignore
+      setIsInitialValuePassed(true);
+      console.log("Ye kya hai phir");
+    }
   }, [data, isInitialValuePassed]);
+
+  useEffect(() => {
+    console.log({ isInitialValuePassed });
+  });
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
