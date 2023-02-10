@@ -104,7 +104,9 @@ const SideMenu = (props: SideMenuProps) => {
         </div>
 
         <div className={styles.detailContainer}>
-          <p className={styles.heading}>{userType} Details</p>
+          <p className={styles.heading} style={{ textTransform: "capitalize" }}>
+            {userType} Details
+          </p>
 
           <div className={styles.detail}>
             <p className={styles.key}>Roll No.</p>
@@ -152,7 +154,7 @@ const SideMenu = (props: SideMenuProps) => {
 
         {parentDetails && (
           <div className={styles.detailContainer}>
-            <p className={styles.heading}>parent Details</p>
+            <p className={styles.heading}>Parent Details</p>
 
             <div className={styles.detail}>
               <p className={styles.key}>

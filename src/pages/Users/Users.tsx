@@ -1,6 +1,6 @@
 import { Sidebar, NotificationCard, Button } from "../../components";
 import styles from "./Users.module.scss";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Tabs, Tab, IconButton } from "@mui/material";
 import clsx from "clsx";
 import "./Users.css";
@@ -23,6 +23,7 @@ import MainLayout from "../../layouts/MainLayout";
 import { PERMISSIONS } from "../../utils/constants";
 import { Add as AddIcon } from "@mui/icons-material";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
+import { AuthContext } from "../../utils/auth/AuthContext";
 
 const UserTypesForCards = [
   {
@@ -88,7 +89,18 @@ const defaultValue = {
 };
 
 const Users = () => {
-  const isCreatePermitted = usePermission(PERMISSIONS.USER.CREATE);
+  const userCtx = useContext(AuthContext);
+  console.log(userCtx);
+  const roles = userCtx?.roles;
+  let permissions: any = [];
+  Object.values(roles).map(
+    (role: any) => (permissions = [...permissions, ...role.permissions])
+  );
+  console.log(permissions);
+  // let isCreatePermitted = usePermission(PERMISSIONS.USER.CREATE_STUDENT);
+  const [isCreatePermitted, setIsCreatePermitted] = useState<boolean>(
+    permissions.includes(PERMISSIONS.USER.CREATE_STUDENT)
+  );
   const [student, setStudent] = useState<any>(defaultValue);
   const [admin, setAdmin] = useState<any>(defaultValue);
   const [manager, setManager] = useState<any>(defaultValue);
@@ -114,6 +126,38 @@ const Users = () => {
   // }
 
   const [tab, setTab] = useState(0);
+  useEffect(() => {
+    switch (tab) {
+      case 0:
+        setIsCreatePermitted(
+          permissions.includes(PERMISSIONS.USER.CREATE_STUDENT)
+        );
+        break;
+      case 1:
+        setIsCreatePermitted(
+          permissions.includes(PERMISSIONS.USER.CREATE_TEACHER)
+        );
+        break;
+      case 2:
+        setIsCreatePermitted(
+          permissions.includes(PERMISSIONS.USER.CREATE_ADMIN)
+        );
+        break;
+      case 3:
+        setIsCreatePermitted(
+          permissions.includes(PERMISSIONS.USER.CREATE_OPERATOR)
+        );
+        break;
+      case 4:
+        setIsCreatePermitted(
+          permissions.includes(PERMISSIONS.USER.CREATE_MANAGER)
+        );
+        break;
+      default:
+        break;
+    }
+    console.log({ isCreatePermitted });
+  }, [tab]);
 
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
     setOpenModal(false);
