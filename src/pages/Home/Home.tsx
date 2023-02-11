@@ -165,6 +165,79 @@ const Home = () => {
 
   return (
     <MainLayout name="Home">
+      {currentUser?.userType === "student"?
+      <div className={styles.container}>
+        <Grid container spacing={4}>
+          <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
+            <div>
+              <Card
+                title="Upcoming Tests"
+                styles={{ display: "flex", flexWrap: "wrap"}}
+                classes={[styles.upcomingTestCard]}
+              >
+                {ongoingTests?.map((test, i) => (
+                  <ListItem
+                    key={test.id}
+                    id={test.id}
+                    index={i + 1}
+                    title={test.name}
+                    marks={360}
+                    durationHours={
+                      test?.durationInMinutes ? test.durationInMinutes / 60 : 3
+                    }
+                    mode="online"
+                  />
+                ))}
+                {!ongoingTests && (
+                  <Box sx={{ width: "100%" }}>
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                  </Box>
+                )}
+              </Card>
+            </div>
+          </Grid>
+          <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
+            <div>
+              <Card
+                title="Ongoing Tests"
+                styles={{ display: "flex", flexWrap: "wrap" }}
+                classes={[styles.upcomingTestCard]}
+              >
+                {ongoingTests?.map((test, i) => (
+                  <ListItem
+                    key={test.id}
+                    id={test.id}
+                    index={i + 1}
+                    title={test.name}
+                    marks={360}
+                    durationHours={
+                      test?.durationInMinutes ? test.durationInMinutes / 60 : 3
+                    }
+                    mode="online"
+                  />
+                ))}
+                {!ongoingTests && (
+                  <Box sx={{ width: "100%" }}>
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                    <Skeleton height={28} />
+                  </Box>
+                )}
+              </Card>
+            </div>
+          </Grid>
+          <Grid item xl={12} md={12} xs={12}>
+            <Card title="Schedule" classes={[styles.calendarImageCard]}>
+              <CalendarComponent />
+            </Card>
+          </Grid>
+        </Grid>
+      </div>
+      :
       <div className={styles.container}>
         <Grid container spacing={4}>
           <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
@@ -222,6 +295,7 @@ const Home = () => {
               </div>
             </Card>
           </Grid>
+
           <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
             <div>
               <Card
@@ -277,14 +351,14 @@ const Home = () => {
               </Card>
             </div>
           </Grid>
-          <Grid item xl={12} md={12} xs={12}>
+          <Grid item xl={12} md={12} xs={12}> 
             <Card title="Schedule" classes={[styles.calendarImageCard]}>
               {/* <img src={calendarImage} alt="icon" className={styles.calendarImage} /> */}
               <CalendarComponent />
             </Card>
           </Grid>
         </Grid>
-      </div>
+      </div>}
       {/* <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
@@ -307,6 +381,7 @@ const Home = () => {
       >
         YE CHILDREN HAI
       </CustomModal>
+
     </MainLayout>
   );
 };
