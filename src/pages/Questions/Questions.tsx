@@ -449,30 +449,42 @@ const Questions = () => {
         "Description :" +
         question?.paragraph +
         "<br/>" +
-        question.questions.map((question: any) => {
-          if (question.type === "single" || question.type === "multiple")
-            return (
-              question.en.question +
-              question.en?.options?.map(
-                (op: any, idx: number) =>
-                  `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
-                    question?.correctAnswers?.includes(op.id)
-                      ? "rgba(85, 188, 126, 0.3)"
-                      : "transparent"
-                  };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
-                    idx + 65
-                  )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
-              )
-            );
-          else if (question.type === "integer")
-            return (
-              question.en.question +
-              "<br />From: " +
-              question.correctAnswer.from +
-              " | To: " +
-              question.correctAnswer.to
-            );
-        })
+        question.questions
+          .map((question: any, idx: any) => {
+            if (question.type === "single" || question.type === "multiple") {
+              return (
+                `<span>Question ${idx + 1}</span>` +
+                question.en.question +
+                question.en?.options
+                  ?.map(
+                    (op: any, idx: number) =>
+                      `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+                        op?.isCorrectAnswer
+                          ? "rgba(85, 188, 126, 0.3)"
+                          : "transparent"
+                      };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+                        idx + 65
+                      )}. <span style='margin-left:1rem;'>${
+                        op.value
+                      }</span></span>`
+                  )
+                  .join("") +
+                `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin-bottom:1rem; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
+              );
+            } else if (question.type === "integer") {
+              console.log({ TESTING: question });
+              return (
+                `<span>Question ${idx + 1}.)</span>` +
+                question.en.question +
+                "<br />From: " +
+                question.correctAnswer.from +
+                " | To: " +
+                question.correctAnswer.to +
+                `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin:1rem 0; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
+              );
+            }
+          })
+          .join("")
       );
     }
     return "";
@@ -623,12 +635,14 @@ const Questions = () => {
                           <RenderWithLatex
                             quillString={getCombinedQuestion(questionObj)}
                           />
-                          <div className={styles.solutionContainer}>
-                            <p>Solution</p>
-                            <RenderWithLatex
-                              quillString={questionObj.en.solution}
-                            />
-                          </div>
+                          {questionObj.type !== "paragraph" && (
+                            <div className={styles.solutionContainer}>
+                              <p>Solution</p>
+                              <RenderWithLatex
+                                quillString={questionObj.en.solution}
+                              />
+                            </div>
+                          )}
                         </div>
                       );
                     },
