@@ -24,13 +24,12 @@ import { PreviewHTMLModal } from "../components";
 import { PreviewFullQuestion } from "../Questions";
 
 interface Props {
-  setData: any;
+  setData: React.Dispatch<React.SetStateAction<any>>;
   data?: any;
   isInitialValuePassed?: boolean;
   setIsInitialValuePassed?: (value: boolean) => void;
   subject: string;
   chapters: Array<any>;
-  idx?: number;
   topics: Array<any>;
   difficulty: string;
   isComingFromParagraph?: boolean;
@@ -48,7 +47,6 @@ const Objective: React.FC<Props> = ({
   topics,
   isComingFromParagraph,
   difficulty,
-  idx,
 }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
@@ -84,12 +82,7 @@ const Objective: React.FC<Props> = ({
   useEffect(() => {
     // console.log("hey", data);
     // console.log("hey", values);
-    if (isComingFromParagraph) {
-      if (isInitialValuePassed) setData(values, idx);
-      else {
-        setIsInitialValuePassed(true);
-      }
-    } else setData((prev: any) => ({ ...values, type: answerType }));
+    setData((prev: any) => ({ ...values, type: answerType }));
   }, [values, setData, answerType]);
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
@@ -280,6 +273,7 @@ const Objective: React.FC<Props> = ({
     }
     if (isComingFromParagraph && !isInitialValuePassed) {
       // if (data?._id) {
+      console.log("FUCK OFF I WANT TO TEST THIS", { data });
       setValues({
         en: {
           question: data?.en?.question,

@@ -248,37 +248,37 @@ const Question: React.FC<{
       ? "objective"
       : data.type) || "objective"
   );
-  // const [localData, setLocalData] = useState(data);
+  const [localData, setLocalData] = useState(data);
   const [isInitialValuePassedLocal, setIsInitialValuePassedLocal] =
     useState(false);
   const [error, setError] = useState({
     type: false,
   });
 
-  // useEffect(() => {
-  //   if (isInitialValuePassed) {
-  //     setData(localData, idx);
-  //     setType(
-  //       (data.type === "single" || data.type === "multiple"
-  //         ? "objective"
-  //         : data.type) || "objective"
-  //     );
-  //     setIsInitialValuePassedLocal(true);
-  //   } else {
-  //     setData(data, idx);
-  //     console.log({ testingtheType: data.type });
-  //     setIsInitialValuePassedLocal(true);
-  //   }
-  // }, [localData]);
+  useEffect(() => {
+    if (isInitialValuePassed) {
+      setData(localData, idx);
+      setType(
+        (data.type === "single" || data.type === "multiple"
+          ? "objective"
+          : data.type) || "objective"
+      );
+      setIsInitialValuePassedLocal(true);
+    } else {
+      setData(data, idx);
+      console.log({ testingtheType: data.type });
+      setIsInitialValuePassedLocal(true);
+    }
+  }, [localData]);
 
-  // useEffect(() => {
-  //   console.log({
-  //     localData,
-  //     data,
-  //     isInitialValuePassedLocal,
-  //     isInitialValuePassed,
-  //   });
-  // });
+  useEffect(() => {
+    console.log({
+      localData,
+      data,
+      isInitialValuePassedLocal,
+      isInitialValuePassed,
+    });
+  });
 
   useEffect(() => {
     if (type === "objective" && isInitialValuePassedLocal) {
@@ -350,8 +350,7 @@ const Question: React.FC<{
           difficulty={difficulty}
           data={data}
           isComingFromParagraph={true}
-          setData={setData}
-          idx={idx}
+          setData={setLocalData}
           isInitialValuePassed={isInitialValuePassed}
           setIsInitialValuePassed={setIsInitialValuePassed}
         />
@@ -363,8 +362,7 @@ const Question: React.FC<{
           isComingFromParagraph={true}
           difficulty={difficulty}
           data={data}
-          idx={idx}
-          setData={setData}
+          setData={setLocalData}
           isInitialValuePassed={isInitialValuePassed}
           setIsInitialValuePassed={setIsInitialValuePassed}
         />
