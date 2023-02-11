@@ -11,7 +11,7 @@ import ImageResize from "quill-image-resize-module-react";
 import { getOptionID } from "../utils";
 
 interface Props {
-  setData: (data: any) => void;
+  setData: any;
   data?: any;
   isInitialValuePassed?: boolean;
   setIsInitialValuePassed?: (value: boolean) => void;
@@ -19,6 +19,7 @@ interface Props {
   chapters: Array<any>;
   topics: Array<any>;
   difficulty: string;
+  idx?: number;
   isComingFromParagraph?: boolean;
 }
 
@@ -34,6 +35,7 @@ const Integer: React.FC<Props> = ({
   isComingFromParagraph,
   topics,
   difficulty,
+  idx,
 }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
@@ -72,14 +74,17 @@ const Integer: React.FC<Props> = ({
   });
 
   useEffect(() => {
-    setData({
-      ...values,
-      type: answerType,
-      correctAnswer: {
-        from,
-        to,
-      },
-    });
+    if (isComingFromParagraph) {
+      if (isInitialValuePassed) setData(values, idx);
+    } else
+      setData({
+        ...values,
+        type: answerType,
+        correctAnswer: {
+          from,
+          to,
+        },
+      });
   }, [values, setData, answerType, from, to]);
 
   useEffect(() => {

@@ -355,7 +355,6 @@ const Questions = () => {
     // console.log(topicOptions);
   }, [filterChapters]);
 
-
   const handleToggleProofread = async (checked: any, question: any) => {
     let obj = { ...question, isProofRead: checked };
     let payload: IToggleProofReadPayload = {
@@ -444,6 +443,36 @@ const Questions = () => {
         question?.correctAnswer?.from +
         " | To: " +
         question?.correctAnswer?.to
+      );
+    } else if (question.type === "paragraph") {
+      return (
+        "Description :" +
+        question?.paragraph +
+        "<br/>" +
+        question.questions.map((question: any) => {
+          if (question.type === "single" || question.type === "multiple")
+            return (
+              question.en.question +
+              question.en?.options?.map(
+                (op: any, idx: number) =>
+                  `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+                    question?.correctAnswers?.includes(op.id)
+                      ? "rgba(85, 188, 126, 0.3)"
+                      : "transparent"
+                  };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+                    idx + 65
+                  )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+              )
+            );
+          else if (question.type === "integer")
+            return (
+              question.en.question +
+              "<br />From: " +
+              question.correctAnswer.from +
+              " | To: " +
+              question.correctAnswer.to
+            );
+        })
       );
     }
     return "";
@@ -587,105 +616,111 @@ const Questions = () => {
                     dataIndex: "en",
                     key: "question",
                     width: "70%",
-                    render: (en: any, questionObj: any) => (
-                      <div className={styles.questionContainerTable}>
-                        <RenderWithLatex
-                          quillString={getCombinedQuestion(questionObj)}
-                        />
-                        <div className={styles.solutionContainer}>
-                          <p>Solution</p>
+                    render: (en: any, questionObj: any) => {
+                      console.log({ questionObj, en });
+                      return (
+                        <div className={styles.questionContainerTable}>
                           <RenderWithLatex
-                            quillString={questionObj.en.solution}
+                            quillString={getCombinedQuestion(questionObj)}
                           />
+                          <div className={styles.solutionContainer}>
+                            <p>Solution</p>
+                            <RenderWithLatex
+                              quillString={questionObj.en.solution}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ),
+                      );
+                    },
                   },
                   {
                     title: "Details",
                     dataIndex: "_",
                     key: "details",
                     width: "30%",
-                    render: (_: any, question: any) => (
-                      <div className={styles.detailsContainer}>
-                        <div className={styles.detailsHeader}>
-                          <Tag
-                            color={
-                              question.difficulty?.toLowerCase() === "easy"
-                                ? "green"
-                                : question.difficulty?.toLowerCase() ===
-                                  "medium"
-                                ? "yellow"
-                                : "red"
-                            }
-                          >
-                            {question.difficulty}
-                          </Tag>
-
-                          <p>{question.type}</p>
-                          <p>{question?.subject}</p>
-                        </div>
-                        <div className={styles.detailsMid}>
-                          <div>
-                            <p>
-                              Chapters:{" "}
-                              {question?.chapters
-                                ?.map((ch: any) => ch.name)
-                                .join(", ")}
-                            </p>
-                            <p>
-                              Topics:{" "}
-                              {question?.chapters
-                                ?.map((ch: any) => ch.topics)
-                                ?.join(", ")}
-                            </p>
-                          </div>
-                          <div>
-                            <p
-                              style={{
-                                width: "200px",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              Uploaded By: {question.uploadedBy?.id}
-                            </p>
-                          </div>
-                        </div>
-                        <div className={styles.footer}>
-                          <div className={styles.toggleButton}>
-                            Proof Read
-                            <ToggleButton
-                              checked={question.isProofRead}
-                              stopPropagation
-                              onChange={(checked: any) =>
-                                handleToggleProofread(checked, question)
+                    render: (_: any, question: any) => {
+                      console.log({ question });
+                      return (
+                        <div className={styles.detailsContainer}>
+                          <div className={styles.detailsHeader}>
+                            <Tag
+                              color={
+                                question.difficulty?.toLowerCase() === "easy"
+                                  ? "green"
+                                  : question.difficulty?.toLowerCase() ===
+                                    "medium"
+                                  ? "yellow"
+                                  : "red"
                               }
-                            />
+                            >
+                              {question.difficulty}
+                            </Tag>
+
+                            <p>{question.type}</p>
+                            <p>{question?.subject}</p>
                           </div>
-                          <IconButton
-                            onClick={() =>
-                              navigate(`/questions/edit/${question?.id}`, {
-                                state: { type: question?.type },
-                              })
-                            }
-                          >
-                            <Edit />
-                          </IconButton>
-                          <CustomPopConfirm
-                            title="Are you sure?"
-                            okText="Delete"
-                            cancelText="No"
-                            onConfirm={() => handleDeleteQuestion(question)}
-                          >
-                            <IconButton>
-                              <DeleteOutline />
+                          <div className={styles.detailsMid}>
+                            <div>
+                              <p>
+                                Chapters:{" "}
+                                {question?.chapters
+                                  ?.map((ch: any) => ch.name)
+                                  .join(", ")}
+                              </p>
+                              <p>
+                                Topics:{" "}
+                                {question?.chapters
+                                  ?.map((ch: any) => ch.topics)
+                                  ?.join(", ")}
+                              </p>
+                            </div>
+                            <div>
+                              <p
+                                style={{
+                                  width: "200px",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                Uploaded By: {question.uploadedBy?.id}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={styles.footer}>
+                            <div className={styles.toggleButton}>
+                              Proof Read
+                              <ToggleButton
+                                checked={question.isProofRead}
+                                stopPropagation
+                                onChange={(checked: any) =>
+                                  handleToggleProofread(checked, question)
+                                }
+                              />
+                            </div>
+                            <IconButton
+                              onClick={() =>
+                                navigate(`/questions/edit/${question?.id}`, {
+                                  state: { type: question?.type },
+                                })
+                              }
+                            >
+                              <Edit />
                             </IconButton>
-                          </CustomPopConfirm>
+                            <CustomPopConfirm
+                              title="Are you sure?"
+                              okText="Delete"
+                              cancelText="No"
+                              onConfirm={() => handleDeleteQuestion(question)}
+                            >
+                              <IconButton>
+                                <DeleteOutline />
+                              </IconButton>
+                            </CustomPopConfirm>
+                          </div>
                         </div>
-                      </div>
-                    ),
+                      );
+                    },
                   },
                   // ...QUESTION_COLS_ALL,
                 ]}

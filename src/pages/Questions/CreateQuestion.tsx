@@ -179,6 +179,8 @@ const CreateQuestion = () => {
               id,
             },
           });
+
+          console.log({ para: res });
           break;
         }
         case "matrix": {
@@ -197,6 +199,7 @@ const CreateQuestion = () => {
       }
 
       const { data: questionData } = res;
+      console.log({ data });
 
       const subject = subjectOptions?.find((sub: any) => {
         // console.log({ sub, res });
@@ -601,7 +604,7 @@ const CreateQuestion = () => {
                   message.success("Question Updated successfully");
                 } else {
                   let loading = message.loading("Creating Question...");
-                  console.log({ finalQuestion });
+                  console.log({ finalQuestion, data });
                   // return;
                   const res = await API_QUESTIONS().post(
                     `/paragraph/new`,
