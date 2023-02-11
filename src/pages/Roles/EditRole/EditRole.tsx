@@ -26,6 +26,7 @@ import { message, Popconfirm } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import deleteIcon from "../../../assets/icons/delete.svg";
 import { EDIT_ROLE_TABLE_COLS } from "../utils";
+import { AuthContext } from "../../../utils/auth/AuthContext";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -67,14 +68,32 @@ const EditRole = () => {
   } = useContext(PermissionsContext);
   console.log("all roles :", allRoles);
 
+  const authCtx = useContext(AuthContext);
+  console.log(authCtx);
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
 
   useEffect(() => {
-    setPermissions(PERMISSIONS);
-  }, [roleName]);
-
+    let obj = {};
+    allRoles.map((role: any) => {
+      obj = {
+        ...obj,
+        ["CREATE_" + role?.id?.slice(5)]: "CREATE_" + role?.id?.slice(5),
+        ["READ_" + role?.id?.slice(5)]: "READ_" + role?.id?.slice(5),
+        ["UPDATE_" + role?.id?.slice(5)]: "UPDATE_" + role?.id?.slice(5),
+        ["DELETE_" + role?.id?.slice(5)]: "DELETE_" + role?.id?.slice(5),
+      };
+    });
+    setPermissions({
+      ...PERMISSIONS,
+      USER: {
+        ...PERMISSIONS.USER,
+        ...obj,
+      },
+    });
+  }, [roleName, allRoles]);
+  console.log({ permissions });
   useEffect(() => {
     if (roleName && allRoles) {
       setMembers(
@@ -129,6 +148,16 @@ const EditRole = () => {
     if (!roleName) return message.error("Role name is required");
     try {
       await updateRole(String(roleName), allowedPermissions);
+      console.log({ roleName });
+      if (authCtx.roles[String(roleName)]) {
+        authCtx.setRoles({
+          ...authCtx.roles,
+          [String(roleName)]: {
+            ...authCtx.roles[String(roleName)],
+            permissions: allowedPermissions,
+          },
+        });
+      }
       msgLoding();
       message.success({
         content: "Role Updated Successfully",

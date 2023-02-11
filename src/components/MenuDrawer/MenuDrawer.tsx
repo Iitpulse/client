@@ -327,7 +327,8 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
     setCurrentUser(null);
     localStorage.removeItem(AUTH_TOKEN);
 
-    return navigate("/login");
+    navigate("/login");
+    window.location.reload();
   }
 
   return (

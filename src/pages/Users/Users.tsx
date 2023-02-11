@@ -90,16 +90,16 @@ const defaultValue = {
 
 const Users = () => {
   const userCtx = useContext(AuthContext);
-  console.log(userCtx);
+  // console.log(userCtx);
   const roles = userCtx?.roles;
   let permissions: any = [];
   Object.values(roles).map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-  console.log(permissions);
+  // console.log(permissions);
   // let isCreatePermitted = usePermission(PERMISSIONS.USER.CREATE_STUDENT);
   const [isCreatePermitted, setIsCreatePermitted] = useState<boolean>(
-    permissions.includes(PERMISSIONS.USER.CREATE_STUDENT)
+    permissions.includes("CREATE_STUDENT")
   );
   const [student, setStudent] = useState<any>(defaultValue);
   const [admin, setAdmin] = useState<any>(defaultValue);
@@ -127,31 +127,22 @@ const Users = () => {
 
   const [tab, setTab] = useState(0);
   useEffect(() => {
+    console.log({ permissions });
     switch (tab) {
       case 0:
-        setIsCreatePermitted(
-          permissions.includes(PERMISSIONS.USER.CREATE_STUDENT)
-        );
+        setIsCreatePermitted(permissions.includes("CREATE_STUDENT"));
         break;
       case 1:
-        setIsCreatePermitted(
-          permissions.includes(PERMISSIONS.USER.CREATE_TEACHER)
-        );
+        setIsCreatePermitted(permissions.includes("CREATE_TEACHER"));
         break;
       case 2:
-        setIsCreatePermitted(
-          permissions.includes(PERMISSIONS.USER.CREATE_ADMIN)
-        );
+        setIsCreatePermitted(permissions.includes("CREATE_ADMIN"));
         break;
       case 3:
-        setIsCreatePermitted(
-          permissions.includes(PERMISSIONS.USER.CREATE_OPERATOR)
-        );
+        setIsCreatePermitted(permissions.includes("CREATE_OPERATOR"));
         break;
       case 4:
-        setIsCreatePermitted(
-          permissions.includes(PERMISSIONS.USER.CREATE_MANAGER)
-        );
+        setIsCreatePermitted(permissions.includes("CREATE_MANAGER"));
         break;
       default:
         break;
@@ -238,11 +229,11 @@ const Users = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <Tabs value={tab} onChange={handleChangeTab}>
-            <Tab label="Students" />
-            <Tab label="Teachers" />
-            <Tab label="Admins" />
-            <Tab label="Operators" />
-            <Tab label="Managers" />
+            {permissions.includes("READ_STUDENT") && <Tab label="Students" />}
+            {permissions.includes("READ_TEACHER") && <Tab label="Teachers" />}
+            {permissions.includes("READ_ADMIN") && <Tab label="Admins" />}
+            {permissions.includes("READ_OPERATOR") && <Tab label="Operators" />}
+            {permissions.includes("READ_MANAGER") && <Tab label="Managers" />}
           </Tabs>
           <div>
             <IconButton className={styles.icons} onClick={handleClickRefresh}>
