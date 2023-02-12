@@ -30,6 +30,7 @@ import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import MainLayout from "../../layouts/MainLayout";
 import timer from "../../assets/icons/timer.svg";
 import { LeftCircleOutlined, RightCircleOutlined } from "@ant-design/icons";
+import { ISection } from "../../utils/interfaces";
 
 // const results = [
 //   {
@@ -491,6 +492,15 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
 
   return (
     <>
+      <QuestionPlate
+        setSecIdx={setTab}
+        secIdx={tab}
+        sections={sections}
+        setQuestionIndex={setQuestionIndex}
+        setSubIdx={setSubIdx}
+        questionIndex={questionIndex}
+        subIdx={subIdx}
+      />
       <Card classes={[styles.sectionWiseAnalysis]}>
         <Tabs value={tab} onChange={handleChangeTab}>
           {sections?.map((item: any, index: number) => (
@@ -560,6 +570,55 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
         <RenderWithLatex quillString={viewSol} />
       </Modal>
     </>
+  );
+};
+
+const QuestionPlate = ({
+  sections,
+  setQuestionIndex,
+  setSubIdx,
+  questionIndex,
+  subIdx,
+  secIdx,
+  setSecIdx,
+}: {
+  sections: Array<ISection>;
+  setQuestionIndex: React.Dispatch<React.SetStateAction<number>>;
+  setSubIdx: React.Dispatch<React.SetStateAction<number>>;
+  setSecIdx: React.Dispatch<React.SetStateAction<number>>;
+  questionIndex?: number;
+  subIdx?: number;
+  secIdx?: number;
+}) => {
+  let num = 0;
+  console.log({ questionPlate: sections });
+  return (
+    <div className={styles.questionPlate}>
+      {sections?.map((section: ISection, sidx: number) => {
+        return section?.subSections?.map((subsection: any, idx: number) => {
+          return subsection?.questions?.map((question: any, index: number) => {
+            num++;
+            return (
+              <div
+                onClick={() => {
+                  setQuestionIndex(index);
+                  setSubIdx(idx);
+                  setSecIdx(sidx);
+                }}
+                style={{
+                  backgroundColor:
+                    questionIndex === index && subIdx === idx && secIdx === sidx
+                      ? "#61b4f1"
+                      : null,
+                }}
+              >
+                {num}
+              </div>
+            );
+          });
+        });
+      })}
+    </div>
   );
 };
 

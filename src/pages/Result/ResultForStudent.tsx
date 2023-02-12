@@ -180,10 +180,12 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         (resultType === "Subject Wise" ? (
           <SubjectWiseAnalysis sections={Object.values(finalSections)} />
         ) : (
-          <DetailedAnalysis
-            totalAppeared={finalTest?.totalAppeared || 0}
-            sections={Object.values(finalSections)}
-          />
+          <>
+            <DetailedAnalysis
+              totalAppeared={finalTest?.totalAppeared || 0}
+              sections={Object.values(finalSections)}
+            />
+          </>
         ))}
     </>
   );

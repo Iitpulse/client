@@ -324,3 +324,25 @@
     width: 30px;
   }
 }
+.questionPlate {
+  margin: 1rem 0;
+  padding: 2rem;
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  div {
+    display: flex;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #00000020;
+    padding: 1rem;
+    &:hover {
+      cursor: pointer;
+      background-color: #00000010;
+    }
+  }
+}
