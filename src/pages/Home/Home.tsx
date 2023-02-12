@@ -166,7 +166,7 @@ const Home = () => {
   return (
     <MainLayout name="Home">
       {currentUser?.userType === "student"?
-      <div className={styles.container}>
+      <div className={styles.container} style={{width:"100%"}}>
         <Grid container spacing={4}>
           <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
             <div>
@@ -230,11 +230,66 @@ const Home = () => {
               </Card>
             </div>
           </Grid>
-          <Grid item xl={12} md={12} xs={12}>
+          <Grid item xl={12} lg={12} md={12} sm={12} xs={12}>
+            <Card
+              actionBtn={
+                <StyledMUISelect
+                  label={"Recent Tests"}
+                  options={recentTest.map((test) => ({
+                    name: test.name,
+                    value: test.name,
+                  }))}
+                  value={recentTestValue}
+                  onChange={(e) => {
+                    setrecentTestValue(e);
+                    let test = recentTest.find((test) => test.name === e);
+                    let idx = -1;
+                    if (test) idx = recentTest.indexOf(test);
+                    if (idx !== -1) setrecentTestidx(idx);
+                  }}
+                />
+              }
+              title="Recent Test Analysis"
+              classes={[styles.recentTestContainer]}
+            >
+              <h2>{recentTest[recentTestIdx]?.name}</h2>
+              <div className={styles.data}>
+                <SubCard
+                  title="Highest Marks"
+                  content={String(recentTest[recentTestIdx]?.highestMarks)}
+                  icon={greenCrown}
+                  variant="success"
+                />
+                <SubCard
+                  title="Average Marks"
+                  content={String(
+                    parseInt(
+                      recentTest[recentTestIdx]?.averageMarks?.toString()
+                    ).toFixed(2)
+                  )}
+                  icon={yellowFlag}
+                  variant="warning"
+                />
+                <SubCard
+                  title="Lowest Marks"
+                  content={String(recentTest[recentTestIdx]?.lowestMarks)}
+                  icon={redWarning}
+                  variant="error"
+                />
+                <SubCard
+                  title="Total Appeared"
+                  content={String(recentTest[recentTestIdx]?.totalAppeared)}
+                  icon={blueUsers}
+                  variant="primary"
+                />
+              </div>
+            </Card>
+          </Grid>
+          {/* <Grid item xl={12} md={12} xs={12}>
             <Card title="Schedule" classes={[styles.calendarImageCard]}>
               <CalendarComponent />
             </Card>
-          </Grid>
+          </Grid> */}
         </Grid>
       </div>
       :

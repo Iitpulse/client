@@ -71,20 +71,20 @@ const Test = () => {
       title: "Status",
       dataIndex: "status",
     },
-    {
-      title: "Actions",
-      fixed: "right",
-      render: (row: any) => (
-        <Button
-          onClick={() => {
-            console.log({ row });
-            navigate(`/test/result/${row.name}/${row.exam.name}/${row._id}`);
-          }}
-        >
-          View Result
-        </Button>
-      ),
-    },
+    // {
+    //   title: "Actions",
+    //   fixed: "right",
+    //   render: (row: any) => (
+    //     <Button
+    //       onClick={() => {
+    //         console.log({ row });
+    //         navigate(`/test/result/${row.name}/${row.exam.name}/${row._id}`);
+    //       }}
+    //     >
+    //       View Result
+    //     </Button>
+    //   ),
+    // },
   ];
 
   interface DataType {
@@ -130,91 +130,6 @@ const Test = () => {
   );
   // console.log(permissions);
   const { ongoingTests, activeTests, inactiveTests, expiredTests } = state;
-
-  function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
-    setTab(newValue);
-    console.log(newValue);
-    switch (newValue) {
-      case 0:
-        setData([]);
-        setLoading(true);
-        fetchTest("ongoing", (error, result: any[]) => {
-          if (error) console.log(error);
-          setLoading(false);
-          setData(
-            result?.map((test: any) => ({
-              ...test,
-              key: test.id,
-              id: test.id,
-              name: test.name,
-              createdAt: test.createdAt,
-              status: test.status,
-              exam: test.exam,
-            }))
-          );
-        });
-        break;
-      case 1:
-        setData([]);
-        setLoading(true);
-        fetchTest("active", (error, result: any[]) => {
-          if (error) console.log(error);
-          setLoading(false);
-          setData(
-            result?.map((test: any) => ({
-              ...test,
-              key: test.id,
-              id: test.id,
-              name: test.name,
-              createdAt: test.createdAt,
-              status: test.status,
-              exam: test.exam,
-            }))
-          );
-        });
-        break;
-      case 2:
-        setData([]);
-        setLoading(true);
-        fetchTest("inactive", (error, result: any[]) => {
-          if (error) console.log(error);
-          setLoading(false);
-          setData(
-            result?.map((test: any) => ({
-              ...test,
-              key: test.id,
-              id: test.id,
-              name: test.name,
-              createdAt: test.createdAt,
-              status: test.status,
-              exam: test.exam,
-            }))
-          );
-        });
-        break;
-      case 3:
-        setData([]);
-        setLoading(true);
-        fetchTest("expired", (error, result: any[]) => {
-          if (error) console.log(error);
-          setLoading(false);
-          setData(
-            result?.map((test: any) => ({
-              ...test,
-              key: test.id,
-              id: test.id,
-              name: test.name,
-              createdAt: test.createdAt,
-              status: test.status,
-              exam: test.exam,
-            }))
-          );
-        });
-        break;
-      default:
-        break;
-    }
-  }
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
@@ -237,21 +152,8 @@ const Test = () => {
   }, []);
 
   return (
-    <MainLayout name="Test">
-       {currentUser?.userType!="student"?<div className={styles.container}>
-        <div className={styles.header}>
-          <Tabs value={tab} onChange={handleChangeTab}>
-            <Tab label="Ongoing" />
-            <Tab label="Active" />
-            <Tab label="Inactive" />
-            <Tab label="Expired" />
-          </Tabs>
-          {permissions.find((value) => value === "CREATE_TEST") && (
-            <Button onClick={() => navigate("/test/new")} icon={<AddIcon />}>
-              Add New
-            </Button>
-          )}
-        </div>
+    <MainLayout name="Upcoming Test">
+       <div className={styles.container}>
         <TabPanel value={tab} index={0}>
           <div className={styles.data}>
             <CustomTable
@@ -306,9 +208,6 @@ const Test = () => {
           Content
         </Modal>
       </div>
-      : (
-        <Error />
-      )}
     </MainLayout>
   );
 };
