@@ -724,16 +724,29 @@ export const Student: React.FC<{
     { name: "IOY12", value: "IOY12" },
     { name: "SAB12", value: "SAB12" },
   ];
-
+  const userCtx = useContext(AuthContext);
+  // console.log(userCtx);
+  const rolesAllowed = userCtx?.roles;
+  let permissions: any = [];
+  Object.values(rolesAllowed).map(
+    (role: any) => (permissions = [...permissions, ...role.permissions])
+  );
+  // console.log(permissions);
   useEffect(() => {
     async function getRolesOption() {
       const res = await API_USERS().get(`/roles/all`);
+
+      console.log({ res: res.data });
       setRolesInfo((prev: any) => ({
         ...prev,
-        options: res.data.map((item: any) => ({
-          name: item.name,
-          value: item.id,
-        })),
+        options: res.data
+          .map((item: any) => ({
+            name: item.name,
+            value: item.id,
+          }))
+          .filter((data: any) => {
+            return permissions.includes("CREATE_" + data.value.slice(5));
+          }),
         actual: res.data,
       }));
     }

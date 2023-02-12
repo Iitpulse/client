@@ -96,7 +96,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
       let batch = "";
       if (currentUser?.userType === "student" && userDetails?.batch)
         batch = userDetails?.batch;
-      // console.log(batch, currentUser?.userType, userDetails);
+      console.log(batch, currentUser?.userType, userDetails);
       const res = await API_TESTS().get(`/test`, {
         params: {
           status,

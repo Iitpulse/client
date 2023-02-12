@@ -272,6 +272,15 @@ const Question: React.FC<{
   }, [localData]);
 
   useEffect(() => {
+    console.log({
+      localData,
+      data,
+      isInitialValuePassedLocal,
+      isInitialValuePassed,
+    });
+  });
+
+  useEffect(() => {
     if (type === "objective" && isInitialValuePassedLocal) {
       //paas objective template in set data along with idx
       console.log("To Objective");
@@ -318,16 +327,7 @@ const Question: React.FC<{
         idx
       );
     }
-    console.log("heyyaa", {
-      type,
-      isInitialValuePassed,
-      isInitialValuePassedLocal,
-    });
   }, [type]);
-
-  useEffect(() => {
-    console.log({ isInitialValuePassedLocal });
-  }, [isInitialValuePassedLocal]);
 
   return (
     <div className={styles.question}>

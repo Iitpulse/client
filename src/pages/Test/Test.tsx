@@ -8,6 +8,7 @@ import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";
+import { AuthContext } from "./../../utils/auth/AuthContext";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -119,6 +120,14 @@ const Test = () => {
   const [data, setData] = useState<any>([]);
 
   const { state, fetchTest } = useContext(TestContext);
+  const userCtx = useContext(AuthContext);
+  // console.log(userCtx);
+  const roles = userCtx?.roles;
+  let permissions: any = [];
+  Object.values(roles).map(
+    (role: any) => (permissions = [...permissions, ...role.permissions])
+  );
+  // console.log(permissions);
   const { ongoingTests, activeTests, inactiveTests, expiredTests } = state;
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
@@ -235,9 +244,11 @@ const Test = () => {
             <Tab label="Inactive" />
             <Tab label="Expired" />
           </Tabs>
-          <Button onClick={() => navigate("/test/new")} icon={<AddIcon />}>
-            Add New
-          </Button>
+          {permissions.find((value) => value === "CREATE_TEST") && (
+            <Button onClick={() => navigate("/test/new")} icon={<AddIcon />}>
+              Add New
+            </Button>
+          )}
         </div>
         <TabPanel value={tab} index={0}>
           <div className={styles.data}>

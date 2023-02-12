@@ -329,15 +329,34 @@ const Admin: React.FC<{ admin: UserProps; handleCloseModal: () => void }> = (
 
     // handleReset();
   }
+  const userCtx = useContext(AuthContext);
+  // console.log(userCtx);
+  const rolesAllowed = userCtx?.roles;
+  let permissions: any = [];
+  Object.values(rolesAllowed).map(
+    (role: any) => (permissions = [...permissions, ...role.permissions])
+  );
+  // console.log(permissions);
   useEffect(() => {
     async function getRolesOption() {
       const res = await API_USERS().get(`/roles/all`);
+      const roleMap: any = {
+        ROLE_STUDENT: "CREATE_STUDENT",
+        ROLE_TEACHER: "CREATE_TEACHER",
+        ROLE_ADMIN: "CREATE_ADMIN",
+        ROLE_OPERATOR: "CREATE_OPERATOR",
+        ROLE_MANAGER: "CREATE_MANAGER",
+      };
       setRolesInfo((prev: any) => ({
         ...prev,
-        options: res.data.map((item: any) => ({
-          name: item.name,
-          value: item.id,
-        })),
+        options: res.data
+          .map((item: any) => ({
+            name: item.name,
+            value: item.id,
+          }))
+          .filter((data: any) => {
+            return permissions.includes("CREATE_" + data.value.slice(5));
+          }),
         actual: res.data,
       }));
     }

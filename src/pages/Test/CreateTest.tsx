@@ -176,6 +176,7 @@ const CreateTest = () => {
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
           durationInMinutes: pattern?.durationInMinutes,
+          batches,
         };
         console.log({ finalTest });
         // if (finalTest) return;
