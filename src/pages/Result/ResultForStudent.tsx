@@ -154,7 +154,12 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         ))}
       </div>
       <div className={styles.detailedBtns}>
-        <Button onClick={() => setViewDetaildAnalysis(true)} color="primary">
+        <Button
+          onClick={() => {
+            setViewDetaildAnalysis(true);
+          }}
+          color="primary"
+        >
           View Detailed Analysis
         </Button>
         <StyledMUISelect

@@ -317,3 +317,10 @@
     background-color: var(--clr-success);
   }
 }
+
+.stepIcon {
+  svg {
+    height: 30px;
+    width: 30px;
+  }
+}
