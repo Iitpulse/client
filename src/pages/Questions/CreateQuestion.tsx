@@ -96,6 +96,7 @@ const CreateQuestion = () => {
   const [subject, setSubject] = useState<any>({ name: "", value: "" });
   const [chapters, setChapters] = useState<Array<IOptionType>>([]);
   const [topics, setTopics] = useState<Array<IOptionType>>([]);
+  const [isSubmitClicked, setIsSubmitClicked] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<string>("");
   const [sources, setSources] = useState<Array<IOptionType>>([]);
   const [uploadedBy, setUploadedBy] = useState<{
@@ -110,6 +111,7 @@ const CreateQuestion = () => {
   const [examOptions, setExamOptions] = useState<any>([]);
   const [sourceOptions, setSourceOptions] = useState<any>([]);
   const [data, setData] = useState<any>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isInitialValuePassed, setIsInitialValuePassed] =
     useState<boolean>(false);
@@ -347,6 +349,7 @@ const CreateQuestion = () => {
 
   async function handleAddTopic(topic: any) {
     // console.log({ subject, chapters, topic });
+
     try {
       const res = await API_QUESTIONS().post("/subject/create-topic", {
         subjectId: subject._id,
@@ -394,17 +397,14 @@ const CreateQuestion = () => {
     // console.log({ res });
   }
 
-  useEffect(() => {
-    console.log({ data });
-  }, [data]);
-
   async function handleSubmitQuestion() {
     //check if the url has edit in it then update the question
     // else create a new question
     // console.log({ data });
+
     try {
       if (currentUser) {
-        console.log("Im inside");
+        // console.log("Im inside");
         let questionCore = {
           id: id ? id : Date.now().toString(),
           type,
@@ -595,12 +595,13 @@ const CreateQuestion = () => {
                 if (id) {
                   let loading = message.loading("Updating Question...");
 
-                  const res = await API_QUESTIONS().put(
-                    `/paragraph/update/${id}`,
-                    finalQuestion
-                  );
+                  // const res = await API_QUESTIONS().put(
+                  //   `/paragraph/update/${id}`,
+                  //   finalQuestion
+                  // );
 
                   loading();
+
                   message.success("Question Updated successfully");
                 } else {
                   let loading = message.loading("Creating Question...");
@@ -613,6 +614,7 @@ const CreateQuestion = () => {
                   console.log({ res });
                   loading();
                   message.success("Question created successfully");
+                  setIsSubmitting(false);
                   setData({});
                 }
               }
@@ -671,7 +673,23 @@ const CreateQuestion = () => {
     } catch (error) {
       message.success("ERR_CREATE_QUESTION" + error);
     }
+    // setIsSubmitting(false);
   }
+
+  useEffect(() => {
+    console.log({ questionDataMain: data });
+  }, [data]);
+
+  useEffect(() => {
+    if (
+      isSubmitting &&
+      (data?.en?.question || data?.questions[0]?.en?.question) &&
+      isSubmitClicked
+    ) {
+      handleSubmitQuestion();
+      setIsSubmitClicked(false);
+    }
+  });
 
   return (
     <MainLayout name="Create Question">
@@ -793,11 +811,18 @@ const CreateQuestion = () => {
                   subject?.name,
                   chapters,
                   topics,
-                  difficulty
+                  difficulty,
+                  isSubmitting,
+                  setIsSubmitting
                 )}
             </section>
             <div className={styles.submitButton}>
-              <Button onClick={handleSubmitQuestion}>
+              <Button
+                onClick={(e) => {
+                  setIsSubmitting(true);
+                  setIsSubmitClicked(true);
+                }}
+              >
                 {id ? "Update" : "Submit"}
               </Button>
             </div>
@@ -819,7 +844,9 @@ function getQuestionFromType(
   subject: string,
   chapters: Array<any>,
   topics: Array<any>,
-  difficulty: string
+  difficulty: string,
+  isSubmitting: boolean,
+  setIsSubmitting: (data: any) => void
 ) {
   switch (type.toLowerCase()) {
     case "objective":
@@ -857,6 +884,7 @@ function getQuestionFromType(
           difficulty={difficulty}
           data={data}
           setData={setData}
+          isSubmitting={isSubmitting}
           isInitialValuePassed={isInitialValuePassed}
           setIsInitialValuePassed={setIsInitialValuePassed}
         />

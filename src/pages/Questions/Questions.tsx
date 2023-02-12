@@ -451,7 +451,11 @@ const Questions = () => {
         "<br/>" +
         question.questions
           .map((question: any, idx: any) => {
-            if (question.type === "single" || question.type === "multiple") {
+            if (
+              question.type === "single" ||
+              question.type === "multiple" ||
+              question.type === "objective"
+            ) {
               return (
                 `<span>Question ${idx + 1}</span>` +
                 question.en.question +

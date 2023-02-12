@@ -85,7 +85,7 @@ const Integer: React.FC<Props> = ({
   useEffect(() => {
     if (!isInitialValuePassed) {
       if (data?._id) {
-        console.log("YOHO", { data });
+        // console.log("YOHO", { data });
         setValues({
           en: {
             question: data?.en?.question,
@@ -100,14 +100,13 @@ const Integer: React.FC<Props> = ({
         setAnswerType(data.type);
         setTo(data?.correctAnswer?.to);
         setFrom(data?.correctAnswer?.from);
-        console.log({ test: data });
+        // console.log({ test: data });
         //@ts-ignore
         setIsInitialValuePassed(true);
       }
     }
     if (isComingFromParagraph && !isInitialValuePassed) {
       // if (data?._id) {
-      console.log("FUCK OFF I WANT TO TEST THIS", { data });
 
       setValues({
         en: {
@@ -126,13 +125,13 @@ const Integer: React.FC<Props> = ({
 
       //@ts-ignore
       setIsInitialValuePassed(true);
-      console.log("Ye kya hai phir");
+      // console.log("Ye kya hai phir");
     }
   }, [data, isInitialValuePassed]);
 
-  useEffect(() => {
-    console.log({ isInitialValuePassed });
-  });
+  // useEffect(() => {
+  //   console.log({ isInitialValuePassed });
+  // });
 
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);

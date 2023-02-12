@@ -32,11 +32,11 @@ const AuthContextProvider = (props: ProviderProps) => {
   useEffect(() => {
     const user = localStorage.getItem(AUTH_TOKEN);
     async function getUserDetails(id: string, userType: string) {
-      console.log(id);
+      // console.log(id);
       const res = await API_USERS().get(`/${userType}/single`, {
         params: { id },
       });
-      console.log({ id, res });
+      // console.log({ id, res });
       setuserDetails(res.data);
     }
     if (user) {
@@ -56,7 +56,7 @@ const AuthContextProvider = (props: ProviderProps) => {
         };
       });
       // console.log({ hello: newRoles });
-      console.log({ decoded });
+      // console.log({ decoded });
       setCurrentUser({
         email: decoded.email,
         id: decoded.id,
