@@ -10,14 +10,13 @@ import {
 } from "../../components/";
 import Question from "./components/Question";
 import { Dispatch, memo, SetStateAction, useEffect, useState } from "react";
-import {
-  Tab,
-  Tabs,
-  Menu,
-  MenuItem,
-  IconButton,
-  CircularProgress,
-} from "@mui/material";
+import { Tab, Tabs, Menu, MenuItem, IconButton } from "@mui/material";
+import CircularProgress, {
+  circularProgressClasses,
+  CircularProgressProps,
+} from "@mui/material/CircularProgress";
+
+import { styled } from "@mui/material/styles";
 import calendar from "../../assets/icons/calendar.svg";
 import yellowFlag from "../../assets/icons/yellowFlag.svg";
 import blueUsers from "../../assets/icons/blueUsers.svg";
@@ -30,6 +29,7 @@ import { result } from "../../utils/";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import MainLayout from "../../layouts/MainLayout";
 import timer from "../../assets/icons/timer.svg";
+import { LeftCircleOutlined, RightCircleOutlined } from "@ant-design/icons";
 
 // const results = [
 //   {
@@ -58,6 +58,7 @@ import timer from "../../assets/icons/timer.svg";
 //     ],
 //   },
 // ];
+
 function roundOffToOneDecimal(num: number) {
   return Math.round(num * 10) / 10;
 }
@@ -402,10 +403,33 @@ export const HeaderDetails: React.FC<IHeaderDetails> = ({
               <h2>
                 {attempted}/<span>{totalQuestions}</span>
               </h2>
-              <CircularProgress
-                variant="determinate"
-                value={Math.floor((attempted / totalQuestions) * 100)}
-              />
+              <div style={{ position: "relative" }}>
+                <CircularProgress
+                  variant="determinate"
+                  sx={{
+                    color: (theme) =>
+                      theme.palette.grey[
+                        theme.palette.mode === "light" ? 200 : 800
+                      ],
+                  }}
+                  size={40}
+                  thickness={4}
+                  value={100}
+                />
+                <CircularProgress
+                  variant="determinate"
+                  sx={{
+                    position: "absolute",
+                    left: 0,
+                    [`& .${circularProgressClasses.circle}`]: {
+                      strokeLinecap: "round",
+                    },
+                  }}
+                  size={40}
+                  thickness={4}
+                  value={Math.floor((attempted / totalQuestions) * 100)}
+                />
+              </div>
             </div>
           </div>
         </Card>
@@ -426,12 +450,17 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
   const [tab, setTab] = useState(0);
   const [viewSol, setViewSol] = useState("");
   const [isViewSolModalOpen, setIsViewSolModalOpen] = useState(false);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [subIdx, setSubIdx] = useState(0);
   console.log("hello", sections[tab]);
   interface TabPanelProps {
     children?: React.ReactNode;
     index: number;
     value: number;
   }
+  useEffect(() => {
+    window.scrollBy(0, 50);
+  }, []);
   function TabPanel(props: TabPanelProps) {
     const { children, value, index, ...other } = props;
 
@@ -455,6 +484,10 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
+  useEffect(() => {
+    setQuestionIndex(0);
+    setSubIdx(0);
+  }, [tab]);
 
   return (
     <>
@@ -463,20 +496,55 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
           {sections?.map((item: any, index: number) => (
             <Tab label={item?.name} key={index} />
           ))}
+          <div style={{ marginLeft: "auto" }}>
+            <IconButton
+              onClick={() => {
+                if (questionIndex == 0 && subIdx !== 0) {
+                  setQuestionIndex(
+                    sections[tab]?.subSections[subIdx - 1]?.questions.length - 1
+                  );
+                  setSubIdx(subIdx - 1);
+                } else {
+                  setQuestionIndex(questionIndex - 1);
+                }
+              }}
+              disabled={subIdx === 0 && questionIndex === 0}
+            >
+              <LeftCircleOutlined className={styles.stepIcon} />
+            </IconButton>
+            <IconButton
+              onClick={() => {
+                if (
+                  questionIndex + 1 ===
+                    sections[tab]?.subSections[subIdx]?.questions.length &&
+                  subIdx + 1 !== sections[tab]?.subSections.length
+                ) {
+                  setQuestionIndex(0);
+                  setSubIdx(subIdx + 1);
+                } else {
+                  setQuestionIndex(questionIndex + 1);
+                }
+              }}
+              disabled={
+                subIdx === sections[tab]?.subSections.length - 1 &&
+                questionIndex ===
+                  sections[tab]?.subSections[subIdx]?.questions.length - 1
+              }
+            >
+              <RightCircleOutlined className={styles.stepIcon} />
+            </IconButton>
+          </div>
         </Tabs>
         {sections?.map((section: any, index: number) => (
           <TabPanel value={tab} index={index} key={index}>
-            {section?.subSections?.map(
-              (subSection: any, subsectionIndex: number) => (
-                <SubSection
-                  totalAppeared={totalAppeared}
-                  subSection={subSection}
-                  setIsViewSolModalOpen={setIsViewSolModalOpen}
-                  setViewSol={setViewSol}
-                  key={subsectionIndex}
-                />
-              )
-            )}
+            <SubSection
+              totalAppeared={totalAppeared}
+              subSection={section?.subSections[subIdx]}
+              setIsViewSolModalOpen={setIsViewSolModalOpen}
+              setViewSol={setViewSol}
+              key={subIdx}
+              questionIndex={questionIndex}
+            />
           </TabPanel>
         ))}
       </Card>
@@ -535,6 +603,7 @@ interface ISubSection {
   setIsViewSolModalOpen: Dispatch<SetStateAction<boolean>>;
   setViewSol: (id: string) => void;
   totalAppeared: number;
+  questionIndex: number;
 }
 
 const SubSection: React.FC<ISubSection> = ({
@@ -542,22 +611,21 @@ const SubSection: React.FC<ISubSection> = ({
   setIsViewSolModalOpen,
   setViewSol,
   totalAppeared,
+  questionIndex,
 }) => {
+  console.log({ val: subSection?.questions });
+  let question = subSection?.questions[questionIndex];
   return (
     <>
-      {Object.values(subSection?.questions)?.map(
-        (question: any, questionIndex: number) => (
-          <Question
-            totalAppeared={totalAppeared}
-            {...question}
-            attemptedBy={2}
-            setIsViewSolModalOpen={setIsViewSolModalOpen}
-            setViewSol={setViewSol}
-            key={question.id}
-            count={questionIndex + 1}
-          />
-        )
-      )}
+      <Question
+        totalAppeared={totalAppeared}
+        {...question}
+        attemptedBy={2}
+        setIsViewSolModalOpen={setIsViewSolModalOpen}
+        setViewSol={setViewSol}
+        key={question.id}
+        count={questionIndex + 1}
+      />
     </>
   );
 };
