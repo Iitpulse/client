@@ -115,7 +115,8 @@ export const PERMISSIONS = {
     DELETE: "DELETE_QUESTION",
   },
   USER: {
-    CREATE: "CREATE_USER",
+    // CREATE: "CREATE_USER",
+
     READ: "READ_USER",
     UPDATE: "UPDATE_USER",
     DELETE: "DELETE_USER",

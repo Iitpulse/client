@@ -17,7 +17,7 @@ const Result = () => {
   const [error, setError] = useState("");
 
   const hasResultViewPermission = usePermission(PERMISSIONS.TEST.VIEW_RESULT);
-
+  console.log("hasResultViewPermission", hasResultViewPermission);
   const { testId, studentId } = useParams();
   const { currentUser } = useContext(AuthContext);
 
@@ -26,15 +26,18 @@ const Result = () => {
       setError("");
       if (currentUser?.userType === "student" || studentId) {
         setLoading(true);
+        let sid = studentId;
+        if (!studentId) sid = currentUser?.id;
         try {
           const res = await API_TESTS().get(`/test/result/student`, {
             params: {
               testId,
-              studentId,
+              studentId: sid,
             },
           });
           console.log("student result", res.data);
           setFinalTest(res.data);
+          console.log({ data: res.data });
         } catch (error: any) {
           console.log("ERROR_FETCH_RESULT", error);
           message.error(error?.response?.data?.message);
@@ -60,8 +63,16 @@ const Result = () => {
     }
     // getTest();
     getResult();
+    console.log({ studentId });
   }, [testId, currentUser, studentId]);
-
+  if (!hasResultViewPermission) {
+    return (
+      <ResultForStudent
+        finalTest={finalTest}
+        hasResultViewPermission={hasResultViewPermission}
+      />
+    );
+  }
   return (
     <MainLayout name="Result">
       <div className={styles.container}>
