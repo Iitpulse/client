@@ -74,16 +74,28 @@ const Test = () => {
     {
       title: "Actions",
       fixed: "right",
-      render: (row: any) => (
-        <Button
-          onClick={() => {
-            console.log({ row });
-            navigate(`/test/result/${row.name}/${row.exam.name}/${row._id}`);
-          }}
-        >
-          View Result
-        </Button>
-      ),
+      render: (row: any) => {
+        console.log({ row });
+        if (
+          row?.result?.publishProps?.type === "immediately" ||
+          row?.result?.publishProps?.isPublished
+        ) {
+          return (
+            <Button
+              onClick={() => {
+                console.log({ row });
+                navigate(
+                  `/test/result/${row.name}/${row.exam.name}/${row._id}`
+                );
+              }}
+            >
+              View Result
+            </Button>
+          );
+        } else {
+          return <p>Not Published yet</p>;
+        }
+      },
     },
   ];
 

@@ -72,6 +72,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
               <p>{timeTakenInSeconds.toFixed(2)}</p>
             </div>
           </div>
+
           <CircularProgress color={color} progress={(marks / 360) * 100} />
         </div>
       </div>
@@ -118,6 +119,7 @@ const CircularProgress: React.FC<{ color: string; progress: number }> = ({
         variant="determinate"
         value={progress}
       />
+
       <p className={styles.progress}>{roundToOne(progress)}%</p>
     </div>
   );

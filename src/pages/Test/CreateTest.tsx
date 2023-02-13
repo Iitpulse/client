@@ -146,8 +146,36 @@ const CreateTest = () => {
       setPatternOptions([]);
     }
   }, [test]);
-
+  const allQuestionsFilled = () => {
+    let allFilled = true;
+    test.sections.forEach((section: ISection) => {
+      section.subSections.forEach((subSection: ISubSection) => {
+        if (!subSection?.questions) {
+          allFilled = false;
+        }
+      });
+    });
+    return allFilled;
+  };
+  const isTestFormFilled = () => {
+    return (
+      test.name &&
+      test.description &&
+      batches.length > 0 &&
+      status.name.length > 0 &&
+      testDateRange.length > 0 &&
+      testDateRange[0] &&
+      testDateRange[1] &&
+      pattern?.name &&
+      allQuestionsFilled()
+    );
+  };
   async function handleClickSubmit() {
+    console.log(test);
+
+    if (!isTestFormFilled()) {
+      return message.error("Please fill all the fields");
+    }
     if (currentUser) {
       const creatingTest = message.loading("Creating Test", 0);
       try {
