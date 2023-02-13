@@ -42,6 +42,16 @@ import CustomDateRangePicker from "../../components/CusotmDateRangePicker/Custom
 import moment from "moment";
 import MainLayout from "../../layouts/MainLayout";
 
+const defaultState = {
+  nam: "",
+  desc: "",
+  exam: "",
+  batches: "",
+  date: "",
+  status: "",
+  pattern: ""
+};
+
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
   const { id, name, description, exam, validity, sections } = test;
@@ -63,6 +73,8 @@ const CreateTest = () => {
 
   const { currentUser } = useContext(AuthContext);
   const { exams } = useContext(TestContext);
+
+  const [helperTexts, setHelperTexts] = useState(defaultState);
 
   useEffect(() => {
     async function fetchBatch() {
@@ -158,9 +170,55 @@ const CreateTest = () => {
     return allFilled;
   };
   const isTestFormFilled = () => {
+    setHelperTexts(defaultState);
+    if(!test.name){
+      setHelperTexts((prevState) => ({
+        ...prevState,
+        nam: "Fill in Name",
+      }));
+    }
+    if(!test.description){
+      setHelperTexts((prevState) => ({
+        ...prevState,
+        desc: "Fill Description",
+      }));
+    }
+    if(!test.exam.id){
+      setHelperTexts((prevState) => ({
+        ...prevState,
+        exam: "Select Exam",
+      }));
+    }
+    if(batches.length === 0){
+      setHelperTexts((prevState) => ({
+        ...prevState,
+        batches: "Fill Batches",
+      }));
+    }
+    if(status.name.length === 0){
+      setHelperTexts((prevState) => ({
+        ...prevState,
+        status: "Select Status",
+      }));
+    }
+    if(testDateRange.length === 0 || !testDateRange[0] || !testDateRange[1]){
+      setHelperTexts((prevState)=>({
+        ...prevState,
+        date: "Select valid dates",
+      }));
+    }
+
+    if(!pattern?.name){
+      setHelperTexts((prevState)=>({
+        ...prevState,
+        pattern: "Select Pattern",
+      }));
+    }
+
     return (
       test.name &&
       test.description &&
+      test.exam.id &&
       batches.length > 0 &&
       status.name.length > 0 &&
       testDateRange.length > 0 &&
@@ -266,6 +324,7 @@ const CreateTest = () => {
             label="Name"
             value={name}
             variant="outlined"
+            helperText={helperTexts.nam}
             onChange={onChangeInput}
           />
           <StyledMUITextField
@@ -273,6 +332,7 @@ const CreateTest = () => {
             label="Description"
             value={description}
             variant="outlined"
+            helperText={helperTexts.desc}
             onChange={onChangeInput}
           />
           <MUISimpleAutocomplete
