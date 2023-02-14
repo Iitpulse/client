@@ -178,22 +178,60 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Users</span>}
           </NavLink>
         )}
-        {hasPermissions?.hasTestPermission && (
-          <NavLink
-            style={isCollapsed ? { width: "fit-content" } : {}}
-            to="/test"
-            className={({ isActive }) =>
-              isActive
-                ? clsx(styles.navLink, styles.activeNavLink)
-                : styles.navLink
-            }
-          >
-            <div className={styles.iconContainer}>
-              <TestsIcon />
-            </div>{" "}
-            {isCollapsed || <span>Test</span>}
-          </NavLink>
-        )}
+
+
+        {/* chnages yaha */}
+        {currentUser?.userType === "student"? 
+            <NavLink
+              style={isCollapsed ? { width: "fit-content" } : {}}
+              to="/ongoing-test"
+              className={({ isActive }) =>
+                isActive
+                  ? clsx(styles.navLink, styles.activeNavLink)
+                  : styles.navLink
+              }
+            >
+              <div className={styles.iconContainer}>
+                <TestsIcon />
+              </div>{" "}
+              {isCollapsed || <span>Ongoing Test</span>}
+            </NavLink> 
+            :
+            hasPermissions?.hasTestPermission && (
+            <NavLink
+              style={isCollapsed ? { width: "fit-content" } : {}}
+              to="/test"
+              className={({ isActive }) =>
+                isActive
+                  ? clsx(styles.navLink, styles.activeNavLink)
+                  : styles.navLink
+              }
+            >
+              <div className={styles.iconContainer}>
+                <TestsIcon />
+              </div>{" "}
+              {isCollapsed || <span>Test</span>}
+            </NavLink>
+          )
+        }
+
+        {currentUser?.userType === "student" && (
+            <NavLink
+              style={isCollapsed ? { width: "fit-content" } : {}}
+              to="/upcoming-test"
+              className={({ isActive }) =>
+                isActive
+                  ? clsx(styles.navLink, styles.activeNavLink)
+                  : styles.navLink
+              }
+            >
+              <div className={styles.iconContainer}>
+                <TestsIcon />
+              </div>{" "}
+              {isCollapsed || <span>Upcoming Test</span>}
+            </NavLink>
+          )}
+
         {hasPermissions?.hasPatternPermission && (
           <NavLink
             style={isCollapsed ? { width: "fit-content" } : {}}

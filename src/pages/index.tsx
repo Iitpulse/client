@@ -1,6 +1,8 @@
 export { default as Home } from "./Home/Home";
 export { default as Users } from "./Users/Users";
 export { default as Test } from "./Test/Test";
+export { default as TestOG } from "./Test/TestOG";
+export { default as TestUC } from "./Test/TestUC";
 export { default as CreateTest } from "./Test/CreateTest";
 export { default as Roles } from "./Roles/Roles";
 export { default as Batches } from "./Batches/Batches";

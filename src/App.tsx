@@ -3,6 +3,8 @@ import {
   Home,
   Roles,
   Test,
+  TestOG,
+  TestUC,
   Users,
   Questions,
   Pattern,
@@ -98,6 +100,14 @@ const App = () => {
                     <Route
                       path="/test"
                       element={<PrivateRoute component={Test} name="Test" />}
+                    />
+                    <Route
+                      path="/ongoing-test"
+                      element={<PrivateRoute component={TestOG} name="Ongoing Test" />}
+                    />
+                    <Route
+                      path="/upcoming-test"
+                      element={<PrivateRoute component={TestUC} name="Upcoming Test" />}
                     />
                     <Route
                       path="/test/new"
