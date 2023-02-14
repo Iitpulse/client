@@ -70,9 +70,9 @@ const MenuDrawer = (props: MenuDrawerProps) => {
   //   hasRolePermission,
   // ]);
 
-  useEffect(() => {
-    console.log({ loading, hasPermissions });
-  }, [hasPermissions, loading]);
+  // useEffect(() => {
+  //   console.log({ loading, hasPermissions });
+  // }, [hasPermissions, loading]);
 
   useEffect(() => {
     // Close the menu drawer if width is <= 1300px

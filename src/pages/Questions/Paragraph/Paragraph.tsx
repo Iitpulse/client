@@ -30,6 +30,7 @@ interface Props {
   chapters: Array<any>;
   topics: Array<any>;
   difficulty: string;
+  isSubmitting?: boolean;
 }
 
 Quill.register("modules/imageResize", ImageResize);
@@ -45,6 +46,7 @@ const Paragraph: React.FC<Props> = ({
   chapters,
   topics,
   difficulty,
+  isSubmitting,
 }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
@@ -103,34 +105,33 @@ const Paragraph: React.FC<Props> = ({
   }
 
   function handleChangeData(values: any, idx: number) {
-    console.log({ values, idx });
-    setQuestions(
-      questions.map((question, i) => (i === idx ? values : question))
+    // console.log({ values, idx });
+    setQuestions((prev) =>
+      prev.map((question, i) => (i === idx ? values : question))
     );
   }
 
   useEffect(() => {
     if (isInitialValuePassed) {
-      setData({
-        paragraph,
-        questions,
-        type: "paragraph",
+      setData((prev: any) => {
+        console.log(prev);
+        return { ...prev, paragraph, questions, type: "paragraph" };
       });
-      console.log({ yohohoyohoho: "sdfs", questions });
+      // console.log({ yohohoyohoho: "sdfs", questions });
     }
   }, [questions]);
 
   useEffect(() => {
     if (!isInitialValuePassed) {
       if (data?._id) {
-        console.log("YOHO", { data });
+        // console.log("YOHO", { data });
         setData({
           paragraph: data?.paragraph,
           questions: data?.questions,
           type: "paragraph",
         });
         setQuestions(data?.questions);
-        console.log({ questionsHola: data?.questions });
+        // console.log({ questionsHola: data?.questions });
         setParagraph(data?.paragraph);
         //@ts-ignore
         setIsInitialValuePassed(true);
@@ -210,6 +211,7 @@ const Paragraph: React.FC<Props> = ({
               setData={handleChangeData}
               setIsInitialValuePassed={setIsInitialValuePassed}
               isInitialValuePassed={false}
+              isSubmitting={isSubmitting}
             />
           ))}
         </div>
@@ -231,6 +233,7 @@ const Question: React.FC<{
   setData: (data: any, idx: number) => void;
   isInitialValuePassed: boolean;
   setIsInitialValuePassed?: (value: boolean) => void;
+  isSubmitting?: boolean;
 }> = ({
   currentLanguage,
   idx,
@@ -242,6 +245,7 @@ const Question: React.FC<{
   setData,
   isInitialValuePassed,
   setIsInitialValuePassed,
+  isSubmitting,
 }) => {
   const [type, setType] = useState(
     (data.type === "single" || data.type === "multiple"
@@ -256,6 +260,16 @@ const Question: React.FC<{
   });
 
   useEffect(() => {
+    if (isSubmitting) {
+      if (type === "") {
+        setError({ type: true });
+      }
+      console.log("isSubmitting", { type, localData });
+      setData({ ...localData, type }, idx);
+    }
+  });
+
+  useEffect(() => {
     if (isInitialValuePassed) {
       setData(localData, idx);
       setType(
@@ -266,7 +280,7 @@ const Question: React.FC<{
       setIsInitialValuePassedLocal(true);
     } else {
       setData(data, idx);
-      console.log({ testingtheType: data.type });
+      // console.log({ testingtheType: data.type });
       setIsInitialValuePassedLocal(true);
     }
   }, [localData]);
@@ -274,16 +288,20 @@ const Question: React.FC<{
   useEffect(() => {
     console.log({
       localData,
-      data,
-      isInitialValuePassedLocal,
-      isInitialValuePassed,
+      type,
+      test:
+        data.type === "objective" ||
+        data.type === "multiple" ||
+        data.type === "single"
+          ? true
+          : false,
     });
   });
 
   useEffect(() => {
     if (type === "objective" && isInitialValuePassedLocal) {
       //paas objective template in set data along with idx
-      console.log("To Objective");
+      // console.log("To Objective");
       let tempOptions = generateOptions("single", 4);
       setData(
         {
@@ -305,7 +323,7 @@ const Question: React.FC<{
       );
     } else if (type === "integer" && isInitialValuePassedLocal) {
       //pass integer template in set data along with idx
-      console.log("To Integer");
+      // console.log("To Integer");
       setData(
         {
           en: {
@@ -340,9 +358,7 @@ const Question: React.FC<{
       />
       <br />
       <br />
-      {data.type === "objective" ||
-      data.type === "multiple" ||
-      data.type === "single" ? (
+      {type === "objective" || type === "multiple" || type === "single" ? (
         <Objective
           subject={subject}
           chapters={chapters}
