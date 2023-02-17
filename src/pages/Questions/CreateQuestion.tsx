@@ -99,6 +99,7 @@ const CreateQuestion = () => {
   const [isSubmitClicked, setIsSubmitClicked] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<string>("");
   const [sources, setSources] = useState<Array<IOptionType>>([]);
+  const [isStable, setIsStable] = useState<boolean>(false);
   const [uploadedBy, setUploadedBy] = useState<{
     userType: string;
     id: string;
@@ -594,19 +595,18 @@ const CreateQuestion = () => {
               if (dataValid.state) {
                 if (id) {
                   let loading = message.loading("Updating Question...");
-
-                  // const res = await API_QUESTIONS().put(
-                  //   `/paragraph/update/${id}`,
-                  //   finalQuestion
-                  // );
-
+                  console.log({ finalQuestion, data });
+                  const res = await API_QUESTIONS().put(
+                    `/paragraph/update/${id}`,
+                    finalQuestion
+                  );
+                  console.log({ res });
                   loading();
-
+                  setIsSubmitting(false);
                   message.success("Question Updated successfully");
                 } else {
                   let loading = message.loading("Creating Question...");
-                  console.log({ finalQuestion, data });
-                  // return;
+
                   const res = await API_QUESTIONS().post(
                     `/paragraph/new`,
                     finalQuestion
@@ -624,7 +624,15 @@ const CreateQuestion = () => {
             {
               const finalQuestion: IQuestionMatrix = {
                 ...questionCore,
-                correctAnswers: data.correctAnswers,
+                correctAnswer: data.correctAnswer,
+                en: {
+                  question: data.en.question,
+                  solution: data.en.solution,
+                },
+                hi: {
+                  question: data.hi.question,
+                  solution: data.hi.solution,
+                },
               };
               // console.log("MATRIX", { finalQuestion }, "Before Validation");
               let dataValid = checkQuestionValidity(
@@ -645,6 +653,7 @@ const CreateQuestion = () => {
                     finalQuestion
                   );
                   loading();
+                  console.log({ res, finalQuestion });
                   message.success("Question Updated successfully");
                 } else {
                   let loading = message.loading("Creating Question...");
@@ -653,6 +662,7 @@ const CreateQuestion = () => {
                     finalQuestion
                   );
                   loading();
+                  console.log({ res, finalQuestion });
                   message.success("Question created successfully");
                   setData({});
                 }
@@ -681,11 +691,16 @@ const CreateQuestion = () => {
   }, [data]);
 
   useEffect(() => {
-    if (
-      isSubmitting &&
-      (data?.en?.question || data?.questions[0]?.en?.question) &&
-      isSubmitClicked
-    ) {
+    if (type === "paragraph") {
+      if (
+        isSubmitting &&
+        (data?.en?.question || data?.questions[0]?.en?.question) &&
+        isSubmitClicked
+      ) {
+        handleSubmitQuestion();
+        setIsSubmitClicked(false);
+      }
+    } else if (isSubmitClicked) {
       handleSubmitQuestion();
       setIsSubmitClicked(false);
     }
@@ -813,7 +828,9 @@ const CreateQuestion = () => {
                   topics,
                   difficulty,
                   isSubmitting,
-                  setIsSubmitting
+                  setIsSubmitting,
+                  isStable,
+                  setIsStable
                 )}
             </section>
             <div className={styles.submitButton}>
@@ -846,7 +863,9 @@ function getQuestionFromType(
   topics: Array<any>,
   difficulty: string,
   isSubmitting: boolean,
-  setIsSubmitting: (data: any) => void
+  setIsSubmitting: (data: any) => void,
+  isStable: boolean,
+  setIsStable: (data: any) => void
 ) {
   switch (type.toLowerCase()) {
     case "objective":
@@ -883,6 +902,8 @@ function getQuestionFromType(
           topics={topics}
           difficulty={difficulty}
           data={data}
+          isStable={isStable}
+          setIsStable={setIsStable}
           setData={setData}
           isSubmitting={isSubmitting}
           isInitialValuePassed={isInitialValuePassed}
