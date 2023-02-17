@@ -104,7 +104,7 @@ const DetailedAnalysisMain = () => {
       <div
         role="tabpanel"
         hidden={value !== index}
-        id={`simple-tabpanel-${index}`}
+        id={"tabpanel-" + index}
         {...other}
       >
         {value === index && children}
@@ -609,7 +609,7 @@ const QuestionPlate = ({
                   backgroundColor:
                     questionIndex === index && subIdx === idx && secIdx === sidx
                       ? "#61b4f1"
-                      : null,
+                      : "transparent",
                 }}
               >
                 {num}
