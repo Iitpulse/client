@@ -100,6 +100,7 @@ export interface ISubSection {
   name: string;
   description: string; // (optional) this will be used as a placeholder for describing the subsection and will be replaced by the actual description later on
   type: string;
+  paragraphType: string;
   totalQuestions: number | null;
   toBeAttempted: number | null;
   markingScheme: {

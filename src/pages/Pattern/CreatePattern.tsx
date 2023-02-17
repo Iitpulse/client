@@ -33,6 +33,7 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
 import { hasPatternPemissions } from "./utils";
 import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from '@mui/icons-material/Remove';
 import MainLayout from "../../layouts/MainLayout";
 import duplicateIcon from "../../assets/icons/duplicate.svg";
 const sampleSection = {
@@ -155,6 +156,7 @@ const CreatePattern = () => {
             id: currentUser.id || "",
           },
           usedIn: [],
+
         };
         console.log({ pattern });
         //check if url contains new or edit
@@ -442,6 +444,20 @@ const SubSection: React.FC<{
       value: "matrix",
     },
   ];
+  const ParagraphTypes = [
+    {
+      label: "Single",
+      value: "single",
+    },
+    {
+      label: "Multiple",
+      value: "multiple",
+    },
+    {
+      label: "Integer",
+      value: "integer",
+    },
+  ];
 
   return (
     <div className={styles.subSection}>
@@ -475,6 +491,17 @@ const SubSection: React.FC<{
           }}
           options={subSectionTypes}
         />
+        {subSection.type === "paragraph" &&
+        <CustomSelect
+          id="paragraph-type"
+          value={subSection.paragraphType}
+          label="Paragraph Type"
+          onChange={(e: any) => {
+            setSubSection(subSection.id, { paragraphType: e.target.value });
+          }}
+          options={ParagraphTypes}
+        />
+        }
         <CustomInputSection
           value={subSection.totalQuestions}
           label="Total Questions"
@@ -594,6 +621,13 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
   const handleAddCorrectInput = () => {
     setMarkingSchemeCorrect((data: Array<number>) => [...data, 1]);
   };
+  const handleDeleteCorrectInput = () => {
+    // setMarkingSchemeCorrect((data: Array<number>) => [...data, 1]);
+    let arr = markingSchemeCorrect;
+    arr.pop();
+    console.log(arr);
+    setMarkingSchemeCorrect([...arr]);
+  };
   return (
     <>
       <CustomInputSection
@@ -612,6 +646,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
         }}
       />
       {markingSchemeCorrect.map((correctMark: number, idx: number) => {
+        // {console.log({correctMark},idx)}
         return (
           <CustomInputSection
             value={correctMark}
@@ -633,7 +668,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
           />
         );
       })}
-      {type !== "single" && (
+      {type !== "single" && type!=="integer" && (
         <IconButton
           style={{
             marginTop: "20px",
@@ -641,8 +676,18 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
           onClick={handleAddCorrectInput}
         >
           <AddIcon />
-        </IconButton>
+        </IconButton> 
       )}
+      { type !== "single" && type!=="integer" && markingSchemeCorrect.length>=2 && 
+        <IconButton
+          style={{
+            marginTop: "20px",
+          }}
+          onClick={handleDeleteCorrectInput}
+        >
+          <RemoveIcon/>
+        </IconButton>
+      }
     </>
   );
 };
