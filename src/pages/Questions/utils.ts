@@ -116,7 +116,7 @@ export function checkQuestionValidity(
   // Checking Question Core Fields - End
 
   // Checking Question Type Dependent Fields - Start
-
+  
   switch (data.type) {
     case "single":
     case "multiple":
