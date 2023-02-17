@@ -250,75 +250,76 @@ const Test = () => {
 
   return (
     <MainLayout name="Test">
-       {currentUser?.userType!="student"?<div className={styles.container}>
-        <div className={styles.header}>
-          <Tabs value={tab} onChange={handleChangeTab}>
-            <Tab label="Ongoing" />
-            <Tab label="Active" />
-            <Tab label="Inactive" />
-            <Tab label="Expired" />
-          </Tabs>
-          {permissions.find((value) => value === "CREATE_TEST") && (
-            <Button onClick={() => navigate("/test/new")} icon={<AddIcon />}>
-              Add New
-            </Button>
-          )}
+      {currentUser?.userType != "student" ? (
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <Tabs value={tab} onChange={handleChangeTab}>
+              <Tab label="Ongoing" />
+              <Tab label="Active" />
+              <Tab label="Inactive" />
+              <Tab label="Expired" />
+            </Tabs>
+            {permissions.find((value: string) => value === "CREATE_TEST") && (
+              <Button onClick={() => navigate("/test/new")} icon={<AddIcon />}>
+                Add New
+              </Button>
+            )}
+          </div>
+          <TabPanel value={tab} index={0}>
+            <div className={styles.data}>
+              <CustomTable
+                loading={loading}
+                selectable={false}
+                columns={columns}
+                dataSource={data}
+                scroll={{ x: 600, y: 500 }}
+              />
+            </div>
+          </TabPanel>
+          <TabPanel value={tab} index={1}>
+            <div className={styles.data}>
+              <CustomTable
+                loading={loading}
+                selectable={false}
+                columns={columns}
+                dataSource={data}
+                scroll={{ x: 600, y: 500 }}
+              />
+            </div>
+          </TabPanel>
+          <TabPanel value={tab} index={2}>
+            <div className={styles.data}>
+              <CustomTable
+                loading={loading}
+                selectable={false}
+                columns={columns}
+                dataSource={data}
+                scroll={{ x: 600, y: 500 }}
+              />
+            </div>
+          </TabPanel>
+          <TabPanel value={tab} index={3}>
+            <div className={styles.data}>
+              <CustomTable
+                loading={loading}
+                selectable={false}
+                columns={columns}
+                dataSource={data}
+                scroll={{ x: 600, y: 500 }}
+              />
+            </div>
+          </TabPanel>
+          {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
+          <Modal
+            isOpen={openModal}
+            onClose={() => setOpenModal(false)}
+            title="CreateTest"
+            backdrop
+          >
+            Content
+          </Modal>
         </div>
-        <TabPanel value={tab} index={0}>
-          <div className={styles.data}>
-            <CustomTable
-              loading={loading}
-              selectable={false}
-              columns={columns}
-              dataSource={data}
-              scroll={{ x: 600, y: 500 }}
-            />
-          </div>
-        </TabPanel>
-        <TabPanel value={tab} index={1}>
-          <div className={styles.data}>
-            <CustomTable
-              loading={loading}
-              selectable={false}
-              columns={columns}
-              dataSource={data}
-              scroll={{ x: 600, y: 500 }}
-            />
-          </div>
-        </TabPanel>
-        <TabPanel value={tab} index={2}>
-          <div className={styles.data}>
-            <CustomTable
-              loading={loading}
-              selectable={false}
-              columns={columns}
-              dataSource={data}
-              scroll={{ x: 600, y: 500 }}
-            />
-          </div>
-        </TabPanel>
-        <TabPanel value={tab} index={3}>
-          <div className={styles.data}>
-            <CustomTable
-              loading={loading}
-              selectable={false}
-              columns={columns}
-              dataSource={data}
-              scroll={{ x: 600, y: 500 }}
-            />
-          </div>
-        </TabPanel>
-        {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
-        <Modal
-          isOpen={openModal}
-          onClose={() => setOpenModal(false)}
-          title="CreateTest"
-          backdrop
-        >
-          Content
-        </Modal>
-      </div>
-      : (
+      ) : (
         <Error />
       )}
     </MainLayout>
