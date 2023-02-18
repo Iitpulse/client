@@ -31,6 +31,8 @@ interface Props {
   topics: Array<any>;
   difficulty: string;
   isSubmitting?: boolean;
+  isStable: boolean;
+  setIsStable: (value: boolean) => void;
 }
 
 Quill.register("modules/imageResize", ImageResize);
@@ -47,6 +49,8 @@ const Paragraph: React.FC<Props> = ({
   topics,
   difficulty,
   isSubmitting,
+  isStable,
+  setIsStable,
 }) => {
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
@@ -103,6 +107,17 @@ const Paragraph: React.FC<Props> = ({
       );
     }
   }
+
+  // useEffect(() => {
+  //   setIsStable(true);
+  //   return () => {
+  //     setIsStable(false);
+  //   };
+  // });
+
+  useEffect(() => {
+    console.log({ isStable });
+  });
 
   function handleChangeData(values: any, idx: number) {
     // console.log({ values, idx });
