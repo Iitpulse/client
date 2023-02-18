@@ -194,7 +194,15 @@ export interface IQuestionParagraph extends IQuestionCore {
 }
 
 export interface IQuestionMatrix extends IQuestionCore {
-  correctAnswers: Array<Array<string>>; // 2D Matrix of OptionIDs
+  correctAnswer: Array<Array<string>>; // 2D Matrix of OptionIDs
+  en: {
+    question: string;
+    solution: string; // QuillJS_HTMLString
+  };
+  hi: {
+    question: string;
+    solution: string; // QuillJS_HTMLString
+  };
 }
 
 // Test Questions
