@@ -405,6 +405,7 @@ const CreateQuestion = () => {
 
     try {
       if (currentUser) {
+        console.log(data);
         // console.log("Im inside");
         let questionCore = {
           id: id ? id : Date.now().toString(),
@@ -458,13 +459,14 @@ const CreateQuestion = () => {
                   solution: data.hi.solution,
                 },
                 correctAnswers: getCorrectAnswers(data.en.options),
+                type: data.type,
               };
               // const fetchQuestion =  async () => {
               //   return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
               // };
               // console.log("OBJECTIVE", { finalQuestion }, "Before Validation");
               let res = "";
-
+              console.log("haan ye chala")
               let dataValid = checkQuestionValidity(
                 finalQuestion,
                 setError,
