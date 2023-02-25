@@ -27,6 +27,7 @@ import CurrentContextProvider from "./utils/contexts/CurrentContext";
 import CreatePattern from "./pages/Pattern/CreatePattern";
 import CreateQuestion from "./pages/Questions/CreateQuestion";
 import "./App.css";
+import DocxReader from "./components/DocxReader/DocxReader";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(
@@ -60,6 +61,15 @@ const App = () => {
                     <Route
                       path="/"
                       element={<PrivateRoute component={Home} name="Home" />}
+                    />
+                    <Route
+                      path="/docx"
+                      element={
+                        <PrivateRoute
+                          component={DocxReader}
+                          name="DocxReader"
+                        />
+                      }
                     />
                     <Route path="/login" element={<Login />} />
                     <Route
@@ -103,11 +113,15 @@ const App = () => {
                     />
                     <Route
                       path="/ongoing-test"
-                      element={<PrivateRoute component={TestOG} name="Ongoing Test" />}
+                      element={
+                        <PrivateRoute component={TestOG} name="Ongoing Test" />
+                      }
                     />
                     <Route
                       path="/upcoming-test"
-                      element={<PrivateRoute component={TestUC} name="Upcoming Test" />}
+                      element={
+                        <PrivateRoute component={TestUC} name="Upcoming Test" />
+                      }
                     />
                     <Route
                       path="/test/new"
