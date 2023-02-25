@@ -32,7 +32,6 @@ import { Grid, IconButton } from "@mui/material";
 import logo from "../../assets/images/logo.svg";
 import { asBlob } from "html-docx-js-typescript";
 import { saveAs } from "file-saver";
-import * as Docx from "docx"; // that is a peer dependency
 import { DeleteOutline, Visibility } from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api";
