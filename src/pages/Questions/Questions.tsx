@@ -30,7 +30,6 @@ import { useReactToPrint } from "react-to-print";
 import { useNavigate } from "react-router-dom";
 import { Grid, IconButton } from "@mui/material";
 import logo from "../../assets/images/logo.svg";
-import { asBlob } from "html-docx-js-typescript";
 import { saveAs } from "file-saver";
 import { DeleteOutline, Visibility } from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
@@ -47,7 +46,6 @@ import { getTopics } from "../../utils/constants";
 import { TestContext } from "../../utils/contexts/TestContext";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { Input } from "antd";
-import { AnyNaptrRecord } from "dns";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -133,10 +131,10 @@ const Questions = () => {
   const tableRef = useRef<any>(null);
 
   const handlePrint = async () => {
-    const data = await asBlob(tableRef.current.innerHTML, {
-      orientation: "portrait",
-      margins: { top: 100 },
-    });
+    // const data = await asBlob(tableRef.current.innerHTML, {
+    //   orientation: "portrait",
+    //   margins: { top: 100 },
+    // });
     // asBlob(tableRef.current.innerHTML).then((data) => {
     // @ts-ignore
     saveAs(data, "file.docx"); // save as docx file
