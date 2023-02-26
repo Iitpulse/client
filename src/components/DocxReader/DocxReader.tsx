@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { API_QUESTIONS } from "../../utils/api";
+import { AuthContext } from "../../utils/auth/AuthContext";
 
 const DocxReader = () => {
   const [html, setHtml] = useState("");
   const [tableData, setTableData] = useState<string[][][]>([]);
+
+  const { currentUser } = useContext(AuthContext);
 
   const readFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,12 +37,49 @@ const DocxReader = () => {
         tableData.push(tableRows);
       }
       setTableData(tableData);
+      const tableHeaders = tableData[0][0];
+      let data = tableData.map((table) => {
+        const tableRows = table.slice(1);
+        const finalRows = tableRows.map((row) => {
+          const finalRow: any = {};
+          row.forEach((cell, index) => {
+            finalRow[tableHeaders[index]] = cell;
+          });
+          return finalRow;
+        });
+        return finalRows;
+      });
+      const regex = /op\d/;
+      const finalData = data[0]?.map((item) => ({
+        type: item.type,
+        en: {
+          question: item.question,
+          options: tableHeaders
+
+            ?.filter((key) => regex.test(key))
+            ?.map((key) => ({
+              id: new Date().getTime(),
+              value: item[key],
+            })),
+        },
+        hi: {
+          question: item.question,
+          options: item.options,
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: {
+          id: currentUser?.id,
+          userType: currentUser?.userType,
+        },
+      }));
+      console.log(tableData, tableHeaders, finalData, data);
     }
   }, [html]);
 
   return (
     <div>
-      <input type="file" onChange={readFile} />
+      <input type="file" onChange={readFile} placeholder="Upload File" />
       {tableData.map((table, index) => (
         <table key={index}>
           <tbody>
