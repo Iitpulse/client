@@ -20,6 +20,7 @@ function DocxReader() {
         const rowData: string[] = [];
         for (let k = 0; k < cells.length; k++) {
           rowData.push(cells[k].innerText);
+          console.log(cells[k].innerText);
         }
         tableRows.push(rowData);
       }
