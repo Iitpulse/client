@@ -6,7 +6,7 @@ import {
     DetailedHTMLProps,
     HTMLAttributes,
   } from "react";
-  import styles from "./Questions.module.scss";
+  import styles from "./QuestionsNew.module.scss";
   import {
     Sidebar,
     Button,
@@ -569,7 +569,9 @@ import {
           {isReadPermitted ? (
             <>
               {isCreatePermitted && (
-                <input type="file" onChange={readFile} placeholder="Upload File" />
+                <div className={styles.questionsHeader}>
+                  <input className={styles.input} type="file" onChange={readFile} placeholder="Upload File" />
+                </div>
               )}
               <Divider style={{ margin: "1rem 0" }} />
   
