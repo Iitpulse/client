@@ -149,7 +149,7 @@ const Questions = () => {
             .map(
               (op: any, idx: number) =>
                 `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
-                  previewData.correctAnswers.includes(op.id)
+                  previewData.correctAnswers?.includes(op.id)
                     ? "rgba(85, 188, 126, 0.3)"
                     : "transparent"
                 };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
@@ -1100,35 +1100,56 @@ export const AllQuestionsTable: React.FC<{
     ]);
   }, [noEdit]);
 
+  //add <p> at the start and </p> at the end of the given string if not already present
+  function addPTags(str: string) {
+    if (
+      str?.startsWith(
+        "<p>" ||
+          "<h1>" ||
+          "<h2>" ||
+          "<h3>" ||
+          "<h4>" ||
+          "<h5>" ||
+          "<h6>" ||
+          "<img"
+      )
+    )
+      return str;
+    return "<p>" + str + "</p>";
+  }
+
   function getCombinedQuestion(question: any) {
     if (question.type === "single" || question.type === "multiple") {
+      console.log({ question });
       return (
-        question?.en?.question +
+        addPTags(question?.en?.question) +
         question?.en?.options
           .map(
             (op: any, idx: number) =>
               `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
-                question.correctAnswers.includes(op.id)
+                question.correctAnswers?.includes(op.id)
                   ? "rgba(85, 188, 126, 0.3)"
                   : "transparent"
               };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
                 idx + 65
-              )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+              )}. <span style='margin-left:1rem;'>${addPTags(
+                op.value
+              )}</span></span>`
           )
           .join("")
       );
     } else if (question.type === "integer") {
       return (
-        question?.en?.question +
+        addPTags(question?.en?.question) +
         "<br />From: " +
-        question?.correctAnswer?.from +
+        addPTags(question?.correctAnswer?.from) +
         " | To: " +
-        question?.correctAnswer?.to
+        addPTags(question?.correctAnswer?.to)
       );
     } else if (question.type === "paragraph") {
       return (
         "Description :" +
-        question?.paragraph +
+        addPTags(question?.paragraph) +
         "<br/>" +
         question.questions
           .map((question: any, idx: any) => {
@@ -1139,7 +1160,7 @@ export const AllQuestionsTable: React.FC<{
             ) {
               return (
                 `<span>Question ${idx + 1}</span>` +
-                question.en.question +
+                addPTags(question.en.question) +
                 question.en?.options
                   ?.map(
                     (op: any, idx: number) =>
@@ -1149,9 +1170,9 @@ export const AllQuestionsTable: React.FC<{
                           : "transparent"
                       };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
                         idx + 65
-                      )}. <span style='margin-left:1rem;'>${
+                      )}. <span style='margin-left:1rem;'>${addPTags(
                         op.value
-                      }</span></span>`
+                      )}</span></span>`
                   )
                   .join("") +
                 `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin-bottom:1rem; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
@@ -1160,12 +1181,14 @@ export const AllQuestionsTable: React.FC<{
               console.log({ TESTING: question });
               return (
                 `<span>Question ${idx + 1}.)</span>` +
-                question.en.question +
+                addPTags(question.en.question) +
                 "<br />From: " +
-                question.correctAnswer.from +
+                addPTags(question.correctAnswer.from) +
                 " | To: " +
-                question.correctAnswer.to +
-                `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin:1rem 0; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
+                addPTags(question.correctAnswer.to) +
+                `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin:1rem 0; border-radius:0.3rem;'><span >Solution <br/>${addPTags(
+                  question.en.solution
+                )}<br/></span></div>`
               );
             }
           })
