@@ -1,10 +1,34 @@
+import { InboxOutlined } from "@mui/icons-material";
+import { Upload, UploadProps } from "antd";
 import { useState, useEffect, useContext } from "react";
 import { API_QUESTIONS } from "../../utils/api";
 import { AuthContext } from "../../utils/auth/AuthContext";
 
-const DocxReader = () => {
+const { Dragger } = Upload;
+
+const DocxReader: React.FC<{
+  setQuestions: any;
+}> = ({ setQuestions }) => {
   const [html, setHtml] = useState("");
   const [tableData, setTableData] = useState<string[][][]>([]);
+
+  const props: UploadProps = {
+    name: "file",
+    multiple: false,
+    accept: ".docx",
+    beforeUpload: (file: any) => {
+      console.log("Uploading file", file);
+      readFile({
+        target: {
+          files: [file],
+        },
+      } as any);
+      return false;
+    },
+    onDrop(e: any) {
+      console.log("Dropped files", e.dataTransfer.files);
+    },
+  };
 
   const { currentUser } = useContext(AuthContext);
 
@@ -74,13 +98,25 @@ const DocxReader = () => {
         },
       }));
       console.log(tableData, tableHeaders, finalData, data);
+      setQuestions(finalData);
     }
   }, [html]);
 
   return (
     <div>
-      <input type="file" onChange={readFile} placeholder="Upload File" />
-      {tableData.map((table, index) => (
+      <Dragger {...props}>
+        <p className="ant-upload-drag-icon">
+          <InboxOutlined />
+        </p>
+        <p className="ant-upload-text">
+          Click or drag file to this area to upload
+        </p>
+        <p className="ant-upload-hint">
+          Supports single file upload at a time, only upload
+          <strong> .docx</strong> files
+        </p>
+      </Dragger>{" "}
+      {/* {tableData.map((table, index) => (
         <table key={index}>
           <tbody>
             {table.map((row, rowIndex) => (
@@ -92,7 +128,7 @@ const DocxReader = () => {
             ))}
           </tbody>
         </table>
-      ))}
+      ))} */}
     </div>
   );
 };
