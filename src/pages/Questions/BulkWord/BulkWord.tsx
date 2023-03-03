@@ -18,7 +18,7 @@ const BulkWord = () => {
         <section className={styles.dragArea}>
           <DocxReader setQuestions={setQuestions} />
         </section>
-        <section>
+        <section className={styles.tableContainer}>
           <AllQuestionsTable
             loading={uploading}
             questions={questions}
