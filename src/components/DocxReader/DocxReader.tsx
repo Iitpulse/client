@@ -42,24 +42,57 @@ const DocxReader: React.FC<{
   };
 
   useEffect(() => {
+    console.log({ html });
+  });
+
+  const removeP = (str: string) => {
+    if (str.startsWith("<p>") && str.endsWith("</p>")) {
+      return str.slice(3, str.length - 4);
+    }
+    return str;
+  };
+
+  useEffect(() => {
     if (html?.length) {
+      console.log({ html });
       const parser = new DOMParser();
       const doc = parser.parseFromString(html.toString(), "text/html");
       const tables = doc.getElementsByTagName("table");
       const tableData: string[][][] = [];
       for (let i = 0; i < tables.length; i++) {
         const rows = tables[i].rows;
+        const imgs = tables[i].querySelector("img");
+        imgs.style.maxWidth = "80%";
+        imgs.style.margin = "1rem 0";
         const tableRows: string[][] = [];
+        let type = {
+          index: 0,
+          isFound: false,
+        };
+
         for (let j = 0; j < rows.length; j++) {
           const cells = rows[j].cells;
           const rowData: string[] = [];
-          for (let k = 0; k < cells.length; k++) {
-            rowData.push(cells[k].innerText);
-          }
+          if (j === 0) {
+            for (let k = 0; k < cells.length; k++) {
+              if (!type.isFound && cells[k].innerText === "type") {
+                type.index = k;
+                type.isFound = true;
+              }
+              rowData.push(cells[k].innerText);
+            }
+          } else
+            for (let k = 0; k < cells.length; k++) {
+              rowData.push(
+                k === type.index ? cells[k].innerText : cells[k].innerHTML
+              );
+            }
+
           tableRows.push(rowData);
         }
         tableData.push(tableRows);
       }
+      console.log({ tableData });
       setTableData(tableData);
       const tableHeaders = tableData[0][0];
       let data = tableData.map((table) => {
