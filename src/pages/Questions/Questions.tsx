@@ -149,7 +149,7 @@ const Questions = () => {
             .map(
               (op: any, idx: number) =>
                 `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
-                  previewData.correctAnswers.includes(op.id)
+                  previewData.correctAnswers?.includes(op.id)
                     ? "rgba(85, 188, 126, 0.3)"
                     : "transparent"
                 };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
@@ -416,81 +416,6 @@ const Questions = () => {
     setLoading(false);
   };
 
-  function getCombinedQuestion(question: any) {
-    if (question.type === "single" || question.type === "multiple") {
-      return (
-        question?.en?.question +
-        question?.en?.options
-          .map(
-            (op: any, idx: number) =>
-              `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
-                question.correctAnswers.includes(op.id)
-                  ? "rgba(85, 188, 126, 0.3)"
-                  : "transparent"
-              };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
-                idx + 65
-              )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
-          )
-          .join("")
-      );
-    } else if (question.type === "integer") {
-      return (
-        question?.en?.question +
-        "<br />From: " +
-        question?.correctAnswer?.from +
-        " | To: " +
-        question?.correctAnswer?.to
-      );
-    } else if (question.type === "paragraph") {
-      return (
-        "Description :" +
-        question?.paragraph +
-        "<br/>" +
-        question.questions
-          .map((question: any, idx: any) => {
-            if (
-              question.type === "single" ||
-              question.type === "multiple" ||
-              question.type === "objective"
-            ) {
-              return (
-                `<span>Question ${idx + 1}</span>` +
-                question.en.question +
-                question.en?.options
-                  ?.map(
-                    (op: any, idx: number) =>
-                      `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
-                        op?.isCorrectAnswer
-                          ? "rgba(85, 188, 126, 0.3)"
-                          : "transparent"
-                      };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
-                        idx + 65
-                      )}. <span style='margin-left:1rem;'>${
-                        op.value
-                      }</span></span>`
-                  )
-                  .join("") +
-                `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin-bottom:1rem; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
-              );
-            } else if (question.type === "integer") {
-              console.log({ TESTING: question });
-              return (
-                `<span>Question ${idx + 1}.)</span>` +
-                question.en.question +
-                "<br />From: " +
-                question.correctAnswer.from +
-                " | To: " +
-                question.correctAnswer.to +
-                `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin:1rem 0; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
-              );
-            }
-          })
-          .join("")
-      );
-    }
-    return "";
-  }
-
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
       <Card classes={[styles.container]}>
@@ -617,129 +542,11 @@ const Questions = () => {
             <Divider style={{ margin: "1rem 0" }} />
 
             <div className={styles.tableContainer}>
-              <CustomTable
+              <AllQuestionsTable
+                questions={questions}
+                handleDeleteQuestion={handleDeleteQuestion}
                 loading={loading}
-                dataSource={questions?.map((question: any) => ({
-                  ...question,
-                  key: question.id || question._id,
-                }))}
-                columns={[
-                  {
-                    title: "Question",
-                    dataIndex: "en",
-                    key: "question",
-                    width: "70%",
-                    render: (en: any, questionObj: any) => {
-                      console.log({ questionObj, en });
-                      return (
-                        <div className={styles.questionContainerTable}>
-                          <RenderWithLatex
-                            quillString={getCombinedQuestion(questionObj)}
-                          />
-                          {questionObj.type !== "paragraph" && (
-                            <div className={styles.solutionContainer}>
-                              <p>Solution</p>
-                              <RenderWithLatex
-                                quillString={questionObj.en.solution}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    },
-                  },
-                  {
-                    title: "Details",
-                    dataIndex: "_",
-                    key: "details",
-                    width: "30%",
-                    render: (_: any, question: any) => {
-                      console.log({ question });
-                      return (
-                        <div className={styles.detailsContainer}>
-                          <div className={styles.detailsHeader}>
-                            <Tag
-                              color={
-                                question.difficulty?.toLowerCase() === "easy"
-                                  ? "green"
-                                  : question.difficulty?.toLowerCase() ===
-                                    "medium"
-                                  ? "yellow"
-                                  : "red"
-                              }
-                            >
-                              {question.difficulty}
-                            </Tag>
-
-                            <p>{question.type}</p>
-                            <p>{question?.subject}</p>
-                          </div>
-                          <div className={styles.detailsMid}>
-                            <div>
-                              <p>
-                                Chapters:{" "}
-                                {question?.chapters
-                                  ?.map((ch: any) => ch.name)
-                                  .join(", ")}
-                              </p>
-                              <p>
-                                Topics:{" "}
-                                {question?.chapters
-                                  ?.map((ch: any) => ch.topics)
-                                  ?.join(", ")}
-                              </p>
-                            </div>
-                            <div>
-                              <p
-                                style={{
-                                  width: "200px",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                Uploaded By: {question.uploadedBy?.id}
-                              </p>
-                            </div>
-                          </div>
-                          <div className={styles.footer}>
-                            <div className={styles.toggleButton}>
-                              Proof Read
-                              <ToggleButton
-                                checked={question.isProofRead}
-                                stopPropagation
-                                onChange={(checked: any) =>
-                                  handleToggleProofread(checked, question)
-                                }
-                              />
-                            </div>
-                            <IconButton
-                              onClick={() =>
-                                navigate(`/questions/edit/${question?.id}`, {
-                                  state: { type: question?.type },
-                                })
-                              }
-                            >
-                              <Edit />
-                            </IconButton>
-                            <CustomPopConfirm
-                              title="Are you sure?"
-                              okText="Delete"
-                              cancelText="No"
-                              onConfirm={() => handleDeleteQuestion(question)}
-                            >
-                              <IconButton>
-                                <DeleteOutline />
-                              </IconButton>
-                            </CustomPopConfirm>
-                          </div>
-                        </div>
-                      );
-                    },
-                  },
-                  // ...QUESTION_COLS_ALL,
-                ]}
-                scroll={{ x: 800, y: "50vh" }}
+                handleToggleProofRead={handleToggleProofread}
                 pagination={{
                   total: totalDocs,
                   onChange: onChangePageOrPageSize,
@@ -1153,18 +960,236 @@ const QuestionsComp: React.FC<{ questions: any[] }> = ({ questions }) => {
   );
 };
 
-// function getQuestionFromType(type: string, setData: (data: any) => void) {
-//   switch (type) {
-//     case "objective":
-//       return <Objective setData={setData} />;
-//     case "integer":
-//       return <Integer setData={setData} />;
-//     case "paragraph":
-//       return <Paragraph setData={setData} />;
-//     case "matrix":
-//       return <MatrixMatch setData={setData} />;
-//   }
-// }
+export const AllQuestionsTable: React.FC<{
+  loading: boolean;
+  questions: any[];
+  noEdit?: boolean;
+  handleToggleProofRead?: (checked: boolean, question: any) => void;
+  handleDeleteQuestion: (question: any) => void;
+  pagination?: {
+    total: number;
+    onChange: (page: number, pageSize: number) => void;
+    onShowSizeChange: (page: number, pageSize: number) => void;
+  };
+}> = ({
+  loading,
+  questions,
+  handleToggleProofRead,
+  handleDeleteQuestion,
+  noEdit,
+  pagination,
+}) => {
+  const [columns, setColumns] = useState<any[]>([]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setColumns([
+      {
+        title: "Question",
+        dataIndex: "en",
+        key: "question",
+        width: "70%",
+        render: (en: any, questionObj: any) => {
+          console.log({ questionObj, en });
+          return (
+            <div className={styles.questionContainerTable}>
+              <RenderWithLatex quillString={getCombinedQuestion(questionObj)} />
+              {questionObj.type !== "paragraph" && (
+                <div className={styles.solutionContainer}>
+                  <p>Solution</p>
+                  <RenderWithLatex quillString={questionObj.en.solution} />
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        title: "Details",
+        dataIndex: "_",
+        key: "details",
+        width: "30%",
+        render: (_: any, question: any) => {
+          console.log({ question });
+          return (
+            <div className={styles.detailsContainer}>
+              <div className={styles.detailsHeader}>
+                <Tag
+                  color={
+                    question.difficulty?.toLowerCase() === "easy"
+                      ? "green"
+                      : question.difficulty?.toLowerCase() === "medium"
+                      ? "yellow"
+                      : "red"
+                  }
+                >
+                  {question.difficulty}
+                </Tag>
+
+                <p>{question.type}</p>
+                <p>{question?.subject}</p>
+              </div>
+              <div className={styles.detailsMid}>
+                <div>
+                  <p>
+                    Chapters:{" "}
+                    {question?.chapters?.map((ch: any) => ch.name).join(", ")}
+                  </p>
+                  <p>
+                    Topics:{" "}
+                    {question?.chapters
+                      ?.map((ch: any) => ch.topics)
+                      ?.join(", ")}
+                  </p>
+                </div>
+                <div>
+                  <p
+                    style={{
+                      width: "200px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Uploaded By: {question.uploadedBy?.id}
+                  </p>
+                </div>
+              </div>
+              <div className={styles.footer}>
+                {!noEdit && (
+                  <>
+                    <div className={styles.toggleButton}>
+                      Proof Read
+                      <ToggleButton
+                        checked={question.isProofRead}
+                        stopPropagation
+                        onChange={(checked: any) => {
+                          if (handleToggleProofRead)
+                            handleToggleProofRead(checked, question);
+                        }}
+                      />
+                    </div>
+                    <IconButton
+                      onClick={() =>
+                        navigate(`/questions/edit/${question?.id}`, {
+                          state: { type: question?.type },
+                        })
+                      }
+                    >
+                      <Edit />
+                    </IconButton>
+                  </>
+                )}
+                <CustomPopConfirm
+                  title="Are you sure?"
+                  okText="Delete"
+                  cancelText="No"
+                  onConfirm={() => handleDeleteQuestion(question)}
+                >
+                  <IconButton>
+                    <DeleteOutline />
+                  </IconButton>
+                </CustomPopConfirm>
+              </div>
+            </div>
+          );
+        },
+      },
+      // ...QUESTION_COLS_ALL,
+    ]);
+  }, [noEdit]);
+
+  function getCombinedQuestion(question: any) {
+    let { type } = question;
+    if (type === "single" || type === "multiple") {
+      console.log({ question: question?.en?.question });
+      return (
+        question?.en?.question +
+        question?.en?.options
+          .map(
+            (op: any, idx: number) =>
+              `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+                question.correctAnswers?.includes(op.id)
+                  ? "rgba(85, 188, 126, 0.3)"
+                  : "transparent"
+              };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+                idx + 65
+              )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+          )
+          .join("")
+      );
+    } else if (type === "integer") {
+      return (
+        question?.en?.question +
+        "<br />From: " +
+        question?.correctAnswer?.from +
+        " | To: " +
+        question?.correctAnswer?.to
+      );
+    } else if (type === "paragraph") {
+      return (
+        "Description :" +
+        question?.paragraph +
+        "<br/>" +
+        question.questions
+          .map((question: any, idx: any) => {
+            if (
+              type === "single" ||
+              type === "multiple" ||
+              type === "objective"
+            ) {
+              return (
+                `<span>Question ${idx + 1}</span>` +
+                question.en.question +
+                question.en?.options
+                  ?.map(
+                    (op: any, idx: number) =>
+                      `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+                        op?.isCorrectAnswer
+                          ? "rgba(85, 188, 126, 0.3)"
+                          : "transparent"
+                      };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+                        idx + 65
+                      )}. <span style='margin-left:1rem;'>${
+                        op.value
+                      }</span></span>`
+                  )
+                  .join("") +
+                `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin-bottom:1rem; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
+              );
+            } else if (type === "integer") {
+              console.log({ TESTING: question });
+              return (
+                `<span>Question ${idx + 1}.)</span>` +
+                question.en.question +
+                "<br />From: " +
+                question.correctAnswer.from +
+                " | To: " +
+                question.correctAnswer.to +
+                `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin:1rem 0; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
+              );
+            }
+          })
+          .join("")
+      );
+    }
+    return "";
+  }
+
+  return (
+    <CustomTable
+      loading={loading}
+      dataSource={questions?.map((question: any) => ({
+        ...question,
+        key: question.id || question._id,
+      }))}
+      columns={columns}
+      scroll={{ x: 800, y: "50vh" }}
+      pagination={pagination}
+    />
+  );
+};
 
 function getCorrectAnswers(options: any) {
   return options

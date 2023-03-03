@@ -29,6 +29,7 @@ import CreatePattern from "./pages/Pattern/CreatePattern";
 import CreateQuestion from "./pages/Questions/CreateQuestion";
 import "./App.css";
 import DocxReader from "./components/DocxReader/DocxReader";
+import BulkWord from "./pages/Questions/BulkWord/BulkWord";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(
@@ -64,11 +65,11 @@ const App = () => {
                       element={<PrivateRoute component={Home} name="Home" />}
                     />
                     <Route
-                      path="/docx"
+                      path="/questions/new-bulk-word"
                       element={
                         <PrivateRoute
-                          component={DocxReader}
-                          name="DocxReader"
+                          component={BulkWord}
+                          name="Bulk Upload Word"
                         />
                       }
                     />
