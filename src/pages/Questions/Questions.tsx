@@ -46,6 +46,7 @@ import { getTopics } from "../../utils/constants";
 import { TestContext } from "../../utils/contexts/TestContext";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { Input } from "antd";
+import CheckBox from "@mui/icons-material/CheckBox";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -118,6 +119,8 @@ const Questions = () => {
   const [globalSearch, setGlobalSearch] = useState<string>("");
   const globalSearchRef = useRef<any>(null);
   const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
+  const [filterType, setFilterType] = useState<any>([]);
+  const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
   const [filterSubjects, setFilterSubjects] = useState<any>([]);
   const [filterChapters, setFilterChapters] = useState<any>([]);
   const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
@@ -256,8 +259,12 @@ const Questions = () => {
     { label: "Hard", value: "hard" },
   ];
 
-  function handleChangeType(values: string[]) {}
-  function handleChangeDifficulty(values: string[]) {}
+  function handleChangeType(values: string[]) {
+    setFilterType(values);
+  }
+  function handleChangeDifficulty(values: string[]) {
+    setFilterDifficulty(values);
+  }
   function handleChangeSubjects(_: any, options: any[]) {
     setFilterSubjects(options);
   }
@@ -265,7 +272,7 @@ const Questions = () => {
     setFilterChapters(options);
   }
   function handleChangeTopics(options: String[]) {
-    console.log(options);
+    // console.log(options);
     setFilterTopics(options);
   }
 
@@ -436,28 +443,30 @@ const Questions = () => {
                         maxWidth: 500,
                       }}
                     />
-                    <div>
-                      <IconButton onClick={handlePrint}>
-                        <PrintIcon />
-                      </IconButton>
+                    <div className={styles.searchAndPrint2}>
+                      <div style={{margin: "0 0.5rem"}}>
+                        <IconButton onClick={handlePrint}>
+                          <PrintIcon />
+                        </IconButton>
 
-                      <IconButton>
-                        <CSVLink filename={"Questions.csv"} data={questions}>
-                          <img
-                            src={sheetIcon}
-                            width="21px"
-                            alt="Sheet"
-                            height="21px"
-                          />
-                        </CSVLink>
-                      </IconButton>
+                        <IconButton>
+                          <CSVLink filename={"Questions.csv"} data={questions}>
+                            <img
+                              src={sheetIcon}
+                              width="21px"
+                              alt="Sheet"
+                              height="21px"
+                              />
+                          </CSVLink>
+                        </IconButton>
+                      </div>
+                      <Button
+                        onClick={() => navigate("/questions/new")}
+                        icon={<AddIcon />}
+                        >
+                        Add New
+                      </Button>
                     </div>
-                    <Button
-                      onClick={() => navigate("/questions/new")}
-                      icon={<AddIcon />}
-                    >
-                      Add New
-                    </Button>
                   </div>
                   {/* <InputField
                     ref={globalSearchRef}
@@ -996,9 +1005,12 @@ export const AllQuestionsTable: React.FC<{
             <div className={styles.questionContainerTable}>
               <RenderWithLatex quillString={getCombinedQuestion(questionObj)} />
               {questionObj.type !== "paragraph" && (
-                <div className={styles.solutionContainer}>
-                  <p>Solution</p>
-                  <RenderWithLatex quillString={questionObj.en.solution} />
+                <div className={styles.mainSolutionContainer}>
+                  <div className={styles.solutionContainerG}></div>
+                  <div className={styles.solutionContainer}>
+                    <p>Solution</p>
+                    <RenderWithLatex quillString={questionObj.en.solution} />
+                  </div>
                 </div>
               )}
             </div>
@@ -1109,13 +1121,19 @@ export const AllQuestionsTable: React.FC<{
         question?.en?.options
           .map(
             (op: any, idx: number) =>
-              `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+              `<span style='display:flex;justify-content:flex-start;margin:1rem 0;border:${
                 question.correctAnswers?.includes(op.id)
-                  ? "rgba(85, 188, 126, 0.3)"
+                  ? "2px solid #55BC7E"
                   : "transparent"
               };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
                 idx + 65
-              )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+              )}. <span style='margin-left:1rem;'>${op.value}</span>
+              <span style='display:flex;justify-content: end;width: 100%;'>${
+                question.correctAnswers?.includes(op.id)
+                  ? <CheckBox/>
+                  : ''
+              }</span>
+              </span>`
           )
           .join("")
       );

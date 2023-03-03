@@ -52,6 +52,12 @@
       width: 100%;
       padding: 0 1.5rem;
     }
+    .searchAndPrint2 {
+      @extend .flexRow;
+      justify-content: end;
+      width: 100%;
+      padding: 0 1.5rem;
+    }
     .filters {
       flex: 1;
       @extend .flexRow;
@@ -257,9 +263,20 @@
     }
   }
 }
+.mainSolutionContainer{
+  display: flex;
+  width: 100%;
+}
+.solutionContainerG {
+  margin-top: 1rem;
+  padding: 0.2rem;
+  background-color: #55BC7E;
+  
+}
 .solutionContainer {
+  width: 100%;
   margin-top: 1rem;
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #55BC7E1A;
   border-radius: 0.3rem;
 }

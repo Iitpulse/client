@@ -45,6 +45,7 @@ import {
   import { getTopics } from "../../utils/constants";
   import { TestContext } from "../../utils/contexts/TestContext";
   import type { CustomTagProps } from "rc-select/lib/BaseSelect";
+  import CheckBox from "@mui/icons-material/CheckBox";
   import { Input } from "antd";
   const { Search } = Input;
   
@@ -489,23 +490,31 @@ import {
     };
   
     function getCombinedQuestion(question: any) {
-      if (question.type === "single" || question.type === "multiple") {
+      let { type } = question;
+      if (type === "single" || type === "multiple") {
+        console.log({ question: question?.en?.question });
         return (
           question?.en?.question +
           question?.en?.options
             .map(
               (op: any, idx: number) =>
-                `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
-                  question.correctAnswers.includes(op.id)
-                    ? "rgba(85, 188, 126, 0.3)"
+                `<span style='display:flex;justify-content:flex-start;margin:1rem 0;border:${
+                  question.correctAnswers?.includes(op.id)
+                    ? "2px solid #55BC7E"
                     : "transparent"
                 };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
                   idx + 65
-                )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+                )}. <span style='margin-left:1rem;'>${op.value}</span>
+                <span style='display:flex;justify-content: end;width: 100%;'>${
+                  question.correctAnswers?.includes(op.id)
+                    ? <CheckBox/>
+                    : ''
+                }</span>
+                </span>`
             )
             .join("")
         );
-      } else if (question.type === "integer") {
+      } else if (type === "integer") {
         return (
           question?.en?.question +
           "<br />From: " +
@@ -513,7 +522,7 @@ import {
           " | To: " +
           question?.correctAnswer?.to
         );
-      } else if (question.type === "paragraph") {
+      } else if (type === "paragraph") {
         return (
           "Description :" +
           question?.paragraph +
@@ -521,9 +530,9 @@ import {
           question.questions
             .map((question: any, idx: any) => {
               if (
-                question.type === "single" ||
-                question.type === "multiple" ||
-                question.type === "objective"
+                type === "single" ||
+                type === "multiple" ||
+                type === "objective"
               ) {
                 return (
                   `<span>Question ${idx + 1}</span>` +
@@ -544,7 +553,7 @@ import {
                     .join("") +
                   `<br/><div style='background:rgba(0, 0, 0, 0.05); width:100%; padding:1rem; margin-bottom:1rem; border-radius:0.3rem;'><span >Solution <br/>${question.en.solution}<br/></span></div>`
                 );
-              } else if (question.type === "integer") {
+              } else if (type === "integer") {
                 console.log({ TESTING: question });
                 return (
                   `<span>Question ${idx + 1}.)</span>` +
@@ -596,11 +605,12 @@ import {
                               quillString={getCombinedQuestion(questionObj)}
                             />
                             {questionObj.type !== "paragraph" && (
-                              <div className={styles.solutionContainer}>
-                                <p>Solution</p>
-                                <RenderWithLatex
-                                  quillString={questionObj.en.solution}
-                                />
+                              <div className={styles.mainSolutionContainer}>
+                                <div className={styles.solutionContainerG}></div>
+                                <div className={styles.solutionContainer}>
+                                  <p>Solution</p>
+                                  <RenderWithLatex quillString={questionObj.en.solution} />
+                                </div>
                               </div>
                             )}
                           </div>
