@@ -214,7 +214,7 @@ const Questions = () => {
           search: globalSearch, // I Wrote this line
         },
       });
-      console.log({ data: res.data });
+      // console.log({ data: res.data });
       setQuestions(res.data.data);
       setTotalDocs(res.data.totalDocs);
       setLoading(false);
@@ -1000,7 +1000,7 @@ export const AllQuestionsTable: React.FC<{
         key: "question",
         width: "70%",
         render: (en: any, questionObj: any) => {
-          console.log({ questionObj, en });
+          // console.log({ questionObj, en });
           return (
             <div className={styles.questionContainerTable}>
               <RenderWithLatex quillString={getCombinedQuestion(questionObj)} />
@@ -1023,7 +1023,7 @@ export const AllQuestionsTable: React.FC<{
         key: "details",
         width: "30%",
         render: (_: any, question: any) => {
-          console.log({ question });
+          // console.log({ question });
           return (
             <div className={styles.detailsContainer}>
               <div className={styles.detailsHeader}>
@@ -1112,10 +1112,11 @@ export const AllQuestionsTable: React.FC<{
     ]);
   }, [noEdit]);
 
+
   function getCombinedQuestion(question: any) {
     let { type } = question;
     if (type === "single" || type === "multiple") {
-      console.log({ question: question?.en?.question });
+      // console.log({ question: question?.en?.question });
       return (
         question?.en?.question +
         question?.en?.options
@@ -1130,7 +1131,7 @@ export const AllQuestionsTable: React.FC<{
               )}. <span style='margin-left:1rem;'>${op.value}</span>
               <span style='display:flex;justify-content: end;width: 100%;'>${
                 question.correctAnswers?.includes(op.id)
-                  ? <CheckBox/>
+                  ? "<img src='/checkbox.png' style='width:20px; height:20px' alt=''> </img>"
                   : ''
               }</span>
               </span>`
