@@ -122,6 +122,8 @@ const CreateQuestion = () => {
   const { id } = useParams();
   const { pathname } = useLocation();
 
+  
+
   useEffect(() => {
     if (!id) setIsInitialValuePassed(true);
   }, [id]);
@@ -466,7 +468,7 @@ const CreateQuestion = () => {
               // };
               // console.log("OBJECTIVE", { finalQuestion }, "Before Validation");
               let res = "";
-              console.log("haan ye chala")
+              // console.log("haan ye chala")
               let dataValid = checkQuestionValidity(
                 finalQuestion,
                 setError,

@@ -53,6 +53,10 @@ const sampleSubSection = {
   type: "",
   totalQuestions: 1,
   toBeAttempted: 1,
+  markingScheme:{
+    correct: 1,
+    incorrect: 0,
+  },
 };
 
 const CreatePattern = () => {
@@ -525,6 +529,8 @@ const SubSection: React.FC<{
           }
         />
         <MarkingScheme
+          vcorrect={(subSection.markingScheme.correct.length>0?subSection.markingScheme.correct:[])}
+          vincorrect={subSection.markingScheme.incorrect}
           type={subSection.type}
           subSectionId={subSection.id}
           setSubSection={setSubSection}
@@ -602,22 +608,28 @@ const CustomSelect: React.FC<ICustomSelectProps> = ({
     </div>
   );
 };
+
+
 interface IMarkingSchemeProps {
+  vcorrect: Array<number>;
+  vincorrect: number;
   subSectionId: string;
   type: string;
   setSubSection: (id: string, data: any) => void;
 }
 
 const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
+  vcorrect,
+  vincorrect,
   subSectionId,
   type,
   setSubSection,
 }) => {
   const [markingSchemeCorrect, setMarkingSchemeCorrect] = useState<
     Array<number>
-  >([1]);
+  >(vcorrect);
   const [markingSchemeIncorrect, setMarkingSchemeIncorrect] =
-    useState<number>(0);
+    useState<number>(vincorrect);
   const handleAddCorrectInput = () => {
     setMarkingSchemeCorrect((data: Array<number>) => [...data, 1]);
   };
@@ -625,7 +637,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
     // setMarkingSchemeCorrect((data: Array<number>) => [...data, 1]);
     let arr = markingSchemeCorrect;
     arr.pop();
-    console.log(arr);
+    // console.log(arr);
     setMarkingSchemeCorrect([...arr]);
   };
   return (
@@ -636,6 +648,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
         type="number"
         inputProps={{ max: 0 }}
         onChange={(e: any) => {
+          console.log(vcorrect);
           setSubSection(subSectionId, {
             markingScheme: {
               incorrect: parseInt(e.target.value),
@@ -643,6 +656,8 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
             },
           });
           setMarkingSchemeIncorrect(parseInt(e.target.value));
+          // console.log(subSectionId, "haan", setSubSection);
+          // console.log(markingSchemeCorrect, markingSchemeIncorrect);
         }}
       />
       {markingSchemeCorrect.map((correctMark: number, idx: number) => {
@@ -656,7 +671,6 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
             onChange={(e: any) => {
               let correct = [...markingSchemeCorrect];
               correct[idx] = parseInt(e.target.value);
-              console.log(correct);
               setSubSection(subSectionId, {
                 markingScheme: {
                   correct,
