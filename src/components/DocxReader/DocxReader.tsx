@@ -7,6 +7,31 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 
 const { Dragger } = Upload;
 
+function checkAndReplaceSemicolon(value: string) {
+  const regexSemicolon = /op\d+\s*;/g;
+  let newValue = value;
+  const matchWithSemicolon = regexSemicolon.test(newValue);
+  let ops: string[] = [];
+  if (matchWithSemicolon) {
+    // split the text by semicolon and add it to correctAnswers
+    // remove '<p>' and '</p>' from the text
+    ops = newValue
+      ?.replace(/<p>/g, "")
+      .replace(/<\/p>/g, "")
+      .split(";")
+      ?.filter((op) => op.length > 0)
+      ?.map((op) => op.trim()?.toLowerCase());
+    // replace the text having semicolon with ""
+    // newValue. = "";
+    console.log({ ops });
+    newValue = newValue.replace(regexSemicolon, "");
+  }
+  return {
+    value: newValue,
+    extractedValues: ops,
+  };
+}
+
 const DocxReader: React.FC<{
   setQuestions: any;
   setLoading: any;
@@ -61,6 +86,10 @@ const DocxReader: React.FC<{
 
   useEffect(() => {
     if (html?.length) {
+      let correctAnswers: string[] = [];
+      let correctAnswerWithIndices: {
+        [key: string]: string[];
+      } = {};
       console.log({ html });
       const parser = new DOMParser();
       const doc = parser.parseFromString(html.toString(), "text/html");
@@ -73,8 +102,18 @@ const DocxReader: React.FC<{
           for (let j = 0; j < imgs.length; j++) {
             const img = imgs[j];
             img.setAttribute("style", "max-width:min(100%, 200px)");
+            img.setAttribute(
+              "src",
+              String(
+                img
+                  .getAttribute("src")
+                  ?.replace("jpeg", "jpg")
+                  .replace("jpg", "png")
+              )
+            );
           }
         }
+
         const tableRows: string[][] = [];
         let type = {
           index: 0,
@@ -92,12 +131,13 @@ const DocxReader: React.FC<{
               }
               rowData.push(cells[k].innerText);
             }
-          } else
+          } else {
             for (let k = 0; k < cells.length; k++) {
               rowData.push(
                 k === type.index ? cells[k].innerText : cells[k].innerHTML
               );
             }
+          }
 
           tableRows.push(rowData);
         }
@@ -119,53 +159,63 @@ const DocxReader: React.FC<{
       });
       const regex = /op\d/;
       // regex to check if word ends with semicolon
-      const regexSemicolon = /.*;$/;
-      console.log({ secret: data[0] });
-      const finalData = data[0]?.map((item) => ({
-        type: item.type,
-        subject: removeParaTag(item.subject),
-        difficulty: capitalizeFirstLetter(
-          removeParaTag(item.difficulty || "Not Decided")
-        ),
-        chapters: item.chapters
-          ?.split(",")
-          ?.map((chap: string) => removeParaTag(chap.trim()))
-          ?.map((chap: string) => ({
-            name: chap,
-            topics: item.topics
-              ?.split(",")
-              ?.map((topic: string) => removeParaTag(topic.trim())),
-          })),
-        en: {
-          question: item.question,
-          options: tableHeaders
-            ?.filter((key) => regex.test(key))
-            ?.map((key) => ({
-              id: new Date().getTime(),
-              value: item[key],
+
+      const options = tableHeaders
+        ?.filter((key) => regex.test(key))
+        ?.map((key) => ({
+          id: key,
+          value: "",
+        }));
+
+      function handleOption({ value, extractedValues }: any, i: number) {
+        if (extractedValues?.length) {
+          correctAnswerWithIndices[i] = extractedValues;
+        }
+        return value;
+      }
+
+      const finalData = data[0]
+        ?.filter((ques: any) => ques.question.length > 0)
+        ?.map((item, i) => ({
+          id: Date.now() + i,
+          type: item.type,
+          subject: removeParaTag(item.subject),
+          difficulty: capitalizeFirstLetter(
+            removeParaTag(item.difficulty || "Not Decided")
+          ),
+          chapters: item.chapters
+            ?.split(",")
+            ?.map((chap: string) => removeParaTag(chap.trim()))
+            ?.map((chap: string) => ({
+              name: chap,
+              topics: item.topics
+                ?.split(",")
+                ?.map((topic: string) => removeParaTag(topic.trim())),
             })),
-          solution: item.solution,
-        },
-        hi: {
-          question: item.question,
-          options: tableHeaders
-            ?.filter((key) => regex.test(key))
-            ?.map((key) => ({
-              id: new Date().getTime(),
-              value: item[key],
+          en: {
+            question: item.question,
+            options: options?.map((op) => ({
+              ...op,
+              value: item[op.id],
             })),
-          solution: item.solution,
-        },
-        //remove the word with semicolon using the regex
-        // extract the word containing semicolon
-        // correctAnswers: [item.solution?.match(regexSemicolon)?.[0]],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        uploadedBy: {
-          id: currentUser?.id,
-          userType: currentUser?.userType,
-        },
-      }));
+            solution: handleOption(checkAndReplaceSemicolon(item.solution), i),
+          },
+          hi: {
+            question: item.question,
+            options: options?.map((op) => ({
+              ...op,
+              value: item[op.id],
+            })),
+            solution: item.solution,
+          },
+          correctAnswers: correctAnswerWithIndices[i],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          uploadedBy: {
+            id: currentUser?.id,
+            userType: currentUser?.userType,
+          },
+        }));
       console.log({ tableData, tableHeaders, finalData, data });
       setQuestions(finalData);
       setLoading(false);

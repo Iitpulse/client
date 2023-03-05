@@ -22,7 +22,9 @@ const BulkWord = () => {
           <AllQuestionsTable
             loading={uploading}
             questions={questions}
-            handleDeleteQuestion={(question: any) => {}}
+            handleDeleteQuestion={(question: any) => {
+              setQuestions(questions.filter((q: any) => q.id !== question.id));
+            }}
             noEdit
           />
         </section>
