@@ -103,6 +103,26 @@ interface IOptionType {
   value?: string | number;
 }
 
+
+
+const arrsub = [
+  "Physics",
+  "Chemistry",
+  "Mathematics",
+  "Biology",
+  "Computer", 
+  "Commerce",
+  "test",
+  "another test",
+  "testing again",
+  "Test Subject",
+  "Test Subject 2",
+  "Test Subject 3",
+  "Test Subject 4",
+  "Test Subject 5",
+  "Test Subject 6",
+  "Test Subject 7"
+  ]
 const Questions = () => {
   const isReadPermitted = usePermission(PERMISSIONS.QUESTION.READ);
   const isReadGlobalPermitted = usePermission(PERMISSIONS.QUESTION.READ_GLOBAL);
@@ -126,7 +146,7 @@ const Questions = () => {
   const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
   const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>(['Easy', 'Medium', 'Hard']);
   const [filterSubjects, setFilterSubjects] = useState<any>([]);
-  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>([]);
+  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(arrsub);
   const [filterChapters, setFilterChapters] = useState<any>([]);
   const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
   const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
@@ -300,12 +320,13 @@ const Questions = () => {
 
     }
     else{
-      let ar = [];
-      for(var i = 0; i<subjects.length; i++){
-        ar.push(subjects[i].name);
-      }
-      setFilterSubjectsReq(ar);
-      console.log(filterSubjectsReq);
+      setFilterSubjectsReq(arrsub);
+      // let ar = [];
+      // for(var i = 0; i<subjects.length; i++){
+      //   ar.push(subjects[i].name);
+      // }
+      // // setFilterSubjectsReq(ar);
+      // console.log(filterSubjectsReq);
     }
   }
   function handleChangeChapters(_: any, options: any) {
@@ -454,16 +475,16 @@ const Questions = () => {
     setLoading(false);
   };
 
-  useEffect(()=>{
-    console.log(subjects);
-    let arr = [];
-    for(var i = 0; i<subjects.length; i++){
-      arr.push(subjects[i].name);
-    }
-    setFilterSubjectsReq(arr);
-    setFilterSubjects(arr);
-    // console.log(arr);
-  },[subjects])
+  // useEffect(()=>{
+  //   console.log(subjects);
+  //   let arr = [];
+  //   for(var i = 0; i<subjects.length; i++){
+  //     arr.push(subjects[i].name);
+  //   }
+  //   setFilterSubjectsReq(arr);
+  //   setFilterSubjects(arr);
+  //   // console.log(arr);
+  // },[subjects])
 
 
   return (
