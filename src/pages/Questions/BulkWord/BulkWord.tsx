@@ -16,7 +16,7 @@ const BulkWord = () => {
     <MainLayout name="Bulk Upload Word">
       <section>
         <section className={styles.dragArea}>
-          <DocxReader setQuestions={setQuestions} />
+          <DocxReader setQuestions={setQuestions} setLoading={setUploading} />
         </section>
         <section className={styles.tableContainer}>
           <AllQuestionsTable

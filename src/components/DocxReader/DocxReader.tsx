@@ -1,6 +1,7 @@
 import { InboxOutlined } from "@mui/icons-material";
 import { Upload, UploadProps } from "antd";
 import { useState, useEffect, useContext } from "react";
+import { capitalizeFirstLetter } from "../../utils";
 import { API_QUESTIONS } from "../../utils/api";
 import { AuthContext } from "../../utils/auth/AuthContext";
 
@@ -8,7 +9,8 @@ const { Dragger } = Upload;
 
 const DocxReader: React.FC<{
   setQuestions: any;
-}> = ({ setQuestions }) => {
+  setLoading: any;
+}> = ({ setQuestions, setLoading }) => {
   const [html, setHtml] = useState("");
   const [tableData, setTableData] = useState<string[][][]>([]);
 
@@ -33,6 +35,7 @@ const DocxReader: React.FC<{
   const { currentUser } = useContext(AuthContext);
 
   const readFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoading(true);
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
@@ -45,11 +48,15 @@ const DocxReader: React.FC<{
     console.log({ html });
   });
 
-  const removeP = (str: string) => {
+  const removeParaTag = (str: string) => {
     if (str.startsWith("<p>") && str.endsWith("</p>")) {
       return str.slice(3, str.length - 4);
     }
     return str;
+  };
+
+  const replaceWithBR = (str: string) => {
+    return str.replace(/<\/p><p>/g, "</p><br><p>");
   };
 
   useEffect(() => {
@@ -61,9 +68,13 @@ const DocxReader: React.FC<{
       const tableData: string[][][] = [];
       for (let i = 0; i < tables.length; i++) {
         const rows = tables[i].rows;
-        const imgs = tables[i].querySelector("img");
-        imgs.style.maxWidth = "80%";
-        imgs.style.margin = "1rem 0";
+        const imgs = tables[i].querySelectorAll("img");
+        if (imgs?.length) {
+          for (let j = 0; j < imgs.length; j++) {
+            const img = imgs[j];
+            img.setAttribute("style", "max-width:min(100%, 200px)");
+          }
+        }
         const tableRows: string[][] = [];
         let type = {
           index: 0,
@@ -107,31 +118,57 @@ const DocxReader: React.FC<{
         return finalRows;
       });
       const regex = /op\d/;
+      // regex to check if word ends with semicolon
+      const regexSemicolon = /.*;$/;
+      console.log({ secret: data[0] });
       const finalData = data[0]?.map((item) => ({
         type: item.type,
+        subject: removeParaTag(item.subject),
+        difficulty: capitalizeFirstLetter(
+          removeParaTag(item.difficulty || "Not Decided")
+        ),
+        chapters: item.chapters
+          ?.split(",")
+          ?.map((chap: string) => removeParaTag(chap.trim()))
+          ?.map((chap: string) => ({
+            name: chap,
+            topics: item.topics
+              ?.split(",")
+              ?.map((topic: string) => removeParaTag(topic.trim())),
+          })),
         en: {
           question: item.question,
           options: tableHeaders
-
             ?.filter((key) => regex.test(key))
             ?.map((key) => ({
               id: new Date().getTime(),
               value: item[key],
             })),
+          solution: item.solution,
         },
         hi: {
           question: item.question,
-          options: item.options,
+          options: tableHeaders
+            ?.filter((key) => regex.test(key))
+            ?.map((key) => ({
+              id: new Date().getTime(),
+              value: item[key],
+            })),
+          solution: item.solution,
         },
+        //remove the word with semicolon using the regex
+        // extract the word containing semicolon
+        // correctAnswers: [item.solution?.match(regexSemicolon)?.[0]],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        createdBy: {
+        uploadedBy: {
           id: currentUser?.id,
           userType: currentUser?.userType,
         },
       }));
-      console.log(tableData, tableHeaders, finalData, data);
+      console.log({ tableData, tableHeaders, finalData, data });
       setQuestions(finalData);
+      setLoading(false);
     }
   }, [html]);
 
