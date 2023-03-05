@@ -47,6 +47,8 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { Input } from "antd";
 import CheckBox from "@mui/icons-material/CheckBox";
+import { param } from "jquery";
+import { any } from "zod";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -120,16 +122,30 @@ const Questions = () => {
   const globalSearchRef = useRef<any>(null);
   const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
   const [filterType, setFilterType] = useState<any>([]);
+  const [filterTypeReq, setFilterTypeReq] = useState<any>(['single','multiple','integer','paragraph','matrix']);
   const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
+  const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>(['Easy', 'Medium', 'Hard']);
   const [filterSubjects, setFilterSubjects] = useState<any>([]);
+  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>([]);
   const [filterChapters, setFilterChapters] = useState<any>([]);
   const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
   const [topics, setTopics] = useState<any>([]);
-
-  const { currentUser } = useContext(AuthContext);
+  
+  const { currentUser } = useContext(AuthContext)
   const { subjects } = useContext(TestContext);
+
+  useEffect(()=>{
+    // const {subjects} = useContext(TestContext);
+    let arr = [];
+    for(var i = 0; i<subjects.length; i++){
+      arr.push(subjects[i].name);
+    }
+    setFilterSubjectsReq(arr);
+    setFilterChapters(arr);
+    console.log(arr);
+  },[subjects])
 
   const tableRef = useRef<any>(null);
 
@@ -205,6 +221,7 @@ const Questions = () => {
   const navigate = useNavigate();
 
   async function onChangePageOrPageSize(page: number, pageSize: number) {
+    // console.log(filterSubjects);
     setLoading(true);
     try {
       const res = await API_QUESTIONS().get(`/mcq/all`, {
@@ -212,6 +229,10 @@ const Questions = () => {
           page,
           size: pageSize || 10,
           search: globalSearch, // I Wrote this line
+          type : filterTypeReq,
+          difficulty: filterDifficultyReq,
+          sub: filterSubjectsReq,
+          chapter: filterChapters
         },
       });
       // console.log({ data: res.data });
@@ -245,6 +266,8 @@ const Questions = () => {
     debounceGlobalSearch();
   }, [globalSearch]);
 
+  useEffect(()=>{onChangePageOrPageSize()}, [filterType,filterChapters,filterDifficulty,filterSubjects,filterTopics]);
+
   const typeOptions = [
     { label: "Single", value: "single" },
     { label: "Multiple", value: "multiple" },
@@ -254,19 +277,45 @@ const Questions = () => {
   ];
 
   const difficultyOptions = [
-    { label: "Easy", value: "easy" },
-    { label: "Medium", value: "medium" },
-    { label: "Hard", value: "hard" },
+    { label: "Easy", value: "Easy" },
+    { label: "Medium", value: "Medium" },
+    { label: "Hard", value: "Hard" },
   ];
 
   function handleChangeType(values: string[]) {
     setFilterType(values);
+    if(values.length === 0){
+      setFilterTypeReq(['single','multiple','integer','paragraph','matrix']);
+    }
+    else setFilterTypeReq(values);
   }
   function handleChangeDifficulty(values: string[]) {
     setFilterDifficulty(values);
+    if(values.length === 0){
+     setFilterDifficultyReq(['Easy','Medium','Hard']); 
+    }
+    else setFilterDifficultyReq(values);
   }
   function handleChangeSubjects(_: any, options: any[]) {
     setFilterSubjects(options);
+    if(options.length >= 1){
+      let ar = [];
+      for(var i = 0; i<options.length; i++){
+        ar.push(options[i].value);
+      }
+      setFilterSubjectsReq(ar);
+      console.log(filterSubjectsReq);
+
+    }
+    else{
+      let ar = [];
+      for(var i = 0; i<subjects.length; i++){
+        ar.push(subjects[i].name);
+      }
+      setFilterSubjectsReq(ar);
+      console.log(filterSubjectsReq);
+
+    }
   }
   function handleChangeChapters(_: any, options: any) {
     setFilterChapters(options);
@@ -285,7 +334,7 @@ const Questions = () => {
     return (
       <Tag
         color={
-          value === "easy" ? "green" : value === "medium" ? "yellow" : "red"
+          value === "Easy" ? "green" : value.toLowerCase() === "Medium" ? "yellow" : "red"
         }
         onMouseDown={onPreventMouseDown}
         closable={closable}
@@ -358,6 +407,8 @@ const Questions = () => {
     else setTopicOptions([]);
     // console.log(topicOptions);
   }, [filterChapters]);
+
+  
 
   const handleToggleProofread = async (checked: any, question: any) => {
     let obj = { ...question, isProofRead: checked };
