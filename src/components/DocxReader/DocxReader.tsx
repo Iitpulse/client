@@ -19,11 +19,10 @@ function checkAndReplaceSemicolon(value: string) {
       ?.replace(/<p>/g, "")
       .replace(/<\/p>/g, "")
       .split(";")
-      ?.filter((op) => op.length > 0)
+      ?.filter((op) => op.length > 0 && op.startsWith("op"))
       ?.map((op) => op.trim()?.toLowerCase());
     // replace the text having semicolon with ""
     // newValue. = "";
-    console.log({ ops });
     newValue = newValue.replace(regexSemicolon, "");
   }
   return {
@@ -160,12 +159,12 @@ const DocxReader: React.FC<{
       const regex = /op\d/;
       // regex to check if word ends with semicolon
 
-      const options = tableHeaders
-        ?.filter((key) => regex.test(key))
-        ?.map((key) => ({
-          id: key,
-          value: "",
-        }));
+      // const options = tableHeaders
+      //   ?.filter((key) => regex.test(key))
+      //   ?.map((key) => ({
+      //     id: key,
+      //     value: "",
+      //   }));
 
       function handleOption({ value, extractedValues }: any, i: number) {
         if (extractedValues?.length) {
@@ -174,48 +173,84 @@ const DocxReader: React.FC<{
         return value;
       }
 
+      function handleOptionByQuestionType(item: any, i: number) {
+        let options = tableHeaders
+          ?.filter((key) => regex.test(key))
+          ?.map((key) => ({
+            id: key,
+            value: "",
+          }));
+        console.log({ options, item });
+        switch (item.type) {
+          case "single":
+          case "multiple":
+            return {
+              options: options?.map((op) => ({
+                ...op,
+                value: item[op.id],
+              })),
+              solution: handleOption(
+                checkAndReplaceSemicolon(item.solution),
+                i
+              ),
+              correctAnswers: correctAnswerWithIndices[i],
+            };
+          case "integer":
+            return {
+              solution: handleOption(
+                checkAndReplaceSemicolon(item.solution),
+                i
+              ),
+              correctAnswer: { from: item.op1, to: item.op2 },
+            };
+        }
+        return {};
+      }
+
       const finalData = data[0]
         ?.filter((ques: any) => ques.question.length > 0)
-        ?.map((item, i) => ({
-          id: Date.now() + i,
-          type: item.type,
-          subject: removeParaTag(item.subject),
-          difficulty: capitalizeFirstLetter(
-            removeParaTag(item.difficulty || "Not Decided")
-          ),
-          chapters: item.chapters
-            ?.split(",")
-            ?.map((chap: string) => removeParaTag(chap.trim()))
-            ?.map((chap: string) => ({
-              name: chap,
-              topics: item.topics
-                ?.split(",")
-                ?.map((topic: string) => removeParaTag(topic.trim())),
-            })),
-          en: {
-            question: item.question,
-            options: options?.map((op) => ({
-              ...op,
-              value: item[op.id],
-            })),
-            solution: handleOption(checkAndReplaceSemicolon(item.solution), i),
-          },
-          hi: {
-            question: item.question,
-            options: options?.map((op) => ({
-              ...op,
-              value: item[op.id],
-            })),
-            solution: item.solution,
-          },
-          correctAnswers: correctAnswerWithIndices[i],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          uploadedBy: {
-            id: currentUser?.id,
-            userType: currentUser?.userType,
-          },
-        }));
+        ?.map((item, i) => {
+          const { solution, options, ...rest }: any =
+            handleOptionByQuestionType(item, i);
+          let newObj: any = {
+            id: i,
+            ...rest,
+            type: item.type,
+            subject: removeParaTag(item.subject),
+            difficulty: capitalizeFirstLetter(
+              removeParaTag(item.difficulty || "Not Decided")
+            ),
+            chapters: item.chapters
+              ?.split(",")
+              ?.map((chap: string) => removeParaTag(chap.trim()))
+              ?.map((chap: string) => ({
+                name: chap,
+                topics: item.topics
+                  ?.split(",")
+                  ?.map((topic: string) => removeParaTag(topic.trim())),
+              })),
+            en: {
+              question: item.question,
+              solution,
+            },
+            hi: {
+              question: item.question,
+              solution,
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            uploadedBy: {
+              id: currentUser?.id,
+              userType: currentUser?.userType,
+            },
+          };
+          if (options) {
+            newObj.en.options = options;
+            newObj.hi.options = options;
+          }
+          return newObj;
+        });
+
       console.log({ tableData, tableHeaders, finalData, data });
       setQuestions(finalData);
       setLoading(false);

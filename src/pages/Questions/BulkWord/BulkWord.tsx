@@ -23,7 +23,10 @@ const BulkWord = () => {
             loading={uploading}
             questions={questions}
             handleDeleteQuestion={(question: any) => {
-              setQuestions(questions.filter((q: any) => q.id !== question.id));
+              console.log("Deleting question", question);
+              setQuestions((prev) =>
+                prev.filter((q: any) => q.id !== question.id)
+              );
             }}
             noEdit
           />
