@@ -7,6 +7,7 @@ export { default as CreateTest } from "./Test/CreateTest";
 export { default as Roles } from "./Roles/Roles";
 export { default as Batches } from "./Batches/Batches";
 export { default as Questions } from "./Questions/Questions";
+export { default as QuestionsNew } from "./Questions/QuestionsNew";
 export { default as Pattern } from "./Pattern/Pattern";
 export { default as Login } from "./Login/Login";
 export { default as Result } from "./Result/Result";
