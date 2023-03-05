@@ -72,9 +72,9 @@ export const questionTypes = [
 // ];
 
 export const difficultyLevels = [
-  { name: "Easy", value: "easy" },
-  { name: "Medium", value: "medium" },
-  { name: "Hard", value: "hard" },
+  { name: "Easy", value: "Easy" },
+  { name: "Medium", value: "Medium" },
+  { name: "Hard", value: "Hard" },
 ];
 
 export const sources = [
@@ -109,7 +109,7 @@ const Questions = () => {
   const isCreatePermitted = usePermission(PERMISSIONS.QUESTION.CREATE);
   const isUpdatePermitted = usePermission(PERMISSIONS.QUESTION.UPDATE);
   const isDeletePermitted = usePermission(PERMISSIONS.QUESTION.DELETE);
-
+  
   const [loading, setLoading] = useState<boolean>(false);
   const [totalDocs, setTotalDocs] = useState(1);
   const [sidebarOpen, setSideBarOpen] = useState<boolean>(false);
@@ -128,24 +128,14 @@ const Questions = () => {
   const [filterSubjects, setFilterSubjects] = useState<any>([]);
   const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>([]);
   const [filterChapters, setFilterChapters] = useState<any>([]);
+  const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
   const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
-  const [topics, setTopics] = useState<any>([]);
   
-  const { currentUser } = useContext(AuthContext)
   const { subjects } = useContext(TestContext);
+  const { currentUser } = useContext(AuthContext);
 
-  useEffect(()=>{
-    // const {subjects} = useContext(TestContext);
-    let arr = [];
-    for(var i = 0; i<subjects.length; i++){
-      arr.push(subjects[i].name);
-    }
-    setFilterSubjectsReq(arr);
-    setFilterChapters(arr);
-    console.log(arr);
-  },[subjects])
 
   const tableRef = useRef<any>(null);
 
@@ -232,7 +222,7 @@ const Questions = () => {
           type : filterTypeReq,
           difficulty: filterDifficultyReq,
           sub: filterSubjectsReq,
-          chapter: filterChapters
+          chapters: filterChaptersReq
         },
       });
       // console.log({ data: res.data });
@@ -266,7 +256,9 @@ const Questions = () => {
     debounceGlobalSearch();
   }, [globalSearch]);
 
-  useEffect(()=>{onChangePageOrPageSize()}, [filterType,filterChapters,filterDifficulty,filterSubjects,filterTopics]);
+  useEffect(()=>{
+    onChangePageOrPageSize();
+  }, [filterTypeReq,filterChaptersReq,filterDifficultyReq,filterSubjectsReq,filterTopics]);
 
   const typeOptions = [
     { label: "Single", value: "single" },
@@ -314,11 +306,23 @@ const Questions = () => {
       }
       setFilterSubjectsReq(ar);
       console.log(filterSubjectsReq);
-
     }
   }
   function handleChangeChapters(_: any, options: any) {
     setFilterChapters(options);
+    // console.log(options);
+    if(options.length){
+      let arr : any = [];
+      // options?.map((opt : any)=>{arr.push({
+      //   name: opt.name,
+      //   topics: opt.topics,
+      //   _id: opt.id
+      // })});
+      options?.map((opt : any)=>{arr.push(opt.name)});
+      setFilterChaptersReq(arr);
+    }
+    else setFilterChaptersReq([]);
+    console.log(filterChaptersReq);
   }
   function handleChangeTopics(options: String[]) {
     // console.log(options);
@@ -334,7 +338,7 @@ const Questions = () => {
     return (
       <Tag
         color={
-          value === "Easy" ? "green" : value.toLowerCase() === "Medium" ? "yellow" : "red"
+          value === "Easy" ? "green" : value.toLowerCase() === "medium" ? "yellow" : "red"
         }
         onMouseDown={onPreventMouseDown}
         closable={closable}
@@ -365,29 +369,6 @@ const Questions = () => {
     else setChapterOptions([]);
   }, [filterSubjects]);
 
-  // useEffect(() => {
-  //   function topicsKeLiye(): any[] {
-  //     let t: any[] = [];
-  //     filterTopics?.forEach((topicc: any) => {
-  //         if(topicc){
-  //           t.push(
-  //             ...topicc?.map((topic: any) => ({
-  //               label: topic,
-  //               value: topic,
-  //             }))
-  //           );
-  //         }
-  //     });
-  //     console.log(t);
-  //     return t;
-  //   }
-  //   if (filterTopics?.length) setTopics(topicsKeLiye());
-  //   else setTopics([]);
-  // }, [filterTopics]);
-
-  // useEffect(() => {
-  //   console.log({ previewData });
-  // });
 
   useEffect(() => {
     function getSelectedChapterTopics(): any[] {
@@ -405,7 +386,6 @@ const Questions = () => {
     }
     if (filterChapters?.length) setTopicOptions(getSelectedChapterTopics());
     else setTopicOptions([]);
-    // console.log(topicOptions);
   }, [filterChapters]);
 
   
@@ -473,6 +453,18 @@ const Questions = () => {
     }
     setLoading(false);
   };
+
+  useEffect(()=>{
+    console.log(subjects);
+    let arr = [];
+    for(var i = 0; i<subjects.length; i++){
+      arr.push(subjects[i].name);
+    }
+    setFilterSubjectsReq(arr);
+    setFilterSubjects(arr);
+    // console.log(arr);
+  },[subjects])
+
 
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
