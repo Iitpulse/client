@@ -150,6 +150,8 @@ const Questions = () => {
   const [filterChapters, setFilterChapters] = useState<any>([]);
   const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
   const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
+  const [filterTopicsReq, setFilterTopicsReq] = useState<Array<any>>([]);
+
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
   
@@ -242,7 +244,8 @@ const Questions = () => {
           type : filterTypeReq,
           difficulty: filterDifficultyReq,
           sub: filterSubjectsReq,
-          chapters: filterChaptersReq
+          chapters: filterChaptersReq,
+          topics: filterTopicsReq
         },
       });
       // console.log({ data: res.data });
@@ -278,7 +281,7 @@ const Questions = () => {
 
   useEffect(()=>{
     onChangePageOrPageSize();
-  }, [filterTypeReq,filterChaptersReq,filterDifficultyReq,filterSubjectsReq,filterTopics]);
+  }, [filterTypeReq,filterChaptersReq,filterDifficultyReq,filterSubjectsReq,filterTopicsReq]);
 
   const typeOptions = [
     { label: "Single", value: "single" },
@@ -348,6 +351,7 @@ const Questions = () => {
   function handleChangeTopics(options: String[]) {
     // console.log(options);
     setFilterTopics(options);
+    setFilterTopicsReq(options);
   }
 
   const tagRender = (props: CustomTagProps) => {
