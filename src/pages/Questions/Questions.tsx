@@ -278,6 +278,16 @@ const Questions = () => {
     debounceGlobalSearch();
   }, [globalSearch]);
 
+  // useEffect(()=>{
+  //   setFilterChapters([]);
+  //   setFilterChaptersReq([]);
+  // },[filterSubjectsReq, filterSubjects])
+
+  // useEffect(()=>{
+  //   setFilterTopics([]);
+  //   setFilterTopicsReq([]);
+  // },[filterChapters, filterChaptersReq])
+
   useEffect(()=>{
     onChangePageOrPageSize();
   }, [filterTypeReq,filterChaptersReq,filterDifficultyReq,filterSubjectsReq,filterTopicsReq]);
