@@ -16,13 +16,18 @@ const BulkWord = () => {
     <MainLayout name="Bulk Upload Word">
       <section>
         <section className={styles.dragArea}>
-          <DocxReader setQuestions={setQuestions} />
+          <DocxReader setQuestions={setQuestions} setLoading={setUploading} />
         </section>
-        <section>
+        <section className={styles.tableContainer}>
           <AllQuestionsTable
             loading={uploading}
             questions={questions}
-            handleDeleteQuestion={(question: any) => {}}
+            handleDeleteQuestion={(question: any) => {
+              console.log("Deleting question", question);
+              setQuestions((prev) =>
+                prev.filter((q: any) => q.id !== question.id)
+              );
+            }}
             noEdit
           />
         </section>

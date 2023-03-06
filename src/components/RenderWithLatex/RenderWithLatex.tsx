@@ -12,6 +12,10 @@ const RenderWithLatex: React.FC<Props> = ({ quillString }) => {
   const [previewHTML, setPreviewHTML] = useState("");
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
+  const replaceWithBR = (str: string) => {
+    return str.replace(/<\/p><p>/g, "</p><br><p>");
+  };
+
   useEffect(() => {
     setPreviewHTML("");
     setIsPreviewLoading(true);

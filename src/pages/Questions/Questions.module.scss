@@ -263,20 +263,39 @@
     }
   }
 }
-.mainSolutionContainer{
-  display: flex;
-  width: 100%;
-}
-.solutionContainerG {
-  margin-top: 1rem;
-  padding: 0.2rem;
-  background-color: #55BC7E;
-  
-}
 .solutionContainer {
   width: 100%;
   margin-top: 1rem;
   padding: 1rem;
-  background-color: #55BC7E1A;
-  border-radius: 0.3rem;
+  background-color: #55bc7e1a;
+  border-left: 0.4rem solid #55bc7e;
+  > p {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  // border-radius: 0.3rem;
+}
+
+.optionsList {
+  @extend .flexCol;
+  list-style: none;
+
+  .option {
+    @extend .flexRow;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    margin: 0.8rem 0;
+    .optionNumber {
+      color: grey;
+    }
+    &.selected {
+      border: 2px solid #55bc7e;
+      border-radius: 0.4rem;
+      .checkbox {
+        margin-left: auto;
+        color: #55bc7e;
+      }
+    }
+  }
 }

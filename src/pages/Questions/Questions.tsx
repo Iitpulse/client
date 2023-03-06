@@ -47,8 +47,7 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { Input } from "antd";
 import CheckBox from "@mui/icons-material/CheckBox";
-import { param } from "jquery";
-import { any } from "zod";
+import clsx from "clsx";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -512,7 +511,7 @@ const Questions = () => {
                       }}
                     />
                     <div className={styles.searchAndPrint2}>
-                      <div style={{margin: "0 0.5rem"}}>
+                      <div style={{ margin: "0 0.5rem" }}>
                         <IconButton onClick={handlePrint}>
                           <PrintIcon />
                         </IconButton>
@@ -524,14 +523,21 @@ const Questions = () => {
                               width="21px"
                               alt="Sheet"
                               height="21px"
-                              />
+                            />
                           </CSVLink>
                         </IconButton>
                       </div>
                       <Button
+                        variant="outlined"
+                        onClick={() => navigate("/questions/new-bulk-word")}
+                      >
+                        Bulk Word
+                      </Button>
+                      &nbsp;
+                      <Button
                         onClick={() => navigate("/questions/new")}
                         icon={<AddIcon />}
-                        >
+                      >
                         Add New
                       </Button>
                     </div>
@@ -1071,14 +1077,77 @@ export const AllQuestionsTable: React.FC<{
           // console.log({ questionObj, en });
           return (
             <div className={styles.questionContainerTable}>
-              <RenderWithLatex quillString={getCombinedQuestion(questionObj)} />
+              {/* <RenderWithLatex quillString={getCombinedQuestion(questionObj)} /> */}
+              <span
+                className={styles.flexRow}
+                style={{
+                  alignItems: "flex-start",
+                  justifyContent: "flex-start",
+                  gap: "0.5rem",
+                }}
+              >
+                Q.
+                <RenderWithLatex quillString={questionObj.en.question} />
+              </span>
+              {questionObj.type === "single" ||
+              questionObj.type === "multiple" ? (
+                <ul className={styles.optionsList}>
+                  {questionObj.en.options.map((option: any, i: number) => (
+                    <li
+                      key={i}
+                      className={clsx(
+                        styles.option,
+                        questionObj.correctAnswers?.includes(option.id)
+                          ? styles.selected
+                          : ""
+                      )}
+                    >
+                      <span className={styles.optionNumber}>
+                        {String.fromCharCode(65 + i)})
+                      </span>
+                      <span
+                        style={{
+                          marginLeft: "0.5rem",
+                        }}
+                      >
+                        <RenderWithLatex quillString={option.value} />
+                      </span>
+                      {questionObj.correctAnswers?.includes(option.id) && (
+                        <CheckBox className={styles.checkbox} />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span
+                  className={styles.flexRow}
+                  style={{
+                    justifyContent: "flex-start",
+                  }}
+                >
+                  From:{" "}
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: questionObj?.correctAnswer?.from,
+                    }}
+                  ></span>{" "}
+                  | To:{" "}
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: questionObj?.correctAnswer?.to,
+                    }}
+                  ></span>
+                </span>
+              )}
               {questionObj.type !== "paragraph" && (
-                <div className={styles.mainSolutionContainer}>
-                  <div className={styles.solutionContainerG}></div>
-                  <div className={styles.solutionContainer}>
-                    <p>Solution</p>
-                    <RenderWithLatex quillString={questionObj.en.solution} />
-                  </div>
+                <div className={styles.solutionContainer}>
+                  <p>Solution</p>
+                  <RenderWithLatex quillString={questionObj.en.solution} />
+                  {/* <div
+                    dangerouslySetInnerHTML={{
+                      __html: questionObj.en.solution,
+                    }}
+                  ></div> */}
                 </div>
               )}
             </div>
@@ -1180,7 +1249,6 @@ export const AllQuestionsTable: React.FC<{
     ]);
   }, [noEdit]);
 
-
   function getCombinedQuestion(question: any) {
     let { type } = question;
     if (type === "single" || type === "multiple") {
@@ -1200,7 +1268,7 @@ export const AllQuestionsTable: React.FC<{
               <span style='display:flex;justify-content: end;width: 100%;'>${
                 question.correctAnswers?.includes(op.id)
                   ? "<img src='/checkbox.png' style='width:20px; height:20px' alt=''> </img>"
-                  : ''
+                  : ""
               }</span>
               </span>`
           )
