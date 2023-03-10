@@ -213,7 +213,7 @@ const DocxReader: React.FC<{
           const { solution, options, ...rest }: any =
             handleOptionByQuestionType(item, i);
           let newObj: any = {
-            id: i,
+            _id: Date.now().toString()+i,
             ...rest,
             type: item.type,
             subject: removeParaTag(item.subject),
@@ -238,7 +238,7 @@ const DocxReader: React.FC<{
               solution,
             },
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            modifiedAt: new Date().toISOString(),
             uploadedBy: {
               id: currentUser?.id,
               userType: currentUser?.userType,
