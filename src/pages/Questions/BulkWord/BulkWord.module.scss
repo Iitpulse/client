@@ -6,3 +6,18 @@
 .tableContainer {
   margin-top: 2rem;
 }
+.uploadBtn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
+  > button {
+    text-transform: capitalize !important;
+    box-shadow: none;
+    font-weight: 700;
+
+    &:hover {
+      background-color: var(--clr-primary);
+    }
+  }
+}

@@ -1,4 +1,6 @@
 import { InboxOutlined } from "@ant-design/icons";
+import { Save } from "@mui/icons-material";
+import { Fab } from "@mui/material";
 import type { UploadProps } from "antd";
 import { message, Upload } from "antd";
 import { useState } from "react";
@@ -15,10 +17,10 @@ const BulkWord = () => {
   return (
     <MainLayout name="Bulk Upload Word">
       <section>
-        <section className={styles.dragArea}>
+        <div className={styles.dragArea}>
           <DocxReader setQuestions={setQuestions} setLoading={setUploading} />
-        </section>
-        <section className={styles.tableContainer}>
+        </div>
+        <div className={styles.tableContainer}>
           <AllQuestionsTable
             loading={uploading}
             questions={questions}
@@ -30,8 +32,17 @@ const BulkWord = () => {
             }}
             noEdit
           />
-        </section>
+        </div>
       </section>
+      <div className={styles.uploadBtn}>
+        <Fab
+          variant="extended"
+          sx={{ backgroundColor: "var(--clr-primary)", color: "#fff" }}
+        >
+          <Save sx={{ mr: 1 }} />
+          Upload Questions
+        </Fab>
+      </div>
     </MainLayout>
   );
 };
