@@ -7,19 +7,20 @@ export default function categorizeQuestionsByType(questionsArr: any[]) {
   for (let i = 0; i < questionsArr.length; i++) {
     const question = questionsArr[i];
     const { type } = question;
-    if (type === "single") {
-      singleQuestions.push(question);
-    } else if (type === "multiple") {
-      multipleQuestions.push(question);
-    } else if (type === "integer") {
-      integerQuestions.push(question);
-    } else if (type?.startsWith("paragraph")) {
-      let questionsCount = parseInt(type?.split("-")[1]);
+    if (type?.toLowerCase() === "single") {
+      singleQuestions.push({ ...question, type: type?.toLowerCase() });
+    } else if (type?.toLowerCase() === "multiple") {
+      multipleQuestions.push({ ...question, type: type?.toLowerCase() });
+    } else if (type?.toLowerCase() === "integer") {
+      integerQuestions.push({ ...question, type: type?.toLowerCase() });
+    } else if (type?.toLowerCase()?.startsWith("paragraph")) {
+      let questionsCount = parseInt(type?.toLowerCase()?.split("-")[1]);
       let paraQuestions = [];
       for (let j = i + 1; j < i + 1 + questionsCount; j++) {
         const nextQuestion = questionsArr[j];
         paraQuestions.push({
           ...nextQuestion,
+          type: nextQuestion.type?.toLowerCase(),
           subject: question.subject,
           topics: question.topics,
           chapters: question.chapters,

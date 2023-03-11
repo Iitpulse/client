@@ -36,7 +36,7 @@ export default function handleOptionByQuestionType(
     case "integer":
       return {
         solution: handleOption(checkAndReplaceSemicolon(item.solution), i),
-        correctAnswer: { from: item.op1, to: item.op2 },
+        correctAnswer: { from: item.op1, to: item.op2 ?? item.op1 },
       };
     default:
       return {};
