@@ -48,6 +48,7 @@ import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { Input } from "antd";
 import CheckBox from "@mui/icons-material/CheckBox";
 import clsx from "clsx";
+import RenderQuestion from "./components/DisplayQuestion/RenderQuestion";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -102,14 +103,12 @@ interface IOptionType {
   value?: string | number;
 }
 
-
-
 const arrsub = [
   "Physics",
   "Chemistry",
   "Mathematics",
   "Biology",
-  "Computer", 
+  "Computer",
   "Commerce",
   "test",
   "another test",
@@ -120,15 +119,15 @@ const arrsub = [
   "Test Subject 4",
   "Test Subject 5",
   "Test Subject 6",
-  "Test Subject 7"
-  ]
+  "Test Subject 7",
+];
 const Questions = () => {
   const isReadPermitted = usePermission(PERMISSIONS.QUESTION.READ);
   const isReadGlobalPermitted = usePermission(PERMISSIONS.QUESTION.READ_GLOBAL);
   const isCreatePermitted = usePermission(PERMISSIONS.QUESTION.CREATE);
   const isUpdatePermitted = usePermission(PERMISSIONS.QUESTION.UPDATE);
   const isDeletePermitted = usePermission(PERMISSIONS.QUESTION.DELETE);
-  
+
   const [loading, setLoading] = useState<boolean>(false);
   const [totalDocs, setTotalDocs] = useState(1);
   const [sidebarOpen, setSideBarOpen] = useState<boolean>(false);
@@ -141,9 +140,19 @@ const Questions = () => {
   const globalSearchRef = useRef<any>(null);
   const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
   const [filterType, setFilterType] = useState<any>([]);
-  const [filterTypeReq, setFilterTypeReq] = useState<any>(['single','multiple','integer','paragraph','matrix']);
+  const [filterTypeReq, setFilterTypeReq] = useState<any>([
+    "single",
+    "multiple",
+    "integer",
+    "paragraph",
+    "matrix",
+  ]);
   const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
-  const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>(['Easy', 'Medium', 'Hard']);
+  const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>([
+    "Easy",
+    "Medium",
+    "Hard",
+  ]);
   const [filterSubjects, setFilterSubjects] = useState<any>([]);
   const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(arrsub);
   const [filterChapters, setFilterChapters] = useState<any>([]);
@@ -153,10 +162,9 @@ const Questions = () => {
 
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
-  
+
   const { subjects } = useContext(TestContext);
   const { currentUser } = useContext(AuthContext);
-
 
   const tableRef = useRef<any>(null);
 
@@ -231,7 +239,7 @@ const Questions = () => {
 
   const navigate = useNavigate();
 
-  async function onChangePageOrPageSize(page: number, pageSize: number) {
+  async function onChangePageOrPageSize(page?: number, pageSize?: number) {
     // console.log(filterSubjects);
     setLoading(true);
     try {
@@ -240,11 +248,11 @@ const Questions = () => {
           page,
           size: pageSize || 10,
           search: globalSearch, // I Wrote this line
-          type : filterTypeReq,
+          type: filterTypeReq,
           difficulty: filterDifficultyReq,
           sub: filterSubjectsReq,
           chapters: filterChaptersReq,
-          topics: filterTopicsReq
+          topics: filterTopicsReq,
         },
       });
       // console.log({ data: res.data });
@@ -288,9 +296,15 @@ const Questions = () => {
   //   setFilterTopicsReq([]);
   // },[filterChapters, filterChaptersReq])
 
-  useEffect(()=>{
+  useEffect(() => {
     onChangePageOrPageSize();
-  }, [filterTypeReq,filterChaptersReq,filterDifficultyReq,filterSubjectsReq,filterTopicsReq]);
+  }, [
+    filterTypeReq,
+    filterChaptersReq,
+    filterDifficultyReq,
+    filterSubjectsReq,
+    filterTopicsReq,
+  ]);
 
   const typeOptions = [
     { label: "Single", value: "single" },
@@ -308,30 +322,32 @@ const Questions = () => {
 
   function handleChangeType(values: string[]) {
     setFilterType(values);
-    if(values.length === 0){
-      setFilterTypeReq(['single','multiple','integer','paragraph','matrix']);
-    }
-    else setFilterTypeReq(values);
+    if (values.length === 0) {
+      setFilterTypeReq([
+        "single",
+        "multiple",
+        "integer",
+        "paragraph",
+        "matrix",
+      ]);
+    } else setFilterTypeReq(values);
   }
   function handleChangeDifficulty(values: string[]) {
     setFilterDifficulty(values);
-    if(values.length === 0){
-     setFilterDifficultyReq(['Easy','Medium','Hard']); 
-    }
-    else setFilterDifficultyReq(values);
+    if (values.length === 0) {
+      setFilterDifficultyReq(["Easy", "Medium", "Hard"]);
+    } else setFilterDifficultyReq(values);
   }
   function handleChangeSubjects(_: any, options: any[]) {
     setFilterSubjects(options);
-    if(options.length >= 1){
+    if (options.length >= 1) {
       let ar = [];
-      for(var i = 0; i<options.length; i++){
+      for (var i = 0; i < options.length; i++) {
         ar.push(options[i].value);
       }
       setFilterSubjectsReq(ar);
       console.log(filterSubjectsReq);
-
-    }
-    else{
+    } else {
       setFilterSubjectsReq(arrsub);
       // let ar = [];
       // for(var i = 0; i<subjects.length; i++){
@@ -344,17 +360,18 @@ const Questions = () => {
   function handleChangeChapters(_: any, options: any) {
     setFilterChapters(options);
     // console.log(options);
-    if(options.length){
-      let arr : any = [];
+    if (options.length) {
+      let arr: any = [];
       // options?.map((opt : any)=>{arr.push({
       //   name: opt.name,
       //   topics: opt.topics,
       //   _id: opt.id
       // })});
-      options?.map((opt : any)=>{arr.push(opt.name)});
+      options?.map((opt: any) => {
+        arr.push(opt.name);
+      });
       setFilterChaptersReq(arr);
-    }
-    else setFilterChaptersReq([]);
+    } else setFilterChaptersReq([]);
     console.log(filterChaptersReq);
   }
   function handleChangeTopics(options: String[]) {
@@ -372,7 +389,11 @@ const Questions = () => {
     return (
       <Tag
         color={
-          value === "Easy" ? "green" : value.toLowerCase() === "medium" ? "yellow" : "red"
+          value === "Easy"
+            ? "green"
+            : value.toLowerCase() === "medium"
+            ? "yellow"
+            : "red"
         }
         onMouseDown={onPreventMouseDown}
         closable={closable}
@@ -403,7 +424,6 @@ const Questions = () => {
     else setChapterOptions([]);
   }, [filterSubjects]);
 
-
   useEffect(() => {
     function getSelectedChapterTopics(): any[] {
       let topics = new Set();
@@ -421,8 +441,6 @@ const Questions = () => {
     if (filterChapters?.length) setTopicOptions(getSelectedChapterTopics());
     else setTopicOptions([]);
   }, [filterChapters]);
-
-  
 
   const handleToggleProofread = async (checked: any, question: any) => {
     let obj = { ...question, isProofRead: checked };
@@ -498,7 +516,6 @@ const Questions = () => {
   //   setFilterSubjects(arr);
   //   // console.log(arr);
   // },[subjects])
-
 
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
@@ -1083,86 +1100,9 @@ export const AllQuestionsTable: React.FC<{
         dataIndex: "en",
         key: "question",
         width: "70%",
-        render: (en: any, questionObj: any) => {
-          // console.log({ questionObj, en });
-          return (
-            <div className={styles.questionContainerTable}>
-              {/* <RenderWithLatex quillString={getCombinedQuestion(questionObj)} /> */}
-              <span
-                className={styles.flexRow}
-                style={{
-                  alignItems: "flex-start",
-                  justifyContent: "flex-start",
-                  gap: "0.5rem",
-                }}
-              >
-                Q.
-                <RenderWithLatex quillString={questionObj.en.question} />
-              </span>
-              {questionObj.type === "single" ||
-              questionObj.type === "multiple" ? (
-                <ul className={styles.optionsList}>
-                  {questionObj.en.options.map((option: any, i: number) => (
-                    <li
-                      key={i}
-                      className={clsx(
-                        styles.option,
-                        questionObj.correctAnswers?.includes(option.id)
-                          ? styles.selected
-                          : ""
-                      )}
-                    >
-                      <span className={styles.optionNumber}>
-                        {String.fromCharCode(65 + i)})
-                      </span>
-                      <span
-                        style={{
-                          marginLeft: "0.5rem",
-                        }}
-                      >
-                        <RenderWithLatex quillString={option.value} />
-                      </span>
-                      {questionObj.correctAnswers?.includes(option.id) && (
-                        <CheckBox className={styles.checkbox} />
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span
-                  className={styles.flexRow}
-                  style={{
-                    justifyContent: "flex-start",
-                  }}
-                >
-                  From:{" "}
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: questionObj?.correctAnswer?.from,
-                    }}
-                  ></span>{" "}
-                  | To:{" "}
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: questionObj?.correctAnswer?.to,
-                    }}
-                  ></span>
-                </span>
-              )}
-              {questionObj.type !== "paragraph" && (
-                <div className={styles.solutionContainer}>
-                  <p>Solution</p>
-                  <RenderWithLatex quillString={questionObj.en.solution} />
-                  {/* <div
-                    dangerouslySetInnerHTML={{
-                      __html: questionObj.en.solution,
-                    }}
-                  ></div> */}
-                </div>
-              )}
-            </div>
-          );
-        },
+        render: (en: any, questionObj: any) => (
+          <RenderQuestion type={questionObj?.type} questionObj={questionObj} />
+        ),
       },
       {
         title: "Details",

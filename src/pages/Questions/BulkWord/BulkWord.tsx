@@ -1,4 +1,6 @@
 import { InboxOutlined } from "@ant-design/icons";
+import { Save } from "@mui/icons-material";
+import { Fab } from "@mui/material";
 import type { UploadProps } from "antd";
 import {useContext} from "react"
 import { message, Upload } from "antd";
@@ -302,30 +304,33 @@ const BulkWord = () => {
   return (
     <MainLayout name="Bulk Upload Word">
       <section>
-        <section className={styles.dragArea}>
-          <DocxReader setQuestions={setQuestions} setLoading={setUploading} />
-        </section>
-        <section className={styles.tableContainer}>
-          <AllQuestionsTable
-            loading={uploading}
-            questions={questions}
-            handleDeleteQuestion={(question: any) => {
-              // console.log("Deleting question", question);
-              setQuestions((prev) =>
-                prev.filter((q: any) => q.id !== question.id)
-              );
-            }}
-            noEdit
-          />
-        </section>
-        <section> 
-          <div className={styles.submitButton}>
-            <Button onClick={(e)=>{handleSubmitAll()}}>
-               Upload 
-            </Button>
+          <div className={styles.dragArea}>
+            <DocxReader setQuestions={setQuestions} setLoading={setUploading} />
           </div>
-        </section>
+          <div className={styles.tableContainer}>
+            <AllQuestionsTable
+              loading={uploading}
+              questions={questions}
+              handleDeleteQuestion={(question: any) => {
+                // console.log("Deleting question", question);
+                setQuestions((prev) =>
+                  prev.filter((q: any) => q.id !== question.id)
+                );
+              }}
+              noEdit
+            />
+          </div>
       </section>
+      <div className={styles.uploadBtn}>
+        <Fab
+          variant="extended"
+          sx={{ backgroundColor: "var(--clr-primary)", color: "#fff" }}
+          onClick={handleSubmitAll}
+        >
+          <Save sx={{ mr: 1 }} />
+          Upload Questions
+        </Fab>
+      </div>
     </MainLayout>
   );
 };
