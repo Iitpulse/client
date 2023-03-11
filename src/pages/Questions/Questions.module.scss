@@ -237,10 +237,7 @@
     }
   }
 }
-// .questionContainerTable {
-//   max-height: 300px;
-//   overflow: hidden;
-// }
+
 .detailsContainer {
   background-color: rgb(250, 250, 250);
   height: 100%;
@@ -297,5 +294,15 @@
         color: #55bc7e;
       }
     }
+  }
+}
+.paragraphQuestions {
+  padding: 0.5rem;
+  > div {
+    margin: 1rem 0;
+    padding: 0.5rem;
+    border-radius: 0.2rem;
+    background-color: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.05);
   }
 }

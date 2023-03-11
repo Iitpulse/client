@@ -48,6 +48,7 @@ import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { Input } from "antd";
 import CheckBox from "@mui/icons-material/CheckBox";
 import clsx from "clsx";
+import RenderQuestion from "./components/DisplayQuestion/RenderQuestion";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -1099,86 +1100,9 @@ export const AllQuestionsTable: React.FC<{
         dataIndex: "en",
         key: "question",
         width: "70%",
-        render: (en: any, questionObj: any) => {
-          // console.log({ questionObj, en });
-          return (
-            <div className={styles.questionContainerTable}>
-              {/* <RenderWithLatex quillString={getCombinedQuestion(questionObj)} /> */}
-              <span
-                className={styles.flexRow}
-                style={{
-                  alignItems: "flex-start",
-                  justifyContent: "flex-start",
-                  gap: "0.5rem",
-                }}
-              >
-                Q.
-                <RenderWithLatex quillString={questionObj.en.question} />
-              </span>
-              {questionObj.type === "single" ||
-              questionObj.type === "multiple" ? (
-                <ul className={styles.optionsList}>
-                  {questionObj.en.options.map((option: any, i: number) => (
-                    <li
-                      key={i}
-                      className={clsx(
-                        styles.option,
-                        questionObj.correctAnswers?.includes(option.id)
-                          ? styles.selected
-                          : ""
-                      )}
-                    >
-                      <span className={styles.optionNumber}>
-                        {String.fromCharCode(65 + i)})
-                      </span>
-                      <span
-                        style={{
-                          marginLeft: "0.5rem",
-                        }}
-                      >
-                        <RenderWithLatex quillString={option.value} />
-                      </span>
-                      {questionObj.correctAnswers?.includes(option.id) && (
-                        <CheckBox className={styles.checkbox} />
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span
-                  className={styles.flexRow}
-                  style={{
-                    justifyContent: "flex-start",
-                  }}
-                >
-                  From:{" "}
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: questionObj?.correctAnswer?.from,
-                    }}
-                  ></span>{" "}
-                  | To:{" "}
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: questionObj?.correctAnswer?.to,
-                    }}
-                  ></span>
-                </span>
-              )}
-              {questionObj.type !== "paragraph" && (
-                <div className={styles.solutionContainer}>
-                  <p>Solution</p>
-                  <RenderWithLatex quillString={questionObj.en.solution} />
-                  {/* <div
-                    dangerouslySetInnerHTML={{
-                      __html: questionObj.en.solution,
-                    }}
-                  ></div> */}
-                </div>
-              )}
-            </div>
-          );
-        },
+        render: (en: any, questionObj: any) => (
+          <RenderQuestion type={questionObj?.type} questionObj={questionObj} />
+        ),
       },
       {
         title: "Details",

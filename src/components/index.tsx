@@ -11,4 +11,5 @@ export { default as ToggleButton } from "./ToggleButton/ToggleButton";
 export { default as Navigate } from "./Navigate/Navigate";
 export { default as CreatableSelect } from "./CreatableSelect/CreatableSelect";
 export { default as CustomTable } from "./CustomTable/CustomTable";
+export { default as RenderWithLatex } from "./RenderWithLatex/RenderWithLatex";
 export * from "./CustomMUIComps/CustomMUIComps";
