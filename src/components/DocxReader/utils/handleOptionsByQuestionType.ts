@@ -7,14 +7,15 @@ export default function handleOptionByQuestionType(
   correctAnswerWithIndices: { [key: string]: string[] }
 ) {
   function handleOption({ value, extractedValues }: any, i: number) {
-    if (extractedValues?.length) {
-      correctAnswerWithIndices[i] = extractedValues;
-    }
+    // if (extractedValues?.length) {
+    //   correctAnswerWithIndices[i] = extractedValues;
+    // }
+    // console.log(correctAnswerWithIndices[i]);
     return value;
   }
 
   const regex = /op\d/;
-
+  const regg = new RegExp(".*\&lt;correct&gt;");
   let options = tableHeaders
     ?.filter((key) => regex.test(key))
     ?.map((key) => ({
@@ -25,10 +26,18 @@ export default function handleOptionByQuestionType(
   switch (item.type) {
     case "single":
     case "multiple":
+      let arr:string[] = [];
+      options?.map((op)=>{
+        var value = item[op.id];
+        if(value.match(regg)){
+          arr.push(op.id);
+        }
+      })
+      correctAnswerWithIndices[i] = arr;
       return {
         options: options?.map((op) => ({
           ...op,
-          value: item[op.id],
+          value: item[op.id]
         })),
         solution: handleOption(checkAndReplaceSemicolon(item.solution), i),
         correctAnswers: correctAnswerWithIndices[i],

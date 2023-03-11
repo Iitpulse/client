@@ -17,7 +17,7 @@ export default function getParagraphObject({
   tableHeaders,
 }: Params) {
   const coreQuestion = {
-    id: i,
+    _id: Date.now().toString()+i,
     type: item.type,
     subject: removeParaTag(item.subject),
     difficulty: capitalizeFirstLetter(
@@ -33,7 +33,7 @@ export default function getParagraphObject({
           ?.map((topic: string) => removeParaTag(topic.trim())),
       })),
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    modifiedAt: new Date().toISOString(),
     uploadedBy: {
       id: currentUser?.id,
       userType: currentUser?.userType,
