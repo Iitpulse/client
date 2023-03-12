@@ -22,6 +22,12 @@ export default function handleOptionByQuestionType(
       id: key,
       value: "",
     }));
+  
+  function removeCorrectWord(s : string){
+    let ops = s
+      ?.replace(/&lt;correct&gt;/g, "")
+    return ops;
+  }
 
   switch (item.type) {
     case "single":
@@ -29,7 +35,10 @@ export default function handleOptionByQuestionType(
       let arr:string[] = [];
       options?.map((op)=>{
         var value = item[op.id];
+        console.log(value);
         if(value.match(regg)){
+          item[op.id] = removeCorrectWord(value);
+          console.log(item[op.id])
           arr.push(op.id);
         }
       })
