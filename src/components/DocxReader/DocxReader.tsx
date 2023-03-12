@@ -47,9 +47,9 @@ const DocxReader: React.FC<{
     setHtml(res.data?.html);
   };
 
-  useEffect(() => {
-    console.log({ html });
-  });
+  // useEffect(() => {
+  //   console.log({ html });
+  // });
 
   useEffect(() => {
     if (html?.length) {
@@ -82,12 +82,12 @@ const DocxReader: React.FC<{
         paragraphQuestions,
       } = categorizeQuestionsByType(data[0]);
 
-      console.log({
-        singleQuestions,
-        multipleQuestions,
-        integerQuestions,
-        paragraphQuestions,
-      });
+      // console.log({
+      //   singleQuestions,
+      //   multipleQuestions,
+      //   integerQuestions,
+      //   paragraphQuestions,
+      // });
 
       const finalDataSMI = [
         ...singleQuestions,
@@ -108,7 +108,7 @@ const DocxReader: React.FC<{
       );
 
       const finalData = [...finalDataSMI, ...finalDataPara];
-      console.log({ tableData, tableHeaders, finalData, data });
+      // console.log({ tableData, tableHeaders, finalData, data });
       setQuestions(finalData);
       setLoading(false);
     }
