@@ -22,7 +22,6 @@ const DocxReader: React.FC<{
     multiple: false,
     accept: ".docx",
     beforeUpload: (file: any) => {
-      console.log("Uploading file", file);
       readFile({
         target: {
           files: [file],
@@ -89,30 +88,35 @@ const DocxReader: React.FC<{
       //   paragraphQuestions,
       // });
 
-      const finalDataSMI = [
-        ...singleQuestions,
-        ...multipleQuestions,
-        ...integerQuestions,
-      ]?.map((item, i) =>
-        getQuestionObjectByType({
-          item,
-          i,
-          currentUser,
-          tableHeaders,
-          correctAnswerWithIndices,
-        })
-      );
+      const finalDataSMI: any = {
+        single: [],
+        multiple: [],
+        integer: [],
+      };
 
+      [...singleQuestions, ...multipleQuestions, ...integerQuestions]?.forEach(
+        (item: any, i) => {
+          finalDataSMI[item?.type] = [
+            ...finalDataSMI[item?.type],
+            getQuestionObjectByType({
+              item,
+              i,
+              currentUser,
+              tableHeaders,
+              correctAnswerWithIndices,
+            }),
+          ];
+        }
+      );
+      console.log({ finalDataSMI });
       const finalDataPara = paragraphQuestions?.map((item, i) =>
         getParagraphObject({ item, i, currentUser, tableHeaders })
       );
 
       // console.log({ tableData, tableHeaders, finalData, data });
       setQuestions({
-        single: singleQuestions,
-        multiple: multipleQuestions,
-        integer: integerQuestions,
-        paragraph: paragraphQuestions,
+        ...finalDataSMI,
+        paragraph: finalDataPara,
       });
       setLoading(false);
     }

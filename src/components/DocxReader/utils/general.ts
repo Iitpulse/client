@@ -1,8 +1,7 @@
+import { capitalizeFirstLetter } from "../../../utils";
+
 export const removeParaTag = (str: string) => {
-  if (str?.startsWith("<p>") && str?.endsWith("</p>")) {
-    return str.slice(3, str.length - 4);
-  }
-  return str;
+  return str?.replace(/<p>/g, "").replace(/<\/p>/g, "");
 };
 
 export function checkAndReplaceSemicolon(value: string): {
@@ -31,3 +30,42 @@ export function checkAndReplaceSemicolon(value: string): {
     extractedValues: ops,
   };
 }
+
+export function getOptionID(str: string, type: string) {
+  // convert values like op1, op2, op3 to option IDS like A, B, C
+  return `OP_${type?.toUpperCase()}_${Date.now()}_${String.fromCharCode(
+    64 + parseInt(str.replace("op", ""))
+  )}`;
+}
+
+export const getCoreQuestion = (item: any, i: number, currentUser: any) => {
+  return {
+    id: Date.now().toString() + i,
+    type: item.type,
+    subject: removeParaTag(item.subject),
+    difficulty: capitalizeFirstLetter(
+      removeParaTag(item.difficulty || "Not Decided")
+    ),
+    exams: item.exams
+      ?.split(",")
+      .map((exam: string) => removeParaTag(exam.trim())),
+    sources: item.sources
+      ?.split(",")
+      .map((source: string) => removeParaTag(source.trim())),
+    chapters: item.chapters
+      ?.split(",")
+      ?.map((chap: string) => removeParaTag(chap.trim()))
+      ?.map((chap: string) => ({
+        name: chap,
+        topics: item.topics
+          ?.split(",")
+          ?.map((topic: string) => removeParaTag(topic.trim())),
+      })),
+    createdAt: new Date().toISOString(),
+    modifiedAt: new Date().toISOString(),
+    uploadedBy: {
+      id: currentUser?.id,
+      userType: currentUser?.userType,
+    },
+  };
+};

@@ -61,7 +61,7 @@ const BulkWord = () => {
   }
 
   async function submitInteger() {
-    return await API_QUESTIONS().post(`/integer/new-bulk`, questions.integer);
+    return await API_QUESTIONS().post(`/numerical/new-bulk`, questions.integer);
   }
 
   async function submitParagraph() {
@@ -81,6 +81,13 @@ const BulkWord = () => {
       ]);
       console.log(res);
       message.success("Questions uploaded successfully");
+      setQuestions({
+        single: [],
+        multiple: [],
+        integer: [],
+        paragraph: [],
+        matrix: [],
+      });
       setUploading(false);
     } catch (error) {
       console.log(error);

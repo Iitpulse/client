@@ -1,4 +1,8 @@
-import { checkAndReplaceSemicolon } from "./general";
+import {
+  checkAndReplaceSemicolon,
+  getOptionID,
+  removeParaTag,
+} from "./general";
 
 export default function handleOptionByQuestionType(
   item: any,
@@ -15,46 +19,49 @@ export default function handleOptionByQuestionType(
   }
 
   const regex = /op\d/;
-  const regg = new RegExp(".*\&lt;correct&gt;");
+  const regg = new RegExp(".*&lt;correct&gt;");
   let options = tableHeaders
     ?.filter((key) => regex.test(key))
     ?.map((key) => ({
       id: key,
       value: "",
     }));
-  
-  function removeCorrectWord(s : string){
-    let ops = s
-      ?.replace(/&lt;correct&gt;/g, "")
+
+  function removeCorrectWord(s: string) {
+    let ops = s?.replace(/&lt;correct&gt;/g, "");
     return ops;
   }
 
   switch (item.type) {
     case "single":
     case "multiple":
-      let arr:string[] = [];
-      options?.map((op)=>{
-        var value = item[op.id];
-        console.log(value);
-        if(value.match(regg)){
-          item[op.id] = removeCorrectWord(value);
-          console.log(item[op.id])
-          arr.push(op.id);
-        }
-      })
+      let arr: string[] = [];
       correctAnswerWithIndices[i] = arr;
       return {
-        options: options?.map((op) => ({
-          ...op,
-          value: item[op.id]
-        })),
+        options: options?.map((op) => {
+          let value = item[op.id];
+          const opID = getOptionID(op.id, item.type);
+          if (value.match(regg)) {
+            arr.push(opID);
+            value = removeCorrectWord(value);
+          }
+          return {
+            id: opID,
+            value,
+          };
+        }),
         solution: handleOption(checkAndReplaceSemicolon(item.solution), i),
         correctAnswers: correctAnswerWithIndices[i],
       };
     case "integer":
       return {
         solution: handleOption(checkAndReplaceSemicolon(item.solution), i),
-        correctAnswer: { from: item.op1, to: item.op2 ?? item.op1 },
+        correctAnswer: {
+          from: parseFloat(removeParaTag(item.op1)),
+          to: parseFloat(
+            item.op2 ? removeParaTag(item.op2) : removeParaTag(item.op1)
+          ),
+        },
       };
     default:
       return {};

@@ -1,5 +1,5 @@
 import { capitalizeFirstLetter } from "../../../utils";
-import { removeParaTag } from "./general";
+import { getCoreQuestion, removeParaTag } from "./general";
 import handleOptionByQuestionType from "./handleOptionsByQuestionType";
 
 type Params = {
@@ -23,31 +23,9 @@ export default function getQuestionObjectByType({
     tableHeaders,
     correctAnswerWithIndices
   );
-  const coreQuestion = {
-    _id: Date.now().toString()+i,
-    type: item.type,
-    subject: removeParaTag(item.subject),
-    difficulty: capitalizeFirstLetter(
-      removeParaTag(item.difficulty || "Not Decided")
-    ),
-    chapters: item.chapters
-      ?.split(",")
-      ?.map((chap: string) => removeParaTag(chap.trim()))
-      ?.map((chap: string) => ({
-        name: chap,
-        topics: item.topics
-          ?.split(",")
-          ?.map((topic: string) => removeParaTag(topic.trim())),
-      })),
-    createdAt: new Date().toISOString(),
-    modifiedAt: new Date().toISOString(),
-    uploadedBy: {
-      id: currentUser?.id,
-      userType: currentUser?.userType,
-    },
-  };
+
   let newObj: any = {
-    ...coreQuestion,
+    ...getCoreQuestion(item, i, currentUser),
   };
 
   switch (item.type) {
