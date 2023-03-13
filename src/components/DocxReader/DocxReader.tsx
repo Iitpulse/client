@@ -107,9 +107,13 @@ const DocxReader: React.FC<{
         getParagraphObject({ item, i, currentUser, tableHeaders })
       );
 
-      const finalData = [...finalDataSMI, ...finalDataPara];
       // console.log({ tableData, tableHeaders, finalData, data });
-      setQuestions(finalData);
+      setQuestions({
+        single: singleQuestions,
+        multiple: multipleQuestions,
+        integer: integerQuestions,
+        paragraph: paragraphQuestions,
+      });
       setLoading(false);
     }
   }, [html]);

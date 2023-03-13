@@ -2,7 +2,7 @@ import { InboxOutlined } from "@ant-design/icons";
 import { Save } from "@mui/icons-material";
 import { Fab } from "@mui/material";
 import type { UploadProps } from "antd";
-import {useContext} from "react"
+import { useContext } from "react";
 import { message, Upload } from "antd";
 import { useState } from "react";
 import DocxReader from "../../../components/DocxReader/DocxReader";
@@ -11,7 +11,7 @@ import { AllQuestionsTable } from "../Questions";
 import styles from "./BulkWord.module.scss";
 import { API_QUESTIONS, API_TESTS } from "../../../utils/api";
 import { AuthContext } from "../../../utils/auth/AuthContext";
-import {Button} from "../../../components";
+import { Button } from "../../../components";
 import {
   IQuestionObjective,
   IQuestionInteger,
@@ -19,8 +19,6 @@ import {
   IQuestionMatrix,
 } from "../../../utils/interfaces";
 import { checkQuestionValidity } from "../utils";
-
-
 
 const defaultErrorObject = {
   objective: {
@@ -42,28 +40,86 @@ const defaultErrorObject = {
   matrix: {},
 };
 
-
 const BulkWord = () => {
   const [uploading, setUploading] = useState(false);
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState({
+    single: [],
+    multiple: [],
+    integer: [],
+    paragraph: [],
+    matrix: [],
+  });
   const [error, setError] = useState<any>({});
   const [file, setFile] = useState(null);
   const { currentUser } = useContext(AuthContext);
 
-  async function handleSubmitAll(){
-    // console.log(questions);
-    console.log(questions);
-    if(questions.length){
-      message.loading("Creating Questions...");
-      await API_QUESTIONS().post(`/mcq/newbulk`,questions).then(res=>{
-        // console.log(res);
-        message.success("Questions created successfully");
-      }).catch(res=>{
-        // console.log(res);
-        message.error("Duplicate questions inserted");
-      })
+  async function submitMCQ() {
+    return await API_QUESTIONS().post(`/mcq/new-bulk`, [
+      ...questions.single,
+      ...questions.multiple,
+    ]);
+  }
+
+  async function submitInteger() {
+    return await API_QUESTIONS().post(`/integer/new-bulk`, questions.integer);
+  }
+
+  async function submitParagraph() {
+    return await API_QUESTIONS().post(
+      `/paragraph/new-bulk`,
+      questions.paragraph
+    );
+  }
+
+  async function handleSubmitAll() {
+    try {
+      setUploading(true);
+      const res = await Promise.all([
+        submitMCQ(),
+        submitInteger(),
+        submitParagraph(),
+      ]);
+      console.log(res);
+      message.success("Questions uploaded successfully");
+      setUploading(false);
+    } catch (error) {
+      console.log(error);
+      message.error("Error uploading questions");
+      setUploading(false);
     }
-    else message.error("Please upload a file")
+  }
+
+  function handleDelete(question: any) {
+    setQuestions((prev: any) => {
+      switch (question.type) {
+        case "single":
+          return {
+            ...prev,
+            single: prev.single.filter((q: any) => q._id !== question._id),
+          };
+        case "multiple":
+          return {
+            multiple: prev.multiple.filter((q: any) => q._id !== question._id),
+          };
+        case "integer":
+          return {
+            ...prev,
+            integer: prev.integer.filter((q: any) => q._id !== question._id),
+          };
+        case "paragraph":
+          return {
+            ...prev,
+            paragraph: prev.paragraph.filter(
+              (q: any) => q._id !== question._id
+            ),
+          };
+        case "matrix":
+          return {
+            ...prev,
+            matrix: prev.matrix.filter((q: any) => q._id !== question._id),
+          };
+      }
+    });
   }
 
   return (
@@ -75,13 +131,13 @@ const BulkWord = () => {
         <div className={styles.tableContainer}>
           <AllQuestionsTable
             loading={uploading}
-            questions={questions}
-            handleDeleteQuestion={(question: any) => {
-              // console.log("Deleting question", question);
-              setQuestions((prev) =>
-                prev.filter((q: any) => q.id !== question.id)
-              );
-            }}
+            questions={[
+              ...questions.single,
+              ...questions.multiple,
+              ...questions.integer,
+              ...questions.paragraph,
+            ]}
+            handleDeleteQuestion={handleDelete}
             noEdit
           />
         </div>
