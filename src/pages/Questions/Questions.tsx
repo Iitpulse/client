@@ -589,6 +589,7 @@ const Questions = () => {
                       maxTagCount="responsive"
                       showArrow
                       style={{
+                        borderRadius: "8 px",
                         minWidth: 180,
                       }}
                     />
@@ -602,6 +603,7 @@ const Questions = () => {
                       maxTagCount="responsive"
                       showArrow
                       style={{
+                        borderRadius: "8 px",
                         minWidth: 180,
                       }}
                     />
@@ -618,6 +620,7 @@ const Questions = () => {
                       maxTagCount="responsive"
                       showArrow
                       style={{
+                        borderRadius: "8 px",
                         minWidth: 180,
                       }}
                     />
@@ -630,6 +633,7 @@ const Questions = () => {
                       maxTagCount="responsive"
                       showArrow
                       style={{
+                        borderRadius: "8 px",
                         minWidth: 180,
                       }}
                     />
@@ -642,6 +646,7 @@ const Questions = () => {
                       maxTagCount="responsive"
                       showArrow
                       style={{
+                        borderRadius: "8 px",
                         minWidth: 180,
                       }}
                     />

@@ -79,7 +79,7 @@ const BulkWord = () => {
         submitInteger(),
         submitParagraph(),
       ]);
-      console.log(res);
+      // console.log("ressss ->", res);
       message.success("Questions uploaded successfully");
       setQuestions({
         single: [],
@@ -102,28 +102,28 @@ const BulkWord = () => {
         case "single":
           return {
             ...prev,
-            single: prev.single.filter((q: any) => q._id !== question._id),
+            single: prev?.single?.filter((q: any) => q._id !== question._id),
           };
         case "multiple":
           return {
-            multiple: prev.multiple.filter((q: any) => q._id !== question._id),
+            multiple: prev?.multiple?.filter((q: any) => q._id !== question._id),
           };
         case "integer":
           return {
             ...prev,
-            integer: prev.integer.filter((q: any) => q._id !== question._id),
+            integer: prev?.integer?.filter((q: any) => q._id !== question._id),
           };
         case "paragraph":
           return {
             ...prev,
-            paragraph: prev.paragraph.filter(
+            paragraph: prev?.paragraph?.filter(
               (q: any) => q._id !== question._id
             ),
           };
         case "matrix":
           return {
             ...prev,
-            matrix: prev.matrix.filter((q: any) => q._id !== question._id),
+            matrix: prev?.matrix?.filter((q: any) => q._id !== question._id),
           };
       }
     });
