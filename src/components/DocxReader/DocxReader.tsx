@@ -52,6 +52,12 @@ const DocxReader: React.FC<{
     return str;
   };
 
+  // replace </p><p> subString with </p><br/><p> in the string
+  const replaceP = (str: string) => {
+    const regex = /<\/p><p>/g;
+    return str.replace(regex, "</p><br/><p>");
+  };
+
   useEffect(() => {
     if (html?.length) {
       console.log({ html });
