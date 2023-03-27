@@ -109,10 +109,10 @@ export function checkQuestionValidity(
   //   setError({ ...defaultErrorObject, topics: true });
   //   return { state: false, message: '"Please select at least one topic"' };
   // }
-  if (!data.sources?.length) {
-    setError({ ...defaultErrorObject, sources: true });
-    return { state: false, message: '"Please select at least one source"' };
-  }
+  // if (!data.sources?.length) {
+  //   setError({ ...defaultErrorObject, sources: true });
+  //   return { state: false, message: '"Please select at least one source"' };
+  // }
   // Checking Question Core Fields - End
 
   // Checking Question Type Dependent Fields - Start

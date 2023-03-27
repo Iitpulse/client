@@ -46,6 +46,9 @@ import { getTopics } from "../../utils/constants";
 import { TestContext } from "../../utils/contexts/TestContext";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { Input } from "antd";
+import CheckBox from "@mui/icons-material/CheckBox";
+import clsx from "clsx";
+import RenderQuestion from "./components/DisplayQuestion/RenderQuestion";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -69,9 +72,9 @@ export const questionTypes = [
 // ];
 
 export const difficultyLevels = [
-  { name: "Easy", value: "easy" },
-  { name: "Medium", value: "medium" },
-  { name: "Hard", value: "hard" },
+  { name: "Easy", value: "Easy" },
+  { name: "Medium", value: "Medium" },
+  { name: "Hard", value: "Hard" },
 ];
 
 export const sources = [
@@ -100,6 +103,24 @@ interface IOptionType {
   value?: string | number;
 }
 
+const arrsub = [
+  "Physics",
+  "Chemistry",
+  "Mathematics",
+  "Biology",
+  "Computer",
+  "Commerce",
+  "test",
+  "another test",
+  "testing again",
+  "Test Subject",
+  "Test Subject 2",
+  "Test Subject 3",
+  "Test Subject 4",
+  "Test Subject 5",
+  "Test Subject 6",
+  "Test Subject 7",
+];
 const Questions = () => {
   const isReadPermitted = usePermission(PERMISSIONS.QUESTION.READ);
   const isReadGlobalPermitted = usePermission(PERMISSIONS.QUESTION.READ_GLOBAL);
@@ -118,15 +139,32 @@ const Questions = () => {
   const [globalSearch, setGlobalSearch] = useState<string>("");
   const globalSearchRef = useRef<any>(null);
   const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
+  const [filterType, setFilterType] = useState<any>([]);
+  const [filterTypeReq, setFilterTypeReq] = useState<any>([
+    "single",
+    "multiple",
+    "integer",
+    "paragraph",
+    "matrix",
+  ]);
+  const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
+  const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>([
+    "Easy",
+    "Medium",
+    "Hard",
+  ]);
   const [filterSubjects, setFilterSubjects] = useState<any>([]);
+  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(arrsub);
   const [filterChapters, setFilterChapters] = useState<any>([]);
+  const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
   const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
+  const [filterTopicsReq, setFilterTopicsReq] = useState<Array<any>>([]);
+
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
-  const [topics, setTopics] = useState<any>([]);
 
-  const { currentUser } = useContext(AuthContext);
   const { subjects } = useContext(TestContext);
+  const { currentUser } = useContext(AuthContext);
 
   const tableRef = useRef<any>(null);
 
@@ -201,7 +239,8 @@ const Questions = () => {
 
   const navigate = useNavigate();
 
-  async function onChangePageOrPageSize(page: number, pageSize: number) {
+  async function onChangePageOrPageSize(page?: number, pageSize?: number) {
+    // console.log(filterSubjects);
     setLoading(true);
     try {
       const res = await API_QUESTIONS().get(`/mcq/all`, {
@@ -209,9 +248,14 @@ const Questions = () => {
           page,
           size: pageSize || 10,
           search: globalSearch, // I Wrote this line
+          type: filterTypeReq,
+          difficulty: filterDifficultyReq,
+          sub: filterSubjectsReq,
+          chapters: filterChaptersReq,
+          topics: filterTopicsReq,
         },
       });
-      console.log({ data: res.data });
+      // console.log({ data: res.data });
       setQuestions(res.data.data);
       setTotalDocs(res.data.totalDocs);
       setLoading(false);
@@ -242,6 +286,26 @@ const Questions = () => {
     debounceGlobalSearch();
   }, [globalSearch]);
 
+  // useEffect(()=>{
+  //   setFilterChapters([]);
+  //   setFilterChaptersReq([]);
+  // },[filterSubjectsReq, filterSubjects])
+
+  // useEffect(()=>{
+  //   setFilterTopics([]);
+  //   setFilterTopicsReq([]);
+  // },[filterChapters, filterChaptersReq])
+
+  useEffect(() => {
+    onChangePageOrPageSize();
+  }, [
+    filterTypeReq,
+    filterChaptersReq,
+    filterDifficultyReq,
+    filterSubjectsReq,
+    filterTopicsReq,
+  ]);
+
   const typeOptions = [
     { label: "Single", value: "single" },
     { label: "Multiple", value: "multiple" },
@@ -251,22 +315,69 @@ const Questions = () => {
   ];
 
   const difficultyOptions = [
-    { label: "Easy", value: "easy" },
-    { label: "Medium", value: "medium" },
-    { label: "Hard", value: "hard" },
+    { label: "Easy", value: "Easy" },
+    { label: "Medium", value: "Medium" },
+    { label: "Hard", value: "Hard" },
   ];
 
-  function handleChangeType(values: string[]) {}
-  function handleChangeDifficulty(values: string[]) {}
+  function handleChangeType(values: string[]) {
+    setFilterType(values);
+    if (values.length === 0) {
+      setFilterTypeReq([
+        "single",
+        "multiple",
+        "integer",
+        "paragraph",
+        "matrix",
+      ]);
+    } else setFilterTypeReq(values);
+  }
+  function handleChangeDifficulty(values: string[]) {
+    setFilterDifficulty(values);
+    if (values.length === 0) {
+      setFilterDifficultyReq(["Easy", "Medium", "Hard"]);
+    } else setFilterDifficultyReq(values);
+  }
   function handleChangeSubjects(_: any, options: any[]) {
     setFilterSubjects(options);
+    if (options.length >= 1) {
+      let ar = [];
+      for (var i = 0; i < options.length; i++) {
+        ar.push(options[i].value);
+      }
+      setFilterSubjectsReq(ar);
+      console.log(filterSubjectsReq);
+    } else {
+      setFilterSubjectsReq(arrsub);
+      // let ar = [];
+      // for(var i = 0; i<subjects.length; i++){
+      //   ar.push(subjects[i].name);
+      // }
+      // // setFilterSubjectsReq(ar);
+      // console.log(filterSubjectsReq);
+    }
   }
   function handleChangeChapters(_: any, options: any) {
     setFilterChapters(options);
+    // console.log(options);
+    if (options.length) {
+      let arr: any = [];
+      // options?.map((opt : any)=>{arr.push({
+      //   name: opt.name,
+      //   topics: opt.topics,
+      //   _id: opt.id
+      // })});
+      options?.map((opt: any) => {
+        arr.push(opt.name);
+      });
+      setFilterChaptersReq(arr);
+    } else setFilterChaptersReq([]);
+    console.log(filterChaptersReq);
   }
   function handleChangeTopics(options: String[]) {
-    console.log(options);
+    // console.log(options);
     setFilterTopics(options);
+    setFilterTopicsReq(options);
   }
 
   const tagRender = (props: CustomTagProps) => {
@@ -278,7 +389,11 @@ const Questions = () => {
     return (
       <Tag
         color={
-          value === "easy" ? "green" : value === "medium" ? "yellow" : "red"
+          value === "Easy"
+            ? "green"
+            : value.toLowerCase() === "medium"
+            ? "yellow"
+            : "red"
         }
         onMouseDown={onPreventMouseDown}
         closable={closable}
@@ -309,30 +424,6 @@ const Questions = () => {
     else setChapterOptions([]);
   }, [filterSubjects]);
 
-  // useEffect(() => {
-  //   function topicsKeLiye(): any[] {
-  //     let t: any[] = [];
-  //     filterTopics?.forEach((topicc: any) => {
-  //         if(topicc){
-  //           t.push(
-  //             ...topicc?.map((topic: any) => ({
-  //               label: topic,
-  //               value: topic,
-  //             }))
-  //           );
-  //         }
-  //     });
-  //     console.log(t);
-  //     return t;
-  //   }
-  //   if (filterTopics?.length) setTopics(topicsKeLiye());
-  //   else setTopics([]);
-  // }, [filterTopics]);
-
-  // useEffect(() => {
-  //   console.log({ previewData });
-  // });
-
   useEffect(() => {
     function getSelectedChapterTopics(): any[] {
       let topics = new Set();
@@ -349,7 +440,6 @@ const Questions = () => {
     }
     if (filterChapters?.length) setTopicOptions(getSelectedChapterTopics());
     else setTopicOptions([]);
-    // console.log(topicOptions);
   }, [filterChapters]);
 
   const handleToggleProofread = async (checked: any, question: any) => {
@@ -416,6 +506,17 @@ const Questions = () => {
     setLoading(false);
   };
 
+  // useEffect(()=>{
+  //   console.log(subjects);
+  //   let arr = [];
+  //   for(var i = 0; i<subjects.length; i++){
+  //     arr.push(subjects[i].name);
+  //   }
+  //   setFilterSubjectsReq(arr);
+  //   setFilterSubjects(arr);
+  //   // console.log(arr);
+  // },[subjects])
+
   return (
     <MainLayout name="Questions" onClickDrawerIcon={() => setSideBarOpen(true)}>
       <Card classes={[styles.container]}>
@@ -436,28 +537,37 @@ const Questions = () => {
                         maxWidth: 500,
                       }}
                     />
-                    <div>
-                      <IconButton onClick={handlePrint}>
-                        <PrintIcon />
-                      </IconButton>
+                    <div className={styles.searchAndPrint2}>
+                      <div style={{ margin: "0 0.5rem" }}>
+                        <IconButton onClick={handlePrint}>
+                          <PrintIcon />
+                        </IconButton>
 
-                      <IconButton>
-                        <CSVLink filename={"Questions.csv"} data={questions}>
-                          <img
-                            src={sheetIcon}
-                            width="21px"
-                            alt="Sheet"
-                            height="21px"
-                          />
-                        </CSVLink>
-                      </IconButton>
+                        <IconButton>
+                          <CSVLink filename={"Questions.csv"} data={questions}>
+                            <img
+                              src={sheetIcon}
+                              width="21px"
+                              alt="Sheet"
+                              height="21px"
+                            />
+                          </CSVLink>
+                        </IconButton>
+                      </div>
+                      <Button
+                        variant="outlined"
+                        onClick={() => navigate("/questions/new-bulk-word")}
+                      >
+                        Bulk Word
+                      </Button>
+                      &nbsp;
+                      <Button
+                        onClick={() => navigate("/questions/new")}
+                        icon={<AddIcon />}
+                      >
+                        Add New
+                      </Button>
                     </div>
-                    <Button
-                      onClick={() => navigate("/questions/new")}
-                      icon={<AddIcon />}
-                    >
-                      Add New
-                    </Button>
                   </div>
                   {/* <InputField
                     ref={globalSearchRef}
@@ -990,20 +1100,9 @@ export const AllQuestionsTable: React.FC<{
         dataIndex: "en",
         key: "question",
         width: "70%",
-        render: (en: any, questionObj: any) => {
-          console.log({ questionObj, en });
-          return (
-            <div className={styles.questionContainerTable}>
-              <RenderWithLatex quillString={getCombinedQuestion(questionObj)} />
-              {questionObj.type !== "paragraph" && (
-                <div className={styles.solutionContainer}>
-                  <p>Solution</p>
-                  <RenderWithLatex quillString={questionObj.en.solution} />
-                </div>
-              )}
-            </div>
-          );
-        },
+        render: (en: any, questionObj: any) => (
+          <RenderQuestion type={questionObj?.type} questionObj={questionObj} />
+        ),
       },
       {
         title: "Details",
@@ -1011,7 +1110,7 @@ export const AllQuestionsTable: React.FC<{
         key: "details",
         width: "30%",
         render: (_: any, question: any) => {
-          console.log({ question });
+          // console.log({ question });
           return (
             <div className={styles.detailsContainer}>
               <div className={styles.detailsHeader}>
@@ -1103,19 +1202,25 @@ export const AllQuestionsTable: React.FC<{
   function getCombinedQuestion(question: any) {
     let { type } = question;
     if (type === "single" || type === "multiple") {
-      console.log({ question: question?.en?.question });
+      // console.log({ question: question?.en?.question });
       return (
         question?.en?.question +
         question?.en?.options
           .map(
             (op: any, idx: number) =>
-              `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+              `<span style='display:flex;justify-content:flex-start;margin:1rem 0;border:${
                 question.correctAnswers?.includes(op.id)
-                  ? "rgba(85, 188, 126, 0.3)"
+                  ? "2px solid #55BC7E"
                   : "transparent"
               };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
                 idx + 65
-              )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+              )}. <span style='margin-left:1rem;'>${op.value}</span>
+              <span style='display:flex;justify-content: end;width: 100%;'>${
+                question.correctAnswers?.includes(op.id)
+                  ? "<img src='/checkbox.png' style='width:20px; height:20px' alt=''> </img>"
+                  : ""
+              }</span>
+              </span>`
           )
           .join("")
       );

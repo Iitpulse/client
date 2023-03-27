@@ -1,14 +1,20 @@
 import { InboxOutlined } from "@mui/icons-material";
 import { Upload, UploadProps } from "antd";
+import axios from "axios";
 import { useState, useEffect, useContext } from "react";
 import { API_QUESTIONS } from "../../utils/api";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import categorizeQuestionsByType from "./utils/categorizeQuestionsByType";
+import extractDataFromTable from "./utils/extractDataFromTable";
+import getParagraphObject from "./utils/getParagraphObject";
+import getQuestionObjectByType from "./utils/getQuestionObjectByType";
 
 const { Dragger } = Upload;
 
 const DocxReader: React.FC<{
   setQuestions: any;
-}> = ({ setQuestions }) => {
+  setLoading: any;
+}> = ({ setQuestions, setLoading }) => {
   const [html, setHtml] = useState("");
   const [tableData, setTableData] = useState<string[][][]>([]);
 
@@ -17,7 +23,6 @@ const DocxReader: React.FC<{
     multiple: false,
     accept: ".docx",
     beforeUpload: (file: any) => {
-      console.log("Uploading file", file);
       readFile({
         target: {
           files: [file],
@@ -33,24 +38,22 @@ const DocxReader: React.FC<{
   const { currentUser } = useContext(AuthContext);
 
   const readFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoading(true);
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
     formData.append("file", file);
+    // const res = await axios.post(
+    //   "http://localhost:8000/extract-html",
+    //   formData
+    // );
     const res = await API_QUESTIONS().post("/utils/parse-docx", formData);
     setHtml(res.data?.html);
   };
 
-  useEffect(() => {
-    console.log({ html });
-  });
-
-  const removeP = (str: string) => {
-    if (str.startsWith("<p>") && str.endsWith("</p>")) {
-      return str.slice(3, str.length - 4);
-    }
-    return str;
-  };
+  // useEffect(() => {
+  //   console.log({ html });
+  // });
 
   // replace </p><p> subString with </p><br/><p> in the string
   const replaceP = (str: string) => {
@@ -60,45 +63,14 @@ const DocxReader: React.FC<{
 
   useEffect(() => {
     if (html?.length) {
-      console.log({ html });
+      let correctAnswers: string[] = [];
+      let correctAnswerWithIndices: {
+        [key: string]: string[];
+      } = {};
       const parser = new DOMParser();
       const doc = parser.parseFromString(html.toString(), "text/html");
       const tables = doc.getElementsByTagName("table");
-      const tableData: string[][][] = [];
-      for (let i = 0; i < tables.length; i++) {
-        const rows = tables[i].rows;
-        const imgs = tables[i].querySelector("img");
-        imgs.style.maxWidth = "80%";
-        imgs.style.margin = "1rem 0";
-        const tableRows: string[][] = [];
-        let type = {
-          index: 0,
-          isFound: false,
-        };
-
-        for (let j = 0; j < rows.length; j++) {
-          const cells = rows[j].cells;
-          const rowData: string[] = [];
-          if (j === 0) {
-            for (let k = 0; k < cells.length; k++) {
-              if (!type.isFound && cells[k].innerText === "type") {
-                type.index = k;
-                type.isFound = true;
-              }
-              rowData.push(cells[k].innerText);
-            }
-          } else
-            for (let k = 0; k < cells.length; k++) {
-              rowData.push(
-                k === type.index ? cells[k].innerText : cells[k].innerHTML
-              );
-            }
-
-          tableRows.push(rowData);
-        }
-        tableData.push(tableRows);
-      }
-      console.log({ tableData });
+      const tableData: string[][][] = extractDataFromTable(tables);
       setTableData(tableData);
       const tableHeaders = tableData[0][0];
       let data = tableData.map((table) => {
@@ -112,32 +84,52 @@ const DocxReader: React.FC<{
         });
         return finalRows;
       });
-      const regex = /op\d/;
-      const finalData = data[0]?.map((item) => ({
-        type: item.type,
-        en: {
-          question: item.question,
-          options: tableHeaders
 
-            ?.filter((key) => regex.test(key))
-            ?.map((key) => ({
-              id: new Date().getTime(),
-              value: item[key],
-            })),
-        },
-        hi: {
-          question: item.question,
-          options: item.options,
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: {
-          id: currentUser?.id,
-          userType: currentUser?.userType,
-        },
-      }));
-      console.log(tableData, tableHeaders, finalData, data);
-      setQuestions(finalData);
+      const {
+        singleQuestions,
+        multipleQuestions,
+        integerQuestions,
+        paragraphQuestions,
+      } = categorizeQuestionsByType(data[0]);
+
+      // console.log({
+      //   singleQuestions,
+      //   multipleQuestions,
+      //   integerQuestions,
+      //   paragraphQuestions,
+      // });
+
+      const finalDataSMI: any = {
+        single: [],
+        multiple: [],
+        integer: [],
+      };
+
+      [...singleQuestions, ...multipleQuestions, ...integerQuestions]?.forEach(
+        (item: any, i) => {
+          finalDataSMI[item?.type] = [
+            ...finalDataSMI[item?.type],
+            getQuestionObjectByType({
+              item,
+              i,
+              currentUser,
+              tableHeaders,
+              correctAnswerWithIndices,
+            }),
+          ];
+        }
+      );
+      console.log({ finalDataSMI });
+      const finalDataPara = paragraphQuestions?.map((item, i) =>
+        getParagraphObject({ item, i, currentUser, tableHeaders })
+      );
+
+      // console.log({ tableData, tableHeaders, finalData, data });
+      setQuestions({
+        ...finalDataSMI,
+        paragraph: finalDataPara,
+      });
+      setLoading(false);
     }
   }, [html]);
 

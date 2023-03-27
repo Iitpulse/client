@@ -7,6 +7,7 @@ import {
   TestUC,
   Users,
   Questions,
+  QuestionsNew,
   Pattern,
   Batches,
   Login,
@@ -158,6 +159,12 @@ const App = () => {
                       path="/questions"
                       element={
                         <PrivateRoute component={Questions} name="Questions" />
+                      }
+                    />
+                    <Route
+                      path="/questionsnew"
+                      element={
+                        <PrivateRoute component={QuestionsNew} name="QuestionsNew" />
                       }
                     />
                     <Route

@@ -3,3 +3,24 @@
 .dragArea {
   width: 100%;
 }
+.tableContainer {
+  margin-top: 2rem;
+}
+.submitButton {
+  text-align: end;
+}
+.uploadBtn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
+  > button {
+    text-transform: capitalize !important;
+    box-shadow: none;
+    font-weight: 700;
+
+    &:hover {
+      background-color: var(--clr-primary);
+    }
+  }
+}
