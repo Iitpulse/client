@@ -1,5 +1,6 @@
 import { InboxOutlined } from "@mui/icons-material";
 import { Upload, UploadProps } from "antd";
+import axios from "axios";
 import { useState, useEffect, useContext } from "react";
 import { API_QUESTIONS } from "../../utils/api";
 import { AuthContext } from "../../utils/auth/AuthContext";
@@ -43,7 +44,14 @@ const DocxReader: React.FC<{
     if (!file) return;
     const formData = new FormData();
     formData.append("file", file);
+<<<<<<< HEAD
     console.log("gaya toh");
+=======
+    // const res = await axios.post(
+    //   "http://localhost:8000/extract-html",
+    //   formData
+    // );
+>>>>>>> aacc5576136fd00d7607ef21fa1a5aabc7c6d264
     const res = await API_QUESTIONS().post("/utils/parse-docx", formData);
 
     setHtml(res.data?.html);
