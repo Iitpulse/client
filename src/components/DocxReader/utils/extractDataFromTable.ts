@@ -37,12 +37,14 @@ export default function extractDataFromTable(
             type.index = k;
             type.isFound = true;
           }
-          rowData.push(cells[k].innerText);
+          rowData.push(cells[k].innerText?.trim());
         }
       } else {
         for (let k = 0; k < cells.length; k++) {
           rowData.push(
-            k === type.index ? cells[k].innerText : cells[k].innerHTML
+            k === type.index
+              ? cells[k].innerText?.trim()
+              : cells[k].innerHTML?.trim()
           );
         }
       }
