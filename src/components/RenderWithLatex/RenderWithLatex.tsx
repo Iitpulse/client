@@ -47,7 +47,9 @@ const RenderWithLatex: React.FC<Props> = ({ quillString }) => {
           });
 
           // Return the rendered HTML, followed by a line break if the math string was enclosed in $
-          return match.startsWith("$") ? html + "<br>" : html;
+          return match.startsWith("$") && match.endsWith("$")
+            ? html + "<br>"
+            : html;
         });
 
         // Append the new sentence to the target element
