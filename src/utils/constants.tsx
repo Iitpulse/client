@@ -45,31 +45,29 @@ export const AUTH_TOKEN = "IITP_AUTH_TOKEN";
 
 export const EXAMS = {};
 
-export const top100Films = [
-  { title: "The Shawshank Redemption", year: 1994 },
-  { title: "The Godfather", year: 1972 },
-  { title: "The Godfather: Part II", year: 1974 },
-  { title: "The Dark Knight", year: 2008 },
-  { title: "12 Angry Men", year: 1957 },
-  { title: "Schindler's List", year: 1993 },
-  { title: "Pulp Fiction", year: 1994 },
-  {
-    title: "The Lord of the Rings: The Return of the King",
-    year: 2003,
+export const TEST = {
+  SAMPLE_SECTION: {
+    id: "", // PT_SE_PHY123
+    name: "",
+    exam: "",
+    subject: "",
+    subSections: [], // Nesting toBeAttempted
+    totalQuestions: 1,
+    toBeAttempted: 1,
   },
-  { title: "The Good, the Bad and the Ugly", year: 1966 },
-  { title: "Fight Club", year: 1999 },
-  {
-    title: "The Lord of the Rings: The Fellowship of the Ring",
-    year: 2001,
+  SAMPLE_SUB_SECTION: {
+    id: "", // PT_SS_MCQ123
+    name: "",
+    description: "", // (optional) this will be used as a placeholder for describing the subsection and will be replaced by the actual description later on
+    type: "",
+    totalQuestions: 1,
+    toBeAttempted: 1,
+    markingScheme: {
+      correct: 1,
+      incorrect: 0,
+    },
   },
-  {
-    title: "Star Wars: Episode V - The Empire Strikes Back",
-    year: 1980,
-  },
-  { title: "Forrest Gump", year: 1994 },
-  { title: "Inception", year: 2010 },
-];
+};
 
 export const SAMPLE_TEST = {
   id: "",
