@@ -140,9 +140,21 @@ const Login = () => {
           type="password"
           disabled={loading}
         /> */}
-          <Button title="Submit" type="submit" disabled={loading}>
-            Log in
-          </Button>
+          <div className={styles.actionBtns}>
+            <Button title="Submit" type="submit" disabled={loading}>
+              Log in
+            </Button>
+            <Link to="/student-register">
+              <Button
+                title="signup"
+                type="button"
+                variant="outlined"
+                disabled={loading}
+              >
+                Sign up
+              </Button>
+            </Link>
+          </div>
           <Link to="/">Forgot your password?</Link>
         </form>
       </div>

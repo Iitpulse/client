@@ -1,7 +1,6 @@
 @import "../../utils/commons.scss";
 
 .container {
-   
   @extend .flexCol;
   justify-content: center;
   align-items: center;
@@ -9,8 +8,8 @@
   form {
     @extend .flexCol;
     justify-content: center;
-    gap:15px;
-  
+    gap: 15px;
+
     // background: rgba(0, 0, 0, 0.04);
     border-radius: 5px;
     // padding: 1.5rem;
@@ -28,7 +27,6 @@
       width: 100%;
       margin-top: 0.5rem;
     }
-    
 
     .error {
       position: absolute;
@@ -54,7 +52,7 @@
       color: white;
     }
   }
-  .formContainer{
+  .formContainer {
     @extend .flexCol;
     gap: 35px;
     justify-content: flex-start;
@@ -62,22 +60,25 @@
     border: 1px solid rgba(0, 0, 0, 0.2);
     padding: 4% 4%;
     border-radius: 10px;
-    .logo{
-      height:60px;
+    .logo {
+      height: 60px;
     }
-    img+p{
-      color:rgba(117, 117, 117, 1);
+    img + p {
+      color: rgba(117, 117, 117, 1);
       font-weight: 400;
       font-size: 15px;
     }
-    a{
-      color:rgba(185, 185, 185, 1);
+    a {
+      color: rgba(185, 185, 185, 1);
+    }
+    .actionBtns {
+      width: 100%;
     }
   }
 }
-.graybg{
-  background-color: #F1F1F1;
+.graybg {
+  background-color: #f1f1f1;
 }
-.whitebg{
+.whitebg {
   background-color: white;
 }
