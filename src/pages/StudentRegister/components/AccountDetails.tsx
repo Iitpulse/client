@@ -1,11 +1,17 @@
 import { StyledMUITextField } from "../../Users/components";
 import z from "zod";
 import { Button } from "../../../components";
+import { Button as MuiButton, TextField } from "@mui/material";
 import { useState } from "react";
 import styles from "../StudentRegister.module.scss";
+import { Grid, Stack } from "@mui/material";
+
+import { message } from "antd";
+import { API_USERS } from "../../../utils/api";
 
 const AccountDetailsSchema = z.object({
   email: z.string().email(),
+  emailotp: z.number().lte(999999),
   password: z.string().min(8).max(50),
   confirmPassword: z.string().min(8).max(50),
   joiningCode: z.string().length(6),
@@ -14,6 +20,7 @@ export type AccountDetailsValues = z.infer<typeof AccountDetailsSchema>;
 
 const defaultState: AccountDetailsValues = {
   email: "",
+  emailotp: 0,
   password: "",
   confirmPassword: "",
   joiningCode: "",
@@ -84,20 +91,107 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     handleSubmit(isValid.data);
   }
 
+  const [showTextField, setShowTextField] = useState(false);
+  const [buttonText, setButtonText] = useState('Verify Email');
+  const [Verified, setVerified] = useState(false)
+
+
+  const handleGenerate = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    try {
+      const response = await API_USERS().post(`/emailotp/generate`, {
+        email:values.email,
+      });
+      message.loading({ content: response.data.message, key: "otp" });
+    
+    } catch (error) {
+      console.log(error)
+    }
+
+    message.destroy("otp");
+    setShowTextField(true);
+  };
+
+  const handleVerify = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    try {
+      const response = await API_USERS().post(`/emailotp/verify`, {
+        email:values.email,
+        emailotp:values.emailotp,
+      });
+      message.loading({ content: response.data.message, key: "verify" });
+      console.log(response.data.message)
+      if(response.status==200){
+        setShowTextField(false)
+        setVerified(true)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+    setButtonText('Verified')
+
+    setTimeout(()=>{
+      message.destroy("verify");
+    },2000
+    )
+
+  };
+
   return (
     <form onSubmit={handleSubmitForm} className={styles.regForm}>
-      <StyledMUITextField
-        required
-        id="email"
-        type="email"
-        autoComplete="email"
-        error={errors.email}
-        value={values.email}
-        helperText={helperTexts.email}
-        onChange={handleChangeValues}
-        label="Email"
-        variant="outlined"
-      />
+      <Grid container spacing={2} justifyContent={'space-between'}>
+
+        <Grid item xs={8}>
+          <TextField
+            fullWidth
+            required
+            id="email"
+            type="email"
+            autoComplete="email"
+            error={errors.email}
+            value={values.email}
+            helperText={helperTexts.email}
+            onChange={handleChangeValues}
+            label="Email"
+            variant="outlined"
+          />
+        </Grid>
+
+        <Grid item xs={4}>
+          <Button onClick={handleGenerate} disabled={Verified}>
+          {buttonText}
+          </Button>
+        </Grid>
+      </Grid>
+      {
+        showTextField &&
+        <Grid container spacing={2} justifyContent={'space-between'}>
+
+          <Grid item xs={8}>
+            <TextField
+              fullWidth
+              required
+              id="emailotp"
+              type="number"
+              value={values.emailotp}
+              helperText=' We have sent an OTP to your Email'
+              onChange={handleChangeValues}
+              label="Email OTP"
+              variant="outlined"
+            />
+
+          </Grid>
+
+          <Grid item xs={4}>
+            <Button onClick={handleVerify}>
+              Verify
+            </Button>
+          </Grid>
+        </Grid>
+
+
+      }
+
       <StyledMUITextField
         required
         id="password"
