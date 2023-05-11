@@ -17,6 +17,7 @@ import {
   Error,
   DetailedAnalysis,
   StudentRegister,
+  PasswordReset,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -203,6 +204,13 @@ const App = () => {
                       path="/student-register"
                       element={<StudentRegister />}
                     />
+                    <Route
+                    path="/passwordreset"
+                    element={<PasswordReset/>}/>
+                    <Route
+                    path="/passwordreset/:token"
+                    element={<PasswordReset/>}/>
+                    
                   </Routes>
                 </TestsContextProvider>
               </CurrentContextProvider>
