@@ -54,7 +54,7 @@ const App = () => {
   // });
   return (
     <div className={styles.container}>
-      <Router>
+      <Router basename="/">
         <AuthContextProvider>
           <PermissionsContextProvider>
             <UsersContextProvider>
@@ -165,7 +165,10 @@ const App = () => {
                     <Route
                       path="/questionsnew"
                       element={
-                        <PrivateRoute component={QuestionsNew} name="QuestionsNew" />
+                        <PrivateRoute
+                          component={QuestionsNew}
+                          name="QuestionsNew"
+                        />
                       }
                     />
                     <Route
@@ -204,13 +207,7 @@ const App = () => {
                       path="/student-register"
                       element={<StudentRegister />}
                     />
-                    <Route
-                    path="/passwordreset"
-                    element={<PasswordReset/>}/>
-                    <Route
-                    path="/passwordreset/:token"
-                    element={<PasswordReset/>}/>
-                    
+                    <Route path="/reset-password" element={<PasswordReset />} />
                   </Routes>
                 </TestsContextProvider>
               </CurrentContextProvider>

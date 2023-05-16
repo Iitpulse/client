@@ -1,10 +1,11 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import styles from "./PasswordReset.module.scss";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { TextField } from "@mui/material";
 import { Button } from "../../components";
 
 import { API_USERS } from "../../utils/api";
+import { message } from "antd";
 
 const PasswordReset = () => {
   const navigate = useNavigate();
@@ -16,14 +17,15 @@ const PasswordReset = () => {
   // const [user, setUser] = useState<any>(null);
   const [useremail, setUseremail] = useState(null);
 
-  const { token } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+
+  const token = queryParams.get("token");
 
   const confirmToken = async () => {
     try {
-      const res: any = await API_USERS().post(`passwordreset/verify`, {
-        params: {
-          token,
-        },
+      const res: any = await API_USERS().post(`/reset-password/verify`, {
+        token,
       });
 
       if (res.status === 200) {
@@ -39,6 +41,7 @@ const PasswordReset = () => {
   };
 
   useEffect(() => {
+    console.log({ token });
     if (token) {
       confirmToken();
     }
@@ -54,14 +57,32 @@ const PasswordReset = () => {
     });
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  async function requestPasswordReset() {
+    try {
+      const response = await API_USERS().post(`/reset-password/request`, {
+        email: values?.email,
+      });
+
+      if (response.status === 200) {
+        message.success("Reset Link sent on your email");
+        setLoading(false);
+        // navigate("/");
+      } else {
+      }
+    } catch (error: any) {
+      // console.log("True error", error.response);
+      message.error(error.response.data.message);
+      setLoading(false);
+    }
+  }
+
+  async function resetPassword() {
     setLoading(true);
 
     if (token && isValidURI) {
       if (values.confirmPassword !== values.newPassword) {
         setLoading(false);
-        return alert("Passwords do not match");
+        return message.error("Passwords do not match");
       }
       try {
         const res = await API_USERS().post(`/reset-password/`, {
@@ -69,35 +90,23 @@ const PasswordReset = () => {
           newPassword: values.newPassword,
         });
         setLoading(false);
-        alert(res.data.message);
+        message.success("Password Reset Successfully");
         setTimeout(() => {
           navigate("/login");
         }, 1000);
       } catch (error: any) {
         setLoading(false);
-        return alert(error.message);
+        return message.error(error.response.data.message);
       }
+    }
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!token && !isValidURI) {
+      requestPasswordReset();
     } else {
-      return (
-        <div className={styles.container}>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              id="email"
-              label="Email"
-              required
-              value={values?.email}
-              onChange={handleChange}
-              type="email"
-              disabled={loading}
-            />
-            <div className={styles.buttons}>
-              <Button title="Submit" type="submit" disabled={loading}>
-                Reset Password
-              </Button>
-            </div>
-          </form>
-        </div>
-      );
+      resetPassword();
     }
   };
 
