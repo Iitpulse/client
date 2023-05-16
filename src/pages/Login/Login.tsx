@@ -155,7 +155,7 @@ const Login = () => {
               </Button>
             </Link>
           </div>
-          <Link to="/">Forgot your password?</Link>
+          <Link to="/passwordreset">Forgot your password?</Link>
         </form>
       </div>
     </div>
