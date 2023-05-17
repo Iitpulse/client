@@ -5,13 +5,14 @@ import { Button as MuiButton, TextField } from "@mui/material";
 import { useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import { Grid, Stack } from "@mui/material";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import { message } from "antd";
 import { API_USERS } from "../../../utils/api";
 
 const AccountDetailsSchema = z.object({
   email: z.string().email(),
-  emailotp: z.number().lte(999999),
+  emailotp: z.string().length(6),
   password: z.string().min(8).max(50),
   confirmPassword: z.string().min(8).max(50),
   joiningCode: z.string().length(6),
@@ -20,7 +21,7 @@ export type AccountDetailsValues = z.infer<typeof AccountDetailsSchema>;
 
 const defaultState: AccountDetailsValues = {
   email: "",
-  emailotp: 0,
+  emailotp: "",
   password: "",
   confirmPassword: "",
   joiningCode: "",
@@ -100,15 +101,18 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     e.preventDefault();
     try {
       const response = await API_USERS().post(`/emailotp/generate`, {
-        email:values.email,
+        email: values.email,
       });
       message.loading({ content: response.data.message, key: "otp" });
-    
+
     } catch (error) {
       console.log(error)
     }
 
-    message.destroy("otp");
+    setTimeout(() => {
+      message.destroy("otp");
+    }, 1000
+    )
     setShowTextField(true);
   };
 
@@ -116,33 +120,52 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     e.preventDefault();
     try {
       const response = await API_USERS().post(`/emailotp/verify`, {
-        email:values.email,
-        emailotp:values.emailotp,
+        email: values.email,
+        emailotp: values.emailotp,
       });
       message.loading({ content: response.data.message, key: "verify" });
       console.log(response.data.message)
-      if(response.status==200){
+      if (response.status == 200) {
         setShowTextField(false)
         setVerified(true)
+        setButtonText('Verified')
       }
     } catch (error) {
       console.log(error)
-    }
-    setButtonText('Verified')
 
-    setTimeout(()=>{
+    }
+
+    setTimeout(() => {
       message.destroy("verify");
-    },2000
+    }, 1000
     )
 
   };
+  const theme = createTheme({
+    components: {
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            '& .MuiInputBase-root.Mui-disabled': {
+              backgroundColor: '#f2f2f2',
+              color: '#808080',
+            },
+          },
+        },
+      },
+    },
+  });
+
 
   return (
     <form onSubmit={handleSubmitForm} className={styles.regForm}>
+      <ThemeProvider theme={theme}>
+
       <Grid container spacing={2} justifyContent={'space-between'}>
 
-        <Grid item xs={8}>
+        <Grid item xs={12}>
           <TextField
+            disabled={Verified}
             fullWidth
             required
             id="email"
@@ -157,12 +180,13 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Grid>
 
-        <Grid item xs={4}>
-          <Button onClick={handleGenerate} disabled={Verified}>
-          {buttonText}
-          </Button>
-        </Grid>
       </Grid>
+        {/* <Grid item xs={10}> */}
+        
+          <Button onClick={handleGenerate} hidden={showTextField || Verified}>
+            {buttonText}
+          </Button>
+        {/* </Grid> */}
       {
         showTextField &&
         <Grid container spacing={2} justifyContent={'space-between'}>
@@ -192,6 +216,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
       }
 
+    { Verified &&
+<>
       <StyledMUITextField
         required
         id="password"
@@ -204,6 +230,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         label="Password"
         variant="outlined"
       />
+
       <StyledMUITextField
         required
         id="confirmPassword"
@@ -216,6 +243,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         label="Confirm Password"
         variant="outlined"
       />
+
       <StyledMUITextField
         required
         id="joiningCode"
@@ -226,8 +254,11 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         onChange={handleChangeValues}
         label="Joining Code"
         variant="outlined"
-      />
+        />
       <Button type="submit">Next</Button>
+        </>
+    }
+    </ThemeProvider>
     </form>
   );
 };
