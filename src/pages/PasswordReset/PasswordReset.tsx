@@ -85,9 +85,10 @@ const PasswordReset = () => {
         return message.error("Passwords do not match");
       }
       try {
-        const res = await API_USERS().post(`/reset-password/`, {
+        const res = await API_USERS().post(`/reset-password/reset`, {
           email: useremail,
           newPassword: values.newPassword,
+          token,
         });
         setLoading(false);
         message.success("Password Reset Successfully");
