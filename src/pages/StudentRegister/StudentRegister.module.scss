@@ -29,5 +29,17 @@
       flex: 1;
       min-width: 200px;
     }
+    > button {
+      flex: 1;
+      max-width: 240px;
+    }
+  }
+  nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem;
+    justify-content: center;
   }
 }

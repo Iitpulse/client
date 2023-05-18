@@ -17,6 +17,7 @@ import {
   Error,
   DetailedAnalysis,
   StudentRegister,
+  PasswordReset,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -53,7 +54,7 @@ const App = () => {
   // });
   return (
     <div className={styles.container}>
-      <Router>
+      <Router basename="/">
         <AuthContextProvider>
           <PermissionsContextProvider>
             <UsersContextProvider>
@@ -164,7 +165,10 @@ const App = () => {
                     <Route
                       path="/questionsnew"
                       element={
-                        <PrivateRoute component={QuestionsNew} name="QuestionsNew" />
+                        <PrivateRoute
+                          component={QuestionsNew}
+                          name="QuestionsNew"
+                        />
                       }
                     />
                     <Route
@@ -203,6 +207,7 @@ const App = () => {
                       path="/student-register"
                       element={<StudentRegister />}
                     />
+                    <Route path="/reset-password" element={<PasswordReset />} />
                   </Routes>
                 </TestsContextProvider>
               </CurrentContextProvider>
