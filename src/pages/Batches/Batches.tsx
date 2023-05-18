@@ -67,7 +67,7 @@ const Batches = () => {
       setLoading(true);
       try {
         const res = await API_USERS().get(`/batch/get`);
-        console.log({ res });
+        // console.log({ res });
         setData(res?.data);
       } catch (error) {
         console.log("ERROR_FETCH_BATCH", error);
@@ -147,16 +147,16 @@ const Batches = () => {
       title: "Delete",
       key: "delete",
       render: (_: any, record: any) => (
-        <IconButton>
-          <Popconfirm
-            title="Sure to delete this batch?"
-            onConfirm={() => {
-              handleDeleteBatch(record._id);
+        <Popconfirm
+        title="Sure to delete this batch?"
+        onConfirm={() => {
+          handleDeleteBatch(record._id);
             }}
-          >
+            >
+            <IconButton>
             <img src={deleteIcon} alt="delete" />
-          </Popconfirm>
         </IconButton>
+          </Popconfirm>
       ),
     },
   ];
@@ -217,7 +217,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
 
   useEffect(() => {
     if (allRoles) {
-      console.log({ allRoles });
+      // console.log({ allRoles });
       const options = allRoles.map((value: any) => ({
         value: value.id,
         name: value.name,
@@ -228,7 +228,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
-    console.log({ id, value });
+    // console.log({ id, value });
     setValues({ ...values, [id]: value });
   }
 
@@ -256,7 +256,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         members: [],
         roles: roles.map((value: any) => value.value),
       };
-      console.log({ finalData });
+      // console.log({ finalData });
       const res = await API_USERS().post(`/batch/create`, finalData);
       setBatches((prev: any) => [...prev, res?.data?.data]);
       setValues({});

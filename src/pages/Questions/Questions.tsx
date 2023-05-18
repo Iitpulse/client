@@ -539,9 +539,9 @@ const Questions = () => {
                     />
                     <div className={styles.searchAndPrint2}>
                       <div style={{ margin: "0 0.5rem" }}>
-                        <IconButton onClick={handlePrint}>
+                        {/* <IconButton onClick={handlePrint}>
                           <PrintIcon />
-                        </IconButton>
+                        </IconButton> */}
 
                         <IconButton>
                           <CSVLink filename={"Questions.csv"} data={questions}>
