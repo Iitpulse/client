@@ -14,7 +14,14 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import { APIS } from "../../../utils/constants";
-import { Input, Space, Table, Button as AntButton, Popconfirm } from "antd";
+import {
+  Input,
+  Space,
+  Table,
+  Button as AntButton,
+  Popconfirm,
+  message,
+} from "antd";
 import { DataType, rowSelection } from "../Users";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import AddUserModal from "../components/AddUserModal";
@@ -282,14 +289,29 @@ const Teacher: React.FC<{
 }> = (props) => {
   const { uploadedBy, handleReset } = props.teacher;
 
+  const newUserRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([
+    {
+      name: "Teacher",
+      value: "ROLE_TEACHER",
+    },
+  ]);
+
+  const [success, setSuccess] = useState("");
+
+  const [loading, setLoading] = useState(false);
   const [rolesInfo, setRolesInfo] = useState({
     options: [],
     actual: [],
   });
+  // console.log({ roles });
   const [error, setError] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
+    name: {
+      error: false,
+      helperText: "",
+    },
     email: {
       error: false,
       helperText: "",
@@ -320,14 +342,16 @@ const Teacher: React.FC<{
       helperText: "",
     },
     contact: {
-      parent: {
-        error: false,
-        helperText: "",
-      },
-      personal: {
-        error: false,
-        helperText: "",
-      },
+      error: false,
+      helperText: "",
+    },
+    emergencyContact: {
+      error: false,
+      helperText: "",
+    },
+    aadhaar: {
+      error: false,
+      helperText: "",
     },
   });
   const { currentUser } = useContext(AuthContext);
@@ -338,41 +362,121 @@ const Teacher: React.FC<{
     setValues({ ...values, [id]: value });
   }
 
-  async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     console.log("submitting");
-    e.preventDefault();
-    let newValues = { ...values };
+    if (!newUserRef.current?.reportValidity()) return;
 
-    newValues.userType = "teacher";
-    newValues.createdBy = {
-      id: currentUser?.id,
-      userType: currentUser?.userType,
-    };
-    newValues.institute = currentUser?.instituteId;
-    newValues.roles = [
-      {
-        id: "ROLE_TEACHER",
+    e.preventDefault();
+    try {
+      const error = {
+        gender: !Boolean(values.gender),
+        roles: !(roles?.length > 0),
+        emergencyContact: values.emergencyContact?.length !== 10,
+        contact: values.contact?.length !== 10,
+        aadhaar: values.aadhaar?.length !== 12,
+      };
+      console.log(error);
+      if (
+        error.gender ||
+        error.roles ||
+        error.contact ||
+        error.emergencyContact ||
+        error.aadhaar
+      ) {
+        if (error.roles) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            roles: { error: true, helperText: "Please select a Roles" },
+          }));
+        }
+        if (error.aadhaar) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            aadhaar: {
+              error: true,
+              helperText: "Please enter a valid aadhar number",
+            },
+          }));
+        }
+        if (error.contact) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            contact: {
+              error: true,
+              helperText: "Please enter a valid contact number",
+            },
+          }));
+        }
+        if (error.emergencyContact) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            emergencyContact: {
+              error: true,
+              helperText: "Please enter a valid contact number",
+            },
+          }));
+        }
+        if (error.gender) {
+          setHelperTextObj((prev) => ({
+            ...prev,
+            gender: { error: true, helperText: "Please select a Gender" },
+          }));
+        }
+
+        return;
+      }
+      setLoading(true);
+      setError("");
+      setSuccess("");
+      let newValues = { ...values };
+
+      newValues.userType = "teacher";
+      newValues.createdBy = {
+        id: currentUser?.id,
+        userType: currentUser?.userType,
+      };
+      newValues.institute = currentUser?.instituteId;
+      newValues.roles = [
+        {
+          id: "ROLE_TEACHER",
+          from: new Date().toISOString(),
+          to: new Date().toISOString(),
+        },
+      ];
+      newValues.createdAt = new Date().toISOString();
+      newValues.modifiedAt = new Date().toISOString();
+      newValues.previousTests = [];
+      newValues.validity = {
         from: new Date().toISOString(),
         to: new Date().toISOString(),
-      },
-    ];
-    newValues.createdAt = new Date().toISOString();
-    newValues.modifiedAt = new Date().toISOString();
-    newValues.previousTests = [];
-    newValues.validity = {
-      from: new Date().toISOString(),
-      to: new Date().toISOString(),
-    };
-    console.log({ newValues });
+      };
+      console.log({ newValues });
 
-    const res = await API_USERS().post(`/teacher/create`, newValues);
-    // console.log({ res });
+      const res = await API_USERS().post(`/teacher/create`, newValues);
+      // console.log({ res });
 
-    if (res.status === 200) {
-      return alert("Succesfully created user");
-    } else {
-      return alert("Some error occured");
+      if (res.status === 200) {
+        message.success("Teacher created successfully");
+        return handleReset();
+      } else {
+        return message.error("Something went wrong");
+      }
+      setSuccess("Student created successfully");
+    } catch (error: any) {
+      setError(error?.response?.data?.message);
+      message.error(error?.response?.data?.message);
+      if (error?.response?.data?.message?.includes("email")) {
+        setHelperTextObj((prev) => ({
+          ...prev,
+          email: {
+            ...prev?.email,
+            error: true,
+            helperText: error.response.data.message,
+          },
+        }));
+      }
     }
+    setLoading(false);
 
     // handleReset();
   }
@@ -409,6 +513,13 @@ const Teacher: React.FC<{
     }
     getRolesOption();
   }, []);
+  function handleFormSubmit() {
+    if (newUserRef?.current) {
+      newUserRef.current.dispatchEvent(
+        new Event("submit", { cancelable: true, bubbles: true })
+      );
+    }
+  }
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <AddUserModal
@@ -418,7 +529,9 @@ const Teacher: React.FC<{
             <Button onClick={handleReset} type="button" color="warning">
               Reset
             </Button>
-            <Button onClick={handleSubmit}>Submit</Button>
+            <Button type="submit" onClick={handleFormSubmit}>
+              Submit
+            </Button>
           </>
         }
         classes={[styles.studentContainer]}
@@ -427,7 +540,7 @@ const Teacher: React.FC<{
         // error={error}
         handleCloseModal={props.handleCloseModal}
       >
-        <form>
+        <form ref={newUserRef} onSubmit={handleSubmit}>
           <div className={styles.inputFields}>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4} lg={4} xl={3}>
@@ -438,6 +551,7 @@ const Teacher: React.FC<{
                   value={values.name}
                   onChange={handleChangeValues}
                   variant="outlined"
+                  error={helperTextObj?.name?.error}
                 />
               </Grid>
               <Grid item xs={12} md={4} lg={4} xl={3}>
@@ -449,6 +563,7 @@ const Teacher: React.FC<{
                   onChange={handleChangeValues}
                   label="Email"
                   variant="outlined"
+                  error={helperTextObj?.email?.error}
                 />
               </Grid>
               <Grid item xs={12} md={4} lg={4} xl={3}>
@@ -472,6 +587,7 @@ const Teacher: React.FC<{
                   label="DOB"
                   placeholder="DD/MM/YYYY"
                   variant="outlined"
+                  error={helperTextObj?.dob?.error}
                 />
               </Grid>
               <Grid item xs={12} md={4} lg={4} xl={3}>
@@ -484,6 +600,7 @@ const Teacher: React.FC<{
                   label="Aadhaar Number"
                   placeholder="Enter Aadhaar Number"
                   variant="outlined"
+                  error={helperTextObj?.aadhaar?.error}
                 />
               </Grid>
               <Grid item xs={12} md={4} lg={4} xl={3}>
@@ -495,6 +612,7 @@ const Teacher: React.FC<{
                   onChange={handleChangeValues}
                   label="Contact"
                   variant="outlined"
+                  error={helperTextObj?.contact?.error}
                 />
               </Grid>
 
@@ -545,6 +663,7 @@ const Teacher: React.FC<{
                   id="emergencyContact"
                   type="number"
                   value={values.emergencyContact}
+                  error={helperTextObj?.emergencyContact?.error}
                   onChange={handleChangeValues}
                   label="Emergency Contact"
                   variant="outlined"
@@ -560,7 +679,7 @@ const Teacher: React.FC<{
                   value={roles}
                 />
               </Grid>
-              <Grid item xs={12} md={12} lg={12} xl={8}>
+              {/* <Grid item xs={12} md={12} lg={12} xl={8}>
                 <StyledMUITextField
                   required
                   className="largeWidthInput"
@@ -581,7 +700,7 @@ const Teacher: React.FC<{
                   label="Permanent Address"
                   variant="outlined"
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
 
             {/* <StyledMUITextField

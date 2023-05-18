@@ -131,7 +131,12 @@ const Manager: React.FC<{
 }> = (props) => {
   const { uploadedBy, handleReset } = props.manager;
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([
+    {
+      name: "Manager",
+      value: "ROLE_MANAGER",
+    },
+  ]);
   const { currentUser } = useContext(AuthContext);
   const [rolesInfo, setRolesInfo] = useState({
     options: [],
@@ -407,7 +412,7 @@ const Manager: React.FC<{
                   value={roles}
                 />
               </Grid>
-              <Grid item xs={12} md={12} lg={12} xl={8}>
+              {/* <Grid item xs={12} md={12} lg={12} xl={8}>
                 <StyledMUITextField
                   required
                   className="largeWidthInput"
@@ -428,7 +433,7 @@ const Manager: React.FC<{
                   label="Permanent Address"
                   variant="outlined"
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
           </div>
         </form>

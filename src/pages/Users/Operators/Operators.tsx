@@ -134,11 +134,14 @@ const Operator: React.FC<{
   const { uploadedBy, handleReset } = props.operator;
 
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([
+    { name: "Operator", value: "ROLE_OPERATOR" },
+  ]);
   const [rolesInfo, setRolesInfo] = useState({
     options: [],
     actual: [],
   });
+  console.log({ rolesInfo });
   const [error, setError] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
     email: {
@@ -410,7 +413,7 @@ const Operator: React.FC<{
                   value={roles}
                 />
               </Grid>
-              <Grid item xs={12} md={12} lg={12} xl={8}>
+              {/* <Grid item xs={12} md={12} lg={12} xl={8}>
                 <StyledMUITextField
                   required
                   className="largeWidthInput"
@@ -431,7 +434,7 @@ const Operator: React.FC<{
                   label="Permanent Address"
                   variant="outlined"
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
           </div>
         </form>

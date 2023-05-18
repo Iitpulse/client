@@ -127,7 +127,7 @@ const Users = () => {
 
   const [tab, setTab] = useState(0);
   useEffect(() => {
-    console.log({ permissions });
+    console.log({ permissions, tab });
     switch (tab) {
       case 0:
         setIsCreatePermitted(permissions.includes("CREATE_STUDENT"));
@@ -148,7 +148,7 @@ const Users = () => {
         break;
     }
     console.log({ isCreatePermitted });
-  }, [tab]);
+  }, [tab, permissions]);
 
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
     setOpenModal(false);
@@ -229,11 +229,21 @@ const Users = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <Tabs value={tab} onChange={handleChangeTab}>
-            {permissions.includes("READ_STUDENT") && <Tab label="Students" />}
-            {permissions.includes("READ_TEACHER") && <Tab label="Teachers" />}
-            {permissions.includes("READ_ADMIN") && <Tab label="Admins" />}
-            {permissions.includes("READ_OPERATOR") && <Tab label="Operators" />}
-            {permissions.includes("READ_MANAGER") && <Tab label="Managers" />}
+            {permissions.includes("READ_STUDENT") && (
+              <Tab label="Students" value={0} />
+            )}
+            {permissions.includes("READ_TEACHER") && (
+              <Tab label="Teachers" value={1} />
+            )}
+            {permissions.includes("READ_ADMIN") && (
+              <Tab label="Admins" value={2} />
+            )}
+            {permissions.includes("READ_OPERATOR") && (
+              <Tab label="Operators" value={3} />
+            )}
+            {permissions.includes("READ_MANAGER") && (
+              <Tab label="Managers" value={4} />
+            )}
           </Tabs>
           <div>
             <IconButton className={styles.icons} onClick={handleClickRefresh}>
