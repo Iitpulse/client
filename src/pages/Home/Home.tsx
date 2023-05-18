@@ -131,6 +131,7 @@ const Home = () => {
   const handleClose = () => setOpen(false);
 
   const { state, recentTest } = useContext(TestContext);
+  console.log({ recentTest });
   const [recentTestIdx, setrecentTestidx] = useState<any>(0);
   const [recentTestValue, setrecentTestValue] = useState<any>(
     recentTest?.at(0)?.name
@@ -266,11 +267,7 @@ const Home = () => {
                   />
                   <SubCard
                     title="Average Marks"
-                    content={String(
-                      parseInt(
-                        recentTest[recentTestIdx]?.averageMarks?.toString()
-                      ).toFixed(2)
-                    )}
+                    content={String(recentTest[recentTestIdx]?.averageMarks)}
                     icon={yellowFlag}
                     variant="warning"
                   />
@@ -332,9 +329,7 @@ const Home = () => {
                   <SubCard
                     title="Average Marks"
                     content={String(
-                      parseInt(
-                        recentTest[recentTestIdx]?.averageMarks?.toString()
-                      ).toFixed(2)
+                      recentTest[recentTestIdx]?.averageMarks?.toString()
                     )}
                     icon={yellowFlag}
                     variant="warning"
