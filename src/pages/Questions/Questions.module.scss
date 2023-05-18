@@ -309,3 +309,8 @@
     border: 1px solid rgba(0, 0, 0, 0.05);
   }
 }
+.toggleProofRead {
+  @extend .flexRow;
+  justify-content: flex-start;
+  gap: 1rem;
+}
