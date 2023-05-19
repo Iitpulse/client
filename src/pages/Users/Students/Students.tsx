@@ -503,7 +503,7 @@ export const Student: React.FC<{
     async (e: React.FormEvent<HTMLFormElement>) => {
       if (!newUserRef.current?.reportValidity()) return;
       e.preventDefault();
-      console.log(values);
+      message.loading("Creating Student User...", 0);
       try {
         const error = {
           stream: !Boolean(values.stream),
@@ -652,8 +652,11 @@ export const Student: React.FC<{
         // console.log({ res });
 
         setSuccess("Student created successfully");
+        message.destroy();
+        message.success("Student created successfully");
       } catch (error: any) {
         setError(error.response.data.message);
+        message.destroy();
         message.error(error.response.data.message);
         if (error.response.data.message.includes("email")) {
           setHelperTextObj((prev) => ({

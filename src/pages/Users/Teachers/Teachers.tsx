@@ -14,7 +14,14 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import { APIS } from "../../../utils/constants";
-import { Input, Space, Table, Button as AntButton, Popconfirm } from "antd";
+import {
+  Input,
+  Space,
+  Table,
+  Button as AntButton,
+  Popconfirm,
+  message,
+} from "antd";
 import { DataType, rowSelection } from "../Users";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import AddUserModal from "../components/AddUserModal";
@@ -342,40 +349,41 @@ const Teacher: React.FC<{
   }
 
   async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
-    console.log("submitting");
     e.preventDefault();
-    let newValues = { ...values };
-    newValues.subjects = subjects?.map((subject: any) => ({
-      id: subject._id,
-      name: subject.name,
-    }));
-    newValues.userType = "teacher";
-    newValues.createdBy = {
-      id: currentUser?.id,
-      userType: currentUser?.userType,
-    };
-    newValues.institute = currentUser?.instituteId;
-    newValues.roles = [
-      {
-        id: "ROLE_TEACHER",
+    message.loading("Creating User...", 0);
+    try {
+      let newValues = { ...values };
+      newValues.subjects = subjects?.map((subject: any) => ({
+        id: subject._id,
+        name: subject.name,
+      }));
+      newValues.userType = "teacher";
+      newValues.createdBy = {
+        id: currentUser?.id,
+        userType: currentUser?.userType,
+      };
+      newValues.institute = currentUser?.instituteId;
+      newValues.roles = [
+        {
+          id: "ROLE_TEACHER",
+          from: new Date().toISOString(),
+          to: new Date().toISOString(),
+        },
+      ];
+      newValues.createdAt = new Date().toISOString();
+      newValues.modifiedAt = new Date().toISOString();
+      newValues.previousTests = [];
+      newValues.validity = {
         from: new Date().toISOString(),
         to: new Date().toISOString(),
-      },
-    ];
-    newValues.createdAt = new Date().toISOString();
-    newValues.modifiedAt = new Date().toISOString();
-    newValues.previousTests = [];
-    newValues.validity = {
-      from: new Date().toISOString(),
-      to: new Date().toISOString(),
-    };
+      };
 
-    const res = await API_USERS().post(`/teacher/create`, newValues);
-
-    if (res.status === 200) {
-      return alert("Succesfully created user");
-    } else {
-      return alert("Some error occured");
+      const res = await API_USERS().post(`/teacher/create`, newValues);
+      message.destroy();
+      message.success("Teacher Created Successfully");
+    } catch (error) {
+      message.destroy();
+      message.error("Error Creating Teacher");
     }
   }
 
