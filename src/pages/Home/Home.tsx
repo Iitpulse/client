@@ -131,18 +131,15 @@ const Home = () => {
   const handleClose = () => setOpen(false);
 
   const { state, recentTest } = useContext(TestContext);
-  console.log({ recentTest });
   const [recentTestIdx, setrecentTestidx] = useState<any>(0);
   const [recentTestValue, setrecentTestValue] = useState<any>(
     recentTest?.at(0)?.name
   );
   const { currentUser } = useContext(AuthContext);
-  // console.log("recentTests in home : ", recentTest);
 
   const { ongoingTests } = state;
   useEffect(() => {
     const fetchInstituteDetails = async () => {
-      console.log({ currentUser });
       try {
         const res = await API_USERS().get(`/institute/get`, {
           params: {
@@ -150,7 +147,6 @@ const Home = () => {
           },
         });
         setInstituteDetailsData(res.data);
-        console.log({ "institute details": res });
       } catch (err) {
         console.log(err);
       }
