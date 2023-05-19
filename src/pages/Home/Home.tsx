@@ -163,6 +163,10 @@ const Home = () => {
     setrecentTestValue(recentTest?.at(0)?.name);
   }, [recentTest]);
 
+  // useEffect(()=>{
+  //   console.log({recentTest})
+  // })
+
   return (
     <MainLayout name="Home">
       {currentUser?.userType === "student"?
