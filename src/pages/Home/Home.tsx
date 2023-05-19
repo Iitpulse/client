@@ -26,8 +26,9 @@ import CalendarComponent from "../../components/CalendarComponent/CalendarCompon
 import { API_USERS } from "../../utils/api";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import MainLayout from "../../layouts/MainLayout";
-import { Dropdown, Menu } from "antd";
-import type { MenuProps } from "antd";
+import ScheduleCalendar from "./ScheduleCalendar/ScheduleCalendar";
+import { ITest } from "../../utils/interfaces";
+
 interface SubCardProps {
   title: string;
   icon: string;
@@ -137,7 +138,7 @@ const Home = () => {
   );
   const { currentUser } = useContext(AuthContext);
 
-  const { ongoingTests } = state;
+  const { ongoingTests, activeTests } = state;
   useEffect(() => {
     const fetchInstituteDetails = async () => {
       try {
@@ -159,6 +160,17 @@ const Home = () => {
   useEffect(() => {
     setrecentTestValue(recentTest?.at(0)?.name);
   }, [recentTest]);
+
+  function getCalendarData() {
+    let data: ITest[] = [];
+    if (ongoingTests?.length) {
+      data = [...data, ...ongoingTests];
+    }
+    if (activeTests?.length) {
+      data = [...data, ...activeTests];
+    }
+    return data;
+  }
 
   return (
     <MainLayout name="Home">
@@ -282,11 +294,12 @@ const Home = () => {
                 </div>
               </Card>
             </Grid>
-            {/* <Grid item xl={12} md={12} xs={12}>
-            <Card title="Schedule" classes={[styles.calendarImageCard]}>
-              <CalendarComponent />
-            </Card>
-          </Grid> */}
+            <Grid item xl={12} md={12} xs={12}>
+              <Card title="Schedule" classes={[styles.calendarImageCard]}>
+                {/* <CalendarComponent /> */}
+                <ScheduleCalendar data={ongoingTests as ITest[]} />
+              </Card>
+            </Grid>
           </Grid>
         </div>
       ) : (
@@ -404,10 +417,11 @@ const Home = () => {
               </div>
             </Grid>
             <Grid item xl={12} md={12} xs={12}>
-              {/* <Card title="Schedule" classes={[styles.calendarImageCard]}> */}
-              {/* <img src={calendarImage} alt="icon" className={styles.calendarImage} /> */}
-              {/* <CalendarComponent />
-            </Card> */}
+              <Card title="Schedule" classes={[styles.calendarImageCard]}>
+                {/* <img src={calendarImage} alt="icon" className={styles.calendarImage} /> */}
+                {/* <CalendarComponent /> */}
+                <ScheduleCalendar data={getCalendarData()} />
+              </Card>
             </Grid>
           </Grid>
         </div>
