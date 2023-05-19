@@ -43,10 +43,25 @@ export const columns = [
           textOverflow: "ellipsis",
           overflow: "hidden",
           whiteSpace: "nowrap",
-          maxWidth: "50px",
+          maxWidth: "150px",
+          // background: "red",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
         }}
       >
-        {text}
+        <span
+          style={{
+            display: "inline-block",
+            maxWidth: "100%",
+            overflow: "hidden",
+            // background: "blue",
+            // opacity: 0.5,
+            textOverflow: "ellipsis",
+          }}
+        >
+          {text}
+        </span>
       </Link>
     ),
   },
