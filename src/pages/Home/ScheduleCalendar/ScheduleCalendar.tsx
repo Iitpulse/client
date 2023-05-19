@@ -11,6 +11,25 @@ interface CalendarViewProps {
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({ data }) => {
+  function isTestExpired(test: ITest) {
+    return dayjs().isAfter(dayjs(test.validity.to));
+  }
+
+  function getColorByStatus(item: ITest) {
+    // return isTestExpired(item)
+    //   ? "error"
+    //   : item.status === "Ongoing"
+    //   ? "success"
+    //   : item.status === "Active"
+    //   ? "warning"
+    //   : "error";
+    return isTestExpired(item)
+      ? "error"
+      : dayjs().isBefore(dayjs(item.validity.from))
+      ? "warning"
+      : "success";
+  }
+
   const dateCellRender = (value: any) => {
     const listData = data?.filter((test) =>
       dayjs(value).isBetween(
@@ -20,20 +39,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ data }) => {
         "[]"
       )
     );
-
-    function isTestExpired(test: ITest) {
-      return dayjs().isAfter(dayjs(test.validity.to));
-    }
-
-    function getColorByStatus(item: ITest) {
-      return isTestExpired(item)
-        ? "error"
-        : item.status === "Ongoing"
-        ? "success"
-        : item.status === "Active"
-        ? "warning"
-        : "error";
-    }
 
     return (
       <ul className={styles.events}>
@@ -51,7 +56,38 @@ const CalendarView: React.FC<CalendarViewProps> = ({ data }) => {
     );
   };
 
-  return <Calendar dateCellRender={dateCellRender} />;
+  const monthCellRender = (value: any) => {
+    const monthData = data.filter((test) =>
+      dayjs(value).isBetween(
+        dayjs(test.validity.from),
+        dayjs(test.validity.to),
+        "month",
+        "[]"
+      )
+    );
+
+    return monthData.length > 0 ? (
+      <ul className={styles.events}>
+        {monthData?.map((item) => (
+          <li key={item.id}>
+            <Tag color="blue">{item.exam.name}</Tag> <br />
+            <Badge
+              className={styles.testTitle}
+              status={getColorByStatus(item)}
+              text={item.name}
+            />
+          </li>
+        ))}
+      </ul>
+    ) : null;
+  };
+
+  return (
+    <Calendar
+      dateCellRender={dateCellRender}
+      monthCellRender={monthCellRender}
+    />
+  );
 };
 
 export default CalendarView;
