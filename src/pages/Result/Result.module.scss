@@ -157,29 +157,29 @@
 .card_primary {
   .header {
     * {
-      color:black;
+      color: black;
     }
-    .subjectName{
+    .subjectName {
       color: var(--clr-primary) !important;
     }
   }
 }
 .card_success {
   .header {
-    *{
-      color:black;
-    } 
-    .subjectName{
+    * {
+      color: black;
+    }
+    .subjectName {
       color: var(--clr-success) !important;
     }
   }
 }
 .card_warning {
   .header {
-    *{
-      color:black;
-    } 
-    .subjectName{
+    * {
+      color: black;
+    }
+    .subjectName {
       color: var(--clr-warning) !important;
     }
   }
@@ -187,10 +187,14 @@
 .card_error {
   .header {
     * {
-      color:black;
+      color: black;
     }
-    .subjectName{
+    .subjectName {
       color: var(--clr-error) !important;
     }
   }
+}
+.accuracy {
+  @extend .flexRow;
+  width: 100%;
 }

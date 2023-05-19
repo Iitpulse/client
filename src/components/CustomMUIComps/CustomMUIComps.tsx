@@ -98,6 +98,10 @@ export const MUIChipsAutocomplete: React.FC<MUIAutocompleteProps> = ({
 };
 
 export const MUISimpleAutocomplete = (props: MUIAutocompleteProps) => {
+  useEffect(() => {
+    props.onChange(props.value || ""); // Update the value when props.value changes
+    console.log("This is the value", props.value);
+  }, [props.value]);
   return (
     <Autocomplete
       className={styles.something}
