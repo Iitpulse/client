@@ -172,6 +172,19 @@ const CreatePattern = () => {
                 areErrors = true;
                 return acc;
               }
+              console.log({ curr });
+              if (curr.markingScheme.incorrect < 0) {
+                message.error(
+                  <span>
+                    Incorrect marks cannot be negative for{" "}
+                    <strong>Subsection {index + 1}</strong> inside Section{" "}
+                    <strong>{sec.name}</strong>
+                  </span>,
+                  5
+                );
+                areErrors = true;
+                return acc;
+              }
               if (curr?.totalQuestions < curr?.toBeAttempted) {
                 console.log("This is the error");
                 message.error(
