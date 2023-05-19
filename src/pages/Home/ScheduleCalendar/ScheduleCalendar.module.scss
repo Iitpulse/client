@@ -1,0 +1,17 @@
+@import "../../../utils/commons.scss";
+
+.events {
+  li {
+    border-bottom: 1px solid #f3f3f3;
+    padding-bottom: 0.2rem;
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+  }
+}
+
+.testTitle {
+  display: block;
+  margin-top: 0.5rem;
+}

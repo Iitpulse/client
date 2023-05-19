@@ -207,7 +207,10 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  > span {
+    margin-left: 0.5rem;
+  }
 }
 .footer {
   background-color: rgb(245, 245, 245);
@@ -305,4 +308,9 @@
     background-color: rgba(0, 0, 0, 0.03);
     border: 1px solid rgba(0, 0, 0, 0.05);
   }
+}
+.toggleProofRead {
+  @extend .flexRow;
+  justify-content: flex-start;
+  gap: 1rem;
 }

@@ -28,6 +28,7 @@ import { SearchOutlined } from "@ant-design/icons";
 import { API_USERS } from "../../../utils/api";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import { useTestContext } from "../../../utils/contexts/TestContext";
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
@@ -288,6 +289,7 @@ const Teacher: React.FC<{
     options: [],
     actual: [],
   });
+  const [subjects, setSubjects] = useState([]);
   const [error, setError] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
     email: {
@@ -331,6 +333,7 @@ const Teacher: React.FC<{
     },
   });
   const { currentUser } = useContext(AuthContext);
+  const { subjects: globalSubjects } = useTestContext();
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
@@ -342,7 +345,10 @@ const Teacher: React.FC<{
     console.log("submitting");
     e.preventDefault();
     let newValues = { ...values };
-
+    newValues.subjects = subjects?.map((subject: any) => ({
+      id: subject._id,
+      name: subject.name,
+    }));
     newValues.userType = "teacher";
     newValues.createdBy = {
       id: currentUser?.id,
@@ -363,27 +369,24 @@ const Teacher: React.FC<{
       from: new Date().toISOString(),
       to: new Date().toISOString(),
     };
-    console.log({ newValues });
 
     const res = await API_USERS().post(`/teacher/create`, newValues);
-    // console.log({ res });
 
     if (res.status === 200) {
       return alert("Succesfully created user");
     } else {
       return alert("Some error occured");
     }
-
-    // handleReset();
   }
+
   const userCtx = useContext(AuthContext);
-  console.log(userCtx);
+
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
   Object.values(rolesAllowed).map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-  console.log(permissions);
+
   useEffect(() => {
     async function getRolesOption() {
       const res = await API_USERS().get(`/roles/all`);
@@ -409,6 +412,7 @@ const Teacher: React.FC<{
     }
     getRolesOption();
   }, []);
+
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <AddUserModal
@@ -548,6 +552,14 @@ const Teacher: React.FC<{
                   onChange={handleChangeValues}
                   label="Emergency Contact"
                   variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={8} lg={8} xl={4}>
+                <MUIChipsAutocomplete
+                  label="Subject(s)"
+                  options={globalSubjects}
+                  onChange={setSubjects}
+                  value={subjects}
                 />
               </Grid>
             </Grid>

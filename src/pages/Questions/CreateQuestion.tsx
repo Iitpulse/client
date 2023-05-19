@@ -7,6 +7,7 @@ import {
   CreatableSelect,
   Navigate,
   Card,
+  ToggleButton,
 } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
@@ -114,6 +115,7 @@ const CreateQuestion = () => {
   const [data, setData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isProofRead, setIsProofRead] = useState<boolean>(false);
   const [isInitialValuePassed, setIsInitialValuePassed] =
     useState<boolean>(false);
 
@@ -121,8 +123,6 @@ const CreateQuestion = () => {
 
   const { id } = useParams();
   const { pathname } = useLocation();
-
-  
 
   useEffect(() => {
     if (!id) setIsInitialValuePassed(true);
@@ -243,6 +243,7 @@ const CreateQuestion = () => {
       setTopics(() => {
         return topics || [];
       });
+      setIsProofRead(questionData.isProofRead);
       setDifficulty(questionData.difficulty);
       setExams(
         questionData?.exams?.map((exam: string) => ({ name: exam })) ?? []
@@ -429,7 +430,7 @@ const CreateQuestion = () => {
           sources: sources.map((source) => source.name),
           createdAt: new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
-          isProofRead: false,
+          isProofRead,
           uploadedBy: {
             userType: currentUser?.userType,
             id: currentUser.id,
@@ -807,6 +808,16 @@ const CreateQuestion = () => {
                   error={error.sources}
                   label={"Source(s)"}
                   id="Sources"
+                />
+              </div>
+              <div className={styles.toggleProofRead}>
+                Proof Read
+                <ToggleButton
+                  checked={isProofRead}
+                  stopPropagation
+                  onChange={(checked: any) => {
+                    setIsProofRead(checked);
+                  }}
                 />
               </div>
             </form>

@@ -64,6 +64,7 @@
 }
 
 .container {
+  width: 100%;
   .recentTestContainer {
     h2 {
       // font-size: 1.6rem;
@@ -79,7 +80,7 @@
     }
   }
 }
-.upcomingTestCard{
+.upcomingTestCard {
   position: relative;
   height: 190px;
   overflow-y: auto;
@@ -94,25 +95,24 @@
   height: 30px;
   margin: 2px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  &::before{
+  &::before {
     content: "";
-   transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
     position: absolute;
     left: 0;
     z-index: 0;
     width: 100%;
     height: 30px;
   }
-  &:hover::before{
+  &:hover::before {
     background: rgba(97, 180, 241, 0.1);
-    
   }
   cursor: pointer;
   .title {
     color: black;
     z-index: 1;
   }
- 
+
   .details {
     color: black;
     display: flex;

@@ -166,3 +166,5 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
 };
 
 export default TestsContextProvider;
+
+export const useTestContext = () => useContext(TestContext);

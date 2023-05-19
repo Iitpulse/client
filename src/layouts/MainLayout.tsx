@@ -30,13 +30,13 @@ const MainLayout: React.FC<Props> = ({
             location={location.pathname}
             name={location.pathname === "/" ? "Home" : ""}
           />
-          <div className={styles.actions}>
+          {/* <div className={styles.actions}>
             {onClickDrawerIcon && (
               <IconButton onClick={onClickDrawerIcon}>
                 <img src={notificationIcon} alt="notification" />
               </IconButton>
             )}
-          </div>
+          </div> */}
         </nav>
         <main className={styles.main}>{children}</main>
       </section>
