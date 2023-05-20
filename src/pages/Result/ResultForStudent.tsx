@@ -146,6 +146,10 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    console.log({ finalSections });
+  });
+
   return (
     <>
       <div className={styles.cards}>

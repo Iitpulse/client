@@ -142,11 +142,12 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
           count: 5,
         },
       });
-      // console.log("recentTests :", { res });
+      console.log("recentTests :", { res });
       if (res.data?.length > 0) {
         // console.log({ res });
         const recent = res.data;
         // console.log(recent);
+        // console.log({ recent });
         setRecentTest(recent);
       }
     }
