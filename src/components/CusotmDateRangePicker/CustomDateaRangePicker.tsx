@@ -6,25 +6,34 @@ import styles from "./CustomDateRangePicker.module.scss";
 
 const { RangePicker } = DatePicker;
 
-// eslint-disable-next-line arrow-body-style
 const disabledDate: RangePickerProps["disabledDate"] = (current) => {
   // Can not select days before today and today
-  return current && current < moment().endOf("day");
+  return current && current < moment().startOf("day");
 };
 
 const CustomDateRangePicker: React.FC<{
   onChange: (values: any, formatString: [string, string]) => void;
   value: any;
   showTime?: boolean;
-}> = ({ onChange, value, showTime }) => (
-  <RangePicker
-    showTime={Boolean(showTime)}
-    // disabledDate={disabledDate}
-    onChange={onChange}
-    // format="DD-MM-YYYY"
-    value={value}
-    className={styles.cusotmDateRangePicker}
-  />
-);
+  disablePrevDates?: boolean;
+}> = ({ onChange, value, showTime, disablePrevDates }) =>
+  disablePrevDates ? (
+    <RangePicker
+      showTime={Boolean(showTime)}
+      disabledDate={disabledDate}
+      onChange={onChange}
+      format="DD-MM-YYYY"
+      value={value}
+      className={styles.cusotmDateRangePicker}
+    />
+  ) : (
+    <RangePicker
+      showTime={Boolean(showTime)}
+      onChange={onChange}
+      format="DD-MM-YYYY"
+      value={value}
+      className={styles.cusotmDateRangePicker}
+    />
+  );
 
 export default CustomDateRangePicker;
