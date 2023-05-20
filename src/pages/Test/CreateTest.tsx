@@ -41,15 +41,33 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
 import moment from "moment";
 import MainLayout from "../../layouts/MainLayout";
+import { ZodError, z } from "zod";
+import { getPublishDate, isTestFormFilled } from "./utils/functions";
+import { TestFormSchemaType } from "./utils/types";
 
-const defaultState = {
+const statusOptions = [
+  {
+    name: "Ongoing",
+    value: "ongoing",
+  },
+  {
+    name: "Active",
+    value: "active",
+  },
+  {
+    name: "Inactive",
+    value: "inactive",
+  },
+];
+
+const defaultState: any = {
   nam: "",
   desc: "",
   exam: "",
   batches: "",
   date: "",
   status: "",
-  pattern: ""
+  pattern: "",
 };
 
 const CreateTest = () => {
@@ -74,7 +92,7 @@ const CreateTest = () => {
   const { currentUser } = useContext(AuthContext);
   const { exams } = useContext(TestContext);
 
-  const [helperTexts, setHelperTexts] = useState(defaultState);
+  const [helperTexts, setHelperTexts] = useState<any>(defaultState);
 
   useEffect(() => {
     async function fetchBatch() {
@@ -88,39 +106,6 @@ const CreateTest = () => {
     }
   }, [currentUser]);
 
-  const examOptions = [
-    {
-      id: "JEE_MAINS",
-      name: "JEE MAINS",
-      value: "JEE_MAINS",
-    },
-    {
-      id: "JEE_ADVANCED",
-      name: "JEE ADVANCED",
-      value: "JEE_ADVANCED",
-    },
-    {
-      id: "NEETUG",
-      name: "NEET",
-      value: "NEETUG",
-    },
-  ];
-
-  const statusOptions = [
-    {
-      name: "Ongoing",
-      value: "ongoing",
-    },
-    {
-      name: "Active",
-      value: "active",
-    },
-    {
-      name: "Inactive",
-      value: "inactive",
-    },
-  ];
-
   function onChangeInput(e: any) {
     if (e.target.id === "name") {
       const regex = /[^a-zA-Z0-9-_ ]/g;
@@ -131,10 +116,6 @@ const CreateTest = () => {
     }
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   }
-
-  // function handleChangeValidity(newValue: any) {
-  //   setTest({ ...test, validity: { from: newValue[0], to: newValue[1] } });
-  // }
 
   useEffect(() => {
     if (pattern?.sections) {
@@ -158,6 +139,7 @@ const CreateTest = () => {
       setPatternOptions([]);
     }
   }, [test]);
+
   const allQuestionsFilled = () => {
     let allFilled = true;
     test.sections.forEach((section: ISection) => {
@@ -169,69 +151,18 @@ const CreateTest = () => {
     });
     return allFilled;
   };
-  const isTestFormFilled = () => {
-    setHelperTexts(defaultState);
-    if(!test.name){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        nam: "Fill in Name",
-      }));
-    }
-    if(!test.description){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        desc: "Fill Description",
-      }));
-    }
-    if(!test.exam.id){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        exam: "Select Exam",
-      }));
-    }
-    if(batches.length === 0){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        batches: "Fill Batches",
-      }));
-    }
-    if(status.name.length === 0){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        status: "Select Status",
-      }));
-    }
-    if(testDateRange.length === 0 || !testDateRange[0] || !testDateRange[1]){
-      setHelperTexts((prevState)=>({
-        ...prevState,
-        date: "Select valid dates",
-      }));
-    }
 
-    if(!pattern?.name){
-      setHelperTexts((prevState)=>({
-        ...prevState,
-        pattern: "Select Pattern",
-      }));
-    }
-
-    return (
-      test.name &&
-      test.description &&
-      test.exam.id &&
-      batches.length > 0 &&
-      status.name.length > 0 &&
-      testDateRange.length > 0 &&
-      testDateRange[0] &&
-      testDateRange[1] &&
-      pattern?.name &&
-      allQuestionsFilled()
-    );
-  };
   async function handleClickSubmit() {
-    console.log(test);
-
-    if (!isTestFormFilled()) {
+    if (
+      !isTestFormFilled(setHelperTexts, defaultState, {
+        test,
+        status,
+        testDateRange,
+        batches,
+        pattern,
+      }) &&
+      !allQuestionsFilled()
+    ) {
       return message.error("Please fill all the fields");
     }
     if (currentUser) {
@@ -264,7 +195,6 @@ const CreateTest = () => {
           durationInMinutes: pattern?.durationInMinutes,
           batches,
         };
-        console.log({ finalTest });
         // if (finalTest) return;
         let response = await API_TESTS().post(`/test/create`, finalTest);
         creatingTest();
@@ -810,22 +740,3 @@ const publishTypeOptions = [
     value: "manual",
   },
 ];
-
-function getPublishDate(
-  publishType: string,
-  daysAfter: number | null | undefined,
-  testDateRange: Array<any>
-): string | null {
-  switch (publishType) {
-    case "immediately":
-      return null;
-    case "atTheEndOfTest":
-      return moment(testDateRange[1]).toISOString();
-    case "autoAfterXDays":
-      return moment().add(daysAfter, "days").toISOString();
-    case "manual":
-      return null;
-    default:
-      return null;
-  }
-}

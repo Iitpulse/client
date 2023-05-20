@@ -1,20 +1,30 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { Tab, Tabs } from "@mui/material";
+import { Link as MLink, Tab, Tabs } from "@mui/material";
 import styles from "./Test.module.scss";
 import { Button, CustomTable, Modal, Sidebar } from "../../components";
-import { TestContext } from "../../utils/contexts/TestContext";
-import { Table } from "antd";
+import { useTestContext } from "../../utils/contexts/TestContext";
 import { Error } from "../";
 import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";
 import { AuthContext } from "./../../utils/auth/AuthContext";
+import { Tag } from "antd";
+import { Link } from "react-router-dom";
 
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
+}
+
+interface DataType {
+  key: React.Key;
+  id: string;
+  name: string;
+  exam: string;
+  createdAt: string;
+  status: string;
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -34,7 +44,15 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const Test = () => {
-  const columns: any = [
+  function getColorByStatus(status: string) {
+    return status === "Ongoing"
+      ? "green"
+      : status === "Active"
+      ? "yellow"
+      : "red";
+  }
+
+  const [columns, setColumns] = useState<any>([
     {
       title: "ID",
       dataIndex: "_id",
@@ -56,20 +74,32 @@ const Test = () => {
     {
       title: "Name",
       dataIndex: "name",
+      with: 200,
+      render: (name: string, row: any) => (
+        <Link to={`/test/edit/${row._id}`}>
+          <MLink className={styles.ellipsis}>{name}</MLink>
+        </Link>
+      ),
     },
     {
       title: "Exam",
       dataIndex: "exam",
+      width: 150,
       render: (exam: any) => exam.name,
     },
     {
       title: "Created",
       dataIndex: "createdAt",
-      render: (date: string) => new Date(date).toLocaleString(),
+      width: 150,
+      render: (date: string) => new Date(date).toDateString(),
     },
     {
       title: "Status",
       dataIndex: "status",
+      width: 100,
+      render: (status: string) => (
+        <Tag color={getColorByStatus(status)}>{status}</Tag>
+      ),
     },
     {
       title: "Actions",
@@ -77,8 +107,9 @@ const Test = () => {
       render: (row: any) => {
         console.log({ row });
         if (
-          row?.result?.publishProps?.type === "immediately" ||
-          row?.result?.publishProps?.isPublished
+          (row?.result?.publishProps?.type === "immediately" ||
+            row?.result?.publishProps?.isPublished) &&
+          row?.status !== "Active"
         ) {
           return (
             <Button
@@ -93,34 +124,11 @@ const Test = () => {
             </Button>
           );
         } else {
-          return <p>Not Published yet</p>;
+          return <p>Result Not Published yet</p>;
         }
       },
     },
-  ];
-
-  interface DataType {
-    key: React.Key;
-    id: string;
-    name: string;
-    exam: string;
-    createdAt: string;
-    status: string;
-  }
-
-  const rowSelection = {
-    onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-      console.log(
-        `selectedRowKeys: ${selectedRowKeys}`,
-        "selectedRows: ",
-        selectedRows
-      );
-    },
-    getCheckboxProps: (record: DataType) => ({
-      disabled: record.name === "Disabled User", // Column configuration not to be checked
-      name: record.name,
-    }),
-  };
+  ]);
 
   // Transfered above code from above the component to its inside to use navigate funtion inside colums array
 
@@ -132,7 +140,7 @@ const Test = () => {
 
   const [data, setData] = useState<any>([]);
 
-  const { state, fetchTest } = useContext(TestContext);
+  const { state, fetchTest } = useTestContext();
   const userCtx = useContext(AuthContext);
   // console.log(userCtx);
   const roles = userCtx?.roles;
