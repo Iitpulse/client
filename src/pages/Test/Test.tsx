@@ -150,7 +150,7 @@ const Test = () => {
       case 0:
         setData([]);
         setLoading(true);
-        fetchTest("ongoing", (error, result: any[]) => {
+        fetchTest("ongoing", false, (error, result: any[]) => {
           if (error) console.log(error);
           setLoading(false);
           setData(
@@ -169,7 +169,7 @@ const Test = () => {
       case 1:
         setData([]);
         setLoading(true);
-        fetchTest("active", (error, result: any[]) => {
+        fetchTest("active", false, (error, result: any[]) => {
           if (error) console.log(error);
           setLoading(false);
           setData(
@@ -188,7 +188,7 @@ const Test = () => {
       case 2:
         setData([]);
         setLoading(true);
-        fetchTest("inactive", (error, result: any[]) => {
+        fetchTest("inactive", false, (error, result: any[]) => {
           if (error) console.log(error);
           setLoading(false);
           setData(
@@ -207,7 +207,7 @@ const Test = () => {
       case 3:
         setData([]);
         setLoading(true);
-        fetchTest("expired", (error, result: any[]) => {
+        fetchTest("expired", false, (error, result: any[]) => {
           if (error) console.log(error);
           setLoading(false);
           setData(
@@ -232,7 +232,7 @@ const Test = () => {
   useEffect(() => {
     setLoading(true);
     if (fetchTest)
-      fetchTest("ongoing", (error, result) => {
+      fetchTest("ongoing", false, (error, result) => {
         setData(
           result?.map((test: any) => ({
             ...test,

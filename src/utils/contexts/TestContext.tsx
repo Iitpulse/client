@@ -54,6 +54,7 @@ export const TestContext = createContext<{
   recentTest: recenTestContext[];
   fetchTest: (
     type: "active" | "ongoing" | "inactive" | "expired",
+    excludeAttempted?: boolean,
     cb?: (error: any, data: any[]) => void
   ) => void;
 }>({
@@ -90,17 +91,19 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   // console.log(currentUser, userDetails);
   async function fetchTest(
     status: "active" | "ongoing" | "inactive" | "expired",
+    excludeAttempted: boolean = false,
     cb?: (error: any, data: any[]) => void
   ) {
     try {
       let batch = "";
       if (currentUser?.userType === "student" && userDetails?.batch)
         batch = userDetails?.batch;
-      console.log(batch, currentUser?.userType, userDetails);
+      // console.log(batch, currentUser?.userType, userDetails);
       const res = await API_TESTS().get(`/test`, {
         params: {
           status,
           batch,
+          excludeAttempted,
         },
       });
       if (cb) cb(null, res.data);
@@ -148,7 +151,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
       }
     }
     if (userDetails) {
-      fetchTest("ongoing");
+      fetchTest("ongoing", true);
     }
     fetchExams();
     fetchSubjects();
