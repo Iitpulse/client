@@ -273,7 +273,7 @@ const Objective: React.FC<Props> = ({
     }
     if (isComingFromParagraph && !isInitialValuePassed) {
       // if (data?._id) {
-      console.log("FUCK OFF I WANT TO TEST THIS", { data });
+      // console.log("FUCK OFF I WANT TO TEST THIS", { data });
       setValues({
         en: {
           question: data?.en?.question,

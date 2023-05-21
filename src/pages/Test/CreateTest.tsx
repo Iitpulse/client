@@ -37,26 +37,47 @@ import CustomTable from "../../components/CustomTable/CustomTable";
 import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
 import { message, Popconfirm } from "antd";
-import { TestContext } from "../../utils/contexts/TestContext";
+import { TestContext, useTestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
 import moment from "moment";
 import MainLayout from "../../layouts/MainLayout";
+import { ZodError, z } from "zod";
+import { getPublishDate, isTestFormFilled } from "./utils/functions";
+import { TestFormSchemaType } from "./utils/types";
+import { useLocation, useParams } from "react-router";
+import { MessageApi, MessageType } from "antd/lib/message";
 
-const defaultState = {
+const statusOptions = [
+  {
+    name: "Ongoing",
+    value: "ongoing",
+  },
+  {
+    name: "Active",
+    value: "active",
+  },
+  {
+    name: "Inactive",
+    value: "inactive",
+  },
+];
+
+const defaultState: any = {
   nam: "",
   desc: "",
   exam: "",
   batches: "",
   date: "",
   status: "",
-  pattern: ""
+  pattern: "",
 };
 
 const CreateTest = () => {
   const [test, setTest] = useState<ITest>(SAMPLE_TEST);
   const { id, name, description, exam, validity, sections } = test;
   const [pattern, setPattern] = useState<IPattern | null>(null);
-  const [patternOptions, setPatternOptions] = useState([]);
+  const [patternOptions, setPatternOptions] = useState<Array<IPattern>>([]);
+  const [editMode, setEditMode] = useState(false);
 
   const [batchesOptions, setBatchesOptions] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -68,13 +89,96 @@ const CreateTest = () => {
     value: "",
     name: "",
   });
-  const [testDateRange, setTestDateRange] = useState([]);
+  const [testDateRange, setTestDateRange] = useState<Array<any>>([]);
   const [daysAfter, setDaysAfter] = useState(1);
 
   const { currentUser } = useContext(AuthContext);
-  const { exams } = useContext(TestContext);
+  const { exams, fetchTestByID } = useTestContext();
+  const { pathname } = useLocation();
+  const { testId } = useParams();
 
-  const [helperTexts, setHelperTexts] = useState(defaultState);
+  const [helperTexts, setHelperTexts] = useState<any>(defaultState);
+
+  useEffect(() => {
+    setEditMode(pathname?.includes("edit"));
+  }, [pathname]);
+
+  useEffect(() => {
+    async function fetchFullTest() {
+      try {
+        const res = await fetchTestByID(testId as string);
+        const { data } = res;
+        const {
+          name,
+          description,
+          exam,
+          validity,
+          sections,
+          batches,
+          publishType,
+          status,
+          daysAfter,
+          patternId,
+          ...rest
+        } = data;
+        setTest((prev) => ({
+          ...prev,
+          name,
+          description,
+          exam,
+          validity,
+          sections,
+          batches,
+          publishType,
+          status,
+          daysAfter,
+          patternId,
+          ...rest,
+        }));
+        if (validity?.from && validity?.to) {
+          setTestDateRange([moment(validity?.from), moment(validity?.to)]);
+        }
+        if (publishType?.value) {
+          setPublishType(publishType);
+        }
+        if (status) {
+          let statusObj = statusOptions.find(
+            (item) => item.value?.toLowerCase() === status?.toLowerCase()
+          );
+          if (statusObj) {
+            setStatus(statusObj);
+          }
+        }
+        if (daysAfter) {
+          setDaysAfter(daysAfter);
+        }
+        if (batches?.length) {
+          setBatches(batches);
+        }
+        if (patternId) {
+          let patternObj = patternOptions.find((pt) => pt.id === patternId);
+          if (patternObj?.name) {
+            // TODO: Resolve TS Issue, should not be any
+            setPattern((prev: any) => {
+              if (prev) {
+                return {
+                  ...prev,
+                  name: patternObj?.name,
+                };
+              }
+            });
+          }
+        }
+        if (sections) {
+        }
+      } catch (error: any) {
+        message.error(error?.response?.data?.message || "Something went wrong");
+      }
+    }
+    if (editMode && testId?.length) {
+      fetchFullTest();
+    }
+  }, [editMode, testId]);
 
   useEffect(() => {
     async function fetchBatch() {
@@ -88,39 +192,6 @@ const CreateTest = () => {
     }
   }, [currentUser]);
 
-  const examOptions = [
-    {
-      id: "JEE_MAINS",
-      name: "JEE MAINS",
-      value: "JEE_MAINS",
-    },
-    {
-      id: "JEE_ADVANCED",
-      name: "JEE ADVANCED",
-      value: "JEE_ADVANCED",
-    },
-    {
-      id: "NEETUG",
-      name: "NEET",
-      value: "NEETUG",
-    },
-  ];
-
-  const statusOptions = [
-    {
-      name: "Ongoing",
-      value: "ongoing",
-    },
-    {
-      name: "Active",
-      value: "active",
-    },
-    {
-      name: "Inactive",
-      value: "inactive",
-    },
-  ];
-
   function onChangeInput(e: any) {
     if (e.target.id === "name") {
       const regex = /[^a-zA-Z0-9-_ ]/g;
@@ -132,15 +203,11 @@ const CreateTest = () => {
     setTest((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   }
 
-  // function handleChangeValidity(newValue: any) {
-  //   setTest({ ...test, validity: { from: newValue[0], to: newValue[1] } });
-  // }
-
   useEffect(() => {
-    if (pattern?.sections) {
+    if (pattern?.sections && !editMode) {
       setTest((prev) => ({ ...prev, sections: pattern.sections }));
     }
-  }, [pattern]);
+  }, [pattern, editMode]);
 
   useEffect(() => {
     let fetchData = async (examName: string) => {
@@ -149,7 +216,6 @@ const CreateTest = () => {
           exam: examName,
         },
       });
-      console.log({ response });
       setPatternOptions(response.data);
     };
     if (test.exam?.name) {
@@ -157,7 +223,8 @@ const CreateTest = () => {
     } else {
       setPatternOptions([]);
     }
-  }, [test]);
+  }, [test.exam?.name]);
+
   const allQuestionsFilled = () => {
     let allFilled = true;
     test.sections.forEach((section: ISection) => {
@@ -169,73 +236,34 @@ const CreateTest = () => {
     });
     return allFilled;
   };
-  const isTestFormFilled = () => {
-    setHelperTexts(defaultState);
-    if(!test.name){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        nam: "Fill in Name",
-      }));
-    }
-    if(!test.description){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        desc: "Fill Description",
-      }));
-    }
-    if(!test.exam.id){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        exam: "Select Exam",
-      }));
-    }
-    if(batches.length === 0){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        batches: "Fill Batches",
-      }));
-    }
-    if(status.name.length === 0){
-      setHelperTexts((prevState) => ({
-        ...prevState,
-        status: "Select Status",
-      }));
-    }
-    if(testDateRange.length === 0 || !testDateRange[0] || !testDateRange[1]){
-      setHelperTexts((prevState)=>({
-        ...prevState,
-        date: "Select valid dates",
-      }));
-    }
 
-    if(!pattern?.name){
-      setHelperTexts((prevState)=>({
-        ...prevState,
-        pattern: "Select Pattern",
-      }));
+  async function updateTest(finalTest: any, loading: MessageType) {
+    try {
+      const response = await API_TESTS().patch(`/test/update`, finalTest);
+      loading();
+      message.success("Test Updated Succesfully");
+    } catch (error: any) {
+      console.log("ERR_UPDATING_TEST", error);
+      loading();
+      message.error(error?.response?.data?.message);
     }
+  }
 
-    return (
-      test.name &&
-      test.description &&
-      test.exam.id &&
-      batches.length > 0 &&
-      status.name.length > 0 &&
-      testDateRange.length > 0 &&
-      testDateRange[0] &&
-      testDateRange[1] &&
-      pattern?.name &&
-      allQuestionsFilled()
-    );
-  };
   async function handleClickSubmit() {
-    console.log(test);
-
-    if (!isTestFormFilled()) {
+    if (
+      !isTestFormFilled(setHelperTexts, defaultState, {
+        test,
+        status,
+        testDateRange,
+        batches,
+        pattern,
+      }) &&
+      !allQuestionsFilled()
+    ) {
       return message.error("Please fill all the fields");
     }
     if (currentUser) {
-      const creatingTest = message.loading("Creating Test", 0);
+      const creatingTest = message.loading("Updating Test", 0);
       try {
         let finalTest = {
           ...test,
@@ -259,17 +287,23 @@ const CreateTest = () => {
               isPublished: false,
             },
           },
-          createdAt: new Date().toISOString(),
+          createdAt: editMode ? test.createdAt : new Date().toISOString(),
           modifiedAt: new Date().toISOString(),
-          durationInMinutes: pattern?.durationInMinutes,
+          durationInMinutes: editMode
+            ? test.durationInMinutes
+            : pattern?.durationInMinutes,
+          patternId: pattern?.id,
           batches,
         };
-        console.log({ finalTest });
+
+        if (editMode) {
+          updateTest(finalTest, creatingTest);
+          return;
+        }
         // if (finalTest) return;
         let response = await API_TESTS().post(`/test/create`, finalTest);
         creatingTest();
         message.success("Test Created Successfully");
-        console.log({ response });
       } catch (error: any) {
         creatingTest();
         message.error("Error: " + error?.response?.data?.message);
@@ -337,6 +371,7 @@ const CreateTest = () => {
           />
           <MUISimpleAutocomplete
             label="Exam"
+            disabled={editMode}
             onChange={(val: any) => {
               console.log({ val });
               onChangeInput({ target: { id: "exam", value: val } });
@@ -380,8 +415,11 @@ const CreateTest = () => {
           <MUISimpleAutocomplete
             label="Pattern"
             onChange={(val: any) => setPattern(val)}
-            options={patternOptions}
-            disabled={!Boolean(patternOptions.length)}
+            options={patternOptions?.map((pt) => ({
+              name: pt.name,
+              value: pt.name,
+            }))}
+            disabled={!Boolean(patternOptions.length) || editMode}
             value={{
               name: pattern?.name || "",
               value: pattern?.name || "",
@@ -407,7 +445,7 @@ const CreateTest = () => {
             />
           )}
         </div>
-        {sections && pattern && (
+        {sections && (editMode || pattern) && (
           <section className={styles.sections}>
             {sections.map((section) => (
               <Section
@@ -423,7 +461,11 @@ const CreateTest = () => {
             Please select a pattern to create Test
           </p>
         )}
-        <Button onClick={handleClickSubmit}>Create Test</Button>
+        <div className={styles.submitBtn}>
+          <Button onClick={handleClickSubmit}>
+            {editMode ? "Update Test" : "Create Test"}
+          </Button>
+        </div>
       </div>
       {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
     </MainLayout>
@@ -810,22 +852,3 @@ const publishTypeOptions = [
     value: "manual",
   },
 ];
-
-function getPublishDate(
-  publishType: string,
-  daysAfter: number | null | undefined,
-  testDateRange: Array<any>
-): string | null {
-  switch (publishType) {
-    case "immediately":
-      return null;
-    case "atTheEndOfTest":
-      return moment(testDateRange[1]).toISOString();
-    case "autoAfterXDays":
-      return moment().add(daysAfter, "days").toISOString();
-    case "manual":
-      return null;
-    default:
-      return null;
-  }
-}

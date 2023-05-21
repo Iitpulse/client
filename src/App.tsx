@@ -29,7 +29,6 @@ import CurrentContextProvider from "./utils/contexts/CurrentContext";
 import CreatePattern from "./pages/Pattern/CreatePattern";
 import CreateQuestion from "./pages/Questions/CreateQuestion";
 import "./App.css";
-import DocxReader from "./components/DocxReader/DocxReader";
 import BulkWord from "./pages/Questions/BulkWord/BulkWord";
 
 const App = () => {
@@ -133,6 +132,12 @@ const App = () => {
                           component={CreateTest}
                           name="Create Test"
                         />
+                      }
+                    />
+                    <Route
+                      path="/test/edit/:testId"
+                      element={
+                        <PrivateRoute component={CreateTest} name="Edit Test" />
                       }
                     />
                     <Route

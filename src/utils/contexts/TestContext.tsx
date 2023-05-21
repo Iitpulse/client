@@ -57,6 +57,7 @@ export const TestContext = createContext<{
     excludeAttempted?: boolean,
     cb?: (error: any, data: any[]) => void
   ) => void;
+  fetchTestByID: (testId: string) => Promise<any>;
 }>({
   state: defaultTestContext,
   dispatch: () => {},
@@ -64,6 +65,7 @@ export const TestContext = createContext<{
   subjects: [],
   recentTest: defaultRecentTestContext,
   fetchTest: () => {},
+  fetchTestByID: async () => {},
 });
 
 function getActionTypeFromTestType(status: string) {
@@ -119,6 +121,15 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
     }
   }
 
+  async function fetchTestByID(testId: string) {
+    try {
+      return API_TESTS().get(`/test/${testId}`);
+    } catch (err) {
+      console.log(err);
+      return null;
+    }
+  }
+
   useEffect(() => {
     async function fetchExams() {
       const res = await API_TESTS().get(`/exam/all`);
@@ -161,7 +172,15 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
 
   return (
     <TestContext.Provider
-      value={{ state, dispatch, exams, subjects, recentTest, fetchTest }}
+      value={{
+        state,
+        dispatch,
+        exams,
+        subjects,
+        recentTest,
+        fetchTest,
+        fetchTestByID,
+      }}
     >
       {children}
     </TestContext.Provider>
