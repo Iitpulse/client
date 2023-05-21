@@ -15,7 +15,7 @@ export function generateQuestionCore(
     subject: { name: string };
     chapters: { name: string; topics: string[] }[];
     topics: { name: string }[];
-    difficulty: "easy" | "medium" | "hard";
+    difficulty: "Easy" | "Medium" | "Hard";
     exams: { name: string }[];
     sources: { name: string }[];
     isProofRead: boolean;

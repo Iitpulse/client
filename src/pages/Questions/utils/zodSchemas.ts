@@ -18,7 +18,7 @@ export const coreQuestionSchema = z.object({
       })
     )
     .min(1, "Fill in Chapters"),
-  difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+  difficulty: z.enum(["Easy", "Medium", "Hard"]).optional(),
   isProofRead: z.boolean().default(false),
   createdAt: z
     .string()

@@ -14,7 +14,7 @@ import {
   IQuestionMatrix,
 } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { message } from "antd";
+import { Select, message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
 import { useParams } from "react-router";
@@ -42,6 +42,9 @@ import {
 } from "./utils/types";
 import { ZodError } from "zod";
 import { EQuestionType } from "./utils/types";
+import CustomCreatableSelect from "../../components/CustomCreatableSelect";
+
+const { Option } = Select;
 
 export const questionTypes = [
   { name: "objective" },
@@ -446,12 +449,21 @@ const CreateQuestion = () => {
           setError((prev: any) => {
             return {
               ...prev,
-              [issue.path[0]]: issue.message,
+              [issue.path[0]]: true,
+              messages: prev.messages
+                ? {
+                    ...prev.messages,
+                    [issue.path[0]]: issue.message,
+                  }
+                : {
+                    [issue.path[0]]: issue.message,
+                  },
             };
           });
         });
       }
-      console.log(error);
+      // @ts-ignore
+      console.log(error, error?.issues);
     }
   }
 
@@ -464,6 +476,12 @@ const CreateQuestion = () => {
       const questionCore = generateQuestionCore(
         {
           ...data,
+          chapters,
+          topics,
+          subject: subject?.name,
+          difficulty,
+          exams,
+          sources,
         },
         currentUser
       );
@@ -566,6 +584,7 @@ const CreateQuestion = () => {
                   value={subject}
                   label={"Subject"}
                   error={error.subject}
+                  errorText={error.messages?.subject}
                   id="subject"
                   loading
                 />
@@ -581,7 +600,17 @@ const CreateQuestion = () => {
                   label={"Exam(s)"}
                   id="Exams"
                 />
-
+                <CustomCreatableSelect
+                  mode="multiple"
+                  options={subjectOptions?.map((sub: any) => ({
+                    label: sub.name,
+                    value: sub.name,
+                  }))}
+                  placeholder="Select Subject"
+                  values={subject}
+                  onChange={(vals: any) => setSubject(vals)}
+                  onAddNewItem={handleAddSubject}
+                />
                 <CreatableSelect
                   multiple
                   onAddModalSubmit={handleAddChapter}
