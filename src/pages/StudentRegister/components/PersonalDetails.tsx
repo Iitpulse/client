@@ -8,7 +8,7 @@ import { Grid } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 import { message } from "antd";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 
 const PersonalDetailsSchema = z.object({
   name: z.string().min(3).max(50),

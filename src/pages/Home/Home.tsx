@@ -23,7 +23,7 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import clsx from "clsx";
 import { AUTH_TOKEN } from "../../utils/constants";
 import CalendarComponent from "../../components/CalendarComponent/CalendarComponent";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import MainLayout from "../../layouts/MainLayout";
 import ScheduleCalendar from "./ScheduleCalendar/ScheduleCalendar";

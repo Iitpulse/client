@@ -1,24 +1,11 @@
 import { useState, useContext, useEffect } from "react";
 import styles from "./Questions.module.scss";
-import {
-  Sidebar,
-  NotificationCard,
-  Button,
-  CreatableSelect,
-  Navigate,
-  Card,
-  ToggleButton,
-} from "../../components";
+import { Button, CreatableSelect, Card, ToggleButton } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
 import Integer from "./Integer/Integer";
 import Paragraph from "./Paragraph/Paragraph";
-import { StyledMUITextField } from "../Users/components";
-import {
-  MUIChipsAutocomplete,
-  MUISimpleAutocomplete,
-  StyledMUISelect,
-} from "./components";
+import { StyledMUISelect } from "./components";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
 import {
   IQuestionObjective,
@@ -27,14 +14,34 @@ import {
   IQuestionMatrix,
 } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import axios from "axios";
 import { message } from "antd";
-import { API_QUESTIONS, API_TESTS } from "../../utils/api";
+import { API_QUESTIONS, API_TESTS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
 import { useParams } from "react-router";
 import { useLocation } from "react-router-dom";
-import { CircularProgress, Skeleton, Tooltip } from "@mui/material";
+import { Skeleton } from "@mui/material";
 import { checkQuestionValidity } from "./utils";
+import {
+  generateIntegerQuestion,
+  generateMatrixQuestion,
+  generateObjectiveQuestion,
+  generateParagraphQuestion,
+  generateQuestionCore,
+} from "./utils/createQuestion";
+import {
+  questionIntegerSchema,
+  questionMatrixSchema,
+  questionObjectiveSchema,
+  questionParagraphSchema,
+} from "./utils/zodSchemas";
+import {
+  TQuestionInteger,
+  TQuestionMatrix,
+  TQuestionObjective,
+  TQuestionParagraph,
+} from "./utils/types";
+import { ZodError } from "zod";
+import { EQuestionType } from "./utils/types";
 
 export const questionTypes = [
   { name: "objective" },
@@ -43,22 +50,7 @@ export const questionTypes = [
   { name: "matrix" },
 ];
 
-// export const topicOptions = [
-//   { name: `Coulomb's law`, value: "coulombsLaw" },
-//   { name: "Organic", value: "organic" },
-//   { name: "Hydrocarbons", value: "hydrocarbons" },
-//   { name: "Probability", value: "probability" },
-//   { name: "Tangets", value: "tangets" },
-//   { name: "Ideal Gas Equation", value: "idealGasEquation" },
-//   { name: "Dual Nature", value: "dualNature" },
-//   { name: "Normals", value: "normals" },
-//   { name: `Newton's Law of Motion`, value: "newtonsLawofMotion" },
-// ];
-
-// export const subjectOptions = ["Physics", "Mathematics", "Chemistry"];
 export const difficultyOptions = ["Easy", "Medium", "Hard", "Not Decided"];
-// export const examOptions = ["JEE MAINS", "JEE ADVANCED", "NEET UG"];
-// export const sourceOptions = ["Bansal Classes", "Allen", "Catalyser"];
 
 interface IOptionType {
   name: string;
@@ -87,7 +79,6 @@ const defaultErrorObject = {
 };
 
 const CreateQuestion = () => {
-  // const [id, setId] = useState<string>("QM_ABC123");
   const location = useLocation();
   const [exams, setExams] = useState<Array<IOptionType>>([]);
   const [type, setType] = useState<any>(questionTypes[0]?.name);
@@ -108,7 +99,6 @@ const CreateQuestion = () => {
     userType: "operator",
     id: "",
   });
-  // const [chapterOptions, setChapterOptions] = useState<any>([]);
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [examOptions, setExamOptions] = useState<any>([]);
   const [sourceOptions, setSourceOptions] = useState<any>([]);
@@ -148,6 +138,7 @@ const CreateQuestion = () => {
       }
     }
   }, [currentUser]);
+
   useEffect(() => {
     setData((prev: any) => ({
       ...prev,
@@ -155,113 +146,97 @@ const CreateQuestion = () => {
     }));
   }, [type]);
 
+  const apiEndpoints: Record<EQuestionType, string> = {
+    [EQuestionType.Single]: "mcq/question",
+    [EQuestionType.Multiple]: "mcq/question",
+    [EQuestionType.Integer]: "numerical/question",
+    [EQuestionType.Paragraph]: "paragraph/question",
+    [EQuestionType.Matrix]: "matrix/question",
+  };
+
+  async function fetchData(questionType: EQuestionType, id: string) {
+    const res = await API_QUESTIONS().get(
+      `${apiEndpoints[questionType]}/${id}`,
+      {
+        params: { id },
+      }
+    );
+
+    if (questionType === EQuestionType.Paragraph) {
+      console.log({ para: res });
+    }
+
+    return res.data;
+  }
+
   useEffect(() => {
     async function getQuestionData() {
       setIsLoading(true);
-      let res;
-      switch (location.state.type) {
-        case "single": {
-        }
-        case "multiple": {
-          res = await API_QUESTIONS().get(`mcq/question/${id}`, {
-            params: {
-              id,
-            },
-          });
-          break;
-        }
-        case "integer": {
-          res = await API_QUESTIONS().get(`numerical/question/${id}`, {
-            params: {
-              id,
-            },
-          });
-          break;
-        }
-        case "paragraph": {
-          res = await API_QUESTIONS().get(`paragraph/question/${id}`, {
-            params: {
-              id,
-            },
-          });
 
-          console.log({ para: res });
-          break;
-        }
-        case "matrix": {
-          res = await API_QUESTIONS().get(`matrix/question/${id}`, {
-            params: {
-              id,
-            },
-          });
-          break;
-        }
-        default: {
-          throw new Error(
-            "Invalid Question Type, Make Sure that you access this page via questions page"
-          );
-        }
+      const questionType = location.state.type as EQuestionType;
+      if (!Object.values(EQuestionType).includes(questionType)) {
+        throw new Error(
+          "Invalid Question Type, Make Sure that you access this page via questions page"
+        );
       }
 
-      const { data: questionData } = res;
-      console.log({ data });
+      if (!id) {
+        setIsLoading(false);
+        return;
+      }
 
-      const subject = subjectOptions?.find((sub: any) => {
-        // console.log({ sub, res });
-        return (
-          sub?.name?.toLowerCase() === questionData?.subject?.toLowerCase()
+      try {
+        const questionData = await fetchData(questionType, id);
+
+        const subject = subjectOptions?.find((sub: any) => {
+          return (
+            sub?.name?.toLowerCase() === questionData?.subject?.toLowerCase()
+          );
+        });
+
+        let chapters: any = subject.chapters.filter(
+          (chap: any) =>
+            questionData.chapters?.findIndex(
+              (qChapter: any) => qChapter.name === chap.name
+            ) !== -1
         );
-      });
-      // console.log({ fetched: res.data });
-      // questionData.chapters?.map((chapter: any) => subject.chapters.find((chap: any) => chap.name === chapter))
-      let chapters: any = subject.chapters.filter(
-        (chap: any) =>
-          questionData.chapters?.findIndex(
-            (qChapter: any) => qChapter.name === chap.name
-          ) !== -1
-      );
-      let topics: any = [];
-      // chapters = chapters.map((stringArrayChapter: any) => {
-      //   const newChapter = subject?.chapters?.find(
-      //     (allInfoChapter: any) => allInfoChapter.name === stringArrayChapter
-      //   );
-      //   // console.log(newChapter);
-      //   return newChapter;
-      // });
-      chapters.forEach((chap: any) => {
-        topics.push(...chap.topics);
-      });
-      topics = topics.map((topic: string) => ({ name: topic }));
-      // console.log(
-      //   { mainData: res.data },
-      //   { subject, chapters, topics, subjectOptions }
-      // );
+        let topics: any = [];
+        chapters.forEach((chap: any) => {
+          topics.push(...chap.topics);
+        });
+        topics = topics.map((topic: string) => ({ name: topic }));
 
-      setData(questionData);
-      setSubject(subject || {});
-      setChapters(chapters || []);
-      setTopics(() => {
-        return topics || [];
-      });
-      setIsProofRead(questionData.isProofRead);
-      setDifficulty(questionData.difficulty);
-      setExams(
-        questionData?.exams?.map((exam: string) => ({ name: exam })) ?? []
-      );
-      setSources(
-        questionData?.sources?.map((source: string) => ({
-          name: source,
-          value: source,
-        })) ?? []
-      );
+        setData(questionData);
+        setSubject(subject || {});
+        setChapters(chapters || []);
+        setTopics(() => {
+          return topics || [];
+        });
+        setIsProofRead(questionData.isProofRead);
+        setDifficulty(questionData.difficulty);
+        setExams(
+          questionData?.exams?.map((exam: string) => ({ name: exam })) ?? []
+        );
+        setSources(
+          questionData?.sources?.map((source: string) => ({
+            name: source,
+            value: source,
+          })) ?? []
+        );
+        setType(
+          questionData?.type === EQuestionType.Single ||
+            questionData?.type === EQuestionType.Multiple
+            ? questionTypes[0]?.name
+            : questionData?.type
+        );
 
-      setType(
-        questionData?.type === "single" || questionData?.type === "multiple"
-          ? questionTypes[0]?.name
-          : questionData?.type
-      );
-      setIsLoading(false);
+        setIsLoading(false);
+      } catch (error) {
+        console.error(error);
+        setIsLoading(false);
+      }
     }
+
     if (
       id &&
       currentUser &&
@@ -298,12 +273,6 @@ const CreateQuestion = () => {
     if (currentUser)
       setUploadedBy({ userType: currentUser?.userType, id: currentUser?.id });
   }, [currentUser]);
-
-  // useEffect(() => {
-  //   setData((prev: any) => {
-  //     return { ...prev, type: type.toLowerCase() };
-  //   });
-  // }, [type]);
 
   async function handleAddSubject(sub: any) {
     const res = await API_QUESTIONS().post("/subject/create", {
@@ -401,299 +370,148 @@ const CreateQuestion = () => {
     // console.log({ res });
   }
 
-  async function handleSubmitQuestion() {
-    //check if the url has edit in it then update the question
-    // else create a new question
-    // console.log({ data });
+  async function createQuestion(
+    endpoint: string,
+    question:
+      | TQuestionObjective
+      | TQuestionInteger
+      | TQuestionParagraph
+      | TQuestionMatrix
+  ) {
+    const loading = message.loading("Creating Question...");
+    await API_QUESTIONS().post(endpoint, question);
+    loading();
+    message.success("Question created successfully");
+    setData({});
+  }
 
+  async function updateQuestion(
+    endpoint: string,
+    question:
+      | TQuestionObjective
+      | TQuestionInteger
+      | TQuestionParagraph
+      | TQuestionMatrix
+  ) {
+    const loading = message.loading("Updating Question...");
+    await API_QUESTIONS().put(endpoint, question);
+    loading();
+    message.success("Question updated successfully");
+  }
+
+  async function validateAndProcessQuestion(
+    finalQuestion:
+      | TQuestionObjective
+      | TQuestionInteger
+      | TQuestionParagraph
+      | TQuestionMatrix,
+    questionType: "single" | "multiple" | "integer" | "paragraph" | "matrix"
+  ) {
     try {
-      if (currentUser) {
-        console.log(data);
-        // console.log("Im inside");
-        let questionCore = {
-          id: id ? id : Date.now().toString(),
-          type,
-          subject: subject?.name,
-          chapters: chapters.map((chapter: any) => {
-            let topicArray = topics.map((topic) => topic.name);
-            return {
-              name: chapter.name,
-              topics: topicArray?.length
-                ? chapter.topics.filter((value: any) =>
-                    topicArray.includes(value)
-                  )
-                : [],
-            };
-          }),
-          difficulty: difficulty || "unset",
-          exams: exams.map((exam: any) => exam.name),
-          sources: sources.map((source) => source.name),
-          createdAt: new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-          isProofRead,
-          uploadedBy: {
-            userType: currentUser?.userType,
-            id: currentUser.id,
-          },
-        };
-
-        // console.log({ questionCore });
-
-        switch (data.type) {
-          // allow fall through
-          // eslint-disable-next-line no-fallthrough
-          // @ts-ignore
-          case "single":
-          // @ts-ignore
-          // eslint-disable-next-line no-fallthrough
-          case "multiple":
-            {
-              // console.log("here ", { data });
-              const finalQuestion: IQuestionObjective = {
-                ...questionCore,
-                en: {
-                  question: data.en.question,
-                  options: data.en.options,
-                  solution: data.en.solution,
-                },
-                hi: {
-                  question: data.hi.question,
-                  options: data.hi.options,
-                  solution: data.hi.solution,
-                },
-                correctAnswers: getCorrectAnswers(data.en.options),
-                type: data.type,
-              };
-              // const fetchQuestion =  async () => {
-              //   return await API_QUESTIONS().post(`/mcq/new`, finalQuestion);
-              // };
-              // console.log("OBJECTIVE", { finalQuestion }, "Before Validation");
-              let res = "";
-              // console.log("haan ye chala")
-              let dataValid = checkQuestionValidity(
-                finalQuestion,
-                setError,
-                defaultErrorObject.objective
-              );
-              if (!dataValid.state) {
-                message.error(dataValid?.message);
-                return;
-              }
-              // console.log("OBJECTIVE", { finalQuestion }, "After Validation");
-              if (dataValid?.state) {
-                if (id) {
-                  let loading = message.loading("Updating Question...");
-                  res = await API_QUESTIONS().put(
-                    `/mcq/update/${id}`,
-                    finalQuestion
-                  );
-                  // console.log({ res });
-                  loading();
-                  message.success("Question updated successfully");
-                  // setData({});
-                } else {
-                  let loading = message.loading("Creating Question...");
-                  async function createNewQuestion() {
-                    return await API_QUESTIONS().post(
-                      `/mcq/new`,
-                      finalQuestion
-                    );
-                  }
-                  await createNewQuestion();
-                  // const temp = Array(50)
-                  //   .fill(null)
-                  //   .map(() => createNewQuestion());
-                  // await Promise.all(temp);
-                  loading();
-                  message.success("Question created successfully");
-                  setData({});
-                }
-              }
-
-              // console.log({ res });
-            }
-            break;
-          case "integer":
-            {
-              const finalQuestion: IQuestionInteger = {
-                ...questionCore,
-                en: {
-                  question: data.en.question,
-                  solution: data.en.solution,
-                },
-                hi: {
-                  question: data.hi.question,
-                  solution: data.hi.solution,
-                },
-                correctAnswer: data.correctAnswer ?? { from: "", to: "" },
-              };
-              // console.log("INTEGER", { finalQuestion }, "Before Validation");
-              let dataValid = checkQuestionValidity(
-                finalQuestion,
-                setError,
-                defaultErrorObject.integer
-              );
-
-              if (!dataValid.state) {
-                message.error(dataValid?.message);
-                return;
-              }
-              // console.log("INTEGER", { finalQuestion }, "After Validation");
-              let res = "";
-
-              if (dataValid.state) {
-                if (id) {
-                  let loading = message.loading("Updating Question...");
-                  res = await API_QUESTIONS().put(
-                    `/numerical/update/${id}`,
-                    finalQuestion
-                  );
-                  loading();
-                  // console.log({ res });
-                  message.success("Question Updated successfully");
-                } else {
-                  let loading = message.loading("Creating Question...");
-                  // console.log("Hello This is Test");
-                  async function createNewIntegerQuestion() {
-                    return await API_QUESTIONS().post(
-                      `/numerical/new`,
-                      finalQuestion
-                    );
-                  }
-                  await createNewIntegerQuestion();
-                  // const temp = Array(50)
-                  //   .fill(null)
-                  //   .map(() => createNewIntegerQuestion());
-                  // await Promise.all(temp);
-                  // const res = await API_QUESTIONS().post(
-                  //   `/numerical/new`,
-                  //   finalQuestion
-                  // );
-                  // console.log({ res });
-                  loading();
-                  message.success("Question created successfully");
-                  setData({});
-                }
-              }
-
-              // console.log({ res });
-            }
-            break;
-          case "paragraph":
-            {
-              const finalQuestion: IQuestionParagraph = {
-                ...questionCore,
-                questions: data.questions,
-                paragraph: data.paragraph,
-              };
-              // console.log("PARAGRAPH", { finalQuestion }, "Before Validation");
-              let dataValid = checkQuestionValidity(
-                finalQuestion,
-                setError,
-                defaultErrorObject.paragraph
-              );
-              if (!dataValid.state) {
-                message.error(dataValid?.message);
-                return;
-              }
-              // console.log("PARAGRAPH", { finalQuestion }, "After Validation");
-              if (dataValid.state) {
-                if (id) {
-                  let loading = message.loading("Updating Question...");
-                  console.log({ finalQuestion, data });
-                  const res = await API_QUESTIONS().put(
-                    `/paragraph/update/${id}`,
-                    finalQuestion
-                  );
-                  console.log({ res });
-                  loading();
-                  setIsSubmitting(false);
-                  message.success("Question Updated successfully");
-                } else {
-                  let loading = message.loading("Creating Question...");
-
-                  const res = await API_QUESTIONS().post(
-                    `/paragraph/new`,
-                    finalQuestion
-                  );
-                  console.log({ res });
-                  loading();
-                  message.success("Question created successfully");
-                  setIsSubmitting(false);
-                  setData({});
-                }
-              }
-            }
-            break;
-          case "matrix":
-            {
-              const finalQuestion: IQuestionMatrix = {
-                ...questionCore,
-                correctAnswer: data.correctAnswer,
-                en: {
-                  question: data.en.question,
-                  solution: data.en.solution,
-                },
-                hi: {
-                  question: data.hi.question,
-                  solution: data.hi.solution,
-                },
-              };
-              // console.log("MATRIX", { finalQuestion }, "Before Validation");
-              let dataValid = checkQuestionValidity(
-                finalQuestion,
-                setError,
-                defaultErrorObject.matrix
-              );
-              if (!dataValid.state) {
-                message.error(dataValid?.message);
-                return;
-              }
-              // console.log("MATRIX", { finalQuestion }, "After Validation");
-              if (dataValid.state) {
-                if (id) {
-                  let loading = message.loading("Updating Question...");
-                  const res = await API_QUESTIONS().put(
-                    `/matrix/update/${id}`,
-                    finalQuestion
-                  );
-                  loading();
-                  console.log({ res, finalQuestion });
-                  message.success("Question Updated successfully");
-                } else {
-                  let loading = message.loading("Creating Question...");
-                  const res = await API_QUESTIONS().post(
-                    `/matrix/new`,
-                    finalQuestion
-                  );
-                  loading();
-                  console.log({ res, finalQuestion });
-                  message.success("Question created successfully");
-                  setData({});
-                }
-              }
-            }
-            break;
-
-          default:
-            return;
-        }
-        setTopics([]);
-        setChapters([]);
-        setSubject(undefined);
-        setDifficulty("unset");
-        setExams([]);
-        setSources([]);
+      let isDataValid = false;
+      switch (questionType) {
+        case "single":
+        case "multiple":
+          questionObjectiveSchema.parse(finalQuestion);
+          isDataValid = true;
+          break;
+        case "integer":
+          questionIntegerSchema.parse(finalQuestion);
+          isDataValid = true;
+          break;
+        case "paragraph":
+          questionParagraphSchema.parse(finalQuestion);
+          isDataValid = true;
+          break;
+        case "matrix":
+          questionMatrixSchema.parse(finalQuestion);
+          isDataValid = true;
+          break;
+        default:
+          break;
       }
+      if (!isDataValid) {
+        message.error("Invalid Question Data");
+        return;
+      }
+
+      if (id) {
+        await updateQuestion(`${questionType}/update/${id}`, finalQuestion);
+      } else {
+        await createQuestion(`${questionType}/new`, finalQuestion);
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        error.issues.forEach((issue) => {
+          setError((prev: any) => {
+            return {
+              ...prev,
+              [issue.path[0]]: issue.message,
+            };
+          });
+        });
+      }
+      console.log(error);
+    }
+  }
+
+  async function handleSubmitQuestion() {
+    try {
+      if (!currentUser) return;
+
+      console.log(data);
+
+      const questionCore = generateQuestionCore(
+        {
+          ...data,
+        },
+        currentUser
+      );
+
+      switch (data.type) {
+        case "single":
+        case "multiple":
+          await validateAndProcessQuestion(
+            generateObjectiveQuestion(questionCore, data, getCorrectAnswers),
+            data.type
+          );
+          break;
+        case "integer":
+          await validateAndProcessQuestion(
+            generateIntegerQuestion(questionCore, data),
+            "integer"
+          );
+          break;
+        case "paragraph":
+          await validateAndProcessQuestion(
+            generateParagraphQuestion(questionCore, data),
+            "paragraph"
+          );
+          break;
+        case "matrix":
+          await validateAndProcessQuestion(
+            generateMatrixQuestion(questionCore, data),
+            "matrix"
+          );
+          break;
+        default:
+          return;
+      }
+
+      resetQuestionForm();
     } catch (error) {
       message.success("ERR_CREATE_QUESTION" + error);
     }
-    // setIsSubmitting(false);
   }
 
-  useEffect(() => {
-    console.log({ questionDataMain: data });
-  }, [data]);
+  function resetQuestionForm() {
+    setTopics([]);
+    setChapters([]);
+    setSubject(undefined);
+    setDifficulty("unset");
+    setExams([]);
+    setSources([]);
+  }
 
   useEffect(() => {
     if (type === "paragraph") {

@@ -1,7 +1,7 @@
 import { useState, createContext, useEffect } from "react";
 import { decodeToken, isExpired } from "react-jwt";
 import { useNavigate } from "react-router";
-import { API_USERS } from "../api";
+import { API_USERS } from "../api/config";
 import { AUTH_TOKEN } from "../constants";
 import { ICurrentUser, IAuthContext, IUserDetails } from "../interfaces";
 

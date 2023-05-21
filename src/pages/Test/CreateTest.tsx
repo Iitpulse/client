@@ -32,7 +32,7 @@ import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
-import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api";
+import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api/config";
 import CustomTable from "../../components/CustomTable/CustomTable";
 import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";

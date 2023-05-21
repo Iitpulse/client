@@ -23,7 +23,7 @@ import {
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
 import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
 import moment from "moment";
@@ -148,15 +148,15 @@ const Batches = () => {
       key: "delete",
       render: (_: any, record: any) => (
         <Popconfirm
-        title="Sure to delete this batch?"
-        onConfirm={() => {
-          handleDeleteBatch(record._id);
-            }}
-            >
-            <IconButton>
+          title="Sure to delete this batch?"
+          onConfirm={() => {
+            handleDeleteBatch(record._id);
+          }}
+        >
+          <IconButton>
             <img src={deleteIcon} alt="delete" />
-        </IconButton>
-          </Popconfirm>
+          </IconButton>
+        </Popconfirm>
       ),
     },
   ];

@@ -10,7 +10,7 @@ import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS, TEST } from "../../utils/constants";
 import { Error } from "../";
 import { message } from "antd";
-import { API_TESTS } from "../../utils/api";
+import { API_TESTS } from "../../utils/api/config";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
 import { hasPatternPemissions } from "./utils";

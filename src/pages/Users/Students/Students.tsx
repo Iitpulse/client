@@ -45,7 +45,7 @@ import { ColumnType } from "antd/lib/table";
 import { FilterConfirmProps } from "antd/lib/table/interface";
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 import { DesktopDatePicker } from "@mui/lab";
 import { DeleteOutline, Edit, Face, Face3, Person } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
