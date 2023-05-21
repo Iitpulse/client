@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { Link as MLink, Tab, Tabs } from "@mui/material";
+import { IconButton, Link as MLink, Tab, Tabs } from "@mui/material";
 import styles from "./Test.module.scss";
 import { Button, CustomTable, Modal, Sidebar } from "../../components";
 import { useTestContext } from "../../utils/contexts/TestContext";
@@ -7,10 +7,12 @@ import { Error } from "../";
 import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, DeleteForever } from "@mui/icons-material";
 import { AuthContext } from "./../../utils/auth/AuthContext";
-import { Tag } from "antd";
+import { Tag, message } from "antd";
 import { Link } from "react-router-dom";
+import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
+import { API_TESTS } from "../../utils/api";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -50,6 +52,17 @@ const Test = () => {
       : status === "Active"
       ? "yellow"
       : "red";
+  }
+
+  async function handleDeleteTest(testId: string) {
+    try {
+      const load = message.loading("Deleting Test", 0);
+      const res = await API_TESTS().delete("/test/" + testId);
+      load();
+      message.success("Deleted Successfully");
+    } catch (error) {
+      message.error("Some Error Occured");
+    }
   }
 
   const [columns, setColumns] = useState<any>([
@@ -112,19 +125,37 @@ const Test = () => {
           row?.status !== "Active"
         ) {
           return (
-            <Button
-              onClick={() => {
-                console.log({ row });
-                navigate(
-                  `/test/result/${row.name}/${row.exam.name}/${row._id}`
-                );
-              }}
-            >
-              View Result
-            </Button>
+            <div className={styles.flexRow}>
+              <Button
+                onClick={() => {
+                  console.log({ row });
+                  navigate(
+                    `/test/result/${row.name}/${row.exam.name}/${row._id}`
+                  );
+                }}
+              >
+                View Result
+              </Button>
+              <CustomPopConfirm
+                title="Are you sure to delete Test?"
+                onConfirm={() => {
+                  handleDeleteTest(row._id);
+                }}
+                cancelText="Cancel"
+                okText="Yes, Delete"
+              >
+                <IconButton>
+                  <DeleteForever />
+                </IconButton>
+              </CustomPopConfirm>
+            </div>
           );
         } else {
-          return <p>Result Not Published yet</p>;
+          return (
+            <div>
+              <p>Result Not Published yet</p>
+            </div>
+          );
         }
       },
     },
