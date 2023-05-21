@@ -3,7 +3,7 @@ import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Operators.module.scss";
 import { Button, CustomTable, Sidebar, UserProfile } from "../../../components";
-import { Popconfirm, Table } from "antd";
+import { Popconfirm, Table, message } from "antd";
 import { rowSelection } from "../Users";
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
@@ -191,37 +191,40 @@ const Operator: React.FC<{
 
   async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    let newValues = { ...values };
+    try {
+      message.loading("Creating Operator User...", 0);
+      let newValues = { ...values };
 
-    newValues.userType = "operator";
-    newValues.createdBy = {
-      id: currentUser?.id,
-      userType: currentUser?.userType,
-    };
-    newValues.institute = currentUser?.instituteId;
-    newValues.roles = [
-      {
-        id: "ROLE_OPERATOR",
+      newValues.userType = "operator";
+      newValues.createdBy = {
+        id: currentUser?.id,
+        userType: currentUser?.userType,
+      };
+      newValues.institute = currentUser?.instituteId;
+      newValues.roles = [
+        {
+          id: "ROLE_OPERATOR",
+          from: new Date().toISOString(),
+          to: new Date().toISOString(),
+        },
+      ];
+      newValues.createdAt = new Date().toISOString();
+      newValues.modifiedAt = new Date().toISOString();
+      newValues.previousTests = [];
+      newValues.validity = {
         from: new Date().toISOString(),
         to: new Date().toISOString(),
-      },
-    ];
-    newValues.createdAt = new Date().toISOString();
-    newValues.modifiedAt = new Date().toISOString();
-    newValues.previousTests = [];
-    newValues.validity = {
-      from: new Date().toISOString(),
-      to: new Date().toISOString(),
-    };
-    console.log({ newValues });
+      };
+      console.log({ newValues });
 
-    const res = await API_USERS().post(`/operator/create`, newValues);
-    // console.log({ res });
+      const res = await API_USERS().post(`/operator/create`, newValues);
 
-    if (res.status === 200) {
-      return alert("Succesfully created user");
-    } else {
-      return alert("Some error occured");
+      message.destroy();
+      message.success("Operator User Created Successfully");
+    } catch (error) {
+      message.destroy();
+      message.error("Error Creating Operator User");
+      console.log(error);
     }
 
     // handleReset();

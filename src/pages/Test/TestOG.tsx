@@ -135,7 +135,7 @@ const Test = () => {
   useEffect(() => {
     setLoading(true);
     if (fetchTest)
-      fetchTest("ongoing", (error, result) => {
+      fetchTest("ongoing", false, (error, result) => {
         setData(
           result?.map((test: any) => ({
             ...test,
@@ -153,7 +153,7 @@ const Test = () => {
 
   return (
     <MainLayout name="Ongoing Test">
-       <div className={styles.container}>
+      <div className={styles.container}>
         <TabPanel value={tab} index={0}>
           <div className={styles.data}>
             <CustomTable
