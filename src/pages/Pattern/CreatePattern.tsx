@@ -108,6 +108,10 @@ const CreatePattern = () => {
         message.error("User not found");
         return;
       }
+      if (!name) {
+        message.error("Pattern Name is required");
+        return;
+      }
       if (!durationInMinutes) {
         message.error("Duration is required");
         return;
@@ -116,10 +120,7 @@ const CreatePattern = () => {
         message.error("Exam is required");
         return;
       }
-      if (!name) {
-        message.error("Pattern Name is required");
-        return;
-      }
+      
 
       if (!sections.length) {
         message.error("Atleast 1 section is required");

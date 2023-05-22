@@ -49,14 +49,23 @@ import { API_USERS } from "../../../utils/api";
 import { DesktopDatePicker } from "@mui/lab";
 import { DeleteOutline, Edit, Face, Face3, Person } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import AddNewStudent from "./AddNewStudent";
 
 const Students: React.FC<{
   activeTab: number;
   student: UserProps;
-  openModal: boolean;
+  isDrawerOpen: boolean;
+  setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleCloseModal: () => void;
   loading: boolean;
-}> = ({ activeTab, student, openModal, handleCloseModal, loading }) => {
+}> = ({
+  activeTab,
+  student,
+  isDrawerOpen,
+  setIsDrawerOpen,
+  handleCloseModal,
+  loading,
+}) => {
   const { students } = useContext(UsersContext);
   const [currentStudent, setCurrentStudent] = useState<any>(null);
   const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
@@ -333,10 +342,13 @@ const Students: React.FC<{
         loading={loading}
         scroll={{ x: 200, y: "50vh" }}
       />
-      {openModal && activeTab === 0 && (
-        <Student
-          title="Add a Student"
+
+      {activeTab === 0 && (
+        <AddNewStudent
+          open={isDrawerOpen}
+          setOpen={setIsDrawerOpen}
           student={student}
+          title="Add a Student"
           handleCloseModal={handleCloseModal}
         />
       )}

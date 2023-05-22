@@ -49,7 +49,7 @@ const defaultState = {
   batches: "",
   date: "",
   status: "",
-  pattern: ""
+  pattern: "",
 };
 
 const CreateTest = () => {
@@ -171,45 +171,45 @@ const CreateTest = () => {
   };
   const isTestFormFilled = () => {
     setHelperTexts(defaultState);
-    if(!test.name){
+    if (!test.name) {
       setHelperTexts((prevState) => ({
         ...prevState,
         nam: "Fill in Name",
       }));
     }
-    if(!test.description){
+    if (!test.description) {
       setHelperTexts((prevState) => ({
         ...prevState,
         desc: "Fill Description",
       }));
     }
-    if(!test.exam.id){
+    if (!test.exam.id) {
       setHelperTexts((prevState) => ({
         ...prevState,
         exam: "Select Exam",
       }));
     }
-    if(batches.length === 0){
+    if (batches.length === 0) {
       setHelperTexts((prevState) => ({
         ...prevState,
         batches: "Fill Batches",
       }));
     }
-    if(status.name.length === 0){
+    if (status.name.length === 0) {
       setHelperTexts((prevState) => ({
         ...prevState,
         status: "Select Status",
       }));
     }
-    if(testDateRange.length === 0 || !testDateRange[0] || !testDateRange[1]){
-      setHelperTexts((prevState)=>({
+    if (testDateRange.length === 0 || !testDateRange[0] || !testDateRange[1]) {
+      setHelperTexts((prevState) => ({
         ...prevState,
         date: "Select valid dates",
       }));
     }
 
-    if(!pattern?.name){
-      setHelperTexts((prevState)=>({
+    if (!pattern?.name) {
+      setHelperTexts((prevState) => ({
         ...prevState,
         pattern: "Select Pattern",
       }));
@@ -538,13 +538,29 @@ const SubSection: React.FC<{
   });
 
   async function generateQuestions(type: string) {
-    setLoading(true);
+    // setLoading(true);
+    let areErrors = false;
     try {
       const rejectedQuestions = JSON.parse(
         localStorage.getItem(TEST_GENERAL.REJECTED_QUESTIONS) || "[]"
       );
       let res: any = null;
       if (type === "single" || type === "multiple") {
+        //Repeat the part below where it is applicable for a certain type
+        if (
+          parseInt(easy) + parseInt(medium) + parseInt(hard) !==
+          parseInt(totalQuestions?.toString() || "0")
+        ) {
+          areErrors = true;
+          message.error(
+            "Total Questions should be equal to sum of easy, medium and hard"
+          );
+        }
+        if (areErrors) {
+          return;
+        }
+        setLoading(true);
+        //Till here
         res = await API_QUESTIONS().get(`/mcq/autogenerate`, {
           params: {
             type,
@@ -576,6 +592,21 @@ const SubSection: React.FC<{
           questions: withAttemptedByForOptions,
         });
       } else if (type === "integer") {
+        //Repeat the part below where it is applicable for a certain type
+        if (
+          parseInt(easy) + parseInt(medium) + parseInt(hard) !==
+          parseInt(totalQuestions?.toString() || "0")
+        ) {
+          areErrors = true;
+          message.error(
+            "Total Questions should be equal to sum of easy, medium and hard"
+          );
+        }
+        if (areErrors) {
+          return;
+        }
+        setLoading(true);
+        //Till here
         res = await API_QUESTIONS().get(`/numerical/autogenerate`, {
           params: {
             type,
