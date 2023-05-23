@@ -32,7 +32,7 @@ import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
-import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api";
+import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api/config";
 import CustomTable from "../../components/CustomTable/CustomTable";
 import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
@@ -45,7 +45,7 @@ import { ZodError, z } from "zod";
 import { getPublishDate, isTestFormFilled } from "./utils/functions";
 import { TestFormSchemaType } from "./utils/types";
 import { useLocation, useParams } from "react-router";
-import { MessageApi, MessageType } from "antd/lib/message";
+import { MessageType } from "antd/es/message/interface";
 
 const statusOptions = [
   {

@@ -32,7 +32,7 @@ import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
 import { Grid, IconButton } from "@mui/material";
 import { SearchOutlined } from "@ant-design/icons";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
 import { useTestContext } from "../../../utils/contexts/TestContext";

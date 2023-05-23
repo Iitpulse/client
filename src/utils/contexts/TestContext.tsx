@@ -9,7 +9,7 @@ import { TEST_ACTION, TEST_ACTION_TYPES } from "../actions";
 import { ITest } from "../interfaces";
 import TestReducer from "../reducers/TestReducer";
 import axios from "axios";
-import { API_QUESTIONS, API_TESTS } from "../api";
+import { API_QUESTIONS, API_TESTS } from "../api/config";
 import { AuthContext } from "../auth/AuthContext";
 
 interface ProviderProps {

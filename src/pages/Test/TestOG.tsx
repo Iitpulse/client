@@ -5,7 +5,6 @@ import { Button, CustomTable, Modal, Sidebar } from "../../components";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { Table } from "antd";
 import { Error } from "../";
-import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";

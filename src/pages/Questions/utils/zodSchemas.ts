@@ -18,7 +18,7 @@ export const coreQuestionSchema = z.object({
       })
     )
     .min(1, "Fill in Chapters"),
-  difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+  difficulty: z.enum(["Easy", "Medium", "Hard"]).optional(),
   isProofRead: z.boolean().default(false),
   createdAt: z
     .string()
@@ -38,12 +38,12 @@ export const coreQuestionSchema = z.object({
   }),
 });
 
-const questionSchema = z.object({
+export const questionSchema = z.object({
   question: z.string().nonempty("Fill in Question"),
   solution: z.string().nonempty("Fill in Solution"),
 });
 
-const objectiveQuestionSchema = coreQuestionSchema.extend({
+export const questionObjectiveSchema = coreQuestionSchema.extend({
   en: questionSchema.extend({
     options: z.array(optionSchema).min(2, "Fill in Options"),
   }),
@@ -56,31 +56,24 @@ const objectiveQuestionSchema = coreQuestionSchema.extend({
     .optional(),
 });
 
-const integerQuestionSchema = coreQuestionSchema.extend({
+export const questionIntegerSchema = coreQuestionSchema.extend({
   en: questionSchema,
   hi: questionSchema,
-  correctAnswers: z.object({
+  correctAnswer: z.object({
     from: z.number().int(),
     to: z.number().int(),
   }),
 });
 
-const paragraphQuestionSchema = coreQuestionSchema.extend({
+export const questionParagraphSchema = coreQuestionSchema.extend({
   questions: z
-    .array(objectiveQuestionSchema)
-    .min(1, "Please Fill Questions")
-    .or(z.array(integerQuestionSchema).min(1, "Please Fill Questions")),
+    .array(z.union([questionObjectiveSchema, questionIntegerSchema]))
+    .min(1, "Fill in Questions"),
   paragraph: z.string().nonempty("Fill in Paragraph"),
 });
 
-const matrixQuestionSchema = coreQuestionSchema.extend({
+export const questionMatrixSchema = coreQuestionSchema.extend({
   en: questionSchema,
   hi: questionSchema,
   correctAnswer: z.array(z.array(z.string())).min(1, "Fill in Correct Answers"),
 });
-
-export type TQuestionCore = z.infer<typeof coreQuestionSchema>;
-export type TQuestionObjective = z.infer<typeof objectiveQuestionSchema>;
-export type TQuestionInteger = z.infer<typeof integerQuestionSchema>;
-export type TQuestionParagraph = z.infer<typeof paragraphQuestionSchema>;
-export type TQuestionMatrix = z.infer<typeof matrixQuestionSchema>;

@@ -14,7 +14,7 @@ import {
 } from "../../../components";
 import AddUserModal from "../components/AddUserModal";
 import { AuthContext } from "../../../utils/auth/AuthContext";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";

@@ -4,7 +4,6 @@ import styles from "./Test.module.scss";
 import { Button, CustomTable, Modal, Sidebar } from "../../components";
 import { useTestContext } from "../../utils/contexts/TestContext";
 import { Error } from "../";
-import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon, DeleteForever } from "@mui/icons-material";
@@ -12,7 +11,7 @@ import { AuthContext } from "./../../utils/auth/AuthContext";
 import { Tag, message } from "antd";
 import { Link } from "react-router-dom";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
-import { API_TESTS } from "../../utils/api";
+import { API_TESTS } from "../../utils/api/config";
 
 interface TabPanelProps {
   children?: React.ReactNode;
