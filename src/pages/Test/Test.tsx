@@ -4,7 +4,6 @@ import styles from "./Test.module.scss";
 import { Button, CustomTable, Modal, Sidebar } from "../../components";
 import { useTestContext } from "../../utils/contexts/TestContext";
 import { Error } from "../";
-import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon, DeleteForever } from "@mui/icons-material";

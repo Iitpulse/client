@@ -22,7 +22,7 @@
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
     "ajv-errors": "^1.0.1",
-    "antd": "^4.18.5",
+    "antd": "^5.5.1",
     "axios": "^0.26.0",
     "chart.js": "^3.9.1",
     "clsx": "^1.1.1",

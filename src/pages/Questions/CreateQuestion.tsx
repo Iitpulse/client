@@ -14,7 +14,7 @@ import {
   IQuestionMatrix,
 } from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { Select, message } from "antd";
+import { Form, Select, message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
 import { useParams } from "react-router";
@@ -42,7 +42,8 @@ import {
 } from "./utils/types";
 import { ZodError } from "zod";
 import { EQuestionType } from "./utils/types";
-import CustomCreatableSelect from "../../components/CustomCreatableSelect";
+import CustomCreatableSelectMultiple from "../../components/CustomCreatableSelectMultiple";
+import CustomCreatableSelectSingle from "../../components/CustomCreatableSelectSingle";
 
 const { Option } = Select;
 
@@ -83,17 +84,21 @@ const defaultErrorObject = {
 
 const CreateQuestion = () => {
   const location = useLocation();
-  const [exams, setExams] = useState<Array<IOptionType>>([]);
+  const [exams, setExams] = useState<Array<string>>([]);
   const [type, setType] = useState<any>(questionTypes[0]?.name);
   const [error, setError] = useState<any>({});
   const [subjectOptions, setSubjectOptions] = useState<any>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [subject, setSubject] = useState<any>({ name: "", value: "" });
-  const [chapters, setChapters] = useState<Array<IOptionType>>([]);
-  const [topics, setTopics] = useState<Array<IOptionType>>([]);
+  const [subject, setSubject] = useState<any>({
+    label: "",
+    value: "",
+    chapters: [],
+  });
+  const [chapters, setChapters] = useState<Array<string>>([]);
+  const [topics, setTopics] = useState<Array<string>>([]);
   const [isSubmitClicked, setIsSubmitClicked] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<string>("");
-  const [sources, setSources] = useState<Array<IOptionType>>([]);
+  const [sources, setSources] = useState<Array<string>>([]);
   const [isStable, setIsStable] = useState<boolean>(false);
   const [uploadedBy, setUploadedBy] = useState<{
     userType: string;
@@ -556,106 +561,119 @@ const CreateQuestion = () => {
           </div>
         ) : (
           <Card classes={[styles.formContainer]}>
-            <form>
+            <Form layout="vertical">
               <div className={styles.inputFields}>
-                <StyledMUISelect
-                  label={"Type"}
-                  options={questionTypes}
-                  state={type}
-                  onChange={setType}
-                  error={error.type}
-                  disabled={id ? true : false}
-                />
-                <StyledMUISelect
-                  label={"Difficulty"}
-                  options={difficultyOptions.map((difficulty) => ({
-                    name: difficulty,
-                  }))}
-                  state={difficulty}
-                  error={error.difficulty}
-                  onChange={setDifficulty}
-                />
-                <CreatableSelect
-                  onAddModalSubmit={handleAddSubject}
-                  options={subjectOptions}
-                  setValue={setSubject}
-                  setChapters={setChapters}
-                  setTopics={setTopics}
-                  value={subject}
-                  label={"Subject"}
-                  error={error.subject}
-                  errorText={error.messages?.subject}
-                  id="subject"
-                  loading
-                />
-                <CreatableSelect
-                  multiple
-                  onAddModalSubmit={handleAddExam}
-                  options={examOptions.map((exam: any) => ({
-                    name: exam.name,
-                  }))}
-                  setValue={setExams}
-                  value={exams}
-                  error={error.exams}
-                  label={"Exam(s)"}
-                  id="Exams"
-                />
-                <CustomCreatableSelect
-                  mode="multiple"
-                  options={subjectOptions?.map((sub: any) => ({
-                    label: sub.name,
-                    value: sub.name,
-                  }))}
-                  placeholder="Select Subject"
-                  values={subject}
-                  onChange={(vals: any) => setSubject(vals)}
-                  onAddNewItem={handleAddSubject}
-                />
-                <CreatableSelect
-                  multiple
-                  onAddModalSubmit={handleAddChapter}
-                  options={subject?.chapters}
-                  setValue={setChapters}
-                  value={chapters}
-                  error={error.chapters}
-                  label={"Chapter(s)"}
-                  id="Chapters"
-                  disabled={!subject?.name?.length}
-                  enableToolTip={true}
-                  enabledToolTipTitle="Select a chapter"
-                  disabledToolTipTitle="Please select a subject first"
-                />
+                <Form.Item label="Type">
+                  <CustomCreatableSelectSingle
+                    showSearch
+                    options={questionTypes.map((type) => ({
+                      label: type.name,
+                      value: type.name,
+                    }))}
+                    placeholder="Select Type"
+                    value={type}
+                    onChange={(value: any) => setType(value)}
+                    showAddNew={false}
+                  />
+                </Form.Item>
+                <Form.Item label="Difficulty">
+                  <CustomCreatableSelectSingle
+                    showSearch
+                    options={difficultyOptions.map((difficulty) => ({
+                      label: difficulty,
+                      value: difficulty,
+                    }))}
+                    placeholder="Select Difficulty"
+                    value={difficulty}
+                    onChange={(value: any) => setDifficulty(value)}
+                    showAddNew={false}
+                  />
+                </Form.Item>
+                <Form.Item label="Exams">
+                  <CustomCreatableSelectMultiple
+                    showSearch
+                    options={examOptions?.map((exam: any) => ({
+                      label: exam.name,
+                      value: exam.name,
+                    }))}
+                    placeholder="Select Exams"
+                    newItemPlaceholder="Please enter new exam"
+                    values={exams}
+                    onChange={(vals: any) => setExams(vals)}
+                    onAddNewItem={handleAddExam}
+                  />
+                </Form.Item>
+                <Form.Item label="Subject">
+                  <CustomCreatableSelectSingle
+                    showSearch
+                    options={subjectOptions?.map((sub: any) => ({
+                      ...sub,
+                      label: sub.name,
+                      value: sub.name,
+                    }))}
+                    placeholder="Select Subject"
+                    newItemPlaceholder="Pleae enter new subject"
+                    value={subject}
+                    onChange={(_, chosenSubject: any) => {
+                      setSubject(chosenSubject);
+                    }}
+                    onAddNewItem={handleAddSubject}
+                  />
+                </Form.Item>
+                <Form.Item label="Chapters">
+                  <CustomCreatableSelectMultiple
+                    showSearch
+                    options={subject?.chapters?.map((chapter: any) => ({
+                      label: chapter.name,
+                      value: chapter.name,
+                      ...chapter,
+                    }))}
+                    placeholder="Select Chapter(s)"
+                    newItemPlaceholder="Pleae enter new chapter"
+                    values={chapters}
+                    disabled={!Array.isArray(subject?.chapters)}
+                    onChange={(_, chosenChapters: Array<any>) => {
+                      setChapters(chosenChapters);
+                      console.log({ chosenChapters });
+                    }}
+                    onAddNewItem={handleAddChapter}
+                  />
+                </Form.Item>
 
-                <CreatableSelect
-                  multiple
-                  onAddModalSubmit={handleAddTopic}
-                  options={topicOptions?.map((topic: any) => ({
-                    name: topic,
-                  }))}
-                  chapters={subject?.chapters}
-                  setValue={setTopics}
-                  disabled={Boolean(!chapters?.length)}
-                  value={topics}
-                  error={error.topics}
-                  label={"Topic(s)"}
-                  id="Topics"
-                  enableToolTip={true}
-                  enabledToolTipTitle="Select a topic"
-                  disabledToolTipTitle="Please select a chapter first"
-                />
-                <CreatableSelect
-                  multiple
-                  onAddModalSubmit={handleAddSource}
-                  options={sourceOptions.map((source: any) => ({
-                    name: source?.name,
-                    value: source?.name,
-                  }))}
-                  setValue={setSources}
-                  value={sources}
-                  error={error.sources}
-                  label={"Source(s)"}
-                  id="Sources"
-                />
+                <Form.Item label="Topics">
+                  <CustomCreatableSelectMultiple
+                    showSearch
+                    options={topicOptions?.map((topic: any) => ({
+                      label: topic,
+                      value: topic,
+                    }))}
+                    placeholder="Select Topic(s)"
+                    newItemPlaceholder="Pleae enter new topic"
+                    values={topics}
+                    disabled={chapters?.length === 0}
+                    onChange={(vals: string[]) => {
+                      setTopics(vals);
+                    }}
+                    onAddNewItem={handleAddTopic}
+                  />
+                </Form.Item>
+
+                <Form.Item label="Sources">
+                  <CustomCreatableSelectMultiple
+                    showSearch
+                    options={sourceOptions?.map((source: any) => ({
+                      label: source.name,
+                      value: source.name,
+                    }))}
+                    placeholder="Select Source(s)"
+                    newItemPlaceholder="Pleae enter new source"
+                    values={sources}
+                    onChange={(vals: string[]) => {
+                      setSources(vals);
+                    }}
+                    onAddNewItem={handleAddSource}
+                  />
+                </Form.Item>
               </div>
               <div className={styles.toggleProofRead}>
                 Proof Read
@@ -667,7 +685,7 @@ const CreateQuestion = () => {
                   }}
                 />
               </div>
-            </form>
+            </Form>
           </Card>
         )}
         {isLoading ? (

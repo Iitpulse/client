@@ -24,7 +24,6 @@ import {
   message,
   Popconfirm,
 } from "antd";
-import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import Dropzone from "react-dropzone";
