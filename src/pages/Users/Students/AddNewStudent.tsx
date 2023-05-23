@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import {
   Button,
@@ -11,6 +11,7 @@ import {
   Row,
   Select,
   Space,
+  message,
 } from "antd";
 import { UserProps } from "../components";
 import { z } from "zod";
@@ -21,66 +22,16 @@ import {
 } from "../../../utils/schemas/user";
 import moment, { Moment } from "moment";
 import { API_USERS } from "../../../utils/api";
+import {
+  convertFieldValue,
+  convertStringToValidationFormat,
+  mapIdWithValues,
+  performZodValidation,
+  validateField,
+} from "../../../utils/schemas";
+import { AuthContext } from "../../../utils/auth/AuthContext";
 
 const { Option } = Select;
-
-const conversionObject: any = {
-  name: null,
-  email: null,
-  password: null,
-  dob: (value: Moment) =>
-    value ? moment(value).format("DD-MM-YYYY") : undefined,
-  gender: null,
-  roles: null,
-  contact: (value: any) => parseInt(value),
-  city: null,
-  state: null,
-  address: null,
-  institute: null,
-  isEmailVerified: null,
-  isPhoneVerified: null,
-  userType: null,
-  validity: (value: Moment[]) =>
-    value
-      ? {
-          from: moment(value[0]).format("DD-MM-YYYY"),
-          to: moment(value[1]).format("DD-MM-YYYY"),
-        }
-      : undefined,
-  createdBy: null,
-  createdAt: null,
-  modifiedAt: null,
-  parentDetails: {
-    name: null,
-    contact: (value: any) => parseInt(value),
-  },
-  batch: null,
-  standard: (value: any) => parseInt(value),
-  stream: null,
-  medium: null,
-  school: null,
-  attemptedTests: null,
-};
-
-function convertFieldValue(key: string, value: any) {
-  if (conversionObject[key] === null) return value;
-  const keys = key.split(".");
-  let currentConversionObject = conversionObject;
-
-  for (const nestedKey of keys) {
-    if (currentConversionObject[nestedKey]) {
-      if (typeof currentConversionObject[nestedKey] === "function") {
-        return currentConversionObject[nestedKey](value);
-      } else if (typeof currentConversionObject[nestedKey] === "object") {
-        currentConversionObject = currentConversionObject[nestedKey];
-      }
-    } else {
-      return value;
-    }
-  }
-
-  return value;
-}
 
 interface IAddNewStudent {
   student?: UserProps;
@@ -95,110 +46,164 @@ interface IAddNewStudent {
 
 const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
   const [form] = Form.useForm();
-  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+  // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
+  const [roleDetails, setRoleDetails] = useState<any>({
+    options: [],
+    actual: [],
+  });
+  const [batchOptions, setBatchOptions] = useState<any>([]);
+
+  const userCtx = useContext(AuthContext);
+  const rolesAllowed = userCtx?.roles;
+  let permissions: any = [];
+  Object.values(rolesAllowed)?.map(
+    (role: any) => (permissions = [...permissions, ...role.permissions])
+  );
+
+  const conversionObject: any = {
+    name: null,
+    email: null,
+    password: null,
+    dob: {
+      convert: (value: Moment) =>
+        value ? moment(value).format("DD-MM-YYYY") : undefined,
+      revert: (value: string) =>
+        value ? moment(value, "DD-MM-YYYY").toDate() : null,
+    },
+    gender: null,
+    roles: {
+      convert: (values: string[]) => {
+        const roles = values?.map((value: string) => {
+          const role = roleDetails.actual.find(
+            (role: any) => role.id === value
+          );
+          return role;
+        });
+        return roles;
+      },
+      revert: (roles: any[]) => roles?.map((role: any) => role.id),
+    },
+    contact: {
+      convert: (value: any) => parseInt(value),
+      revert: (value: number) => value.toString(),
+    },
+    city: null,
+    state: null,
+    address: null,
+    institute: null,
+    isEmailVerified: null,
+    isPhoneVerified: null,
+    userType: () => "student",
+    validity: {
+      convert: (value: Moment[]) =>
+        value
+          ? {
+              from: moment(value[0]).format("DD-MM-YYYY"),
+              to: moment(value[1]).format("DD-MM-YYYY"),
+            }
+          : undefined,
+      revert: (value: { from: string; to: string }) =>
+        value
+          ? [moment(value.from, "DD-MM-YYYY"), moment(value.to, "DD-MM-YYYY")]
+          : [],
+    },
+    createdBy: null,
+    createdAt: null,
+    modifiedAt: null,
+    parentDetails: {
+      name: null,
+      contact: {
+        convert: (value: any) => parseInt(value),
+        revert: (value: number) => value.toString(),
+      },
+    },
+    batch: null,
+    standard: {
+      convert: (value: any) => parseInt(value),
+      revert: (value: number) => value.toString(),
+    },
+    stream: null,
+    medium: null,
+    school: null,
+    attemptedTests: null,
+  };
+
   const onClose = () => {
-    setIsFormSubmitted(false);
     setOpen(false);
     form.resetFields();
   };
 
-  function onFinish(values: any) {
-    // console.log("Received values of form:", values);
+  async function onFinish(values: any) {
+    const res = await API_USERS().post(`/student/create`, values);
+    message.success("Student created successfully");
+    console.log(res);
   }
 
   function onFinishFailed(errorInfo: any) {
-    // console.log("Failed:", errorInfo);
-  }
-
-  function convertStringToValidationFormat(
-    str: string,
-    schema: z.ZodType<any, z.ZodTypeDef, any> = studentSchema
-  ): z.ZodType<any, z.ZodTypeDef, any> {
-    const keys = str.split(".");
-    let currentSchema = schema;
-
-    for (const key of keys) {
-      if (currentSchema instanceof z.ZodObject) {
-        currentSchema = currentSchema.shape[key];
-      } else {
-        throw new Error(`Invalid schema type for key: ${key}`);
-      }
-    }
-
-    return currentSchema;
-  }
-
-  async function validateField(fieldName: any, fieldValue: any) {
-    try {
-      const parsedFieldValue = convertFieldValue(fieldName, fieldValue); // this will convert the value to the required format
-      let desiredKey = fieldName;
-      const nestedKeys = fieldName.split(".");
-      if (nestedKeys.length > 1) {
-        desiredKey = nestedKeys[nestedKeys.length - 1];
-      }
-      // convertStringToValidationFormat(fieldName).pick(c)
-      const obejctToApplyAsyncParseTo = convertStringToValidationFormat(
-        fieldName,
-        studentSchema
-      );
-
-      obejctToApplyAsyncParseTo.parse(parsedFieldValue);
-      return Promise.resolve(); // Validation successful
-    } catch (error: any) {
-      const errorMessage = error.errors[0].message;
-      return Promise.reject(errorMessage); // Validation failed
-    }
+    message.error("Student creation failed");
+    console.log("Failed:", errorInfo);
   }
 
   async function validateForm() {
     try {
-      console.log("Validating form");
-      setIsFormSubmitted(true);
-      const values = await form.validateFields();
-      // console.log("Validated values:", values);
-      studentSchema.parse(values);
-      onFinish(values);
+      const additionalValues = {
+        userType: "student",
+        createdBy: {
+          id: userCtx?.currentUser?.id,
+          userType: userCtx?.currentUser?.userType,
+        },
+        createdAt: moment().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
+        modifiedAt: moment().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
+        attemptedTests: [],
+        isEmailVerified: false,
+        isPhoneVerified: false,
+      };
+      const result = performZodValidation(
+        form,
+        conversionObject,
+        studentSchema,
+        additionalValues
+      );
+      console.log(result);
+      await onFinish(result);
     } catch (error) {
-      // console.log("Validation error:", error);
       onFinishFailed(error);
     }
   }
 
   function getRules(fieldName: any) {
-    if (isFormSubmitted) {
-      return [
-        {
-          validateTrigger: "onSubmit",
-          validator: (_: any, value: any) => validateField(fieldName, value),
-        },
-      ];
+    return [
+      {
+        validateTrigger: "onSubmit",
+        validator: (_: any, value: any) =>
+          validateField(fieldName, value, conversionObject, studentSchema),
+      },
+    ];
+  }
+
+  useEffect(() => {
+    async function getRolesOption() {
+      const res = await API_USERS().get(`/roles/all`);
+      const options = res.data?.map((item: any) => ({
+        label: item.name,
+        value: item.id,
+      }));
+      const actual = res.data;
+      setRoleDetails({ options, actual });
     }
-    return [];
-  }
-  function handleFinishFailed(errorInfo: any) {
-    // console.log("Failed:", errorInfo, form.getFieldsValue());
-  }
-
-  // useEffect(() => {
-  //   async function getRolesOption() {
-  //     const res = await API_USERS().get(`/roles/all`);
-
-  //     console.log({ res: res.data });
-  //     setRolesInfo((prev: any) => ({
-  //       ...prev,
-  //       options: res.data
-  //         .map((item: any) => ({
-  //           name: item.name,
-  //           value: item.id,
-  //         }))
-  //         .filter((data: any) => {
-  //           return permissions.includes("CREATE_" + data.value.slice(5));
-  //         }),
-  //       actual: res.data,
-  //     }));
-  //   }
-  //   getRolesOption();
-  // }, []);
+    async function getBatchOption() {
+      const requestedFields = "name,id";
+      const res = await API_USERS().get(`/batch/all?fields=${requestedFields}`);
+      setBatchOptions(
+        res.data?.map((item: any) => ({
+          label: item.name,
+          value: item._id,
+        }))
+      );
+    }
+    getBatchOption();
+    getRolesOption();
+  }, []);
 
   return (
     <>
@@ -232,7 +237,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           id="studentUserForm"
           layout="vertical"
           onFinish={validateForm}
-          onFinishFailed={handleFinishFailed}
+          // onFinishFailed={handleFinishFailed}
         >
           <SectionHeader title="Personal Details" />
           <Row gutter={16}>
@@ -329,9 +334,9 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="parentName"
+                name="parentDetails-name"
                 label="Parent Name"
-                rules={getRules("parentDetails.name")}
+                rules={getRules("parentDetails-name")}
               >
                 <Input
                   style={{ width: "100%" }}
@@ -341,9 +346,9 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="parentContact"
+                name="parentDetails-contact"
                 label="Parent Contact"
-                rules={getRules("parentDetails.contact")}
+                rules={getRules("parentDetails-contact")}
               >
                 <Input
                   type="number"
@@ -422,23 +427,40 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
             <Col span={12}>
               <Form.Item name="batch" label="Batch" rules={getRules("batch")}>
                 <Select placeholder="Please choose a batch">
-                  <Option value="batch1">Batch 1</Option>
-                  <Option value="batch2">Batch 2</Option>
-                  <Option value="batch3">Batch 3</Option>
-                  <Option value="batch4">Batch 4</Option>
-                  <Option value="batch5">Batch 5</Option>
+                  {batchOptions?.map((option: any) => (
+                    <Select.Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col span={12}>
+            {/* <Col span={12}>
               <Form.Item
                 name="userType"
                 label="User Type"
                 rules={getRules("userType")}
               >
-                <Input placeholder="Please enter a valid User Type" />
+                <Select placeholder="Please choose a user type">
+                  <Option value="admin">Admin</Option>
+                  <Option value="student">Student</Option>
+                  <Option value="teacher">Teacher</Option>
+                  <Option value="operator">Operator</Option>
+                  <Option value="manager">Manager</Option>
+                </Select>
+              </Form.Item>
+            </Col> */}
+            <Col span={12}>
+              <Form.Item name="roles" label="Roles" rules={getRules("roles")}>
+                <Select mode="tags" placeholder="Please choose a role/s">
+                  {roleDetails.options?.map((option: any) => (
+                    <Select.Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -455,94 +477,6 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
               </Form.Item>
             </Col>
           </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="roles" label="Roles" rules={getRules("roles")}>
-                <Select mode="tags" placeholder="Please choose a role/s">
-                  <Option value="admin">Admin</Option>
-                  <Option value="student">Student</Option>
-                  <Option value="teacher">Teacher</Option>
-                  <Option value="operator">Operator</Option>
-                  <Option value="manager">Manager</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-          {/* <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="owner"
-                label="Owner"
-                rules={[{ required: true, message: "Please select an owner" }]}
-              >
-                <Select placeholder="Please select an owner">
-                  <Option value="xiao">Xiaoxiao Fu</Option>
-                  <Option value="mao">Maomao Zhou</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="type"
-                label="Type"
-                rules={[{ required: true, message: "Please choose the type" }]}
-              >
-                <Select placeholder="Please choose the type">
-                  <Option value="private">Private</Option>
-                  <Option value="public">Public</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="approver"
-                label="Approver"
-                rules={[
-                  { required: true, message: "Please choose the approver" },
-                ]}
-              >
-                <Select placeholder="Please choose the approver">
-                  <Option value="jack">Jack Ma</Option>
-                  <Option value="tom">Tom Liu</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="dateTime"
-                label="DateTime"
-                rules={[
-                  { required: true, message: "Please choose the dateTime" },
-                ]}
-              >
-                <DatePicker.RangePicker
-                  style={{ width: "100%" }}
-                  getPopupContainer={(trigger) => trigger.parentElement!}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item
-                name="description"
-                label="Description"
-                rules={[
-                  {
-                    required: true,
-                    message: "please enter url description",
-                  },
-                ]}
-              >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="please enter url description"
-                />
-              </Form.Item>
-            </Col>
-          </Row> */}
         </Form>
       </Drawer>
     </>

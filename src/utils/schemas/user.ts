@@ -25,9 +25,24 @@ export const userSchema = z.object({
       }
     ),
   gender: z.enum(["male", "female", "other"]),
-  roles: z.array(
-    roleSchema.pick({ id: true }).extend({ from: z.string(), to: z.string() })
-  ),
+  roles: z.union([
+    z.array(
+      roleSchema
+        .pick({ id: true })
+        .extend({ from: z.string(), to: z.string() })
+        .strict()
+    ),
+    z.array(
+      roleSchema
+        .pick({
+          id: true,
+          members: true,
+          permissions: true,
+          name: true,
+        })
+        .strict()
+    ),
+  ]), // Since we are using this schema for both create and update, we need to add this union type so that we can use the same schema for both create and update since we are going to use this schema for  create, update functionality and to validate the data we get from backends
   contact: z
     .number({
       invalid_type_error: "Please enter a valid contact number",
@@ -62,10 +77,12 @@ export const userSchema = z.object({
           "Invalid enum value. Expected 'student' | 'teacher' | 'admin' | 'superAdmin' | 'operator' | 'manager'",
       }
     ),
-  validity: z.object({
-    from: z.string(),
-    to: z.string(),
-  }),
+  validity: z
+    .object({
+      from: z.string(),
+      to: z.string(),
+    })
+    .strict(),
   createdBy: z.object({
     id: z.string(),
     userType: z.string(),
@@ -75,19 +92,21 @@ export const userSchema = z.object({
 });
 
 export const studentSchema = userSchema.extend({
-  parentDetails: z.object({
-    name: z.string().min(3).max(255),
-    contact: z
-      .number({
-        invalid_type_error: "Please enter a valid contact number",
-      })
-      .min(1000000000, {
-        message: "Contact number must be 10 digits long",
-      })
-      .max(9999999999, {
-        message: "Contact number must be 10 digits long",
-      }),
-  }),
+  parentDetails: z
+    .object({
+      name: z.string().min(3).max(255),
+      contact: z
+        .number({
+          invalid_type_error: "Please enter a valid contact number",
+        })
+        .min(1000000000, {
+          message: "Contact number must be 10 digits long",
+        })
+        .max(9999999999, {
+          message: "Contact number must be 10 digits long",
+        }),
+    })
+    .strict(),
   batch: z.string().min(3).max(255),
   standard: z.number().min(1).max(13, {
     message: "Invalid standard",
@@ -100,18 +119,22 @@ export const studentSchema = userSchema.extend({
 
 export const teacherSchema = userSchema.extend({
   subjects: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-    })
+    z
+      .object({
+        id: z.string(),
+        name: z.string(),
+      })
+      .strict()
   ),
   previousTests: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      exam: z.string(),
-      createdAt: z.string(),
-    })
+    z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        exam: z.string(),
+        createdAt: z.string(),
+      })
+      .strict()
   ),
 });
 
