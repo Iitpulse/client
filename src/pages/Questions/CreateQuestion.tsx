@@ -44,6 +44,7 @@ import { ZodError } from "zod";
 import { EQuestionType } from "./utils/types";
 import CustomCreatableSelectMultiple from "../../components/CustomCreatableSelectMultiple";
 import CustomCreatableSelectSingle from "../../components/CustomCreatableSelectSingle";
+import CreateTopicDrawer from "./components/CreateTopicDrawer";
 
 const { Option } = Select;
 
@@ -116,6 +117,7 @@ const CreateQuestion = () => {
   const [isProofRead, setIsProofRead] = useState<boolean>(false);
   const [isInitialValuePassed, setIsInitialValuePassed] =
     useState<boolean>(false);
+  const [addNewTopicDrawerOpen, setAddNewTopicDrawerOpen] = useState(false);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -298,8 +300,8 @@ const CreateQuestion = () => {
     // console.log({ res });
   }
 
-  async function handleAddChapter(chapter: any) {
-    // console.log({ chapter, subject });
+  async function handleAddChapter(chapter: string) {
+    let chapterAddLoading = message.loading("Adding Chapter", 0);
     try {
       const res = await API_QUESTIONS().post("/subject/create-chapter", {
         subjectId: subject._id,
@@ -315,66 +317,99 @@ const CreateQuestion = () => {
         );
         return newSubjectOptions;
       });
-      setSubject(newSubjectData);
+      setSubject({
+        ...newSubjectData,
+        label: newSubjectData.name,
+        value: newSubjectData.name,
+      });
       setChapters((prev: any) => {
         return [
           ...prev,
           newSubjectData.chapters[newSubjectData.chapters.length - 1],
-        ];
+        ]?.map((chap: any) => ({
+          ...chap,
+          label: chap.name,
+          value: chap.name,
+        }));
       });
+      chapterAddLoading();
+      message.success("Chapter Added Successfully");
     } catch (err) {
       console.log(err);
+      chapterAddLoading();
       message.error("Error adding chapter");
     }
   }
 
-  async function handleAddTopic(topic: any) {
-    // console.log({ subject, chapters, topic });
+  const findChapter = (chapterName: string) =>
+    chapters?.find((chapter: any) => chapter.name === chapterName);
+
+  const addTopicToExisting = (prev: any[], newTopic: string) => {
+    return findChapter(newTopic) ? [...prev, newTopic] : [...prev];
+  };
+
+  async function handleAddTopic({
+    chapter: chapterName,
+    topic: topicName,
+  }: {
+    chapter: string;
+    topic: string;
+  }) {
+    let topicAddLoading = message.loading("Adding Topic", 0);
 
     try {
       const res = await API_QUESTIONS().post("/subject/create-topic", {
         subjectId: subject._id,
-        chapter: topic.chapter,
-        topic: topic.topic,
+        chapter: chapterName,
+        topic: topicName,
       });
 
-      setTopicOptions(
-        chapters?.find((chapter: any) => chapter.name === topic.chapter)
-          ? [...topicOptions, topic.topic]
-          : [...topicOptions]
-      );
-      setTopics((prev: any) => {
-        return chapters?.find((chapter: any) => chapter.name === topic.chapter)
-          ? [...prev, { name: topic.topic }]
-          : [...prev];
-      });
+      setTopicOptions(addTopicToExisting(topicOptions, topicName));
+      setTopics((prev) => addTopicToExisting(prev, topicName));
+
       setChapters((prev: any) => {
         const newChapters = prev.map((chapter: any) => {
-          if (chapter.name === topic.chapter) {
-            chapter.topics.push(topic.topic);
+          if (chapter.name === chapterName) {
+            chapter.topics.push(topicName);
           }
-          return chapter;
+          return { ...chapter, label: chapter.name, value: chapter.name };
         });
         return newChapters;
       });
+
       setSubjectOptions((prev: any) => {
         const newSubjectOptions = prev.map((sub: any) =>
           sub._id === subject._id ? res.data.data : sub
         );
         return newSubjectOptions;
       });
-      setSubject(res.data.data);
-    } catch (err) {
-      message.error("Error adding topic");
-    }
 
-    // console.log({ res });
+      const newSubj = res.data.data;
+      setSubject({ ...newSubj, label: newSubj.name, value: newSubj.name });
+      topicAddLoading();
+      message.success(`Topic ${topicName} added successfully`);
+      setAddNewTopicDrawerOpen(false);
+    } catch (error: any) {
+      console.log(error);
+      topicAddLoading();
+      message.error(error.response.data.message);
+    }
   }
+
   async function handleAddSource(source: string) {
-    const res = await API_QUESTIONS().post("/source/create", {
-      source,
-    });
-    setSourceOptions([...sourceOptions, res.data]);
+    const addSourceLoading = message.loading("Adding Source...", 0);
+    try {
+      const res = await API_QUESTIONS().post("/source/create", {
+        source,
+      });
+      setSourceOptions([...sourceOptions, res.data]);
+      addSourceLoading();
+      message.success("Source Added Successfully");
+    } catch (error) {
+      console.log(error);
+      addSourceLoading();
+      message.error("Error adding source");
+    }
     // console.log({ res });
   }
 
@@ -631,7 +666,7 @@ const CreateQuestion = () => {
                     placeholder="Select Chapter(s)"
                     newItemPlaceholder="Pleae enter new chapter"
                     values={chapters}
-                    disabled={!Array.isArray(subject?.chapters)}
+                    disabled={subject?.chapters?.length === 0}
                     onChange={(_, chosenChapters: Array<any>) => {
                       setChapters(chosenChapters);
                       console.log({ chosenChapters });
@@ -654,7 +689,9 @@ const CreateQuestion = () => {
                     onChange={(vals: string[]) => {
                       setTopics(vals);
                     }}
-                    onAddNewItem={handleAddTopic}
+                    onClickAddNewBtn={() => {
+                      setAddNewTopicDrawerOpen(true);
+                    }}
                   />
                 </Form.Item>
 
@@ -726,6 +763,16 @@ const CreateQuestion = () => {
           </>
         )}
       </div>
+      <CreateTopicDrawer
+        open={addNewTopicDrawerOpen}
+        onClose={() => setAddNewTopicDrawerOpen(false)}
+        onClickAddTopic={handleAddTopic}
+        chapterOptions={subject?.chapters?.map((chapter: any) => ({
+          label: chapter.name,
+          value: chapter.name,
+          ...chapter,
+        }))}
+      />
     </MainLayout>
   );
 };

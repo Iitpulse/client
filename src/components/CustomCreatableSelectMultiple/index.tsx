@@ -19,6 +19,7 @@ interface Props {
   disabled?: boolean;
   mode?: "multiple" | "tags";
   showAddNew?: boolean;
+  onClickAddNewBtn?: () => void;
 }
 
 const CustomCreatableSelect: React.FC<Props> = ({
@@ -32,6 +33,7 @@ const CustomCreatableSelect: React.FC<Props> = ({
   disabled,
   mode = "multiple",
   showAddNew = true,
+  onClickAddNewBtn,
 }) => {
   const [newEntry, setNewEntry] = useState<string>("");
   const [inputStatus, setInputStatus] = useState<"" | "error" | "warning">("");
@@ -42,6 +44,10 @@ const CustomCreatableSelect: React.FC<Props> = ({
   }
 
   function handleClickAddNew() {
+    if (onClickAddNewBtn) {
+      onClickAddNewBtn();
+      return;
+    }
     setInputStatus("");
     if (!newEntry?.length) {
       setInputStatus("error");
@@ -61,7 +67,6 @@ const CustomCreatableSelect: React.FC<Props> = ({
       value={values}
       placeholder={placeholder || "Select items"}
       defaultActiveFirstOption={false}
-      showArrow={false}
       filterOption={true}
       // onSearch={onSearch}
       onChange={onChange}
@@ -73,14 +78,16 @@ const CustomCreatableSelect: React.FC<Props> = ({
             <>
               <Divider style={{ margin: "8px 0" }} />
               <Space style={{ padding: "0 8px 4px" }}>
-                <Input
-                  placeholder={newItemPlaceholder || "Please enter item"}
-                  ref={inputRef}
-                  value={newEntry}
-                  onChange={handleValueChange}
-                  onPressEnter={handleClickAddNew}
-                  status={inputStatus}
-                />
+                {!onClickAddNewBtn && (
+                  <Input
+                    placeholder={newItemPlaceholder || "Please enter item"}
+                    ref={inputRef}
+                    value={newEntry}
+                    onChange={handleValueChange}
+                    onPressEnter={handleClickAddNew}
+                    status={inputStatus}
+                  />
+                )}
                 <Button
                   type="text"
                   icon={<PlusOutlined />}

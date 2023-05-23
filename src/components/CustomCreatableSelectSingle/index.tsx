@@ -57,7 +57,6 @@ const CustomCreatableSelect: React.FC<Props> = ({
       value={value}
       placeholder={placeholder || "Select Item"}
       defaultActiveFirstOption={false}
-      showArrow={false}
       filterOption={true}
       // onSearch={onSearch}
       onChange={onChange}
