@@ -45,7 +45,7 @@ import { ZodError, z } from "zod";
 import { getPublishDate, isTestFormFilled } from "./utils/functions";
 import { TestFormSchemaType } from "./utils/types";
 import { useLocation, useParams } from "react-router";
-import { MessageApi, MessageType } from "antd/lib/message";
+import { MessageType } from "antd/es/message/interface";
 
 const statusOptions = [
   {
