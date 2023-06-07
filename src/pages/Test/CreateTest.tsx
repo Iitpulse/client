@@ -300,7 +300,7 @@ const CreateTest = () => {
           updateTest(finalTest, creatingTest);
           return;
         }
-        // if (finalTest) return;
+
         let response = await API_TESTS().post(`/test/create`, finalTest);
         creatingTest();
         message.success("Test Created Successfully");

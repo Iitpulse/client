@@ -64,20 +64,21 @@ interface IOptionType {
 }
 
 const defaultErrorObject = {
+  type: false,
+  topics: false,
+  subject: false,
+  chapters: false,
+  difficulty: false,
+  exams: false,
+  sources: false,
+  uploadedBy: false,
   objective: {
-    type: false,
-    topics: false,
-    subject: false,
-    chapters: false,
-    difficulty: false,
-    exams: false,
-    sources: false,
     en: false,
     hi: false,
     options: false,
     correctAnswers: false,
-    uploadedBy: false,
   },
+  messages: {},
   integer: {},
   paragraph: {},
   matrix: {},
@@ -118,6 +119,7 @@ const CreateQuestion = () => {
   const [isInitialValuePassed, setIsInitialValuePassed] =
     useState<boolean>(false);
   const [addNewTopicDrawerOpen, setAddNewTopicDrawerOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState<any>(defaultErrorObject);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -486,7 +488,7 @@ const CreateQuestion = () => {
     } catch (error) {
       if (error instanceof ZodError) {
         error.issues.forEach((issue) => {
-          setError((prev: any) => {
+          setFormErrors((prev: any) => {
             return {
               ...prev,
               [issue.path[0]]: true,
@@ -511,14 +513,14 @@ const CreateQuestion = () => {
     try {
       if (!currentUser) return;
 
-      console.log(data);
+      setFormErrors({});
 
       const questionCore = generateQuestionCore(
         {
           ...data,
           chapters,
           topics,
-          subject: subject?.name,
+          subject: subject,
           difficulty,
           exams,
           sources,
@@ -556,9 +558,28 @@ const CreateQuestion = () => {
           return;
       }
 
-      resetQuestionForm();
+      // resetQuestionForm();
     } catch (error) {
-      message.success("ERR_CREATE_QUESTION" + error);
+      message.error("ERR_CREATE_QUESTION" + error);
+      if (error instanceof ZodError) {
+        error.issues.forEach((issue) => {
+          setError((prev: any) => {
+            let path = `${issue.path[0]}`;
+            return {
+              ...prev,
+              [path]: true,
+              messages: prev.messages
+                ? {
+                    ...prev.messages,
+                    [path]: issue.message,
+                  }
+                : {
+                    [path]: issue.message,
+                  },
+            };
+          });
+        });
+      }
     }
   }
 
@@ -587,6 +608,10 @@ const CreateQuestion = () => {
     }
   });
 
+  function getErrorStatus(field: string) {
+    return formErrors[field] ? "error" : "";
+  }
+
   return (
     <MainLayout name="Create Question">
       <div className={styles.container}>
@@ -598,7 +623,11 @@ const CreateQuestion = () => {
           <Card classes={[styles.formContainer]}>
             <Form layout="vertical">
               <div className={styles.inputFields}>
-                <Form.Item label="Type">
+                <Form.Item
+                  label="Type"
+                  help={formErrors.messages.type}
+                  validateStatus={getErrorStatus("type")}
+                >
                   <CustomCreatableSelectSingle
                     showSearch
                     options={questionTypes.map((type) => ({
@@ -611,7 +640,11 @@ const CreateQuestion = () => {
                     showAddNew={false}
                   />
                 </Form.Item>
-                <Form.Item label="Difficulty">
+                <Form.Item
+                  label="Difficulty"
+                  help={formErrors.messages.difficulty}
+                  validateStatus={getErrorStatus("difficultly")}
+                >
                   <CustomCreatableSelectSingle
                     showSearch
                     options={difficultyOptions.map((difficulty) => ({
@@ -624,7 +657,11 @@ const CreateQuestion = () => {
                     showAddNew={false}
                   />
                 </Form.Item>
-                <Form.Item label="Exams">
+                <Form.Item
+                  label="Exams"
+                  help={formErrors.messages.exams}
+                  validateStatus={getErrorStatus("exams")}
+                >
                   <CustomCreatableSelectMultiple
                     showSearch
                     options={examOptions?.map((exam: any) => ({
@@ -638,7 +675,11 @@ const CreateQuestion = () => {
                     onAddNewItem={handleAddExam}
                   />
                 </Form.Item>
-                <Form.Item label="Subject">
+                <Form.Item
+                  label="Subject"
+                  help={formErrors.messages.subject}
+                  validateStatus={getErrorStatus("subject")}
+                >
                   <CustomCreatableSelectSingle
                     showSearch
                     options={subjectOptions?.map((sub: any) => ({
@@ -655,7 +696,11 @@ const CreateQuestion = () => {
                     onAddNewItem={handleAddSubject}
                   />
                 </Form.Item>
-                <Form.Item label="Chapters">
+                <Form.Item
+                  label="Chapters"
+                  help={formErrors.messages.chapters}
+                  validateStatus={getErrorStatus("chapters")}
+                >
                   <CustomCreatableSelectMultiple
                     showSearch
                     options={subject?.chapters?.map((chapter: any) => ({
@@ -675,7 +720,11 @@ const CreateQuestion = () => {
                   />
                 </Form.Item>
 
-                <Form.Item label="Topics">
+                <Form.Item
+                  label="Topics"
+                  help={formErrors.messages.topics}
+                  validateStatus={getErrorStatus("topics")}
+                >
                   <CustomCreatableSelectMultiple
                     showSearch
                     options={topicOptions?.map((topic: any) => ({
@@ -695,7 +744,11 @@ const CreateQuestion = () => {
                   />
                 </Form.Item>
 
-                <Form.Item label="Sources">
+                <Form.Item
+                  label="Sources"
+                  help={formErrors.messages.sources}
+                  validateStatus={getErrorStatus("sources")}
+                >
                   <CustomCreatableSelectMultiple
                     showSearch
                     options={sourceOptions?.map((source: any) => ({
