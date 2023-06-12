@@ -14,15 +14,7 @@ import {
   TEST_GENERAL,
 } from "../../utils/constants";
 import { StyledMUITextField } from "../Users/components";
-// import {
-//   DateRangePicker,
-//   DateRange,
-// } from "@mui/x-date-pickers-pro/DateRangePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers-pro/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers-pro";
-import { Dayjs } from "dayjs";
-import { IconButton, TextField } from "@mui/material";
-import { Box } from "@mui/system";
+import { IconButton } from "@mui/material";
 import {
   CustomAccordion,
   CustomAccordionDetails,
@@ -38,14 +30,14 @@ import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
 import { message, Popconfirm } from "antd";
 import { TestContext, useTestContext } from "../../utils/contexts/TestContext";
-import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
-import moment from "moment";
+import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import MainLayout from "../../layouts/MainLayout";
 import { ZodError, z } from "zod";
 import { getPublishDate, isTestFormFilled } from "./utils/functions";
 import { TestFormSchemaType } from "./utils/types";
 import { useLocation, useParams } from "react-router";
 import { MessageType } from "antd/es/message/interface";
+import dayjs from "dayjs";
 
 const statusOptions = [
   {
@@ -136,7 +128,7 @@ const CreateTest = () => {
           ...rest,
         }));
         if (validity?.from && validity?.to) {
-          setTestDateRange([moment(validity?.from), moment(validity?.to)]);
+          setTestDateRange([dayjs(validity?.from), dayjs(validity?.to)]);
         }
         if (publishType?.value) {
           setPublishType(publishType);
@@ -273,8 +265,8 @@ const CreateTest = () => {
             userType: currentUser.userType,
           },
           validity: {
-            from: moment(testDateRange[0]).toISOString(),
-            to: moment(testDateRange[1]).toISOString(),
+            from: dayjs(testDateRange[0]).toISOString(),
+            to: dayjs(testDateRange[1]).toISOString(),
           },
           result: {
             publishProps: {
