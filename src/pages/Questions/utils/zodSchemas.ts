@@ -10,6 +10,7 @@ export const coreQuestionSchema = z.object({
   type: z.enum(["single", "multiple", "integer", "paragraph", "matrix"]),
   sources: z.array(z.string()),
   subject: z.string().nonempty("Fill in Subject"),
+  exams: z.array(z.string()).min(1, "Select Exam(s)"),
   chapters: z
     .array(
       z.object({
@@ -18,7 +19,7 @@ export const coreQuestionSchema = z.object({
       })
     )
     .min(1, "Fill in Chapters"),
-  difficulty: z.enum(["Easy", "Medium", "Hard"]).optional(),
+  difficulty: z.enum(["Easy", "Medium", "Hard", "unset"]).default("unset"),
   isProofRead: z.boolean().default(false),
   createdAt: z
     .string()

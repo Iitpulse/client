@@ -1,18 +1,11 @@
 import { useState, useContext, useEffect } from "react";
 import styles from "./Questions.module.scss";
-import { Button, CreatableSelect, Card, ToggleButton } from "../../components";
+import { Button, Card, ToggleButton } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
 import Integer from "./Integer/Integer";
 import Paragraph from "./Paragraph/Paragraph";
-import { StyledMUISelect } from "./components";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
-import {
-  IQuestionObjective,
-  IQuestionInteger,
-  IQuestionParagraph,
-  IQuestionMatrix,
-} from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { Form, Select, message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api/config";
@@ -46,8 +39,6 @@ import CustomCreatableSelectMultiple from "../../components/CustomCreatableSelec
 import CustomCreatableSelectSingle from "../../components/CustomCreatableSelectSingle";
 import CreateTopicDrawer from "./components/CreateTopicDrawer";
 
-const { Option } = Select;
-
 export const questionTypes = [
   { name: "objective" },
   { name: "integer" },
@@ -55,7 +46,7 @@ export const questionTypes = [
   { name: "matrix" },
 ];
 
-export const difficultyOptions = ["Easy", "Medium", "Hard", "Not Decided"];
+export const difficultyOptions = ["Easy", "Medium", "Hard", "unset"];
 
 interface IOptionType {
   name: string;
@@ -520,13 +511,15 @@ const CreateQuestion = () => {
           ...data,
           chapters,
           topics,
-          subject: subject,
+          subject: subject.value,
           difficulty,
           exams,
           sources,
         },
         currentUser
       );
+
+      console.log({ questionCore });
 
       switch (data.type) {
         case "single":
@@ -613,7 +606,21 @@ const CreateQuestion = () => {
   }
 
   return (
-    <MainLayout name="Create Question">
+    <MainLayout
+      name="Create Question"
+      menuActions={
+        <div className={styles.submitButton}>
+          <Button
+            onClick={(e) => {
+              setIsSubmitting(true);
+              setIsSubmitClicked(true);
+            }}
+          >
+            {id ? "Update" : "Submit"}
+          </Button>
+        </div>
+      }
+    >
       <div className={styles.container}>
         {isLoading ? (
           <div className={styles.loading}>
@@ -643,7 +650,7 @@ const CreateQuestion = () => {
                 <Form.Item
                   label="Difficulty"
                   help={formErrors.messages.difficulty}
-                  validateStatus={getErrorStatus("difficultly")}
+                  validateStatus={getErrorStatus("difficulty")}
                 >
                   <CustomCreatableSelectSingle
                     showSearch
@@ -803,16 +810,6 @@ const CreateQuestion = () => {
                   setIsStable
                 )}
             </section>
-            <div className={styles.submitButton}>
-              <Button
-                onClick={(e) => {
-                  setIsSubmitting(true);
-                  setIsSubmitClicked(true);
-                }}
-              >
-                {id ? "Update" : "Submit"}
-              </Button>
-            </div>
           </>
         )}
       </div>
