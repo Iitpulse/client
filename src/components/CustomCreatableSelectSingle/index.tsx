@@ -20,7 +20,7 @@ interface Props {
   showAddNew?: boolean;
 }
 
-const CustomCreatableSelect: React.FC<Props> = ({
+const CustomCreatableSelectSingle: React.FC<Props> = ({
   options,
   value,
   onChange,
@@ -89,7 +89,7 @@ const CustomCreatableSelect: React.FC<Props> = ({
         </>
       )}
     >
-      {options.map((item: SelectOption) => (
+      {options?.map((item: SelectOption) => (
         <Option key={item.value} {...item}>
           {item.label}
         </Option>
@@ -98,4 +98,4 @@ const CustomCreatableSelect: React.FC<Props> = ({
   );
 };
 
-export default CustomCreatableSelect;
+export default CustomCreatableSelectSingle;

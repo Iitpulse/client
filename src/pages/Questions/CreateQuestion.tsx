@@ -443,75 +443,102 @@ const CreateQuestion = () => {
       | TQuestionMatrix,
     questionType: "single" | "multiple" | "integer" | "paragraph" | "matrix"
   ) {
-    try {
-      let isDataValid = false;
-      switch (questionType) {
-        case "single":
-        case "multiple":
-          questionObjectiveSchema.parse(finalQuestion);
-          isDataValid = true;
-          break;
-        case "integer":
-          questionIntegerSchema.parse(finalQuestion);
-          isDataValid = true;
-          break;
-        case "paragraph":
-          questionParagraphSchema.parse(finalQuestion);
-          isDataValid = true;
-          break;
-        case "matrix":
-          questionMatrixSchema.parse(finalQuestion);
-          isDataValid = true;
-          break;
-        default:
-          break;
-      }
-      if (!isDataValid) {
-        message.error("Invalid Question Data");
-        return;
-      }
-
-      if (id) {
-        await updateQuestion(`${questionType}/update/${id}`, finalQuestion);
-      } else {
-        await createQuestion(`${questionType}/new`, finalQuestion);
-      }
-    } catch (error) {
-      if (error instanceof ZodError) {
-        error.issues.forEach((issue) => {
-          setFormErrors((prev: any) => {
-            return {
-              ...prev,
-              [issue.path[0]]: true,
-              messages: prev.messages
-                ? {
-                    ...prev.messages,
-                    [issue.path[0]]: issue.message,
-                  }
-                : {
-                    [issue.path[0]]: issue.message,
-                  },
-            };
-          });
-        });
-      }
-      // @ts-ignore
-      console.log(error, error?.issues);
+    let isDataValid = false;
+    switch (questionType) {
+      case "single":
+      case "multiple":
+        questionObjectiveSchema.parse(finalQuestion);
+        isDataValid = true;
+        break;
+      case "integer":
+        questionIntegerSchema.parse(finalQuestion);
+        isDataValid = true;
+        break;
+      case "paragraph":
+        questionParagraphSchema.parse(finalQuestion);
+        isDataValid = true;
+        break;
+      case "matrix":
+        questionMatrixSchema.parse(finalQuestion);
+        isDataValid = true;
+        break;
+      default:
+        break;
     }
+    if (!isDataValid) {
+      message.error("Invalid Question Data");
+      return;
+    }
+
+    if (id) {
+      await updateQuestion(`${questionType}/update/${id}`, finalQuestion);
+    } else {
+      await createQuestion(`${questionType}/new`, finalQuestion);
+    }
+  }
+
+  function handleCreateQuestionZodError(error: ZodError) {
+    let tempIssues: any = {};
+    error.issues.forEach((issue) => {
+      let path = `${issue.path.join(".")}`;
+      tempIssues = {
+        ...tempIssues,
+        [path]: true,
+        messages: tempIssues.messages
+          ? {
+              ...tempIssues.messages,
+              [path]: issue.message,
+            }
+          : {
+              [path]: issue.message,
+            },
+      };
+      setFormErrors((prev: any) => {
+        return {
+          ...prev,
+          [path]: true,
+          messages: prev.messages
+            ? {
+                ...prev.messages,
+                [path]: issue.message,
+              }
+            : {
+                [path]: issue.message,
+              },
+        };
+      });
+    });
+    if (tempIssues["en.question"]) {
+      message.error(tempIssues.messages["en.question"]);
+      return;
+    }
+    if (tempIssues["en.solution"]) {
+      message.error(tempIssues.messages["en.solution"]);
+      return;
+    }
+    if (tempIssues["correctAnswer.from"]) {
+      message.error(tempIssues.messages["correctAnswer.from"]);
+      return;
+    }
+    if (tempIssues["correctAnswer.to"]) {
+      message.error(tempIssues.messages["correctAnswer.to"]);
+      return;
+    }
+    message.error("Please fill all required fields");
   }
 
   async function handleSubmitQuestion() {
     try {
       if (!currentUser) return;
 
-      setFormErrors({});
+      setFormErrors(defaultErrorObject);
 
       const questionCore = generateQuestionCore(
         {
           ...data,
           chapters,
           topics,
-          subject: subject.value,
+          subject: subject?.value,
           difficulty,
           exams,
           sources,
@@ -551,39 +578,11 @@ const CreateQuestion = () => {
 
       resetQuestionForm();
     } catch (error) {
-      message.error("ERR_CREATE_QUESTION" + error);
+      console.log("ERROR_CREATE_QUESTION ", error);
       if (error instanceof ZodError) {
-        let tempIssues: any = {};
-        error.issues.forEach((issue) => {
-          tempIssues = {
-            ...tempIssues,
-            [issue.path[0]]: true,
-            messages: tempIssues.messages
-              ? {
-                  ...tempIssues.messages,
-                  [issue.path[0]]: issue.message,
-                }
-              : {
-                  [issue.path[0]]: issue.message,
-                },
-          };
-          setError((prev: any) => {
-            let path = `${issue.path[0]}`;
-            return {
-              ...prev,
-              [path]: true,
-              messages: prev.messages
-                ? {
-                    ...prev.messages,
-                    [path]: issue.message,
-                  }
-                : {
-                    [path]: issue.message,
-                  },
-            };
-          });
-          // if(tempIssues)
-        });
+        handleCreateQuestionZodError(error);
+      } else {
+        message.error("ERR_CREATE_QUESTION" + error);
       }
     }
   }
@@ -601,7 +600,8 @@ const CreateQuestion = () => {
     if (type === "paragraph") {
       if (
         isSubmitting &&
-        (data?.en?.question || data?.questions[0]?.en?.question) &&
+        (data?.en?.question?.length ||
+          data?.questions[0]?.en?.question?.length) &&
         isSubmitClicked
       ) {
         handleSubmitQuestion();
@@ -611,7 +611,7 @@ const CreateQuestion = () => {
       handleSubmitQuestion();
       setIsSubmitClicked(false);
     }
-  });
+  }, [isSubmitClicked, data]);
 
   function getErrorStatus(field: string) {
     return formErrors[field] ? "error" : "";
@@ -625,10 +625,10 @@ const CreateQuestion = () => {
       menuActions={
         <div className={styles.submitButton}>
           <Button
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
+              // e.preventDefault();
               if (formRef.current) {
-                formRef.current.submit();
+                // formRef.current.submit();
                 setIsSubmitting(true);
                 setIsSubmitClicked(true);
               }

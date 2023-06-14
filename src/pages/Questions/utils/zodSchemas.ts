@@ -61,8 +61,8 @@ export const questionIntegerSchema = coreQuestionSchema.extend({
   en: questionSchema,
   hi: questionSchema,
   correctAnswer: z.object({
-    from: z.number().int(),
-    to: z.number().int(),
+    from: z.number().int("Fill in CorrectAnswer (From)"),
+    to: z.number().int("Fill in CorrectAnswer (To)"),
   }),
 });
 
