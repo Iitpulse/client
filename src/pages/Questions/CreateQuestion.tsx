@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import styles from "./Questions.module.scss";
 import { Button, Card, ToggleButton } from "../../components";
 import "react-quill/dist/quill.snow.css";
@@ -7,7 +7,7 @@ import Integer from "./Integer/Integer";
 import Paragraph from "./Paragraph/Paragraph";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { Form, Select, message } from "antd";
+import { Form, FormInstance, Select, message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
 import { useParams } from "react-router";
@@ -519,8 +519,6 @@ const CreateQuestion = () => {
         currentUser
       );
 
-      console.log({ questionCore });
-
       switch (data.type) {
         case "single":
         case "multiple":
@@ -551,11 +549,24 @@ const CreateQuestion = () => {
           return;
       }
 
-      // resetQuestionForm();
+      resetQuestionForm();
     } catch (error) {
       message.error("ERR_CREATE_QUESTION" + error);
       if (error instanceof ZodError) {
+        let tempIssues: any = {};
         error.issues.forEach((issue) => {
+          tempIssues = {
+            ...tempIssues,
+            [issue.path[0]]: true,
+            messages: tempIssues.messages
+              ? {
+                  ...tempIssues.messages,
+                  [issue.path[0]]: issue.message,
+                }
+              : {
+                  [issue.path[0]]: issue.message,
+                },
+          };
           setError((prev: any) => {
             let path = `${issue.path[0]}`;
             return {
@@ -571,6 +582,7 @@ const CreateQuestion = () => {
                   },
             };
           });
+          // if(tempIssues)
         });
       }
     }
@@ -605,6 +617,8 @@ const CreateQuestion = () => {
     return formErrors[field] ? "error" : "";
   }
 
+  const formRef = useRef<FormInstance>(null);
+
   return (
     <MainLayout
       name="Create Question"
@@ -612,8 +626,12 @@ const CreateQuestion = () => {
         <div className={styles.submitButton}>
           <Button
             onClick={(e) => {
-              setIsSubmitting(true);
-              setIsSubmitClicked(true);
+              e.preventDefault();
+              if (formRef.current) {
+                formRef.current.submit();
+                setIsSubmitting(true);
+                setIsSubmitClicked(true);
+              }
             }}
           >
             {id ? "Update" : "Submit"}
@@ -628,7 +646,7 @@ const CreateQuestion = () => {
           </div>
         ) : (
           <Card classes={[styles.formContainer]}>
-            <Form layout="vertical">
+            <Form layout="vertical" ref={formRef}>
               <div className={styles.inputFields}>
                 <Form.Item
                   label="Type"

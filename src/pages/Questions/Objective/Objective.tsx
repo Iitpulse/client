@@ -2,7 +2,7 @@ import React, { SetStateAction, useEffect, useRef, useState } from "react";
 import { Button, InputField, Modal, Sidebar } from "../../../components";
 import styles from "./Objective.module.scss";
 import ReactQuill, { Quill } from "react-quill";
-import Tabs, { tabsClasses } from "@mui/material/Tabs";
+import { tabsClasses } from "@mui/material/Tabs";
 import {
   FormControlLabel,
   Radio,
@@ -11,7 +11,6 @@ import {
   Checkbox,
   FormGroup,
   IconButton,
-  Tooltip,
   TextField,
 } from "@mui/material";
 import { formats, modules, TabPanel } from "../Common";
@@ -22,6 +21,8 @@ import { extractOptions, generateOptions, getOptionID } from "../utils";
 import { AutoFixHigh, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../components";
 import { PreviewFullQuestion } from "../Questions";
+import { Tabs, Tooltip } from "antd";
+import { CheckOutlined } from "@ant-design/icons";
 
 interface Props {
   setData: React.Dispatch<React.SetStateAction<any>>;
@@ -79,14 +80,120 @@ const Objective: React.FC<Props> = ({
     };
   });
 
+  const questionTabItem = {
+    label: "Question",
+    key: "question",
+    children: (
+      <div className={styles.editor}>
+        <ReactQuill
+          theme="snow"
+          value={values[currentLanguage].question}
+          onChange={(val: string) => handleChangeEditor("question", val)}
+          modules={modules}
+          formats={formats}
+          bounds={styles.editor}
+        />
+      </div>
+    ),
+  };
+
+  const solutionTabItem = {
+    label: "Solution",
+    key: "solution",
+    children: (
+      <div className={styles.editor}>
+        <ReactQuill
+          theme="snow"
+          value={values[currentLanguage].solution}
+          onChange={(val: string) => handleChangeEditor("solution", val)}
+          modules={modules}
+          formats={formats}
+          bounds={styles.editor}
+        />
+      </div>
+    ),
+  };
+
+  const [tabItems, setTabItems] = useState([
+    questionTabItem,
+    ...values[currentLanguage].options.map((_, index) => ({
+      label: (
+        <span
+          className={
+            values[currentLanguage].options[index].isCorrectAnswer
+              ? styles.correctAnswer
+              : ""
+          }
+        >
+          {values[currentLanguage].options[index].isCorrectAnswer ? (
+            <CheckOutlined />
+          ) : null}
+          {`Option ${String.fromCharCode(65 + index)}`}
+        </span>
+      ),
+      key: `option${index}`,
+      children: (
+        <div className={styles.editor}>
+          <ReactQuill
+            theme="snow"
+            value={values[currentLanguage].options[index].value}
+            onChange={(val: string) => handleChangeEditor("option", val, index)}
+            modules={modules}
+            formats={formats}
+            bounds={styles.editor}
+          />
+        </div>
+      ),
+    })),
+    solutionTabItem,
+  ]);
+
+  useEffect(() => {
+    setTabItems([
+      questionTabItem,
+      ...values[currentLanguage].options.map((_, index) => ({
+        label: (
+          <span
+            className={
+              values[currentLanguage].options[index].isCorrectAnswer
+                ? styles.correctAnswer
+                : ""
+            }
+          >
+            {values[currentLanguage].options[index].isCorrectAnswer ? (
+              <CheckOutlined />
+            ) : null}
+            {`Option ${String.fromCharCode(65 + index)}`}
+          </span>
+        ),
+        key: `option${index}`,
+        children: (
+          <div className={styles.editor}>
+            <ReactQuill
+              theme="snow"
+              value={values[currentLanguage].options[index].value}
+              onChange={(val: string) =>
+                handleChangeEditor("option", val, index)
+              }
+              modules={modules}
+              formats={formats}
+              bounds={styles.editor}
+            />
+          </div>
+        ),
+      })),
+      solutionTabItem,
+    ]);
+  }, [values]);
+
   useEffect(() => {
     // console.log("hey", data);
     // console.log("hey", values);
     setData((prev: any) => ({ ...values, type: answerType }));
   }, [values, setData, answerType]);
 
-  function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
-    setTab(newValue);
+  function handleChangeTab(newValue: string) {
+    setTab(parseInt(newValue));
   }
 
   function handleChangeEditor(id: string, value: string, index?: number) {
@@ -368,7 +475,7 @@ const Objective: React.FC<Props> = ({
         </div>
       </div>
       <div className={styles.tabsContainer}>
-        <Tabs
+        {/* <Tabs
           value={tab}
           onChange={handleChangeTab}
           variant="scrollable"
@@ -402,58 +509,31 @@ const Objective: React.FC<Props> = ({
               />
             ))}
           <Tab label="Solution" />
-        </Tabs>
-        <div className={styles.optionsCounter}>
-          <IconButton onClick={() => handleChaneOptionsCount("decrement")}>
-            -
-          </IconButton>
-          <span className={styles.count}>{optionsCount}</span>
-          <IconButton onClick={() => handleChaneOptionsCount("increment")}>
-            +
-          </IconButton>
-        </div>
+        </Tabs> */}
+        <Tabs
+          onChange={handleChangeTab}
+          type="card"
+          className={styles.tabs}
+          tabBarExtraContent={{
+            right: (
+              <div className={styles.optionsCounter}>
+                <IconButton
+                  onClick={() => handleChaneOptionsCount("decrement")}
+                >
+                  -
+                </IconButton>
+                <span className={styles.count}>{optionsCount}</span>
+                <IconButton
+                  onClick={() => handleChaneOptionsCount("increment")}
+                >
+                  +
+                </IconButton>
+              </div>
+            ),
+          }}
+          items={tabItems}
+        />
       </div>
-
-      <TabPanel value={tab} index={0}>
-        <div className={styles.editor}>
-          <ReactQuill
-            theme="snow"
-            value={values[currentLanguage].question}
-            onChange={(val: string) => handleChangeEditor("question", val)}
-            modules={modules}
-            formats={formats}
-            bounds={styles.editor}
-          />
-        </div>
-      </TabPanel>
-      {values[currentLanguage].options.map((_, index) => (
-        <TabPanel value={tab} index={index + 1} key={index}>
-          <div className={styles.editor}>
-            <ReactQuill
-              theme="snow"
-              value={values[currentLanguage].options[index].value}
-              onChange={(val: string) =>
-                handleChangeEditor("option", val, index)
-              }
-              modules={modules}
-              formats={formats}
-              bounds={styles.editor}
-            />
-          </div>
-        </TabPanel>
-      ))}
-      <TabPanel value={tab} index={values[currentLanguage].options.length + 1}>
-        <div className={styles.editor}>
-          <ReactQuill
-            theme="snow"
-            value={values[currentLanguage].solution}
-            onChange={(val: string) => handleChangeEditor("solution", val)}
-            modules={modules}
-            formats={formats}
-            bounds={styles.editor}
-          />
-        </div>
-      </TabPanel>
       <div className={styles.actions}>
         <RadioGroup
           row
