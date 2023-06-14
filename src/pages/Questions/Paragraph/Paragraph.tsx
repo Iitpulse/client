@@ -20,6 +20,7 @@ import { generateOptions, getOptionID } from "../utils";
 import { StyledMUISelect } from "../components";
 import Objective from "../Objective/Objective";
 import Integer from "../Integer/Integer";
+import { Segmented } from "antd";
 
 interface Props {
   setData: (data: any) => void;
@@ -174,18 +175,21 @@ const Paragraph: React.FC<Props> = ({
           <label htmlFor="assertionEnglish"></label> */}
         </div>
         <div className={styles.languages}>
-          <div
-            className={currentLanguage === "en" ? styles.selected : ""}
-            onClick={() => setCurrentLanguage("en")}
-          >
-            English
-          </div>
-          <div
-            className={currentLanguage === "hi" ? styles.selected : ""}
-            onClick={() => setCurrentLanguage("hi")}
-          >
-            Hindi
-          </div>
+          <Segmented
+            options={[
+              {
+                label: "English",
+                value: "en",
+              },
+              {
+                label: "Hindi",
+                value: "hi",
+              },
+            ]}
+            onChange={(val) =>
+              setCurrentLanguage(val.toString() as "en" | "hi")
+            }
+          />
         </div>
       </div>
       <section className={clsx(styles.editor, styles.paragraphEditor)}>
