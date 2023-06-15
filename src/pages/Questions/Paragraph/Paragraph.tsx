@@ -286,7 +286,7 @@ const Question: React.FC<{
       console.log("isSubmitting", { type, localData });
       setData({ ...localData, type }, idx);
     }
-  });
+  }, [isSubmitting]);
 
   useEffect(() => {
     if (isInitialValuePassed) {

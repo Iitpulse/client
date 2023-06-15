@@ -598,12 +598,7 @@ const CreateQuestion = () => {
 
   useEffect(() => {
     if (type === "paragraph") {
-      if (
-        isSubmitting &&
-        (data?.en?.question?.length ||
-          data?.questions[0]?.en?.question?.length) &&
-        isSubmitClicked
-      ) {
+      if (isSubmitting && isSubmitClicked) {
         handleSubmitQuestion();
         setIsSubmitClicked(false);
       }
