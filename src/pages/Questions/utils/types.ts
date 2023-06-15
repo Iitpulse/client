@@ -5,7 +5,7 @@ import {
   questionMatrixSchema,
   questionObjectiveSchema,
   questionParagraphSchema,
-  questionSchema,
+  questionSchemaEn,
 } from "./zodSchemas";
 
 export enum EQuestionType {
@@ -16,7 +16,7 @@ export enum EQuestionType {
   Matrix = "matrix",
 }
 
-export type TQuestion = z.infer<typeof questionSchema>;
+export type TQuestion = z.infer<typeof questionSchemaEn>;
 export type TQuestionCore = z.infer<typeof coreQuestionSchema>;
 export type TQuestionObjective = z.infer<typeof questionObjectiveSchema>;
 export type TQuestionInteger = z.infer<typeof questionIntegerSchema>;

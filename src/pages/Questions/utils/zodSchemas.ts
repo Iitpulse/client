@@ -10,6 +10,7 @@ export const coreQuestionSchema = z.object({
   type: z.enum(["single", "multiple", "integer", "paragraph", "matrix"]),
   sources: z.array(z.string()),
   subject: z.string().nonempty("Fill in Subject"),
+  exams: z.array(z.string()).min(1, "Select Exam(s)"),
   chapters: z
     .array(
       z.object({
@@ -18,7 +19,7 @@ export const coreQuestionSchema = z.object({
       })
     )
     .min(1, "Fill in Chapters"),
-  difficulty: z.enum(["Easy", "Medium", "Hard"]).optional(),
+  difficulty: z.enum(["Easy", "Medium", "Hard", "unset"]).default("unset"),
   isProofRead: z.boolean().default(false),
   createdAt: z
     .string()
@@ -38,17 +39,26 @@ export const coreQuestionSchema = z.object({
   }),
 });
 
-export const questionSchema = z.object({
+export const questionSchemaEn = z.object({
   question: z.string().nonempty("Fill in Question"),
   solution: z.string().nonempty("Fill in Solution"),
 });
 
+export const questionSchemaHi = z.object({
+  question: z.string().optional().default(""),
+  solution: z.string().optional().default(""),
+});
+
 export const questionObjectiveSchema = coreQuestionSchema.extend({
-  en: questionSchema.extend({
+  en: questionSchemaEn.extend({
     options: z.array(optionSchema).min(2, "Fill in Options"),
   }),
-  hi: questionSchema.extend({
-    options: z.array(optionSchema).min(2, "Fill in Options"),
+  hi: questionSchemaHi.extend({
+    options: z
+      .array(optionSchema)
+      .min(2, "Fill in Options")
+      .optional()
+      .default([]),
   }),
   correctAnswers: z
     .array(z.string())
@@ -57,11 +67,11 @@ export const questionObjectiveSchema = coreQuestionSchema.extend({
 });
 
 export const questionIntegerSchema = coreQuestionSchema.extend({
-  en: questionSchema,
-  hi: questionSchema,
+  en: questionSchemaEn,
+  hi: questionSchemaHi,
   correctAnswer: z.object({
-    from: z.number().int(),
-    to: z.number().int(),
+    from: z.number().int("Fill in CorrectAnswer (From)"),
+    to: z.number().int("Fill in CorrectAnswer (To)"),
   }),
 });
 
@@ -73,7 +83,7 @@ export const questionParagraphSchema = coreQuestionSchema.extend({
 });
 
 export const questionMatrixSchema = coreQuestionSchema.extend({
-  en: questionSchema,
-  hi: questionSchema,
+  en: questionSchemaEn,
+  hi: questionSchemaHi,
   correctAnswer: z.array(z.array(z.string())).min(1, "Fill in Correct Answers"),
 });

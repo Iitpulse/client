@@ -1,14 +1,15 @@
-import { DatePicker, Space } from "antd";
+import { DatePicker } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
-import moment from "moment";
 import React from "react";
 import styles from "./CustomDateRangePicker.module.scss";
+import dayjs from "dayjs";
 
 const { RangePicker } = DatePicker;
 
+// eslint-disable-next-line arrow-body-style
 const disabledDate: RangePickerProps["disabledDate"] = (current) => {
   // Can not select days before today and today
-  return current && current < moment().startOf("day");
+  return current && current < dayjs().endOf("day");
 };
 
 const CustomDateRangePicker: React.FC<{
@@ -24,7 +25,7 @@ const CustomDateRangePicker: React.FC<{
       onChange={onChange}
       format="DD-MM-YYYY"
       value={value}
-      className={styles.cusotmDateRangePicker}
+      className={styles.CustomDateRangePicker}
     />
   ) : (
     <RangePicker
@@ -32,7 +33,7 @@ const CustomDateRangePicker: React.FC<{
       onChange={onChange}
       format="DD-MM-YYYY"
       value={value}
-      className={styles.cusotmDateRangePicker}
+      className={styles.CustomDateRangePicker}
     />
   );
 

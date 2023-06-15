@@ -1,20 +1,13 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import styles from "./Questions.module.scss";
-import { Button, CreatableSelect, Card, ToggleButton } from "../../components";
+import { Button, Card, ToggleButton } from "../../components";
 import "react-quill/dist/quill.snow.css";
 import Objective from "./Objective/Objective";
 import Integer from "./Integer/Integer";
 import Paragraph from "./Paragraph/Paragraph";
-import { StyledMUISelect } from "./components";
 import MatrixMatch from "./MatrixMatch/MatrixMatch";
-import {
-  IQuestionObjective,
-  IQuestionInteger,
-  IQuestionParagraph,
-  IQuestionMatrix,
-} from "../../utils/interfaces";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { Form, Select, message } from "antd";
+import { Form, FormInstance, Select, message } from "antd";
 import { API_QUESTIONS, API_TESTS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
 import { useParams } from "react-router";
@@ -46,8 +39,6 @@ import CustomCreatableSelectMultiple from "../../components/CustomCreatableSelec
 import CustomCreatableSelectSingle from "../../components/CustomCreatableSelectSingle";
 import CreateTopicDrawer from "./components/CreateTopicDrawer";
 
-const { Option } = Select;
-
 export const questionTypes = [
   { name: "objective" },
   { name: "integer" },
@@ -55,7 +46,7 @@ export const questionTypes = [
   { name: "matrix" },
 ];
 
-export const difficultyOptions = ["Easy", "Medium", "Hard", "Not Decided"];
+export const difficultyOptions = ["Easy", "Medium", "Hard", "unset"];
 
 interface IOptionType {
   name: string;
@@ -64,20 +55,21 @@ interface IOptionType {
 }
 
 const defaultErrorObject = {
+  type: false,
+  topics: false,
+  subject: false,
+  chapters: false,
+  difficulty: false,
+  exams: false,
+  sources: false,
+  uploadedBy: false,
   objective: {
-    type: false,
-    topics: false,
-    subject: false,
-    chapters: false,
-    difficulty: false,
-    exams: false,
-    sources: false,
     en: false,
     hi: false,
     options: false,
     correctAnswers: false,
-    uploadedBy: false,
   },
+  messages: {},
   integer: {},
   paragraph: {},
   matrix: {},
@@ -118,6 +110,7 @@ const CreateQuestion = () => {
   const [isInitialValuePassed, setIsInitialValuePassed] =
     useState<boolean>(false);
   const [addNewTopicDrawerOpen, setAddNewTopicDrawerOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState<any>(defaultErrorObject);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -450,75 +443,102 @@ const CreateQuestion = () => {
       | TQuestionMatrix,
     questionType: "single" | "multiple" | "integer" | "paragraph" | "matrix"
   ) {
-    try {
-      let isDataValid = false;
-      switch (questionType) {
-        case "single":
-        case "multiple":
-          questionObjectiveSchema.parse(finalQuestion);
-          isDataValid = true;
-          break;
-        case "integer":
-          questionIntegerSchema.parse(finalQuestion);
-          isDataValid = true;
-          break;
-        case "paragraph":
-          questionParagraphSchema.parse(finalQuestion);
-          isDataValid = true;
-          break;
-        case "matrix":
-          questionMatrixSchema.parse(finalQuestion);
-          isDataValid = true;
-          break;
-        default:
-          break;
-      }
-      if (!isDataValid) {
-        message.error("Invalid Question Data");
-        return;
-      }
-
-      if (id) {
-        await updateQuestion(`${questionType}/update/${id}`, finalQuestion);
-      } else {
-        await createQuestion(`${questionType}/new`, finalQuestion);
-      }
-    } catch (error) {
-      if (error instanceof ZodError) {
-        error.issues.forEach((issue) => {
-          setError((prev: any) => {
-            return {
-              ...prev,
-              [issue.path[0]]: true,
-              messages: prev.messages
-                ? {
-                    ...prev.messages,
-                    [issue.path[0]]: issue.message,
-                  }
-                : {
-                    [issue.path[0]]: issue.message,
-                  },
-            };
-          });
-        });
-      }
-      // @ts-ignore
-      console.log(error, error?.issues);
+    let isDataValid = false;
+    switch (questionType) {
+      case "single":
+      case "multiple":
+        questionObjectiveSchema.parse(finalQuestion);
+        isDataValid = true;
+        break;
+      case "integer":
+        questionIntegerSchema.parse(finalQuestion);
+        isDataValid = true;
+        break;
+      case "paragraph":
+        questionParagraphSchema.parse(finalQuestion);
+        isDataValid = true;
+        break;
+      case "matrix":
+        questionMatrixSchema.parse(finalQuestion);
+        isDataValid = true;
+        break;
+      default:
+        break;
     }
+    if (!isDataValid) {
+      message.error("Invalid Question Data");
+      return;
+    }
+
+    if (id) {
+      await updateQuestion(`${questionType}/update/${id}`, finalQuestion);
+    } else {
+      await createQuestion(`${questionType}/new`, finalQuestion);
+    }
+  }
+
+  function handleCreateQuestionZodError(error: ZodError) {
+    let tempIssues: any = {};
+    error.issues.forEach((issue) => {
+      let path = `${issue.path.join(".")}`;
+      tempIssues = {
+        ...tempIssues,
+        [path]: true,
+        messages: tempIssues.messages
+          ? {
+              ...tempIssues.messages,
+              [path]: issue.message,
+            }
+          : {
+              [path]: issue.message,
+            },
+      };
+      setFormErrors((prev: any) => {
+        return {
+          ...prev,
+          [path]: true,
+          messages: prev.messages
+            ? {
+                ...prev.messages,
+                [path]: issue.message,
+              }
+            : {
+                [path]: issue.message,
+              },
+        };
+      });
+    });
+    if (tempIssues["en.question"]) {
+      message.error(tempIssues.messages["en.question"]);
+      return;
+    }
+    if (tempIssues["en.solution"]) {
+      message.error(tempIssues.messages["en.solution"]);
+      return;
+    }
+    if (tempIssues["correctAnswer.from"]) {
+      message.error(tempIssues.messages["correctAnswer.from"]);
+      return;
+    }
+    if (tempIssues["correctAnswer.to"]) {
+      message.error(tempIssues.messages["correctAnswer.to"]);
+      return;
+    }
+    message.error("Please fill all required fields");
   }
 
   async function handleSubmitQuestion() {
     try {
       if (!currentUser) return;
 
-      console.log(data);
+      setFormErrors(defaultErrorObject);
 
       const questionCore = generateQuestionCore(
         {
           ...data,
           chapters,
           topics,
-          subject: subject?.name,
+          subject: subject?.value,
           difficulty,
           exams,
           sources,
@@ -558,7 +578,12 @@ const CreateQuestion = () => {
 
       resetQuestionForm();
     } catch (error) {
-      message.success("ERR_CREATE_QUESTION" + error);
+      console.log("ERROR_CREATE_QUESTION ", error);
+      if (error instanceof ZodError) {
+        handleCreateQuestionZodError(error);
+      } else {
+        message.error("ERR_CREATE_QUESTION" + error);
+      }
     }
   }
 
@@ -573,11 +598,7 @@ const CreateQuestion = () => {
 
   useEffect(() => {
     if (type === "paragraph") {
-      if (
-        isSubmitting &&
-        (data?.en?.question || data?.questions[0]?.en?.question) &&
-        isSubmitClicked
-      ) {
+      if (isSubmitting && isSubmitClicked) {
         handleSubmitQuestion();
         setIsSubmitClicked(false);
       }
@@ -585,10 +606,34 @@ const CreateQuestion = () => {
       handleSubmitQuestion();
       setIsSubmitClicked(false);
     }
-  });
+  }, [isSubmitClicked, data]);
+
+  function getErrorStatus(field: string) {
+    return formErrors[field] ? "error" : "";
+  }
+
+  const formRef = useRef<FormInstance>(null);
 
   return (
-    <MainLayout name="Create Question">
+    <MainLayout
+      name="Create Question"
+      menuActions={
+        <div className={styles.submitButton}>
+          <Button
+            onClick={() => {
+              // e.preventDefault();
+              if (formRef.current) {
+                // formRef.current.submit();
+                setIsSubmitting(true);
+                setIsSubmitClicked(true);
+              }
+            }}
+          >
+            {id ? "Update" : "Submit"}
+          </Button>
+        </div>
+      }
+    >
       <div className={styles.container}>
         {isLoading ? (
           <div className={styles.loading}>
@@ -596,9 +641,13 @@ const CreateQuestion = () => {
           </div>
         ) : (
           <Card classes={[styles.formContainer]}>
-            <Form layout="vertical">
+            <Form layout="vertical" ref={formRef}>
               <div className={styles.inputFields}>
-                <Form.Item label="Type">
+                <Form.Item
+                  label="Type"
+                  help={formErrors.messages.type}
+                  validateStatus={getErrorStatus("type")}
+                >
                   <CustomCreatableSelectSingle
                     showSearch
                     options={questionTypes.map((type) => ({
@@ -611,7 +660,11 @@ const CreateQuestion = () => {
                     showAddNew={false}
                   />
                 </Form.Item>
-                <Form.Item label="Difficulty">
+                <Form.Item
+                  label="Difficulty"
+                  help={formErrors.messages.difficulty}
+                  validateStatus={getErrorStatus("difficulty")}
+                >
                   <CustomCreatableSelectSingle
                     showSearch
                     options={difficultyOptions.map((difficulty) => ({
@@ -624,7 +677,11 @@ const CreateQuestion = () => {
                     showAddNew={false}
                   />
                 </Form.Item>
-                <Form.Item label="Exams">
+                <Form.Item
+                  label="Exams"
+                  help={formErrors.messages.exams}
+                  validateStatus={getErrorStatus("exams")}
+                >
                   <CustomCreatableSelectMultiple
                     showSearch
                     options={examOptions?.map((exam: any) => ({
@@ -638,7 +695,11 @@ const CreateQuestion = () => {
                     onAddNewItem={handleAddExam}
                   />
                 </Form.Item>
-                <Form.Item label="Subject">
+                <Form.Item
+                  label="Subject"
+                  help={formErrors.messages.subject}
+                  validateStatus={getErrorStatus("subject")}
+                >
                   <CustomCreatableSelectSingle
                     showSearch
                     options={subjectOptions?.map((sub: any) => ({
@@ -655,7 +716,11 @@ const CreateQuestion = () => {
                     onAddNewItem={handleAddSubject}
                   />
                 </Form.Item>
-                <Form.Item label="Chapters">
+                <Form.Item
+                  label="Chapters"
+                  help={formErrors.messages.chapters}
+                  validateStatus={getErrorStatus("chapters")}
+                >
                   <CustomCreatableSelectMultiple
                     showSearch
                     options={subject?.chapters?.map((chapter: any) => ({
@@ -675,7 +740,11 @@ const CreateQuestion = () => {
                   />
                 </Form.Item>
 
-                <Form.Item label="Topics">
+                <Form.Item
+                  label="Topics"
+                  help={formErrors.messages.topics}
+                  validateStatus={getErrorStatus("topics")}
+                >
                   <CustomCreatableSelectMultiple
                     showSearch
                     options={topicOptions?.map((topic: any) => ({
@@ -695,7 +764,11 @@ const CreateQuestion = () => {
                   />
                 </Form.Item>
 
-                <Form.Item label="Sources">
+                <Form.Item
+                  label="Sources"
+                  help={formErrors.messages.sources}
+                  validateStatus={getErrorStatus("sources")}
+                >
                   <CustomCreatableSelectMultiple
                     showSearch
                     options={sourceOptions?.map((source: any) => ({
@@ -750,16 +823,6 @@ const CreateQuestion = () => {
                   setIsStable
                 )}
             </section>
-            <div className={styles.submitButton}>
-              <Button
-                onClick={(e) => {
-                  setIsSubmitting(true);
-                  setIsSubmitClicked(true);
-                }}
-              >
-                {id ? "Update" : "Submit"}
-              </Button>
-            </div>
           </>
         )}
       </div>

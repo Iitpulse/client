@@ -1,8 +1,8 @@
-import moment from "moment";
 import { TestFormSchemaType, testFormSchema } from "./types";
 import { ITest } from "../../../utils/interfaces";
 import React from "react";
 import { ZodError } from "zod";
+import dayjs from "dayjs";
 
 export function getPublishDate(
   publishType: string,
@@ -13,9 +13,11 @@ export function getPublishDate(
     case "immediately":
       return null;
     case "atTheEndOfTest":
-      return moment(testDateRange[1]).toISOString();
+      return dayjs(testDateRange[1]).toISOString();
     case "autoAfterXDays":
-      return moment().add(daysAfter, "days").toISOString();
+      return dayjs()
+        .add(daysAfter as number, "day")
+        .toISOString();
     case "manual":
       return null;
     default:

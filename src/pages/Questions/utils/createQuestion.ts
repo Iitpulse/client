@@ -12,12 +12,12 @@ export function generateQuestionCore(
   coreQuestion: {
     id: string;
     type: "single" | "multiple" | "integer" | "paragraph" | "matrix";
-    subject: { name: string };
+    subject: string;
     chapters: { name: string; topics: string[] }[];
-    topics: { name: string }[];
-    difficulty: "Easy" | "Medium" | "Hard";
-    exams: { name: string }[];
-    sources: { name: string }[];
+    topics: Array<string>;
+    difficulty: "Easy" | "Medium" | "Hard" | "unset";
+    exams: Array<string>;
+    sources: Array<string>;
     isProofRead: boolean;
   },
   currentUser: ICurrentUser
@@ -36,9 +36,9 @@ export function generateQuestionCore(
   return {
     id: id ? id : Date.now().toString(),
     type,
-    subject: subject?.name,
+    subject: subject,
     chapters: chapters.map((chapter: any) => {
-      let topicArray = topics.map((topic) => topic.name);
+      let topicArray = topics;
       return {
         name: chapter.name,
         topics: topicArray?.length
@@ -47,8 +47,9 @@ export function generateQuestionCore(
       };
     }),
     difficulty: difficulty || "unset",
-    exams: exams.map((exam: any) => exam.name),
-    sources: sources.map((source) => source.name),
+    exams,
+    sources,
+    topics,
     createdAt: new Date().toISOString(),
     modifiedAt: new Date().toISOString(),
     isProofRead,

@@ -1,16 +1,6 @@
 import styles from "./Batches.module.scss";
 import { useContext, useEffect, useState } from "react";
-import {
-  DatePicker,
-  message,
-  Popconfirm,
-  Select,
-  SelectProps,
-  Slider,
-  Space,
-  Table,
-} from "antd";
-import { useNavigate } from "react-router";
+import { message, Popconfirm } from "antd";
 import {
   Button,
   Card,
@@ -25,13 +15,13 @@ import { IconButton, TextField } from "@mui/material";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_USERS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
-import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
-import moment from "moment";
+import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import deleteIcon from "../../assets/icons/delete.svg";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { capitalizeFirstLetter } from "../../utils";
 import AddIcon from "@mui/icons-material/Add";
+import dayjs from "dayjs";
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -243,8 +233,8 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         medium: values.medium,
         institute: currentUser?.instituteId,
         validity: {
-          from: moment(validity[0]).toISOString(),
-          to: moment(validity[1]).toISOString(),
+          from: dayjs(validity[0]).toISOString(),
+          to: dayjs(validity[1]).toISOString(),
         },
         classes: classes.map((value: any) => value.name),
         createdBy: {
