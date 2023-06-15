@@ -33,9 +33,6 @@
     > div:nth-child(3) {
       min-width: 25%;
     }
-    // > div:nth-child(8) {
-    //   width: 250px;
-    // }
   }
   .main {
     background: white;
@@ -50,13 +47,11 @@
       @extend .flexRow;
       justify-content: space-between;
       width: 100%;
-      padding: 0 1.5rem;
     }
     .searchAndPrint2 {
       @extend .flexRow;
       justify-content: end;
       width: 100%;
-      padding: 0 1.5rem;
     }
     .filters {
       flex: 1;
