@@ -37,32 +37,18 @@ export const columns = [
     title: "Name",
     dataIndex: "name",
     render: (text: string, record: any) => (
-      <Link
-        to={`/pattern/edit/${record._id}`}
+      <span
         style={{
           textOverflow: "ellipsis",
           overflow: "hidden",
           whiteSpace: "nowrap",
           maxWidth: "150px",
-          // background: "red",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-start",
+          width: "100%",
+          display: "inline-block",
         }}
       >
-        <span
-          style={{
-            display: "inline-block",
-            maxWidth: "100%",
-            overflow: "hidden",
-            // background: "blue",
-            // opacity: 0.5,
-            textOverflow: "ellipsis",
-          }}
-        >
-          {text}
-        </span>
-      </Link>
+        <Link to={`/pattern/edit/${record._id}`}>{text}</Link>
+      </span>
     ),
   },
   {

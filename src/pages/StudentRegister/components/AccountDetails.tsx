@@ -5,10 +5,10 @@ import { Button as MuiButton, TextField } from "@mui/material";
 import { useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import { Grid, Stack } from "@mui/material";
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 import { message } from "antd";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 
 const AccountDetailsSchema = z.object({
   email: z.string().email(),
@@ -93,30 +93,31 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   }
 
   const [showTextField, setShowTextField] = useState(false);
-  const [buttonText, setButtonText] = useState('Verify Email');
-  const [Verified, setVerified] = useState(false)
+  const [buttonText, setButtonText] = useState("Verify Email");
+  const [Verified, setVerified] = useState(false);
 
-
-  const handleGenerate = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleGenerate = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     e.preventDefault();
     try {
       const response = await API_USERS().post(`/emailotp/generate`, {
         email: values.email,
       });
       message.loading({ content: response.data.message, key: "otp" });
-
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
 
     setTimeout(() => {
       message.destroy("otp");
-    }, 1000
-    )
+    }, 1000);
     setShowTextField(true);
   };
 
-  const handleVerify = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleVerify = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     e.preventDefault();
     try {
       const response = await API_USERS().post(`/emailotp/verify`, {
@@ -124,31 +125,28 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         emailotp: values.emailotp,
       });
       message.loading({ content: response.data.message, key: "verify" });
-      console.log(response.data.message)
+      console.log(response.data.message);
       if (response.status == 200) {
-        setShowTextField(false)
-        setVerified(true)
-        setButtonText('Verified')
+        setShowTextField(false);
+        setVerified(true);
+        setButtonText("Verified");
       }
     } catch (error) {
-      console.log(error)
-
+      console.log(error);
     }
 
     setTimeout(() => {
       message.destroy("verify");
-    }, 1000
-    )
-
+    }, 1000);
   };
   const theme = createTheme({
     components: {
       MuiTextField: {
         styleOverrides: {
           root: {
-            '& .MuiInputBase-root.Mui-disabled': {
-              backgroundColor: '#f2f2f2',
-              color: '#808080',
+            "& .MuiInputBase-root.Mui-disabled": {
+              backgroundColor: "#f2f2f2",
+              color: "#808080",
             },
           },
         },
@@ -156,109 +154,98 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     },
   });
 
-
   return (
     <form onSubmit={handleSubmitForm} className={styles.regForm}>
       <ThemeProvider theme={theme}>
-
-      <Grid container spacing={2} justifyContent={'space-between'}>
-
-        <Grid item xs={12}>
-          <TextField
-            disabled={Verified}
-            fullWidth
-            required
-            id="email"
-            type="email"
-            autoComplete="email"
-            error={errors.email}
-            value={values.email}
-            helperText={helperTexts.email}
-            onChange={handleChangeValues}
-            label="Email"
-            variant="outlined"
-          />
-        </Grid>
-
-      </Grid>
-        {/* <Grid item xs={10}> */}
-        
-          <Button onClick={handleGenerate} hidden={showTextField || Verified}>
-            {buttonText}
-          </Button>
-        {/* </Grid> */}
-      {
-        showTextField &&
-        <Grid container spacing={2} justifyContent={'space-between'}>
-
-          <Grid item xs={8}>
+        <Grid container spacing={2} justifyContent={"space-between"}>
+          <Grid item xs={12}>
             <TextField
+              disabled={Verified}
               fullWidth
               required
-              id="emailotp"
-              type="number"
-              value={values.emailotp}
-              helperText=' We have sent an OTP to your Email'
+              id="email"
+              type="email"
+              autoComplete="email"
+              error={errors.email}
+              value={values.email}
+              helperText={helperTexts.email}
               onChange={handleChangeValues}
-              label="Email OTP"
+              label="Email"
+              variant="outlined"
+            />
+          </Grid>
+        </Grid>
+        {/* <Grid item xs={10}> */}
+
+        <Button onClick={handleGenerate} hidden={showTextField || Verified}>
+          {buttonText}
+        </Button>
+        {/* </Grid> */}
+        {showTextField && (
+          <Grid container spacing={2} justifyContent={"space-between"}>
+            <Grid item xs={8}>
+              <TextField
+                fullWidth
+                required
+                id="emailotp"
+                type="number"
+                value={values.emailotp}
+                helperText=" We have sent an OTP to your Email"
+                onChange={handleChangeValues}
+                label="Email OTP"
+                variant="outlined"
+              />
+            </Grid>
+
+            <Grid item xs={4}>
+              <Button onClick={handleVerify}>Verify</Button>
+            </Grid>
+          </Grid>
+        )}
+
+        {Verified && (
+          <>
+            <StyledMUITextField
+              required
+              id="password"
+              autoComplete="new-password"
+              value={values.password}
+              error={errors.password}
+              helperText={helperTexts.password}
+              type="password"
+              onChange={handleChangeValues}
+              label="Password"
               variant="outlined"
             />
 
-          </Grid>
+            <StyledMUITextField
+              required
+              id="confirmPassword"
+              autoComplete="new-password"
+              value={values.confirmPassword}
+              error={errors.confirmPassword}
+              helperText={helperTexts.confirmPassword}
+              type="password"
+              onChange={handleChangeValues}
+              label="Confirm Password"
+              variant="outlined"
+            />
 
-          <Grid item xs={4}>
-            <Button onClick={handleVerify}>
-              Verify
-            </Button>
-          </Grid>
-        </Grid>
-
-
-      }
-
-    { Verified &&
-<>
-      <StyledMUITextField
-        required
-        id="password"
-        autoComplete="new-password"
-        value={values.password}
-        error={errors.password}
-        helperText={helperTexts.password}
-        type="password"
-        onChange={handleChangeValues}
-        label="Password"
-        variant="outlined"
-      />
-
-      <StyledMUITextField
-        required
-        id="confirmPassword"
-        autoComplete="new-password"
-        value={values.confirmPassword}
-        error={errors.confirmPassword}
-        helperText={helperTexts.confirmPassword}
-        type="password"
-        onChange={handleChangeValues}
-        label="Confirm Password"
-        variant="outlined"
-      />
-
-      <StyledMUITextField
-        required
-        id="joiningCode"
-        value={values.joiningCode}
-        error={errors.joiningCode}
-        helperText={helperTexts.joiningCode}
-        type="text"
-        onChange={handleChangeValues}
-        label="Joining Code"
-        variant="outlined"
-        />
-      <Button type="submit">Next</Button>
-        </>
-    }
-    </ThemeProvider>
+            <StyledMUITextField
+              required
+              id="joiningCode"
+              value={values.joiningCode}
+              error={errors.joiningCode}
+              helperText={helperTexts.joiningCode}
+              type="text"
+              onChange={handleChangeValues}
+              label="Joining Code"
+              variant="outlined"
+            />
+            <Button type="submit">Next</Button>
+          </>
+        )}
+      </ThemeProvider>
     </form>
   );
 };

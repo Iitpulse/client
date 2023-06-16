@@ -2,7 +2,7 @@ import { InboxOutlined } from "@mui/icons-material";
 import { Upload, UploadProps } from "antd";
 import axios from "axios";
 import { useState, useEffect, useContext } from "react";
-import { API_QUESTIONS } from "../../utils/api";
+import { API_QUESTIONS } from "../../utils/api/config";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import categorizeQuestionsByType from "./utils/categorizeQuestionsByType";
 import extractDataFromTable from "./utils/extractDataFromTable";

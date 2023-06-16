@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import { TextField } from "@mui/material";
 import { Button } from "../../components";
 
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { message } from "antd";
 
 const PasswordReset = () => {

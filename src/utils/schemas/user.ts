@@ -25,24 +25,7 @@ export const userSchema = z.object({
       }
     ),
   gender: z.enum(["male", "female", "other"]),
-  roles: z.union([
-    z.array(
-      roleSchema
-        .pick({ id: true })
-        .extend({ from: z.string(), to: z.string() })
-        .strict()
-    ),
-    z.array(
-      roleSchema
-        .pick({
-          id: true,
-          members: true,
-          permissions: true,
-          name: true,
-        })
-        .strict()
-    ),
-  ]), // Since we are using this schema for both create and update, we need to add this union type so that we can use the same schema for both create and update since we are going to use this schema for  create, update functionality and to validate the data we get from backends
+
   contact: z
     .number({
       invalid_type_error: "Please enter a valid contact number",
@@ -89,6 +72,26 @@ export const userSchema = z.object({
   }),
   createdAt: z.string(),
   modifiedAt: z.string(),
+
+  //Fields to be added later
+  roles: z.union([
+    z.array(
+      roleSchema
+        .pick({ id: true })
+        .extend({ from: z.string(), to: z.string() })
+        .strict()
+    ),
+    z.array(
+      roleSchema
+        .pick({
+          id: true,
+          members: true,
+          permissions: true,
+          name: true,
+        })
+        .strict()
+    ),
+  ]), // Since we are using this schema for both create and update, we need to add this union type so that we can use the same schema for both create and update since we are going to use this schema for  create, update functionality and to validate the data we get from backends
 });
 
 export const studentSchema = userSchema.extend({
@@ -107,7 +110,7 @@ export const studentSchema = userSchema.extend({
         }),
     })
     .strict(),
-  batch: z.string().min(3).max(255),
+  batch: z.string().min(3).max(255).optional(), //Just for now
   standard: z.number().min(1).max(13, {
     message: "Invalid standard",
   }),
@@ -115,6 +118,9 @@ export const studentSchema = userSchema.extend({
   medium: z.string().min(3).max(255),
   school: z.string().min(3).max(255),
   attemptedTests: z.array(z.string()),
+
+  //Field to be removed later
+  joiningCode: z.string().min(3).max(255),
 });
 
 export const teacherSchema = userSchema.extend({

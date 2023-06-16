@@ -28,55 +28,55 @@
 
       .actions {
         // width: 20%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        // margin: 0 auto;
+        // display: flex;
+        // align-items: center;
+        // justify-content: space-between;
+        // // margin: 0 auto;
 
-        div {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: row;
+        // div {
+        //   display: flex;
+        //   align-items: center;
+        //   justify-content: center;
+        //   flex-direction: row;
 
-          .imageContainer {
-            width: -moz-fit-content;
-            width: fit-content;
-            margin: 0;
-            padding: 12px 1rem;
-            border-radius: 0 50px 50px 0;
-            cursor: pointer;
-          }
-        }
+        //   .imageContainer {
+        //     width: -moz-fit-content;
+        //     width: fit-content;
+        //     margin: 0;
+        //     padding: 12px 1rem;
+        //     border-radius: 0 50px 50px 0;
+        //     cursor: pointer;
+        //   }
+        // }
 
-        img {
-          width: 20px;
-        }
+        // img {
+        //   width: 20px;
+        // }
 
-        div > div {
-          width: 300px;
-          border-radius: 50px 0 0 50px;
-          border: none;
-          background: white;
-          padding: 0;
+        // div > div {
+        //   width: 300px;
+        //   border-radius: 50px 0 0 50px;
+        //   border: none;
+        //   background: white;
+        //   padding: 0;
 
-          div > div > input {
-            padding: 12px 1rem;
-          }
+        //   div > div > input {
+        //     padding: 12px 1rem;
+        //   }
 
-          div > div::before {
-            border-bottom: none;
-          }
+        //   div > div::before {
+        //     border-bottom: none;
+        //   }
 
-          div > div::after {
-            border-bottom: none;
-          }
-        }
+        //   div > div::after {
+        //     border-bottom: none;
+        //   }
+        // }
 
-        button {
-          background: white;
-          margin-left: 2rem;
-        }
+        // button {
+        //   background: white;
+        //   margin-left: 2rem;
+        // }
       }
     }
     nav {

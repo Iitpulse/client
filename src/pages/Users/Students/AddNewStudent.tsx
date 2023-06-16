@@ -126,6 +126,9 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     medium: null,
     school: null,
     attemptedTests: null,
+
+    //Field to be removed later
+    joiningCode: null,
   };
 
   const onClose = () => {
@@ -134,7 +137,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
   };
 
   async function onFinish(values: any) {
-    const res = await API_USERS().post(`/student/create`, values);
+    const res = await API_USERS().post(`/student/create`, { ...values });
     message.success("Student created successfully");
     console.log(res);
   }
@@ -157,6 +160,15 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
         attemptedTests: [],
         isEmailVerified: false,
         isPhoneVerified: false,
+
+        //Field to be removed later
+        joiningCode: (() => {
+          const batch = batchOptions.find(
+            (batch: { value: string; label: string; joiningCode: string }) =>
+              batch.value === form.getFieldValue("batch")
+          );
+          return batch.joiningCode;
+        })(),
       };
       const result = performZodValidation(
         form,
@@ -192,12 +204,13 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
       setRoleDetails({ options, actual });
     }
     async function getBatchOption() {
-      const requestedFields = "name,id";
+      const requestedFields = "name,id,joiningCode";
       const res = await API_USERS().get(`/batch/all?fields=${requestedFields}`);
       setBatchOptions(
         res.data?.map((item: any) => ({
           label: item.name,
           value: item._id,
+          joiningCode: item.joiningCode,
         }))
       );
     }

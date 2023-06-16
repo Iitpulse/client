@@ -15,6 +15,7 @@
   }
   .item {
     width: 40px;
+    margin: 0.5rem 0;
     @extend .flexRow;
     justify-content: center;
   }

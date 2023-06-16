@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { Button } from "../../../components";
 import styles from "./MatrixMatch.module.scss";
 import ReactQuill, { Quill } from "react-quill";
-import Tabs, { tabsClasses } from "@mui/material/Tabs";
-import { TextField, Tab, IconButton, Checkbox } from "@mui/material";
+import { IconButton } from "@mui/material";
 import { styled } from "@mui/system";
 import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
 import clsx from "clsx";
 import { generateOptions } from "../utils";
+import { Checkbox, Segmented, Tabs } from "antd";
 
 interface Props {
   setData: (data: any) => void;
@@ -57,8 +57,8 @@ const MatrixMatch: React.FC<Props> = ({ setData }) => {
     console.log({ values });
   }, [values]);
 
-  function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
-    setTab(newValue);
+  function handleChangeTab(newValue: string) {
+    setTab(parseInt(newValue));
   }
 
   function handleChangeEditor(id: string, value: string, index?: number) {
@@ -128,92 +128,69 @@ const MatrixMatch: React.FC<Props> = ({ setData }) => {
           <label htmlFor="assertionEnglish"></label> */}
         </div>
         <div className={styles.languages}>
-          <div
-            className={currentLanguage === "en" ? styles.selected : ""}
-            onClick={() => setCurrentLanguage("en")}
-          >
-            English
-          </div>
-          <div
-            className={currentLanguage === "hi" ? styles.selected : ""}
-            onClick={() => setCurrentLanguage("hi")}
-          >
-            Hindi
-          </div>
+          <Segmented
+            options={[
+              {
+                label: "English",
+                value: "en",
+              },
+              {
+                label: "Hindi",
+                value: "hi",
+              },
+            ]}
+            onChange={(val) =>
+              setCurrentLanguage(val.toString() as "en" | "hi")
+            }
+          />
         </div>
       </div>
       <div className={styles.tabsContainer}>
         <Tabs
-          value={tab}
           onChange={handleChangeTab}
-          variant="scrollable"
-          scrollButtons="auto"
+          type="card"
           className={styles.tabs}
-          sx={{
-            [`& .${tabsClasses.scrollButtons}`]: {
-              "&.Mui-disabled": { opacity: 0.3 },
+          items={[
+            {
+              label: "Question",
+              key: "question",
+              children: (
+                <div className={styles.editor}>
+                  <ReactQuill
+                    theme="snow"
+                    value={values[currentLanguage].question}
+                    onChange={(val: string) =>
+                      handleChangeEditor("question", val)
+                    }
+                    modules={modules}
+                    formats={formats}
+                    bounds={styles.editor}
+                  />
+                </div>
+              ),
             },
-            ".css-1h9z7r5-MuiButtonBase-root-MuiTab-root.Mui-selected": {
-              backgroundColor: "#f5f5f5",
-              borderRadius: "5px",
+            {
+              label: "Solution",
+              key: "solution",
+              children: (
+                <div className={styles.editor}>
+                  <ReactQuill
+                    theme="snow"
+                    value={values[currentLanguage].solution}
+                    onChange={(val: string) =>
+                      handleChangeEditor("solution", val)
+                    }
+                    modules={modules}
+                    formats={formats}
+                    bounds={styles.editor}
+                  />
+                </div>
+              ),
             },
-            ".css-1aquho2-MuiTabs-indicator": {
-              display: "none",
-            },
-          }}
-        >
-          <Tab label="Question" />
-          {/* {Array(optionsCount)
-            .fill(0)
-            .map((_, index) => (
-              <Tab
-                label={`Option ${String.fromCharCode(65 + index)}`}
-                key={index}
-                className={
-                  values[currentLanguage].options[index].isCorrectAnswer
-                    ? styles.correctAnswer
-                    : ""
-                }
-              />
-            ))} */}
-          <Tab label="Solution" />
-        </Tabs>
-        {/* <div className={styles.optionsCounter}>
-          <IconButton onClick={() => handleChaneOptionsCount("decrement")}>
-            -
-          </IconButton>
-          <span className={styles.count}>{optionsCount}</span>
-          <IconButton onClick={() => handleChaneOptionsCount("increment")}>
-            +
-          </IconButton>
-        </div> */}
+          ]}
+        />
       </div>
 
-      <TabPanel value={tab} index={0}>
-        <div className={styles.editor}>
-          <ReactQuill
-            theme="snow"
-            value={values[currentLanguage].question}
-            onChange={(val: string) => handleChangeEditor("question", val)}
-            modules={modules}
-            formats={formats}
-            bounds={styles.editor}
-          />
-        </div>
-      </TabPanel>
-
-      <TabPanel value={tab} index={1}>
-        <div className={styles.editor}>
-          <ReactQuill
-            theme="snow"
-            value={values[currentLanguage].solution}
-            onChange={(val: string) => handleChangeEditor("solution", val)}
-            modules={modules}
-            formats={formats}
-            bounds={styles.editor}
-          />
-        </div>
-      </TabPanel>
       <div className={styles.actions}>
         <div className={styles.flexRow}>
           <div className={styles.rows}>
@@ -233,38 +210,6 @@ const MatrixMatch: React.FC<Props> = ({ setData }) => {
             <IconButton onClick={() => handleAddRowsCols("col")}>+</IconButton>
           </div>
         </div>
-        {/* <RadioGroup
-          row
-          aria-labelledby="answer-type"
-          name="answer-type-radio-group"
-          value={answerType}
-        >
-          <FormControlLabel
-            value="single"
-            control={<Radio />}
-            label="Single Correct"
-            onChange={handleChangeAnswerType}
-          />
-          <FormControlLabel
-            value="multiple"
-            control={<Radio />}
-            label="Multiple Correct"
-            onChange={handleChangeAnswerType}
-          />
-        </RadioGroup> */}
-        {/* <div className={styles.correctAnswers}>
-          <FormGroup row>
-            {values[currentLanguage].options.map((option, i) => (
-              <FormControlLabel
-                control={answerType === "single" ? <Radio /> : <Checkbox />}
-                label={String.fromCharCode(65 + i)} // Using ASCII for generating characters through index
-                key={i}
-                checked={option.isCorrectAnswer}
-                onChange={(e: any) => handleChangeCorrectAnswer(e, i)}
-              />
-            ))}
-          </FormGroup>
-        </div> */}
       </div>
       <GenerateMatrix
         rows={rows}

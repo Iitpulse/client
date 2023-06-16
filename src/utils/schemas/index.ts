@@ -60,17 +60,18 @@ export async function validateField(
     if (nestedKeys.length > 1) {
       desiredKey = nestedKeys[nestedKeys.length - 1];
     }
-    const obejctToApplyAsyncParseTo = convertStringToValidationFormat(
+    const obejctToApplyarseTo = convertStringToValidationFormat(
       fieldName,
       studentSchema
     );
 
-    obejctToApplyAsyncParseTo.parse(parsedFieldValue);
+    // checkIfTheKeyIsPresentInSchema(desiredKey, obejctToApplyarseTo);// This needs to be done because the schema is not strict
+
+    obejctToApplyarseTo.parse(parsedFieldValue);
     console.log();
     return; // Validation successful
   } catch (error: any) {
-    const errorMessage = error.errors[0].message;
-    console.log(errorMessage);
+    const errorMessage = error?.issues?.[0]?.message || error?.message;
     throw errorMessage; // Validation failed
   }
 }

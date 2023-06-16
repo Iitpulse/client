@@ -38,7 +38,7 @@ import {
   Warning,
 } from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
-import { API_QUESTIONS } from "../../utils/api";
+import { API_QUESTIONS } from "../../utils/api/config";
 import PrintIcon from "@mui/icons-material/Print";
 import sheetIcon from "../../assets/icons/sheets.svg";
 import MainLayout from "../../layouts/MainLayout";

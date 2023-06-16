@@ -22,8 +22,7 @@ import React from "react";
 import { TestContext } from "../../utils/contexts/TestContext";
 import clsx from "clsx";
 import { AUTH_TOKEN } from "../../utils/constants";
-import CalendarComponent from "../../components/CalendarComponent/CalendarComponent";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import MainLayout from "../../layouts/MainLayout";
 import ScheduleCalendar from "./ScheduleCalendar/ScheduleCalendar";
@@ -296,7 +295,6 @@ const Home = () => {
             </Grid>
             <Grid item xl={12} md={12} xs={12}>
               <Card title="Schedule" classes={[styles.calendarImageCard]}>
-                {/* <CalendarComponent /> */}
                 <ScheduleCalendar data={ongoingTests as ITest[]} />
               </Card>
             </Grid>
@@ -419,7 +417,6 @@ const Home = () => {
             <Grid item xl={12} md={12} xs={12}>
               <Card title="Schedule" classes={[styles.calendarImageCard]}>
                 {/* <img src={calendarImage} alt="icon" className={styles.calendarImage} /> */}
-                {/* <CalendarComponent /> */}
                 <ScheduleCalendar data={getCalendarData()} />
               </Card>
             </Grid>
