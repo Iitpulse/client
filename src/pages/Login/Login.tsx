@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { Button, InputField } from "../../components";
+// import { Button, InputField } from "../../components";
 import styles from "./Login.module.scss";
 import { decodeToken } from "react-jwt";
 import axios from "axios";
@@ -17,7 +17,7 @@ import { Visibility } from "@mui/icons-material";
 import { VisibilityOff } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
 import { Link } from "react-router-dom";
-import { message } from "antd";
+import { Button, Checkbox, Form, Input, message } from "antd";
 
 const Login = () => {
   const { currentUser, setCurrentUser } = useContext(AuthContext);
@@ -89,74 +89,47 @@ const Login = () => {
       <div className={styles.formContainer}>
         <img src={logo} className={styles.logo} alt="iitpulse" />
         <p>Please enter your email and password</p>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            className={email.trim().length > 0 ? styles.whitebg : styles.graybg}
-            id="email"
+        <Form
+          name="basic"
+          layout="vertical"
+          labelCol={{ span: 8 }}
+          wrapperCol={{ span: 16 }}
+          style={{ maxWidth: 600 }}
+          initialValues={{ remember: true }}
+          // onFinish={onFinish}
+          // onFinishFailed={onFinishFailed}
+          autoComplete="off"
+        >
+          <Form.Item
             label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
-            disabled={loading}
-            sx={{ m: 1, width: "42ch" }}
-          />
-          <FormControl sx={{ m: 1, width: "42ch" }} variant="outlined">
-            <InputLabel htmlFor="outlined-adornment-password">
-              Password
-            </InputLabel>
-            <OutlinedInput
-              className={
-                password.trim().length > 0 ? styles.whitebg : styles.graybg
-              }
-              id="outlined-adornment-password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              endAdornment={
-                <InputAdornment
-                  position="end"
-                  style={{ backgroundColor: "#F1F1F1" }}
-                >
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => {
-                      setShowPassword((state) => !state);
-                    }}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              }
-              label="Password"
-              disabled={loading}
-            />
-          </FormControl>
-          {/* <TextField
-          id="password"
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type="password"
-          disabled={loading}
-        /> */}
-          <div className={styles.actionBtns}>
-            <Button title="Submit" type="submit" disabled={loading}>
-              Log in
+            name="email"
+            rules={[{ required: true, message: "Please input your email!" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Please input your password!" }]}
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item
+            name="remember"
+            valuePropName="checked"
+            wrapperCol={{ offset: 8, span: 16 }}
+          >
+            <Checkbox>Remember me</Checkbox>
+          </Form.Item>
+
+          <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+            <Button type="primary" htmlType="submit">
+              Submit
             </Button>
-            <Link to="/student-register">
-              <Button
-                title="signup"
-                type="button"
-                variant="outlined"
-                disabled={loading}
-              >
-                Sign up
-              </Button>
-            </Link>
-          </div>
-          <Link to="/reset-password">Forgot your password?</Link>
-        </form>
+          </Form.Item>
+        </Form>
       </div>
     </div>
   );
