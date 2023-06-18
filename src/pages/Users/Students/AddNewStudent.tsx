@@ -20,8 +20,8 @@ import {
   studentSchema,
   userSchema,
 } from "../../../utils/schemas/user";
-import moment, { Moment } from "moment";
-import { API_USERS } from "../../../utils/api";
+import dayjs, { Dayjs } from "dayjs";
+import { API_USERS } from "../../../utils/api/config";
 import {
   convertFieldValue,
   convertStringToValidationFormat,
@@ -65,10 +65,10 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     email: null,
     password: null,
     dob: {
-      convert: (value: Moment) =>
-        value ? moment(value).format("DD-MM-YYYY") : undefined,
+      convert: (value: Dayjs) =>
+        value ? dayjs(value).format("DD-MM-YYYY") : undefined,
       revert: (value: string) =>
-        value ? moment(value, "DD-MM-YYYY").toDate() : null,
+        value ? dayjs(value, "DD-MM-YYYY").toDate() : null,
     },
     gender: null,
     roles: {
@@ -95,16 +95,16 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     isPhoneVerified: null,
     userType: () => "student",
     validity: {
-      convert: (value: Moment[]) =>
+      convert: (value: Dayjs[]) =>
         value
           ? {
-              from: moment(value[0]).format("DD-MM-YYYY"),
-              to: moment(value[1]).format("DD-MM-YYYY"),
+              from: dayjs(value[0]).format("DD-MM-YYYY"),
+              to: dayjs(value[1]).format("DD-MM-YYYY"),
             }
           : undefined,
       revert: (value: { from: string; to: string }) =>
         value
-          ? [moment(value.from, "DD-MM-YYYY"), moment(value.to, "DD-MM-YYYY")]
+          ? [dayjs(value.from, "DD-MM-YYYY"), dayjs(value.to, "DD-MM-YYYY")]
           : [],
     },
     createdBy: null,
@@ -155,8 +155,8 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           id: userCtx?.currentUser?.id,
           userType: userCtx?.currentUser?.userType,
         },
-        createdAt: moment().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
-        modifiedAt: moment().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
+        createdAt: dayjs().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
+        modifiedAt: dayjs().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
         attemptedTests: [],
         isEmailVerified: false,
         isPhoneVerified: false,

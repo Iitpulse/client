@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { roleSchema } from "./role";
-import moment from "moment";
+import dayjs from "dayjs";
 
 export const userSchema = z.object({
   name: z.string().min(3).max(255),
@@ -16,8 +16,8 @@ export const userSchema = z.object({
     })
     .refine(
       (value) => {
-        const currentDate = moment().startOf("day");
-        const dobDate = moment(value, "DD-MM-YYYY").startOf("day");
+        const currentDate = dayjs().startOf("day");
+        const dobDate = dayjs(value, "DD-MM-YYYY").startOf("day");
         return dobDate.isBefore(currentDate);
       },
       {
@@ -147,9 +147,8 @@ export const teacherSchema = userSchema.extend({
 export const adminSchema = userSchema;
 export const operatorSchema = userSchema;
 export const managerSchema = userSchema;
-export const superAdminSchema = userSchema.omit({
-  validity: true,
-});
+export const superAdminSchema = userSchema;
+//Whenever we are going to create a superAdmin we need to make sure that we add validity to infinite but need to set it
 
 export type StudentType = z.infer<typeof studentSchema>;
 export type TeacherType = z.infer<typeof teacherSchema>;
