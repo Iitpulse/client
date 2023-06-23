@@ -178,7 +178,6 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Users</span>}
           </NavLink>
         )}
-
         {/* chnages yaha */}
         {currentUser?.userType === "student" ? (
           <NavLink
@@ -213,7 +212,6 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             </NavLink>
           )
         )}
-
         {currentUser?.userType === "student" && (
           <NavLink
             style={isCollapsed ? { width: "fit-content" } : {}}
@@ -230,7 +228,6 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Upcoming Test</span>}
           </NavLink>
         )}
-
         {hasPermissions?.hasPatternPermission && (
           <NavLink
             style={isCollapsed ? { width: "fit-content" } : {}}
@@ -281,6 +278,26 @@ const MenuDrawer = (props: MenuDrawerProps) => {
               <RolesIcon />
             </div>{" "}
             {isCollapsed || <span>Roles</span>}
+          </NavLink>
+        )}
+        {currentUser?.id && (
+          <NavLink
+            to={`/profile/${currentUser?.id}`}
+            style={isCollapsed ? { width: "fit-content" } : {}}
+            className={({ isActive }) =>
+              isActive
+                ? clsx(
+                    styles.navLink,
+                    styles.activeNavLink,
+                    styles.activeNavLinkForRole
+                  )
+                : styles.navLink
+            }
+          >
+            <div className={styles.iconContainer}>
+              <UsersIcon />
+            </div>{" "}
+            {isCollapsed || <span>My Profile</span>}
           </NavLink>
         )}
       </section>

@@ -18,6 +18,7 @@ import {
   DetailedAnalysis,
   StudentRegister,
   PasswordReset,
+  Profile,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -84,6 +85,12 @@ const App = () => {
                       //   Batches,
                       //   "Batches"
                       // )}
+                    />
+                    <Route
+                      path="/profile/:userId"
+                      element={
+                        <PrivateRoute component={Profile} name="Profile" />
+                      }
                     />
                     <Route
                       path="/pattern"
