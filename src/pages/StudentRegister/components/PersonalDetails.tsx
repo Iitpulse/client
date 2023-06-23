@@ -5,38 +5,32 @@ import { useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import { Grid } from "@mui/material";
 
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 import { message } from "antd";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 
 const PersonalDetailsSchema = z.object({
   name: z.string().min(3).max(50),
   dob: z.string(),
-  aadhaar: z.string().length(12),
   city: z.string().max(50),
   state: z.string().max(50),
   gender: z.string(),
   currentAddress: z.string().min(5).max(150),
-  permanentAddress: z.string().min(5).max(150),
   parentName: z.string(),
   parentContact: z.string().length(10),
   contact: z.string().length(10),
-  otp: z.string().length(6),
 });
 
 const defaultState = {
   name: "",
   dob: "",
-  aadhaar: "",
   city: "",
   state: "",
   parentName: "",
   parentContact: "",
   contact: "",
   currentAddress: "",
-  permanentAddress: "",
-  otp: "",
 };
 
 function getErrorDefaultState(valuesObj: typeof defaultState) {
@@ -95,68 +89,66 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   }
 
   const [showTextField, setShowTextField] = useState(false);
-  const [buttonText, setButtonText] = useState('Verify Contact');
-  const [Verified, setVerified] = useState(false)
+  const [buttonText, setButtonText] = useState("Verify Contact");
+  const [Verified, setVerified] = useState(false);
 
-  const handleGenerate = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleGenerate = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     e.preventDefault();
     try {
       const response = await API_USERS().post(`/otp/generate`, {
         number: values.contact,
       });
       message.loading({ content: response.data.message, key: "cotp" });
-
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
 
     setTimeout(() => {
       message.destroy("cotp");
     }, 1000);
     setShowTextField(true);
-
   };
 
-  const handleVerify = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-    try {
-      const response = await API_USERS().post(`/otp/verify`, {
-        number: values.contact,
-        otp: values.otp,
-      });
-      message.loading({ content: response.data.message, key: "verify" });
-      console.log(response.data.message)
-      if (response.status == 200) {
-        setShowTextField(false)
-        setVerified(true)
-      }
-    } catch (error) {
-      console.log(error)
-    }
-    setButtonText('Verified')
+  // const handleVerify = async (
+  //   e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  // ) => {
+  //   e.preventDefault();
+  //   try {
+  //     const response = await API_USERS().post(`/otp/verify`, {
+  //       number: values.contact,
+  //       otp: values.otp,
+  //     });
+  //     message.loading({ content: response.data.message, key: "verify" });
+  //     console.log(response.data.message);
+  //     if (response.status == 200) {
+  //       setShowTextField(false);
+  //       setVerified(true);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  //   setButtonText("Verified");
 
-    setTimeout(() => {
-      message.destroy("verify");
-    }, 1000
-    )
-
-  };
+  //   setTimeout(() => {
+  //     message.destroy("verify");
+  //   }, 1000);
+  // };
   const theme = createTheme({
     components: {
       MuiTextField: {
         styleOverrides: {
           root: {
-            '& .MuiInputBase-root.Mui-disabled': {
-              backgroundColor: '#f2f2f2',
-              color: '#808080',
+            "& .MuiInputBase-root.Mui-disabled": {
+              backgroundColor: "#f2f2f2",
+              color: "#808080",
             },
           },
         },
       },
     },
   });
-
-
 
   return (
     <form onSubmit={handleSubmitForm} className={styles.regForm}>
@@ -194,17 +186,6 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           type="date"
           onChange={handleChangeValues}
           label="Date of Birth"
-          variant="outlined"
-        />
-        <StyledMUITextField
-          required
-          id="aadhaar"
-          value={values.aadhaar}
-          error={errors.aadhaar}
-          helperText={helperTexts.aadhaar}
-          type="number"
-          onChange={handleChangeValues}
-          label="Aadhaar Number"
           variant="outlined"
         />
         <StyledMUITextField
@@ -263,12 +244,12 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
             variant="outlined"
           />
         </ThemeProvider>
-        <Button onClick={handleGenerate} disabled={Verified || showTextField}>
+        {/* <Button onClick={handleGenerate} disabled={Verified || showTextField}>
           {buttonText}
         </Button>
 
-        {
-          showTextField && <>
+        {showTextField && (
+          <>
             <StyledMUITextField
               fullWidth
               required
@@ -280,15 +261,11 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
               label="OTP"
               variant="outlined"
             />
-            <Button onClick={handleVerify}>
-              Verify
-            </Button>
+            <Button onClick={handleVerify}>Verify</Button>
           </>
-        }
-
+        )} */}
       </div>
-      <div className={styles.regForm} style={{ marginTop: '0px' }}>
-
+      <div className={styles.regForm} style={{ marginTop: "0px" }}>
         <StyledMUITextField
           required
           id="currentAddress"
@@ -300,7 +277,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           label="Current Address"
           variant="outlined"
         />
-        <StyledMUITextField
+        {/* <StyledMUITextField
           required
           id="permanentAddress"
           value={values.permanentAddress}
@@ -310,7 +287,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           onChange={handleChangeValues}
           label="Permanent Address"
           variant="outlined"
-        />
+        /> */}
       </div>
       <Button type="submit">Next</Button>
     </form>

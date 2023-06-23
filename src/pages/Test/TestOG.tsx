@@ -5,7 +5,6 @@ import { Button, CustomTable, Modal, Sidebar } from "../../components";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { Table } from "antd";
 import { Error } from "../";
-import "antd/dist/antd.css";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";
@@ -135,7 +134,7 @@ const Test = () => {
   useEffect(() => {
     setLoading(true);
     if (fetchTest)
-      fetchTest("ongoing", (error, result) => {
+      fetchTest("ongoing", false, (error, result) => {
         setData(
           result?.map((test: any) => ({
             ...test,
@@ -153,7 +152,7 @@ const Test = () => {
 
   return (
     <MainLayout name="Ongoing Test">
-       <div className={styles.container}>
+      <div className={styles.container}>
         <TabPanel value={tab} index={0}>
           <div className={styles.data}>
             <CustomTable

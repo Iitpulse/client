@@ -32,9 +32,10 @@ import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
 import { Grid, IconButton } from "@mui/material";
 import { SearchOutlined } from "@ant-design/icons";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import { useTestContext } from "../../../utils/contexts/TestContext";
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
@@ -305,7 +306,7 @@ const Teacher: React.FC<{
     options: [],
     actual: [],
   });
-  // console.log({ roles });
+  const [subjects, setSubjects] = useState([]);
   const [error, setError] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
     name: {
@@ -355,6 +356,7 @@ const Teacher: React.FC<{
     },
   });
   const { currentUser } = useContext(AuthContext);
+  const { subjects: globalSubjects } = useTestContext();
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
@@ -362,74 +364,15 @@ const Teacher: React.FC<{
     setValues({ ...values, [id]: value });
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    console.log("submitting");
-    if (!newUserRef.current?.reportValidity()) return;
-
+  async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
+    message.loading("Creating User...", 0);
     try {
-      const error = {
-        gender: !Boolean(values.gender),
-        roles: !(roles?.length > 0),
-        emergencyContact: values.emergencyContact?.length !== 10,
-        contact: values.contact?.length !== 10,
-        aadhaar: values.aadhaar?.length !== 12,
-      };
-      console.log(error);
-      if (
-        error.gender ||
-        error.roles ||
-        error.contact ||
-        error.emergencyContact ||
-        error.aadhaar
-      ) {
-        if (error.roles) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            roles: { error: true, helperText: "Please select a Roles" },
-          }));
-        }
-        if (error.aadhaar) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            aadhaar: {
-              error: true,
-              helperText: "Please enter a valid aadhar number",
-            },
-          }));
-        }
-        if (error.contact) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            contact: {
-              error: true,
-              helperText: "Please enter a valid contact number",
-            },
-          }));
-        }
-        if (error.emergencyContact) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            emergencyContact: {
-              error: true,
-              helperText: "Please enter a valid contact number",
-            },
-          }));
-        }
-        if (error.gender) {
-          setHelperTextObj((prev) => ({
-            ...prev,
-            gender: { error: true, helperText: "Please select a Gender" },
-          }));
-        }
-
-        return;
-      }
-      setLoading(true);
-      setError("");
-      setSuccess("");
       let newValues = { ...values };
-
+      newValues.subjects = subjects?.map((subject: any) => ({
+        id: subject._id,
+        name: subject.name,
+      }));
       newValues.userType = "teacher";
       newValues.createdBy = {
         id: currentUser?.id,
@@ -450,44 +393,24 @@ const Teacher: React.FC<{
         from: new Date().toISOString(),
         to: new Date().toISOString(),
       };
-      console.log({ newValues });
 
       const res = await API_USERS().post(`/teacher/create`, newValues);
-      // console.log({ res });
-
-      if (res.status === 200) {
-        message.success("Teacher created successfully");
-        return handleReset();
-      } else {
-        return message.error("Something went wrong");
-      }
-      setSuccess("Student created successfully");
-    } catch (error: any) {
-      setError(error?.response?.data?.message);
-      message.error(error?.response?.data?.message);
-      if (error?.response?.data?.message?.includes("email")) {
-        setHelperTextObj((prev) => ({
-          ...prev,
-          email: {
-            ...prev?.email,
-            error: true,
-            helperText: error.response.data.message,
-          },
-        }));
-      }
+      message.destroy();
+      message.success("Teacher Created Successfully");
+    } catch (error) {
+      message.destroy();
+      message.error("Error Creating Teacher");
     }
-    setLoading(false);
-
-    // handleReset();
   }
+
   const userCtx = useContext(AuthContext);
-  console.log(userCtx);
+
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
   Object.values(rolesAllowed).map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-  console.log(permissions);
+
   useEffect(() => {
     async function getRolesOption() {
       const res = await API_USERS().get(`/roles/all`);
@@ -513,13 +436,6 @@ const Teacher: React.FC<{
     }
     getRolesOption();
   }, []);
-  function handleFormSubmit() {
-    if (newUserRef?.current) {
-      newUserRef.current.dispatchEvent(
-        new Event("submit", { cancelable: true, bubbles: true })
-      );
-    }
-  }
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <AddUserModal
@@ -667,6 +583,14 @@ const Teacher: React.FC<{
                   onChange={handleChangeValues}
                   label="Emergency Contact"
                   variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={8} lg={8} xl={4}>
+                <MUIChipsAutocomplete
+                  label="Subject(s)"
+                  options={globalSubjects}
+                  onChange={setSubjects}
+                  value={subjects}
                 />
               </Grid>
             </Grid>

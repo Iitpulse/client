@@ -1,16 +1,6 @@
 import styles from "./Batches.module.scss";
 import { useContext, useEffect, useState } from "react";
-import {
-  DatePicker,
-  message,
-  Popconfirm,
-  Select,
-  SelectProps,
-  Slider,
-  Space,
-  Table,
-} from "antd";
-import { useNavigate } from "react-router";
+import { message, Popconfirm } from "antd";
 import {
   Button,
   Card,
@@ -23,15 +13,15 @@ import {
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
-import CustomDateRangePicker from "../../components/CusotmDateRangePicker/CustomDateaRangePicker";
-import moment from "moment";
+import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import deleteIcon from "../../assets/icons/delete.svg";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { capitalizeFirstLetter } from "../../utils";
 import AddIcon from "@mui/icons-material/Add";
+import dayjs from "dayjs";
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -67,7 +57,7 @@ const Batches = () => {
       setLoading(true);
       try {
         const res = await API_USERS().get(`/batch/get`);
-        console.log({ res });
+        // console.log({ res });
         setData(res?.data);
       } catch (error) {
         console.log("ERROR_FETCH_BATCH", error);
@@ -147,16 +137,16 @@ const Batches = () => {
       title: "Delete",
       key: "delete",
       render: (_: any, record: any) => (
-        <IconButton>
-          <Popconfirm
-            title="Sure to delete this batch?"
-            onConfirm={() => {
-              handleDeleteBatch(record._id);
-            }}
-          >
+        <Popconfirm
+          title="Sure to delete this batch?"
+          onConfirm={() => {
+            handleDeleteBatch(record._id);
+          }}
+        >
+          <IconButton>
             <img src={deleteIcon} alt="delete" />
-          </Popconfirm>
-        </IconButton>
+          </IconButton>
+        </Popconfirm>
       ),
     },
   ];
@@ -217,7 +207,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
 
   useEffect(() => {
     if (allRoles) {
-      console.log({ allRoles });
+      // console.log({ allRoles });
       const options = allRoles.map((value: any) => ({
         value: value.id,
         name: value.name,
@@ -228,7 +218,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
-    console.log({ id, value });
+    // console.log({ id, value });
     setValues({ ...values, [id]: value });
   }
 
@@ -243,8 +233,8 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         medium: values.medium,
         institute: currentUser?.instituteId,
         validity: {
-          from: moment(validity[0]).toISOString(),
-          to: moment(validity[1]).toISOString(),
+          from: dayjs(validity[0]).toISOString(),
+          to: dayjs(validity[1]).toISOString(),
         },
         classes: classes.map((value: any) => value.name),
         createdBy: {
@@ -256,7 +246,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         members: [],
         roles: roles.map((value: any) => value.value),
       };
-      console.log({ finalData });
+      // console.log({ finalData });
       const res = await API_USERS().post(`/batch/create`, finalData);
       setBatches((prev: any) => [...prev, res?.data?.data]);
       setValues({});

@@ -21,7 +21,7 @@ import {
   MUISimpleAutocomplete,
 } from "../../../components";
 import { FilterConfirmProps } from "antd/lib/table/interface";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 
 const Admins: React.FC<{

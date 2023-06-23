@@ -62,15 +62,18 @@ const SubjectCard: React.FC<ISubjectCard> = ({
             </h2>
             <p className={styles.accuracy}>
               Accuracy:
-              <span className={styles.highlight}>
+              <span style={{ color: "black" }}>
                 {roundToOne((correct / attempted) * 100)}%
               </span>
             </p>
-            <div className={styles.time}>
-              <img src={timerIcon} alt="Time" style={{ filter: "invert(1)" }} />
-              &nbsp;
-              <p>{timeTakenInSeconds.toFixed(2)}</p>
-            </div>
+            <p className={styles.accuracy}>
+              {/* <img src={timerIcon} alt="Time" style={{ filter: "invert(1)" }} />
+              &nbsp; */}
+              Total Time Taken:
+              <span style={{ color: "black" }}>
+                {timeTakenInSeconds.toFixed(2)}s
+              </span>
+            </p>
           </div>
 
           <CircularProgress color={color} progress={(marks / 360) * 100} />

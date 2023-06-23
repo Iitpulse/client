@@ -10,6 +10,7 @@ import { useLocation } from "react-router";
 interface Props {
   children: React.ReactNode;
   name: string;
+  menuActions?: React.ReactNode;
   onClickDrawerIcon?: () => void;
   [key: string]: any;
 }
@@ -18,6 +19,7 @@ const MainLayout: React.FC<Props> = ({
   name,
   children,
   onClickDrawerIcon,
+  menuActions,
   ...rest
 }) => {
   const location = useLocation();
@@ -30,12 +32,14 @@ const MainLayout: React.FC<Props> = ({
             location={location.pathname}
             name={location.pathname === "/" ? "Home" : ""}
           />
+
           <div className={styles.actions}>
-            {onClickDrawerIcon && (
+            {menuActions}
+            {/* {onClickDrawerIcon && (
               <IconButton onClick={onClickDrawerIcon}>
                 <img src={notificationIcon} alt="notification" />
               </IconButton>
-            )}
+            )} */}
           </div>
         </nav>
         <main className={styles.main}>{children}</main>

@@ -7,7 +7,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import logo from "../../assets/images/logo.svg";
 import { LinearProgress, TextField } from "@mui/material";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { AUTH_TOKEN } from "../../utils/constants";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";

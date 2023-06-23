@@ -20,7 +20,7 @@ import { splitAndKeepDelimiters } from "../../../utils";
 import "katex/dist/katex.min.css";
 import katex from "katex";
 import CustomTable from "../../../components/CustomTable/CustomTable";
-import { API_QUESTIONS } from "../../../utils/api";
+import { API_QUESTIONS } from "../../../utils/api/config";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
 import Delete from "@mui/icons-material/Delete";
 import { DeleteOutline } from "@mui/icons-material";

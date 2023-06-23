@@ -10,7 +10,7 @@ import PersonalDetails, {
 import AcademicDetails, {
   AcademicDetailsValues,
 } from "./components/AcademicDetails";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { message } from "antd";
 import logo from "../../assets/images/logo.svg";
 

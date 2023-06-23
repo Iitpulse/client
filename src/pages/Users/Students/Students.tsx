@@ -24,7 +24,6 @@ import {
   message,
   Popconfirm,
 } from "antd";
-import "antd/dist/antd.css";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import Dropzone from "react-dropzone";
@@ -45,7 +44,7 @@ import { ColumnType } from "antd/lib/table";
 import { FilterConfirmProps } from "antd/lib/table/interface";
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 import { DesktopDatePicker } from "@mui/lab";
 import { DeleteOutline, Edit, Face, Face3, Person } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
@@ -530,7 +529,7 @@ export const Student: React.FC<{
     async (e: React.FormEvent<HTMLFormElement>) => {
       if (!newUserRef.current?.reportValidity()) return;
       e.preventDefault();
-      console.log(values);
+      message.loading("Creating Student User...", 0);
       try {
         const error = {
           stream: !Boolean(values.stream),
@@ -686,10 +685,13 @@ export const Student: React.FC<{
           handleReset();
         }
         setSuccess("Student created successfully");
+        message.destroy();
+        message.success("Student created successfully");
       } catch (error: any) {
-        setError(error?.response?.data?.message);
-        message.error(error?.response?.data?.message);
-        if (error?.response?.data?.message?.includes("email")) {
+        setError(error.response.data.message);
+        message.destroy();
+        message.error(error.response.data.message);
+        if (error.response.data.message.includes("email")) {
           setHelperTextObj((prev) => ({
             ...prev,
             email: {

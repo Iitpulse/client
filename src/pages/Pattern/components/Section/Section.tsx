@@ -118,7 +118,7 @@ const Section: React.FC<{
               value: subject.name,
             }))}
           />
-          <CustomInputSection
+          {/* <CustomInputSection
             value={section.totalQuestions}
             label="Total Questions"
             type="number"
@@ -139,7 +139,7 @@ const Section: React.FC<{
                 toBeAttempted: parseInt(e.target.value),
               })
             }
-          />
+          /> */}
         </div>
         {section.subSections.map((subSection, i) => (
           <SubSection

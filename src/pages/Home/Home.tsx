@@ -22,12 +22,12 @@ import React from "react";
 import { TestContext } from "../../utils/contexts/TestContext";
 import clsx from "clsx";
 import { AUTH_TOKEN } from "../../utils/constants";
-import CalendarComponent from "../../components/CalendarComponent/CalendarComponent";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import MainLayout from "../../layouts/MainLayout";
-import { Dropdown, Menu } from "antd";
-import type { MenuProps } from "antd";
+import ScheduleCalendar from "./ScheduleCalendar/ScheduleCalendar";
+import { ITest } from "../../utils/interfaces";
+
 interface SubCardProps {
   title: string;
   icon: string;
@@ -136,12 +136,10 @@ const Home = () => {
     recentTest?.at(0)?.name
   );
   const { currentUser } = useContext(AuthContext);
-  // console.log("recentTests in home : ", recentTest);
 
-  const { ongoingTests } = state;
+  const { ongoingTests, activeTests } = state;
   useEffect(() => {
     const fetchInstituteDetails = async () => {
-      console.log({ currentUser });
       try {
         const res = await API_USERS().get(`/institute/get`, {
           params: {
@@ -149,7 +147,6 @@ const Home = () => {
           },
         });
         setInstituteDetailsData(res.data);
-        console.log({ "institute details": res });
       } catch (err) {
         console.log(err);
       }
@@ -163,257 +160,269 @@ const Home = () => {
     setrecentTestValue(recentTest?.at(0)?.name);
   }, [recentTest]);
 
+  function getCalendarData() {
+    let data: ITest[] = [];
+    if (ongoingTests?.length) {
+      data = [...data, ...ongoingTests];
+    }
+    if (activeTests?.length) {
+      data = [...data, ...activeTests];
+    }
+    return data;
+  }
+
   return (
     <MainLayout name="Home">
-      {currentUser?.userType === "student"?
-      <div className={styles.container} style={{width:"100%"}}>
-        <Grid container spacing={4}>
-          <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
-            <div>
-              <Card
-                title="Upcoming Tests"
-                styles={{ display: "flex", flexWrap: "wrap"}}
-                classes={[styles.upcomingTestCard]}
-              >
-                {ongoingTests?.map((test, i) => (
-                  <ListItem
-                    key={test.id}
-                    id={test.id}
-                    index={i + 1}
-                    title={test.name}
-                    marks={360}
-                    durationHours={
-                      test?.durationInMinutes ? test.durationInMinutes / 60 : 3
-                    }
-                    mode="online"
-                  />
-                ))}
-                {!ongoingTests && (
-                  <Box sx={{ width: "100%" }}>
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                  </Box>
-                )}
-              </Card>
-            </div>
-          </Grid>
-          <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
-            <div>
-              <Card
-                title="Ongoing Tests"
-                styles={{ display: "flex", flexWrap: "wrap" }}
-                classes={[styles.upcomingTestCard]}
-              >
-                {ongoingTests?.map((test, i) => (
-                  <ListItem
-                    key={test.id}
-                    id={test.id}
-                    index={i + 1}
-                    title={test.name}
-                    marks={360}
-                    durationHours={
-                      test?.durationInMinutes ? test.durationInMinutes / 60 : 3
-                    }
-                    mode="online"
-                  />
-                ))}
-                {!ongoingTests && (
-                  <Box sx={{ width: "100%" }}>
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                  </Box>
-                )}
-              </Card>
-            </div>
-          </Grid>
-          <Grid item xl={12} lg={12} md={12} sm={12} xs={12}>
-            <Card
-              actionBtn={
-                <StyledMUISelect
-                  label={"Recent Tests"}
-                  options={recentTest.map((test) => ({
-                    name: test.name,
-                    value: test.name,
-                  }))}
-                  value={recentTestValue}
-                  onChange={(e) => {
-                    setrecentTestValue(e);
-                    let test = recentTest.find((test) => test.name === e);
-                    let idx = -1;
-                    if (test) idx = recentTest.indexOf(test);
-                    if (idx !== -1) setrecentTestidx(idx);
-                  }}
-                />
-              }
-              title="Recent Test Analysis"
-              classes={[styles.recentTestContainer]}
-            >
-              <h2>{recentTest[recentTestIdx]?.name}</h2>
-              <div className={styles.data}>
-                <SubCard
-                  title="Highest Marks"
-                  content={String(recentTest[recentTestIdx]?.highestMarks)}
-                  icon={greenCrown}
-                  variant="success"
-                />
-                <SubCard
-                  title="Average Marks"
-                  content={String(
-                    parseInt(
-                      recentTest[recentTestIdx]?.averageMarks?.toString()
-                    ).toFixed(2)
+      {currentUser?.userType === "student" ? (
+        <div className={styles.container} style={{ width: "100%" }}>
+          <Grid container spacing={4}>
+            <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
+              <div>
+                <Card
+                  title="Upcoming Tests"
+                  styles={{ display: "flex", flexWrap: "wrap" }}
+                  classes={[styles.upcomingTestCard]}
+                >
+                  {ongoingTests?.map((test, i) => (
+                    <ListItem
+                      key={test.id}
+                      id={test.id}
+                      index={i + 1}
+                      title={test.name}
+                      marks={360}
+                      durationHours={
+                        test?.durationInMinutes
+                          ? test.durationInMinutes / 60
+                          : 3
+                      }
+                      mode="online"
+                    />
+                  ))}
+                  {!ongoingTests && (
+                    <Box sx={{ width: "100%" }}>
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                    </Box>
                   )}
-                  icon={yellowFlag}
-                  variant="warning"
-                />
-                <SubCard
-                  title="Lowest Marks"
-                  content={String(recentTest[recentTestIdx]?.lowestMarks)}
-                  icon={redWarning}
-                  variant="error"
-                />
-                <SubCard
-                  title="Total Appeared"
-                  content={String(recentTest[recentTestIdx]?.totalAppeared)}
-                  icon={blueUsers}
-                  variant="primary"
-                />
+                </Card>
               </div>
-            </Card>
-          </Grid>
-          {/* <Grid item xl={12} md={12} xs={12}>
-            <Card title="Schedule" classes={[styles.calendarImageCard]}>
-              <CalendarComponent />
-            </Card>
-          </Grid> */}
-        </Grid>
-      </div>
-      :
-      <div className={styles.container}>
-        <Grid container spacing={4}>
-          <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
-            <Card
-              actionBtn={
-                <StyledMUISelect
-                  label={"Recent Tests"}
-                  options={recentTest.map((test) => ({
-                    name: test.name,
-                    value: test.name,
-                  }))}
-                  value={recentTestValue}
-                  onChange={(e) => {
-                    setrecentTestValue(e);
-                    let test = recentTest.find((test) => test.name === e);
-                    let idx = -1;
-                    if (test) idx = recentTest.indexOf(test);
-                    if (idx !== -1) setrecentTestidx(idx);
-                  }}
-                />
-              }
-              title="Recent Test Analysis"
-              classes={[styles.recentTestContainer]}
-            >
-              <h2>{recentTest[recentTestIdx]?.name}</h2>
-              <div className={styles.data}>
-                <SubCard
-                  title="Highest Marks"
-                  content={String(recentTest[recentTestIdx]?.highestMarks)}
-                  icon={greenCrown}
-                  variant="success"
-                />
-                <SubCard
-                  title="Average Marks"
-                  content={String(
-                    parseInt(
-                      recentTest[recentTestIdx]?.averageMarks?.toString()
-                    ).toFixed(2)
+            </Grid>
+            <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
+              <div>
+                <Card
+                  title="Ongoing Tests"
+                  styles={{ display: "flex", flexWrap: "wrap" }}
+                  classes={[styles.upcomingTestCard]}
+                >
+                  {ongoingTests?.map((test, i) => (
+                    <ListItem
+                      key={test.id}
+                      id={test.id}
+                      index={i + 1}
+                      title={test.name}
+                      marks={360}
+                      durationHours={
+                        test?.durationInMinutes
+                          ? test.durationInMinutes / 60
+                          : 3
+                      }
+                      mode="online"
+                    />
+                  ))}
+                  {!ongoingTests && (
+                    <Box sx={{ width: "100%" }}>
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                    </Box>
                   )}
-                  icon={yellowFlag}
-                  variant="warning"
-                />
-                <SubCard
-                  title="Lowest Marks"
-                  content={String(recentTest[recentTestIdx]?.lowestMarks)}
-                  icon={redWarning}
-                  variant="error"
-                />
-                <SubCard
-                  title="Total Appeared"
-                  content={String(recentTest[recentTestIdx]?.totalAppeared)}
-                  icon={blueUsers}
-                  variant="primary"
-                />
+                </Card>
               </div>
-            </Card>
-          </Grid>
-
-          <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
-            <div>
+            </Grid>
+            <Grid item xl={12} lg={12} md={12} sm={12} xs={12}>
               <Card
-                title="Ongoing Tests"
-                styles={{ display: "flex", flexWrap: "wrap" }}
-                classes={[styles.upcomingTestCard]}
-              >
-                {ongoingTests?.map((test, i) => (
-                  <ListItem
-                    key={test.id}
-                    id={test.id}
-                    index={i + 1}
-                    title={test.name}
-                    marks={360}
-                    durationHours={
-                      test?.durationInMinutes ? test.durationInMinutes / 60 : 3
-                    }
-                    mode="online"
+                actionBtn={
+                  <StyledMUISelect
+                    label={"Recent Tests"}
+                    options={recentTest.map((test) => ({
+                      name: test.name,
+                      value: test.name,
+                    }))}
+                    value={recentTestValue}
+                    onChange={(e) => {
+                      setrecentTestValue(e);
+                      let test = recentTest.find((test) => test.name === e);
+                      let idx = -1;
+                      if (test) idx = recentTest.indexOf(test);
+                      if (idx !== -1) setrecentTestidx(idx);
+                    }}
                   />
-                ))}
-                {!ongoingTests && (
-                  <Box sx={{ width: "100%" }}>
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                    <Skeleton height={28} />
-                  </Box>
-                )}
-              </Card>
-              <Card
-                title="Institute Details"
-                classes={[styles.instituteDetailsCard]}
+                }
+                title="Recent Test Analysis"
+                classes={[styles.recentTestContainer]}
               >
-                <div className={styles.instituteDetails}>
-                  {!instituteDetailsData?.batches && (
-                    <>
-                      <Skeleton height={75} width={160} />
-                      <Skeleton height={75} width={160} />
-                      <Skeleton height={75} width={160} />
-                    </>
-                  )}
-                  {instituteDetailsData?.batches?.map(
-                    (batch: any, idx: number) => (
-                      <InstituteDetails
-                        key={idx}
-                        icon={yellowFlag}
-                        batch={batch.name}
-                        value={batch.totalStudents}
-                      />
-                    )
-                  )}
+                <h2>{recentTest[recentTestIdx]?.name}</h2>
+                <div className={styles.data}>
+                  <SubCard
+                    title="Highest Marks"
+                    content={String(recentTest[recentTestIdx]?.highestMarks)}
+                    icon={greenCrown}
+                    variant="success"
+                  />
+                  <SubCard
+                    title="Average Marks"
+                    content={String(recentTest[recentTestIdx]?.averageMarks)}
+                    icon={yellowFlag}
+                    variant="warning"
+                  />
+                  <SubCard
+                    title="Lowest Marks"
+                    content={String(recentTest[recentTestIdx]?.lowestMarks)}
+                    icon={redWarning}
+                    variant="error"
+                  />
+                  <SubCard
+                    title="Total Appeared"
+                    content={String(recentTest[recentTestIdx]?.totalAppeared)}
+                    icon={blueUsers}
+                    variant="primary"
+                  />
                 </div>
               </Card>
-            </div>
+            </Grid>
+            <Grid item xl={12} md={12} xs={12}>
+              <Card title="Schedule" classes={[styles.calendarImageCard]}>
+                <ScheduleCalendar data={ongoingTests as ITest[]} />
+              </Card>
+            </Grid>
           </Grid>
-          <Grid item xl={12} md={12} xs={12}> 
-            <Card title="Schedule" classes={[styles.calendarImageCard]}>
-              {/* <img src={calendarImage} alt="icon" className={styles.calendarImage} /> */}
-              <CalendarComponent />
-            </Card>
+        </div>
+      ) : (
+        <div className={styles.container}>
+          <Grid container spacing={4}>
+            <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
+              <Card
+                actionBtn={
+                  <StyledMUISelect
+                    label={"Recent Tests"}
+                    options={recentTest.map((test) => ({
+                      name: test.name,
+                      value: test.name,
+                    }))}
+                    value={recentTestValue}
+                    onChange={(e) => {
+                      setrecentTestValue(e);
+                      let test = recentTest.find((test) => test.name === e);
+                      let idx = -1;
+                      if (test) idx = recentTest.indexOf(test);
+                      if (idx !== -1) setrecentTestidx(idx);
+                    }}
+                  />
+                }
+                title="Recent Test Analysis"
+                classes={[styles.recentTestContainer]}
+              >
+                <h2>{recentTest[recentTestIdx]?.name}</h2>
+                <div className={styles.data}>
+                  <SubCard
+                    title="Highest Marks"
+                    content={String(recentTest[recentTestIdx]?.highestMarks)}
+                    icon={greenCrown}
+                    variant="success"
+                  />
+                  <SubCard
+                    title="Average Marks"
+                    content={String(
+                      recentTest[recentTestIdx]?.averageMarks?.toString()
+                    )}
+                    icon={yellowFlag}
+                    variant="warning"
+                  />
+                  <SubCard
+                    title="Lowest Marks"
+                    content={String(recentTest[recentTestIdx]?.lowestMarks)}
+                    icon={redWarning}
+                    variant="error"
+                  />
+                  <SubCard
+                    title="Total Appeared"
+                    content={String(recentTest[recentTestIdx]?.totalAppeared)}
+                    icon={blueUsers}
+                    variant="primary"
+                  />
+                </div>
+              </Card>
+            </Grid>
+
+            <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
+              <div>
+                <Card
+                  title="Ongoing Tests"
+                  styles={{ display: "flex", flexWrap: "wrap" }}
+                  classes={[styles.upcomingTestCard]}
+                >
+                  {ongoingTests?.map((test, i) => (
+                    <ListItem
+                      key={test.id}
+                      id={test.id}
+                      index={i + 1}
+                      title={test.name}
+                      marks={360}
+                      durationHours={
+                        test?.durationInMinutes
+                          ? test.durationInMinutes / 60
+                          : 3
+                      }
+                      mode="online"
+                    />
+                  ))}
+                  {!ongoingTests && (
+                    <Box sx={{ width: "100%" }}>
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                    </Box>
+                  )}
+                </Card>
+                <Card
+                  title="Institute Details"
+                  classes={[styles.instituteDetailsCard]}
+                >
+                  <div className={styles.instituteDetails}>
+                    {!instituteDetailsData?.batches && (
+                      <>
+                        <Skeleton height={75} width={160} />
+                        <Skeleton height={75} width={160} />
+                        <Skeleton height={75} width={160} />
+                      </>
+                    )}
+                    {instituteDetailsData?.batches?.map(
+                      (batch: any, idx: number) => (
+                        <InstituteDetails
+                          key={idx}
+                          icon={yellowFlag}
+                          batch={batch.name}
+                          value={batch.totalStudents}
+                        />
+                      )
+                    )}
+                  </div>
+                </Card>
+              </div>
+            </Grid>
+            <Grid item xl={12} md={12} xs={12}>
+              <Card title="Schedule" classes={[styles.calendarImageCard]}>
+                {/* <img src={calendarImage} alt="icon" className={styles.calendarImage} /> */}
+                <ScheduleCalendar data={getCalendarData()} />
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
-      </div>}
+        </div>
+      )}
       {/* <Sidebar title="Recent Activity">
         {Array(10)
           .fill(0)
@@ -436,7 +445,6 @@ const Home = () => {
       >
         YE CHILDREN HAI
       </CustomModal>
-
     </MainLayout>
   );
 };

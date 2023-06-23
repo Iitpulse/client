@@ -5,7 +5,7 @@ import { APIS, PERMISSIONS } from "../../utils/constants";
 import { Permission } from "./EditRole/EditRole";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { message } from "antd";
 import { useNavigate } from "react-router";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";

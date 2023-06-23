@@ -10,7 +10,7 @@ import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
 import { message, Popconfirm } from "antd";
 import { NavLink } from "react-router-dom";
-import { API_TESTS } from "../../utils/api";
+import { API_TESTS } from "../../utils/api/config";
 import MainLayout from "../../layouts/MainLayout";
 import { columns } from "./utils";
 import AddIcon from "@mui/icons-material/Add";

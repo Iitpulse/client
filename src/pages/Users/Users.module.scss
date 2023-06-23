@@ -58,10 +58,10 @@
       position: relative;
       .inputFields > div {
         margin-left: 0 !important;
-       width:100% !important;
-       >div{
-        padding-right: 16px;
-       }
+        width: 100% !important;
+        > div {
+          padding-right: 16px;
+        }
       }
       .inputFields {
         width: -moz-fit-content;
@@ -70,11 +70,9 @@
         display: flex;
         flex-wrap: wrap;
         overflow-y: auto;
-        
-        
       }
       button {
-        margin: 1rem;
+        // margin: 1rem;
         width: -moz-fit-content;
         width: fit-content;
       }
@@ -135,10 +133,10 @@
     }
   }
 }
-.icons{
+.icons {
   height: 40px;
 }
-.cacheIcon{
+.cacheIcon {
   @extend .icons;
   margin-bottom: 7px !important;
 }
