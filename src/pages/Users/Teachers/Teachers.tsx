@@ -36,13 +36,24 @@ import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
 import { useTestContext } from "../../../utils/contexts/TestContext";
+import AddNewTeacher from "./AddNewTeacher";
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
   openModal: boolean;
+  isDrawerOpen: boolean;
+  setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleCloseModal: () => void;
   loading: boolean;
-}> = ({ activeTab, teacher, openModal, handleCloseModal, loading }) => {
+}> = ({
+  activeTab,
+  teacher,
+  isDrawerOpen,
+  setIsDrawerOpen,
+  openModal,
+  handleCloseModal,
+  loading,
+}) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [current, setCurrent] = useState<any>(null);
@@ -248,6 +259,13 @@ const Teachers: React.FC<{
         loading={loading}
         scroll={{ x: 100 }}
       />
+      <AddNewTeacher
+        open={isDrawerOpen}
+        setOpen={setIsDrawerOpen}
+        teacher={teacher}
+        title="Add a Teacher"
+        handleCloseModal={handleCloseModal}
+      />
       <Sidebar
         title="User Details"
         open={isSidebarOpen}
@@ -275,9 +293,9 @@ const Teachers: React.FC<{
           handleEditModal={() => {}}
         />
       </Sidebar>
-      {openModal && activeTab === 1 && (
+      {/* {openModal && activeTab === 1 && (
         <Teacher teacher={teacher} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };

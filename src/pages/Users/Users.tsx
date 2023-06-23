@@ -296,6 +296,8 @@ const Users = () => {
         </TabPanel>
         <TabPanel value={tab} index={1}>
           <Teachers
+            isDrawerOpen={isDrawerOpen}
+            setIsDrawerOpen={setIsDrawerOpen}
             teacher={teacher}
             activeTab={tab}
             openModal={isDrawerOpen}

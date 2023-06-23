@@ -18,10 +18,11 @@ import { z } from "zod";
 import {
   StudentType,
   studentSchema,
+  teacherSchema,
   userSchema,
 } from "../../../utils/schemas/user";
 import dayjs, { Dayjs } from "dayjs";
-import { API_USERS } from "../../../utils/api/config";
+import { API_QUESTIONS, API_USERS } from "../../../utils/api/config";
 import {
   convertFieldValue,
   convertStringToValidationFormat,
@@ -30,11 +31,10 @@ import {
   validateField,
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
-
 const { Option } = Select;
 
-interface IAddNewStudent {
-  student?: UserProps;
+interface IAddNewTeacher {
+  teacher?: UserProps;
   title?: string;
   handleCloseModal: () => void;
   edit?: {
@@ -44,15 +44,14 @@ interface IAddNewStudent {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
+const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
   const [form] = Form.useForm();
   // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
   const [roleDetails, setRoleDetails] = useState<any>({
     options: [],
     actual: [],
   });
-  const [batchOptions, setBatchOptions] = useState<any>([]);
-
+  const [subjectOptions, setSubjectOptions] = useState<any>([]);
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
@@ -64,36 +63,23 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     name: null,
     email: null,
     password: null,
+    contact: {
+      convert: (value: any) => parseInt(value),
+      revert: (value: number) => value.toString(),
+    },
     dob: {
       convert: (value: Dayjs) =>
         value ? dayjs(value).format("DD-MM-YYYY") : undefined,
       revert: (value: string) =>
         value ? dayjs(value, "DD-MM-YYYY").toDate() : null,
     },
-    gender: null,
-    roles: {
-      convert: (values: string[]) => {
-        const roles = values?.map((value: string) => {
-          const role = roleDetails.actual.find(
-            (role: any) => role.id === value
-          );
-          return role;
-        });
-        return roles;
-      },
-      revert: (roles: any[]) => roles?.map((role: any) => role.id),
-    },
-    contact: {
-      convert: (value: any) => parseInt(value),
-      revert: (value: number) => value.toString(),
-    },
-    address: null,
-    institute: null,
     city: null,
     state: null,
     isEmailVerified: null,
     isPhoneVerified: null,
-    userType: () => "student",
+    institute: null,
+    userType: () => "teacher",
+    address: null,
     validity: {
       convert: (value: Dayjs[]) =>
         value
@@ -107,28 +93,25 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           ? [dayjs(value.from, "DD-MM-YYYY"), dayjs(value.to, "DD-MM-YYYY")]
           : [],
     },
+    subjects: null,
+
+    gender: null,
+    roles: {
+      convert: (values: string[]) => {
+        const roles = values?.map((value: string) => {
+          const role = roleDetails.actual.find(
+            (role: any) => role.id === value
+          );
+          return role;
+        });
+        return roles;
+      },
+      revert: (roles: any[]) => roles?.map((role: any) => role.id),
+    },
+    previousTests: null,
     createdBy: null,
     createdAt: null,
     modifiedAt: null,
-    parentDetails: {
-      name: null,
-      contact: {
-        convert: (value: any) => parseInt(value),
-        revert: (value: number) => value.toString(),
-      },
-    },
-    batch: null,
-    standard: {
-      convert: (value: any) => parseInt(value),
-      revert: (value: number) => value.toString(),
-    },
-    stream: null,
-    medium: null,
-    school: null,
-    attemptedTests: null,
-
-    //Field to be removed later
-    joiningCode: null,
   };
 
   const onClose = () => {
@@ -137,43 +120,35 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
   };
 
   async function onFinish(values: any) {
-    const res = await API_USERS().post(`/student/create`, { ...values });
-    message.success("Student created successfully");
+    const res = await API_USERS().post(`/teacher/create`, { ...values });
+    message.success("Teacher created successfully");
     console.log(res);
   }
 
   function onFinishFailed(errorInfo: any) {
-    message.error("Student creation failed");
+    message.error("Teacher creation failed");
     console.log("Failed:", errorInfo);
   }
 
   async function validateForm() {
     try {
       const additionalValues = {
-        userType: "student",
+        userType: "teacher",
         createdBy: {
           id: userCtx?.currentUser?.id,
           userType: userCtx?.currentUser?.userType,
         },
-        createdAt: dayjs().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
-        modifiedAt: dayjs().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
-        attemptedTests: [],
+        createdAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
+        modifiedAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
+        previousTests: [],
         isEmailVerified: false,
         isPhoneVerified: false,
-
-        //Field to be removed later
-        joiningCode: (() => {
-          const batch = batchOptions.find(
-            (batch: { value: string; label: string; joiningCode: string }) =>
-              batch.value === form.getFieldValue("batch")
-          );
-          return batch.joiningCode;
-        })(),
+        subjects: [],
       };
       const result = performZodValidation(
         form,
         conversionObject,
-        studentSchema,
+        teacherSchema,
         additionalValues
       );
       console.log(result);
@@ -203,18 +178,19 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
       const actual = res.data;
       setRoleDetails({ options, actual });
     }
-    async function getBatchOption() {
-      const requestedFields = "name,id,joiningCode";
-      const res = await API_USERS().get(`/batch/all?fields=${requestedFields}`);
-      setBatchOptions(
-        res.data?.map((item: any) => ({
-          label: item.name,
-          value: item._id,
-          joiningCode: item.joiningCode,
-        }))
-      );
+
+    async function getSubjectsOption() {
+      const res = await API_QUESTIONS().get(`/subject/subjects`);
+      const options = res.data?.map((item: any) => ({
+        label: item.name,
+        value: item._id,
+      }));
+
+      console.log({ options });
+      setSubjectOptions(options);
     }
-    getBatchOption();
+
+    getSubjectsOption();
     getRolesOption();
   }, []);
 
@@ -232,7 +208,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
             <Button
               onClick={() => {
                 document
-                  .getElementById("studentUserForm")
+                  .getElementById("teacherUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
@@ -247,7 +223,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
       >
         <Form
           form={form}
-          id="studentUserForm"
+          id="teacherUserForm"
           layout="vertical"
           onFinish={validateForm}
           // onFinishFailed={handleFinishFailed}
@@ -279,7 +255,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
               >
                 <Input.Password placeholder="Please enter a password" />
               </Form.Item>
-            </Col>
+            </Col>{" "}
             <Col span={12}>
               <Form.Item
                 name="dob"
@@ -343,89 +319,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
               </Form.Item>
             </Col>
           </Row>
-          <SectionHeader title="Parent Details" divider="above" />
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="parentDetails-name"
-                label="Parent Name"
-                rules={getRules("parentDetails-name")}
-              >
-                <Input
-                  style={{ width: "100%" }}
-                  placeholder="Please enter a name"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="parentDetails-contact"
-                label="Parent Contact"
-                rules={getRules("parentDetails-contact")}
-              >
-                <Input
-                  type="number"
-                  style={{ width: "100%" }}
-                  placeholder="Please enter a contact"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <SectionHeader title="Academic Details" divider="above" />
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="standard"
-                label="Standard"
-                rules={getRules("standard")}
-              >
-                <Select placeholder="Please choose a standard">
-                  <Option value="11">11 th</Option>
-                  <Option value="12">12 th</Option>
-                  <Option value="13">Dropper</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="school"
-                label="School"
-                rules={getRules("school")}
-              >
-                <Input placeholder="Please enter an school name" />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="stream"
-                label="Stream"
-                rules={getRules("stream")}
-              >
-                <Select placeholder="Please choose a stream">
-                  <Option value="PCM">PCM</Option>
-                  <Option value="PCB">PCB</Option>
-                  <Option value="Commerce">Commerce</Option>
-                  <Option value="male">Other Stream 1</Option>
-                  <Option value="female">Other Stream 2</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="medium"
-                label="Medium"
-                rules={getRules("medium")}
-              >
-                <Select placeholder="Please choose a medium">
-                  <Option value="hindi">हिंदी</Option>
-                  <Option value="english">English</Option>
-                  <Option value="other">other</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+
           <SectionHeader title="Other Details" divider="above" />
           <Row gutter={16}>
             <Col span={12}>
@@ -438,11 +332,15 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="batch" label="Batch" rules={getRules("batch")}>
-                <Select placeholder="Please choose a batch">
-                  {batchOptions?.map((option: any) => (
-                    <Select.Option key={option.value} value={option.value}>
-                      {option.label}
+              <Form.Item
+                name="subjects"
+                label="Subjects"
+                rules={getRules("subjects")}
+              >
+                <Select mode="tags" placeholder="Please choose a Subject/s">
+                  {subjectOptions.map((item: any) => (
+                    <Select.Option key={item.value} value={item.value}>
+                      {item.label}
                     </Select.Option>
                   ))}
                 </Select>
@@ -495,7 +393,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     </>
   );
 };
-export default AddNewStudent;
+export default AddNewTeacher;
 
 const SectionHeader = ({
   title,

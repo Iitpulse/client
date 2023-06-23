@@ -18,6 +18,7 @@ import { API_USERS } from "../../../utils/api/config";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import AddNewOperator from "./AddNewOperator";
 
 const Operators: React.FC<{
   activeTab: number;
@@ -86,6 +87,13 @@ const Operators: React.FC<{
 
   return (
     <div className={styles.container}>
+      <AddNewOperator
+        open={openModal}
+        setOpen={handleCloseModal}
+        operator={operator}
+        title="Add an Admin"
+        handleCloseModal={handleCloseModal}
+      />
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -118,9 +126,9 @@ const Operators: React.FC<{
         dataSource={operators as any}
         loading={loading}
       />
-      {openModal && activeTab === 3 && (
+      {/* {openModal && activeTab === 3 && (
         <Operator operator={operator} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };

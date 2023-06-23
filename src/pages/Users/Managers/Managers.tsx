@@ -18,6 +18,7 @@ import {
 import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import AddNewManager from "./AddNewManager";
 
 const Managers: React.FC<{
   activeTab: number;
@@ -89,6 +90,13 @@ const Managers: React.FC<{
         dataSource={managers as any}
         loading={loading}
       />
+      <AddNewManager
+        open={openModal}
+        setOpen={handleCloseModal}
+        manager={manager}
+        title="Add an Admin"
+        handleCloseModal={handleCloseModal}
+      />
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -116,9 +124,9 @@ const Managers: React.FC<{
           handleEditModal={() => {}}
         />
       </Sidebar>
-      {openModal && activeTab === 4 && (
+      {/* {openModal && activeTab === 4 && (
         <Manager manager={manager} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };
