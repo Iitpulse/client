@@ -2,7 +2,7 @@ import styles from "./Result.module.scss";
 import { useParams } from "react-router";
 import { useContext, useEffect, useState } from "react";
 import { CircularProgress as MUICircularProgress, styled } from "@mui/material";
-import { API_TESTS } from "../../utils/api";
+import { API_TESTS } from "../../utils/api/config";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";

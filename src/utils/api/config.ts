@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AUTH_TOKEN } from "./constants";
+import { AUTH_TOKEN } from "../constants";
 
 export const API_QUESTIONS = () =>
   axios.create({

@@ -9,7 +9,7 @@ import DocxReader from "../../../components/DocxReader/DocxReader";
 import MainLayout from "../../../layouts/MainLayout";
 import { AllQuestionsTable } from "../Questions";
 import styles from "./BulkWord.module.scss";
-import { API_QUESTIONS, API_TESTS } from "../../../utils/api";
+import { API_QUESTIONS, API_TESTS } from "../../../utils/api/config";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import { Button } from "../../../components";
 import {

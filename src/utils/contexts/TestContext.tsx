@@ -9,7 +9,7 @@ import { TEST_ACTION, TEST_ACTION_TYPES } from "../actions";
 import { ITest } from "../interfaces";
 import TestReducer from "../reducers/TestReducer";
 import axios from "axios";
-import { API_QUESTIONS, API_TESTS } from "../api";
+import { API_QUESTIONS, API_TESTS } from "../api/config";
 import { AuthContext } from "../auth/AuthContext";
 
 interface ProviderProps {
@@ -54,8 +54,10 @@ export const TestContext = createContext<{
   recentTest: recenTestContext[];
   fetchTest: (
     type: "active" | "ongoing" | "inactive" | "expired",
+    excludeAttempted?: boolean,
     cb?: (error: any, data: any[]) => void
   ) => void;
+  fetchTestByID: (testId: string) => Promise<any>;
 }>({
   state: defaultTestContext,
   dispatch: () => {},
@@ -63,6 +65,7 @@ export const TestContext = createContext<{
   subjects: [],
   recentTest: defaultRecentTestContext,
   fetchTest: () => {},
+  fetchTestByID: async () => {},
 });
 
 function getActionTypeFromTestType(status: string) {
@@ -90,17 +93,19 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   // console.log(currentUser, userDetails);
   async function fetchTest(
     status: "active" | "ongoing" | "inactive" | "expired",
+    excludeAttempted: boolean = false,
     cb?: (error: any, data: any[]) => void
   ) {
     try {
       let batch = "";
       if (currentUser?.userType === "student" && userDetails?.batch)
         batch = userDetails?.batch;
-      console.log(batch, currentUser?.userType, userDetails);
+      // console.log(batch, currentUser?.userType, userDetails);
       const res = await API_TESTS().get(`/test`, {
         params: {
           status,
           batch,
+          excludeAttempted,
         },
       });
       if (cb) cb(null, res.data);
@@ -113,6 +118,15 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
     } catch (err) {
       console.log(err);
       if (cb) cb(err, []);
+    }
+  }
+
+  async function fetchTestByID(testId: string) {
+    try {
+      return API_TESTS().get(`/test/${testId}`);
+    } catch (err) {
+      console.log(err);
+      return null;
     }
   }
 
@@ -139,16 +153,17 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
           count: 5,
         },
       });
-      // console.log("recentTests :", { res });
+      console.log("recentTests :", { res });
       if (res.data?.length > 0) {
         // console.log({ res });
         const recent = res.data;
         // console.log(recent);
+        // console.log({ recent });
         setRecentTest(recent);
       }
     }
     if (userDetails) {
-      fetchTest("ongoing");
+      fetchTest("ongoing", true);
     }
     fetchExams();
     fetchSubjects();
@@ -157,7 +172,15 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
 
   return (
     <TestContext.Provider
-      value={{ state, dispatch, exams, subjects, recentTest, fetchTest }}
+      value={{
+        state,
+        dispatch,
+        exams,
+        subjects,
+        recentTest,
+        fetchTest,
+        fetchTestByID,
+      }}
     >
       {children}
     </TestContext.Provider>
@@ -165,3 +188,5 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
 };
 
 export default TestsContextProvider;
+
+export const useTestContext = () => useContext(TestContext);

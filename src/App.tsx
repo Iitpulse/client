@@ -17,6 +17,7 @@ import {
   Error,
   DetailedAnalysis,
   StudentRegister,
+  PasswordReset,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -28,7 +29,6 @@ import CurrentContextProvider from "./utils/contexts/CurrentContext";
 import CreatePattern from "./pages/Pattern/CreatePattern";
 import CreateQuestion from "./pages/Questions/CreateQuestion";
 import "./App.css";
-import DocxReader from "./components/DocxReader/DocxReader";
 import BulkWord from "./pages/Questions/BulkWord/BulkWord";
 
 const App = () => {
@@ -53,7 +53,7 @@ const App = () => {
   // });
   return (
     <div className={styles.container}>
-      <Router>
+      <Router basename="/">
         <AuthContextProvider>
           <PermissionsContextProvider>
             <UsersContextProvider>
@@ -135,6 +135,12 @@ const App = () => {
                       }
                     />
                     <Route
+                      path="/test/edit/:testId"
+                      element={
+                        <PrivateRoute component={CreateTest} name="Edit Test" />
+                      }
+                    />
+                    <Route
                       path="/test/result/:testName/:testExamName/:testId"
                       element={
                         <PrivateRoute component={Result} name="Results" />
@@ -164,7 +170,10 @@ const App = () => {
                     <Route
                       path="/questionsnew"
                       element={
-                        <PrivateRoute component={QuestionsNew} name="QuestionsNew" />
+                        <PrivateRoute
+                          component={QuestionsNew}
+                          name="QuestionsNew"
+                        />
                       }
                     />
                     <Route
@@ -203,6 +212,7 @@ const App = () => {
                       path="/student-register"
                       element={<StudentRegister />}
                     />
+                    <Route path="/reset-password" element={<PasswordReset />} />
                   </Routes>
                 </TestsContextProvider>
               </CurrentContextProvider>

@@ -4,7 +4,7 @@
 
 .container {
   width: 100%;
-  padding: 1.5rem 0;
+  // padding: 1.5rem 0;
   position: relative;
   .formContainer {
     // background: white;
@@ -35,9 +35,6 @@
     > div:nth-child(3) {
       min-width: 25%;
     }
-    // > div:nth-child(8) {
-    //   width: 250px;
-    // }
   }
   .main {
     background: white;
@@ -52,6 +49,7 @@
       @extend .flexRow;
       justify-content: space-between;
       width: 100%;
+<<<<<<< HEAD
       padding: 0 1.5rem;
       :global {
         .ant-input-search .ant-input-group .ant-input-affix-wrapper:not(:last-child) {
@@ -62,12 +60,13 @@
           border-radius: 0 6px 6px 0 !important;
         }
       }
+=======
+>>>>>>> 271c2c0f2d403bc3f290c779c0866ac4d7879d3b
     }
     .searchAndPrint2 {
       @extend .flexRow;
       justify-content: end;
       width: 100%;
-      padding: 0 1.5rem;
     }
     .filters {
       flex: 1;
@@ -223,7 +222,10 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  > span {
+    margin-left: 0.5rem;
+  }
 }
 .footer {
   background-color: rgb(245, 245, 245);
@@ -321,4 +323,9 @@
     background-color: rgba(0, 0, 0, 0.03);
     border: 1px solid rgba(0, 0, 0, 0.05);
   }
+}
+.toggleProofRead {
+  @extend .flexRow;
+  justify-content: flex-start;
+  gap: 1rem;
 }

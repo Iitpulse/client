@@ -31,13 +31,18 @@ import { useNavigate } from "react-router-dom";
 import { Grid, IconButton } from "@mui/material";
 import logo from "../../assets/images/logo.svg";
 import { saveAs } from "file-saver";
-import { DeleteOutline, Visibility } from "@mui/icons-material";
+import {
+  CheckCircle,
+  DeleteOutline,
+  Visibility,
+  Warning,
+} from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
-import { API_QUESTIONS } from "../../utils/api";
+import { API_QUESTIONS } from "../../utils/api/config";
 import PrintIcon from "@mui/icons-material/Print";
 import sheetIcon from "../../assets/icons/sheets.svg";
 import MainLayout from "../../layouts/MainLayout";
-import { Divider, message, Select, Tag } from "antd";
+import { Badge, Divider, message, Select, Tag } from "antd";
 import { ToggleButton } from "../../components";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
 import Edit from "@mui/icons-material/Edit";
@@ -539,9 +544,9 @@ const Questions = () => {
                     />
                     <div className={styles.searchAndPrint2}>
                       <div style={{ margin: "0 0.5rem" }}>
-                        <IconButton onClick={handlePrint}>
+                        {/* <IconButton onClick={handlePrint}>
                           <PrintIcon />
-                        </IconButton>
+                        </IconButton> */}
 
                         <IconButton>
                           <CSVLink filename={"Questions.csv"} data={questions}>
@@ -1164,15 +1169,14 @@ export const AllQuestionsTable: React.FC<{
                 {!noEdit && (
                   <>
                     <div className={styles.toggleButton}>
-                      Proof Read
-                      <ToggleButton
-                        checked={question.isProofRead}
-                        stopPropagation
-                        onChange={(checked: any) => {
-                          if (handleToggleProofRead)
-                            handleToggleProofRead(checked, question);
-                        }}
-                      />
+                      <p>Proof Read</p>
+                      <span>
+                        {question.isProofRead ? (
+                          <CheckCircle color="success" />
+                        ) : (
+                          <Warning color="error" />
+                        )}
+                      </span>
                     </div>
                     <IconButton
                       onClick={() =>

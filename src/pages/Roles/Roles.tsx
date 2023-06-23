@@ -42,8 +42,14 @@ const Roles = () => {
     (id: string) => {
       try {
         const res = deleteRole(id);
-        console.log(res);
-        message.success("Role deleted successfully");
+        // console.log(res);
+        res.then(res =>{
+          message.success("Role deleted successfully");
+
+        }).catch(e =>{
+
+          message.error("Something wrong occured");
+        })
       } catch (err) {
         message.error("Something wrong occured");
         console.log(err);

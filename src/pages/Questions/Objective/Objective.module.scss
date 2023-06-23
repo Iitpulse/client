@@ -6,11 +6,11 @@
     color: green;
     // font-weight: 700;
     position: relative;
-    &::after {
-      content: "\2713";
-      bottom: 0;
-      position: absolute;
-    }
+    // &::after {
+    //   content: "\2713";
+    //   bottom: 0;
+    //   position: absolute;
+    // }
   }
   .header {
     @extend .flexRow;
@@ -19,21 +19,21 @@
       font-weight: 600;
       text-transform: uppercase;
     }
-    .languages {
-      @extend .flexRow;
-      // border: 2px solid var(--clr-primary);
-      overflow: hidden;
-      div {
-        padding: 0.3rem 1rem;
-        border-radius: 5px;
-        cursor: pointer;
-        color: rgba(0, 0, 0, 0.4);
-      }
-      .selected {
-        background: var(--clr-primary);
-        color: white;
-      }
-    }
+    // .languages {
+    //   @extend .flexRow;
+    //   // border: 2px solid var(--clr-primary);
+    //   overflow: hidden;
+    //   div {
+    //     padding: 0.3rem 1rem;
+    //     border-radius: 5px;
+    //     cursor: pointer;
+    //     color: rgba(0, 0, 0, 0.4);
+    //   }
+    //   .selected {
+    //     background: var(--clr-primary);
+    //     color: white;
+    //   }
+    // }
   }
   .tabsContainer {
     @extend .flexRow;
@@ -48,6 +48,7 @@
   }
   .tabs {
     margin-top: 1rem;
+    width: 100%;
   }
   .editor {
     margin-top: 1.2rem;

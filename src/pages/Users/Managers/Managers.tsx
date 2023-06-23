@@ -3,7 +3,7 @@ import closeIcon from "../../../assets/icons/close-circle.svg";
 import clsx from "clsx";
 import styles from "./Managers.module.scss";
 import { Button, CustomTable, Sidebar, UserProfile } from "../../../components";
-import { Popconfirm, Table } from "antd";
+import { Popconfirm, Table, message } from "antd";
 import { rowSelection } from "../Users";
 import { useContext, useEffect, useState } from "react";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
@@ -15,7 +15,7 @@ import {
   MUIChipsAutocomplete,
   MUISimpleAutocomplete,
 } from "../../../components";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
 
@@ -188,37 +188,37 @@ const Manager: React.FC<{
 
   async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
-    let newValues = { ...values };
+    try {
+      message.loading("Creating Manager User...", 0);
+      let newValues = { ...values };
 
-    newValues.userType = "manager";
-    newValues.createdBy = {
-      id: currentUser?.id,
-      userType: currentUser?.userType,
-    };
-    newValues.institute = currentUser?.instituteId;
-    newValues.roles = [
-      {
-        id: "ROLE_MANAGER",
+      newValues.userType = "manager";
+      newValues.createdBy = {
+        id: currentUser?.id,
+        userType: currentUser?.userType,
+      };
+      newValues.institute = currentUser?.instituteId;
+      newValues.roles = [
+        {
+          id: "ROLE_MANAGER",
+          from: new Date().toISOString(),
+          to: new Date().toISOString(),
+        },
+      ];
+      newValues.createdAt = new Date().toISOString();
+      newValues.modifiedAt = new Date().toISOString();
+      newValues.previousTests = [];
+      newValues.validity = {
         from: new Date().toISOString(),
         to: new Date().toISOString(),
-      },
-    ];
-    newValues.createdAt = new Date().toISOString();
-    newValues.modifiedAt = new Date().toISOString();
-    newValues.previousTests = [];
-    newValues.validity = {
-      from: new Date().toISOString(),
-      to: new Date().toISOString(),
-    };
-    console.log({ newValues });
+      };
 
-    const res = await API_USERS().post(`/manager/create`, newValues);
-    // console.log({ res });
-
-    if (res.status === 200) {
-      return alert("Succesfully created user");
-    } else {
-      return alert("Some error occured");
+      const res = await API_USERS().post(`/manager/create`, newValues);
+      message.destroy();
+      message.success("Manager User Created Successfully");
+    } catch (error: any) {
+      message.destroy();
+      message.error(error.message);
     }
 
     // handleReset();

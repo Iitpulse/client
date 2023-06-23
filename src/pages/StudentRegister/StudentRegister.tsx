@@ -10,8 +10,9 @@ import PersonalDetails, {
 import AcademicDetails, {
   AcademicDetailsValues,
 } from "./components/AcademicDetails";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { message } from "antd";
+import logo from "../../assets/images/logo.svg";
 
 const StudentRegister: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -85,6 +86,9 @@ const StudentRegister: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <nav className={styles.flexRow}>
+        <img src={logo} alt="logo" />
+      </nav>
       <div className={styles.content}>
         <h2>Student Registration</h2>
         <div className={styles.stepsHeader}>

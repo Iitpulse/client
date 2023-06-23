@@ -7,7 +7,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import logo from "../../assets/images/logo.svg";
 import { LinearProgress, TextField } from "@mui/material";
-import { API_USERS } from "../../utils/api";
+import { API_USERS } from "../../utils/api/config";
 import { AUTH_TOKEN } from "../../utils/constants";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
@@ -140,10 +140,22 @@ const Login = () => {
           type="password"
           disabled={loading}
         /> */}
-          <Button title="Submit" type="submit" disabled={loading}>
-            Log in
-          </Button>
-          <Link to="/">Forgot your password?</Link>
+          <div className={styles.actionBtns}>
+            <Button title="Submit" type="submit" disabled={loading}>
+              Log in
+            </Button>
+            <Link to="/student-register">
+              <Button
+                title="signup"
+                type="button"
+                variant="outlined"
+                disabled={loading}
+              >
+                Sign up
+              </Button>
+            </Link>
+          </div>
+          <Link to="/reset-password">Forgot your password?</Link>
         </form>
       </div>
     </div>

@@ -14,7 +14,14 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import axios from "axios";
 import { APIS } from "../../../utils/constants";
-import { Input, Space, Table, Button as AntButton, Popconfirm } from "antd";
+import {
+  Input,
+  Space,
+  Table,
+  Button as AntButton,
+  Popconfirm,
+  message,
+} from "antd";
 import { DataType, rowSelection } from "../Users";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import AddUserModal from "../components/AddUserModal";
@@ -25,9 +32,10 @@ import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
 import { Grid, IconButton } from "@mui/material";
 import { SearchOutlined } from "@ant-design/icons";
-import { API_USERS } from "../../../utils/api";
+import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import { useTestContext } from "../../../utils/contexts/TestContext";
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
@@ -288,6 +296,7 @@ const Teacher: React.FC<{
     options: [],
     actual: [],
   });
+  const [subjects, setSubjects] = useState([]);
   const [error, setError] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
     email: {
@@ -331,6 +340,7 @@ const Teacher: React.FC<{
     },
   });
   const { currentUser } = useContext(AuthContext);
+  const { subjects: globalSubjects } = useTestContext();
 
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
@@ -339,51 +349,52 @@ const Teacher: React.FC<{
   }
 
   async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
-    console.log("submitting");
     e.preventDefault();
-    let newValues = { ...values };
-
-    newValues.userType = "teacher";
-    newValues.createdBy = {
-      id: currentUser?.id,
-      userType: currentUser?.userType,
-    };
-    newValues.institute = currentUser?.instituteId;
-    newValues.roles = [
-      {
-        id: "ROLE_TEACHER",
+    message.loading("Creating User...", 0);
+    try {
+      let newValues = { ...values };
+      newValues.subjects = subjects?.map((subject: any) => ({
+        id: subject._id,
+        name: subject.name,
+      }));
+      newValues.userType = "teacher";
+      newValues.createdBy = {
+        id: currentUser?.id,
+        userType: currentUser?.userType,
+      };
+      newValues.institute = currentUser?.instituteId;
+      newValues.roles = [
+        {
+          id: "ROLE_TEACHER",
+          from: new Date().toISOString(),
+          to: new Date().toISOString(),
+        },
+      ];
+      newValues.createdAt = new Date().toISOString();
+      newValues.modifiedAt = new Date().toISOString();
+      newValues.previousTests = [];
+      newValues.validity = {
         from: new Date().toISOString(),
         to: new Date().toISOString(),
-      },
-    ];
-    newValues.createdAt = new Date().toISOString();
-    newValues.modifiedAt = new Date().toISOString();
-    newValues.previousTests = [];
-    newValues.validity = {
-      from: new Date().toISOString(),
-      to: new Date().toISOString(),
-    };
-    console.log({ newValues });
+      };
 
-    const res = await API_USERS().post(`/teacher/create`, newValues);
-    // console.log({ res });
-
-    if (res.status === 200) {
-      return alert("Succesfully created user");
-    } else {
-      return alert("Some error occured");
+      const res = await API_USERS().post(`/teacher/create`, newValues);
+      message.destroy();
+      message.success("Teacher Created Successfully");
+    } catch (error) {
+      message.destroy();
+      message.error("Error Creating Teacher");
     }
-
-    // handleReset();
   }
+
   const userCtx = useContext(AuthContext);
-  console.log(userCtx);
+
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
   Object.values(rolesAllowed).map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-  console.log(permissions);
+
   useEffect(() => {
     async function getRolesOption() {
       const res = await API_USERS().get(`/roles/all`);
@@ -409,6 +420,7 @@ const Teacher: React.FC<{
     }
     getRolesOption();
   }, []);
+
   return (
     <div className={clsx(styles.studentContainer, styles.modal)}>
       <AddUserModal
@@ -548,6 +560,14 @@ const Teacher: React.FC<{
                   onChange={handleChangeValues}
                   label="Emergency Contact"
                   variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} md={8} lg={8} xl={4}>
+                <MUIChipsAutocomplete
+                  label="Subject(s)"
+                  options={globalSubjects}
+                  onChange={setSubjects}
+                  value={subjects}
                 />
               </Grid>
             </Grid>

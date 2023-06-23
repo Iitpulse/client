@@ -1,6 +1,6 @@
 import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
-import { API_USERS } from "../api";
+import { API_USERS } from "../api/config";
 import { AuthContext } from "../auth/AuthContext";
 import {
   IUserStudent,

@@ -10,7 +10,7 @@ import MUISimpleAutocomplete from "./MUISimpleAutocomplete";
 import { Table } from "antd";
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
-import { API_QUESTIONS } from "../../../utils/api";
+import { API_QUESTIONS } from "../../../utils/api/config";
 
 interface Props {
   open: boolean;
