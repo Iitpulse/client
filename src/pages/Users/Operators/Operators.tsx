@@ -18,6 +18,7 @@ import { API_USERS } from "../../../utils/api/config";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import AddNewOperator from "./AddNewOperator";
 
 const Operators: React.FC<{
   activeTab: number;
@@ -86,6 +87,13 @@ const Operators: React.FC<{
 
   return (
     <div className={styles.container}>
+      <AddNewOperator
+        open={openModal}
+        setOpen={handleCloseModal}
+        operator={operator}
+        title="Add an Admin"
+        handleCloseModal={handleCloseModal}
+      />
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -118,9 +126,9 @@ const Operators: React.FC<{
         dataSource={operators as any}
         loading={loading}
       />
-      {openModal && activeTab === 3 && (
+      {/* {openModal && activeTab === 3 && (
         <Operator operator={operator} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };
@@ -134,11 +142,14 @@ const Operator: React.FC<{
   const { uploadedBy, handleReset } = props.operator;
 
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([
+    { name: "Operator", value: "ROLE_OPERATOR" },
+  ]);
   const [rolesInfo, setRolesInfo] = useState({
     options: [],
     actual: [],
   });
+  console.log({ rolesInfo });
   const [error, setError] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
     email: {
@@ -413,7 +424,7 @@ const Operator: React.FC<{
                   value={roles}
                 />
               </Grid>
-              <Grid item xs={12} md={12} lg={12} xl={8}>
+              {/* <Grid item xs={12} md={12} lg={12} xl={8}>
                 <StyledMUITextField
                   required
                   className="largeWidthInput"
@@ -434,7 +445,7 @@ const Operator: React.FC<{
                   label="Permanent Address"
                   variant="outlined"
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
           </div>
         </form>

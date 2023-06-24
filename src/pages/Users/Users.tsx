@@ -228,11 +228,21 @@ const Users = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <Tabs value={tab} onChange={handleChangeTab}>
-            {permissions.includes("READ_STUDENT") && <Tab label="Students" />}
-            {permissions.includes("READ_TEACHER") && <Tab label="Teachers" />}
-            {permissions.includes("READ_ADMIN") && <Tab label="Admins" />}
-            {permissions.includes("READ_OPERATOR") && <Tab label="Operators" />}
-            {permissions.includes("READ_MANAGER") && <Tab label="Managers" />}
+            {permissions.includes("READ_STUDENT") && (
+              <Tab label="Students" value={0} />
+            )}
+            {permissions.includes("READ_TEACHER") && (
+              <Tab label="Teachers" value={1} />
+            )}
+            {permissions.includes("READ_ADMIN") && (
+              <Tab label="Admins" value={2} />
+            )}
+            {permissions.includes("READ_OPERATOR") && (
+              <Tab label="Operators" value={3} />
+            )}
+            {permissions.includes("READ_MANAGER") && (
+              <Tab label="Managers" value={4} />
+            )}
           </Tabs>
           <div>
             <IconButton className={styles.icons} onClick={handleClickRefresh}>
@@ -286,6 +296,8 @@ const Users = () => {
         </TabPanel>
         <TabPanel value={tab} index={1}>
           <Teachers
+            isDrawerOpen={isDrawerOpen}
+            setIsDrawerOpen={setIsDrawerOpen}
             teacher={teacher}
             activeTab={tab}
             openModal={isDrawerOpen}
