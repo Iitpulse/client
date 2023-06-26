@@ -89,6 +89,7 @@ export const userSchema = z.object({
           permissions: true,
           name: true,
         })
+        .extend({ from: z.string(), to: z.string() })
         .strict()
     ),
   ]), // Since we are using this schema for both create and update, we need to add this union type so that we can use the same schema for both create and update since we are going to use this schema for  create, update functionality and to validate the data we get from backends
