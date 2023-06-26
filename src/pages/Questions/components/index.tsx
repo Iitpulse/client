@@ -46,8 +46,10 @@ export const MUISelect = (props: MUISelectProps) => {
     props.onChange(event.target.value);
   };
   return (
-    <StyledFormControl sx={{ minWidth: 250 }}>
+    <StyledFormControl sx={{ minWidth: 250 }} >
       <InputLabel
+        htmlFor="component-outlined"
+        variant="outlined"
         sx={props.error ? { color: "var(--clr-error)" } : {}}
         id="demo-simple-select-helper-label"
       >
@@ -57,7 +59,7 @@ export const MUISelect = (props: MUISelectProps) => {
         labelId="demo-simple-select-helper-label"
         id="demo-simple-select-helper"
         value={props.state}
-        label="Age"
+        label={props.label}
         onChange={handleChange}
         error={props.error}
         disabled={props.disabled}
@@ -144,7 +146,7 @@ const StyledMUITextField = styled(TextField)(() => {
       backgroundColor: " #f3f3f9",
     },
     ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
+      transform: "translate(9px, -9px) scale(0.75)",
     },
     ".MuiFormLabel-filled": {
       transform: "translate(12px, -9px) scale(0.75)",
@@ -161,7 +163,7 @@ export const StyledMUISelect = styled(MUISelect)(() => {
     },
 
     ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
+      transform: "translate(9px, -9px) scale(0.75)",
     },
     ".MuiFormLabel-filled": {
       transform: "translate(12px, -9px) scale(0.75)",
@@ -183,7 +185,7 @@ const StyledFormControl = styled(FormControl)(() => {
       backgroundColor: "transaprent",
     },
     ".MuiInputLabel-root.Mui-focused": {
-      transform: "translate(12px, -9px) scale(0.75)",
+      transform: "translate(9px, -9px) scale(0.75)",
     },
     ".MuiFormLabel-filled": {
       transform: "translate(12px, -9px) scale(0.75)",
