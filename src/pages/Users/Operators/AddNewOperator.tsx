@@ -18,6 +18,7 @@ import { z } from "zod";
 import {
   StudentType,
   adminSchema,
+  operatorSchema,
   studentSchema,
   teacherSchema,
   userSchema,
@@ -76,8 +77,10 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
     city: null,
     state: null,
     institute: null,
-    userType: () => "teacher",
+    userType: () => "operator",
     address: null,
+    isEmailVerified: false,
+    isPhoneVerified: false,
     validity: {
       convert: (value: Dayjs[]) =>
         value
@@ -141,9 +144,9 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
       const result = performZodValidation(
         form,
         conversionObject,
-        adminSchema,
+        operatorSchema,
         additionalValues
-      );
+      )
       console.log(result);
       await onFinish(result);
     } catch (error) {

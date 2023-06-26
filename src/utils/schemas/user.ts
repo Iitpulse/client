@@ -40,8 +40,8 @@ export const userSchema = z.object({
   state: z.string().min(3).max(255),
   address: z.string().min(3).max(255), //Same to update on backend
   institute: z.string().min(3).max(255),
-  isEmailVerified: z.boolean(),
-  isPhoneVerified: z.boolean(),
+  isEmailVerified: z.boolean().nullish(),
+  isPhoneVerified: z.boolean().nullish(),
   userType: z
     .enum(["student", "teacher", "admin", "superAdmin", "operator", "manager"])
     .refine(

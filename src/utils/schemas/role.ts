@@ -16,4 +16,6 @@ export const roleSchema = z.object({
       name: z.string(),
     })
   ),
+  from: z.string(),
+  to: z.string(),
 });
