@@ -51,7 +51,10 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
     options: [],
     actual: [],
   });
-  const [subjectOptions, setSubjectOptions] = useState<any>([]);
+  const [subjectOptions, setSubjectOptions] = useState<any>({
+    options: [],
+    actual: [],
+  });
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
@@ -93,7 +96,18 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
           ? [dayjs(value.from, "DD-MM-YYYY"), dayjs(value.to, "DD-MM-YYYY")]
           : [],
     },
-    subjects: null,
+    subjects: {
+      convert: (values: string[]) => {
+        const subjects = values?.map((value: string) => {
+          const subject = subjectOptions.actual.find(
+            (subject: any) => subject._id === value
+          );
+          return subject;
+        });
+        return subjects;
+      },
+      revert: (subjects: any[]) => subjects?.map((subject: any) => subject._id),
+    },
 
     gender: null,
     roles: {
@@ -163,7 +177,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
       {
         validateTrigger: "onSubmit",
         validator: (_: any, value: any) =>
-          validateField(fieldName, value, conversionObject, studentSchema),
+          validateField(fieldName, value, conversionObject, teacherSchema),
       },
     ];
   }
@@ -185,9 +199,9 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
         label: item.name,
         value: item._id,
       }));
-
-      console.log({ options });
-      setSubjectOptions(options);
+      const actual = res.data;
+      console.log({ options, actual });
+      setSubjectOptions({ options, actual });
     }
 
     getSubjectsOption();
@@ -338,7 +352,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
                 rules={getRules("subjects")}
               >
                 <Select mode="tags" placeholder="Please choose a Subject/s">
-                  {subjectOptions.map((item: any) => (
+                  {subjectOptions.options?.map((item: any) => (
                     <Select.Option key={item.value} value={item.value}>
                       {item.label}
                     </Select.Option>
