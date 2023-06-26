@@ -108,6 +108,10 @@ const CreatePattern = () => {
         message.error("User not found");
         return;
       }
+      if (!name) {
+        message.error("Pattern Name is required");
+        return;
+      }
       if (!durationInMinutes) {
         message.error("Duration is required");
         return;
@@ -116,10 +120,7 @@ const CreatePattern = () => {
         message.error("Exam is required");
         return;
       }
-      if (!name) {
-        message.error("Pattern Name is required");
-        return;
-      }
+      
 
       if (!sections.length) {
         message.error("Atleast 1 section is required");
@@ -164,6 +165,19 @@ const CreatePattern = () => {
                 message.error(
                   <span>
                     Subsection name is required for{" "}
+                    <strong>Subsection {index + 1}</strong> inside Section{" "}
+                    <strong>{sec.name}</strong>
+                  </span>,
+                  5
+                );
+                areErrors = true;
+                return acc;
+              }
+              console.log({ curr });
+              if (curr.markingScheme.incorrect < 0) {
+                message.error(
+                  <span>
+                    Incorrect marks cannot be negative for{" "}
                     <strong>Subsection {index + 1}</strong> inside Section{" "}
                     <strong>{sec.name}</strong>
                   </span>,

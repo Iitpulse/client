@@ -24,6 +24,9 @@ import { PERMISSIONS } from "../../utils/constants";
 import { Add as AddIcon } from "@mui/icons-material";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { AuthContext } from "../../utils/auth/AuthContext";
+import AddNewStudent from "./Students/AddNewStudent";
+import { Button as AntdButton } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 
 const UserTypesForCards = [
   {
@@ -90,13 +93,11 @@ const defaultValue = {
 
 const Users = () => {
   const userCtx = useContext(AuthContext);
-  // console.log(userCtx);
   const roles = userCtx?.roles;
   let permissions: any = [];
   Object.values(roles).map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-  // console.log(permissions);
   // let isCreatePermitted = usePermission(PERMISSIONS.USER.CREATE_STUDENT);
   const [isCreatePermitted, setIsCreatePermitted] = useState<boolean>(
     permissions.includes("CREATE_STUDENT")
@@ -111,7 +112,7 @@ const Users = () => {
 
   //For Option Menu
   const [selectedUserType, setSelectedUserType] = useState<string>("");
-  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
   // function submitHandler(e: React.FormEvent<HTMLFormElement>) {
   //   e.preventDefault();
@@ -127,7 +128,6 @@ const Users = () => {
 
   const [tab, setTab] = useState(0);
   useEffect(() => {
-    console.log({ permissions });
     switch (tab) {
       case 0:
         setIsCreatePermitted(permissions.includes("CREATE_STUDENT"));
@@ -147,16 +147,15 @@ const Users = () => {
       default:
         break;
     }
-    console.log({ isCreatePermitted });
-  }, [tab]);
+  }, [tab, permissions]);
 
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
-    setOpenModal(false);
+    setIsDrawerOpen(false);
     setTab(newValue);
   };
 
   function handleCloseModal() {
-    setOpenModal(false);
+    setIsDrawerOpen(false);
   }
 
   const {
@@ -229,11 +228,21 @@ const Users = () => {
       <div className={styles.container}>
         <div className={styles.header}>
           <Tabs value={tab} onChange={handleChangeTab}>
-            {permissions.includes("READ_STUDENT") && <Tab label="Students" />}
-            {permissions.includes("READ_TEACHER") && <Tab label="Teachers" />}
-            {permissions.includes("READ_ADMIN") && <Tab label="Admins" />}
-            {permissions.includes("READ_OPERATOR") && <Tab label="Operators" />}
-            {permissions.includes("READ_MANAGER") && <Tab label="Managers" />}
+            {permissions.includes("READ_STUDENT") && (
+              <Tab label="Students" value={0} />
+            )}
+            {permissions.includes("READ_TEACHER") && (
+              <Tab label="Teachers" value={1} />
+            )}
+            {permissions.includes("READ_ADMIN") && (
+              <Tab label="Admins" value={2} />
+            )}
+            {permissions.includes("READ_OPERATOR") && (
+              <Tab label="Operators" value={3} />
+            )}
+            {permissions.includes("READ_MANAGER") && (
+              <Tab label="Managers" value={4} />
+            )}
           </Tabs>
           <div>
             <IconButton className={styles.icons} onClick={handleClickRefresh}>
@@ -243,7 +252,6 @@ const Users = () => {
                 asyncOnClick={true}
                 onClick={(event: any, done: any) => {
                   onClickDownloadCSV();
-                  console.log(csvData);
                   done();
                 }}
               >
@@ -258,12 +266,21 @@ const Users = () => {
               <CachedIcon />
             </IconButton>
             {isCreatePermitted && (
-              <Button
-                onClick={() => setOpenModal(!openModal)}
-                icon={<AddIcon />}
-              >
-                Add New
-              </Button>
+              <>
+                {/* <Button
+                  onClick={() => setOpenModal(!openModal)}
+                  icon={<AddIcon />}
+                >
+                  Add New
+                </Button> */}
+                <AntdButton
+                  type="primary"
+                  onClick={() => setIsDrawerOpen(true)}
+                  icon={<PlusOutlined />}
+                >
+                  New account
+                </AntdButton>
+              </>
             )}
           </div>
         </div>
@@ -271,16 +288,19 @@ const Users = () => {
           <Students
             student={student}
             activeTab={tab}
-            openModal={openModal}
+            isDrawerOpen={isDrawerOpen}
+            setIsDrawerOpen={setIsDrawerOpen}
             handleCloseModal={handleCloseModal}
             loading={loading}
           />
         </TabPanel>
         <TabPanel value={tab} index={1}>
           <Teachers
+            isDrawerOpen={isDrawerOpen}
+            setIsDrawerOpen={setIsDrawerOpen}
             teacher={teacher}
             activeTab={tab}
-            openModal={openModal}
+            openModal={isDrawerOpen}
             handleCloseModal={handleCloseModal}
             loading={loading}
           />
@@ -289,7 +309,7 @@ const Users = () => {
           <Admins
             admin={admin}
             activeTab={tab}
-            openModal={openModal}
+            openModal={isDrawerOpen}
             handleCloseModal={handleCloseModal}
             loading={loading}
           />
@@ -298,7 +318,7 @@ const Users = () => {
           <Operators
             operator={operator}
             activeTab={tab}
-            openModal={openModal}
+            openModal={isDrawerOpen}
             handleCloseModal={handleCloseModal}
             loading={loading}
           />
@@ -308,15 +328,11 @@ const Users = () => {
           <Managers
             manager={manager}
             activeTab={tab}
-            openModal={openModal}
+            openModal={isDrawerOpen}
             handleCloseModal={handleCloseModal}
             loading={loading}
           />
         </TabPanel>
-        {/*       
-      <Sidebar title="Recent Activity">
-          <UserProfile />
-        </Sidebar> */}
       </div>
     </MainLayout>
   );

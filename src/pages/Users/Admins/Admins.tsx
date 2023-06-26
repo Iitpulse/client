@@ -23,6 +23,7 @@ import {
 import { FilterConfirmProps } from "antd/lib/table/interface";
 import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
+import AddNewAdmin from "./AddNewAdmin";
 
 const Admins: React.FC<{
   activeTab: number;
@@ -36,7 +37,7 @@ const Admins: React.FC<{
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const searchInput = useRef<any>(null);
-
+  // const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleSearch = (
     selectedKeys: string[],
     confirm: (param?: FilterConfirmProps) => void,
@@ -196,6 +197,13 @@ const Admins: React.FC<{
         dataSource={admins as any}
         loading={loading}
       />
+      <AddNewAdmin
+        open={openModal}
+        setOpen={handleCloseModal}
+        admin={admin}
+        title="Add an Admin"
+        handleCloseModal={handleCloseModal}
+      />
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -223,9 +231,9 @@ const Admins: React.FC<{
           handleEditModal={() => {}}
         />
       </Sidebar>
-      {openModal && activeTab === 2 && (
+      {/* {openModal && activeTab === 2 && (
         <Admin admin={admin} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };

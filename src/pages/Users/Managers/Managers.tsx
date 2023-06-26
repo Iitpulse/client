@@ -18,6 +18,7 @@ import {
 import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import AddNewManager from "./AddNewManager";
 
 const Managers: React.FC<{
   activeTab: number;
@@ -89,6 +90,13 @@ const Managers: React.FC<{
         dataSource={managers as any}
         loading={loading}
       />
+      <AddNewManager
+        open={openModal}
+        setOpen={handleCloseModal}
+        manager={manager}
+        title="Add an Admin"
+        handleCloseModal={handleCloseModal}
+      />
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -116,9 +124,9 @@ const Managers: React.FC<{
           handleEditModal={() => {}}
         />
       </Sidebar>
-      {openModal && activeTab === 4 && (
+      {/* {openModal && activeTab === 4 && (
         <Manager manager={manager} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };
@@ -131,7 +139,12 @@ const Manager: React.FC<{
 }> = (props) => {
   const { uploadedBy, handleReset } = props.manager;
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([
+    {
+      name: "Manager",
+      value: "ROLE_MANAGER",
+    },
+  ]);
   const { currentUser } = useContext(AuthContext);
   const [rolesInfo, setRolesInfo] = useState({
     options: [],
@@ -407,7 +420,7 @@ const Manager: React.FC<{
                   value={roles}
                 />
               </Grid>
-              <Grid item xs={12} md={12} lg={12} xl={8}>
+              {/* <Grid item xs={12} md={12} lg={12} xl={8}>
                 <StyledMUITextField
                   required
                   className="largeWidthInput"
@@ -428,7 +441,7 @@ const Manager: React.FC<{
                   label="Permanent Address"
                   variant="outlined"
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
           </div>
         </form>
