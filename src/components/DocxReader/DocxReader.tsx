@@ -40,6 +40,7 @@ const DocxReader: React.FC<{
   const readFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoading(true);
     const file = e.target.files?.[0];
+    // console.log(file);
     if (!file) return;
     const formData = new FormData();
     formData.append("file", file);
@@ -48,6 +49,7 @@ const DocxReader: React.FC<{
     //   formData
     // );
     const res = await API_QUESTIONS().post("/utils/parse-docx", formData);
+
     setHtml(res.data?.html);
   };
 

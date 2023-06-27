@@ -136,6 +136,8 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
           id: userCtx?.currentUser?.id,
           userType: userCtx?.currentUser?.userType,
         },
+        isEmailVerified: false,
+        isPhoneVerified: false,
         createdAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
         modifiedAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
       };
@@ -145,7 +147,7 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
         adminSchema,
         additionalValues
       );
-      console.log(result);
+      console.log({ result });
       await onFinish(result);
     } catch (error) {
       onFinishFailed(error);

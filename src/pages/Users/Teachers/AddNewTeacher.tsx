@@ -165,7 +165,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
         teacherSchema,
         additionalValues
       );
-      console.log(result);
+      // console.log(result);
       await onFinish(result);
     } catch (error) {
       onFinishFailed(error);

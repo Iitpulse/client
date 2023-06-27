@@ -120,14 +120,13 @@ const CreatePattern = () => {
         message.error("Exam is required");
         return;
       }
-      
 
       if (!sections.length) {
         message.error("Atleast 1 section is required");
         return;
       }
       const pattern: IPattern = {
-        id: `${currentUser.instituteId}_${name
+        _id: `${currentUser.instituteId}_${name
           .replace(/ /g, "")
           .toUpperCase()}`,
         name,

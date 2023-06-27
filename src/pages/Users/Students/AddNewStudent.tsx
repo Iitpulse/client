@@ -52,6 +52,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     actual: [],
   });
   const [batchOptions, setBatchOptions] = useState<any>([]);
+  const [roles, setRoles] = useState<any>([]);
 
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
@@ -155,12 +156,11 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           id: userCtx?.currentUser?.id,
           userType: userCtx?.currentUser?.userType,
         },
-        createdAt: dayjs().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
-        modifiedAt: dayjs().format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)"),
+        createdAt: dayjs().format("DD-MM-YYYY"),
+        modifiedAt: dayjs().format("DD-MM-YYYY"),
         attemptedTests: [],
-        isEmailVerified: false,
-        isPhoneVerified: false,
-
+        isEmailVerified: null,
+        isPhoneVerified: null,
         //Field to be removed later
         joiningCode: (() => {
           const batch = batchOptions.find(
@@ -176,8 +176,8 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
         studentSchema,
         additionalValues
       );
-      console.log(result);
-      await onFinish(result);
+      console.log({ result });
+      // await onFinish(result);
     } catch (error) {
       onFinishFailed(error);
     }
@@ -200,7 +200,12 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
         label: item.name,
         value: item.id,
       }));
-      const actual = res.data;
+      let actual = res.data;
+      actual = actual.map((item: any) => ({
+        ...item,
+        from: null,
+        to: null,
+      }));
       setRoleDetails({ options, actual });
     }
     async function getBatchOption() {
@@ -217,6 +222,28 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     getBatchOption();
     getRolesOption();
   }, []);
+
+  function setRoleValidity(id: string, value: any) {
+    let rolesData = form.getFieldValue("roles");
+    console.log(rolesData, value, roleDetails);
+    setRoleDetails((prev: any) => {
+      let data = roleDetails.actual.find((a: any) => {
+        return a.id == id;
+      });
+      data = {
+        ...data,
+        from: dayjs(value[0]).format("DD-MM-YYYY"),
+        to: dayjs(value[1]).format("DD-MM-YYYY"),
+      };
+      console.log(data);
+      return {
+        ...prev,
+        actual: [...prev.actual.filter((a: any) => a.id != id), data],
+      };
+    });
+  }
+
+  console.log(roleDetails.actual);
 
   return (
     <>
@@ -467,7 +494,13 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
             </Col> */}
             <Col span={12}>
               <Form.Item name="roles" label="Roles" rules={getRules("roles")}>
-                <Select mode="tags" placeholder="Please choose a role/s">
+                <Select
+                  mode="tags"
+                  placeholder="Please choose a role/s"
+                  onChange={(e) => {
+                    setRoles(e);
+                  }}
+                >
                   {roleDetails.options?.map((option: any) => (
                     <Select.Option key={option.value} value={option.value}>
                       {option.label}
@@ -489,6 +522,33 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 />
               </Form.Item>
             </Col>
+          </Row>
+          <Row style={{ gap: "2.2rem" }}>
+            {/* {form} */}
+            {/* <Col> */}
+            {roles.map((role: any) => {
+              // console.log(role);
+              return (
+                <Form.Item
+                  name={"validity_for_" + role}
+                  label={"Validity for " + role}
+                  key={role}
+                  // rules={getRules("validity")}
+                >
+                  <DatePicker.RangePicker
+                    format="DD-MM-YYYY"
+                    style={{ width: "100%" }}
+                    onChange={(e) => {
+                      // console.log(e, role);
+                      setRoleValidity(role, e);
+                    }}
+                    getPopupContainer={(trigger) => trigger.parentElement!}
+                  />
+                </Form.Item>
+              );
+            })}
+
+            {/* </Col> */}
           </Row>
         </Form>
       </Drawer>

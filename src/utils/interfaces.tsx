@@ -81,7 +81,7 @@ export interface ITest extends ITestTable {
 }
 
 export interface IPattern {
-  id: string; // PT_JEE_MAINS
+  _id: string; // PT_JEE_MAINS
   name: string;
   durationInMinutes: number;
   sections: Array<ISection>;

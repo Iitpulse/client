@@ -20,6 +20,7 @@ import {
   adminSchema,
   studentSchema,
   teacherSchema,
+  managerSchema,
   userSchema,
 } from "../../../utils/schemas/user";
 import dayjs, { Dayjs } from "dayjs";
@@ -75,8 +76,10 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
     },
     city: null,
     state: null,
+    isEmailVerified: null,
+    isPhoneVerified: null,
     institute: null,
-    userType: () => "teacher",
+    userType: () => "manager",
     address: null,
     validity: {
       convert: (value: Dayjs[]) =>
@@ -141,7 +144,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
       const result = performZodValidation(
         form,
         conversionObject,
-        adminSchema,
+        managerSchema,
         additionalValues
       );
       console.log(result);
@@ -156,7 +159,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
       {
         validateTrigger: "onSubmit",
         validator: (_: any, value: any) =>
-          validateField(fieldName, value, conversionObject, studentSchema),
+          validateField(fieldName, value, conversionObject, managerSchema),
       },
     ];
   }

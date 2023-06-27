@@ -32,7 +32,7 @@ import { message, Popconfirm } from "antd";
 import { TestContext, useTestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import MainLayout from "../../layouts/MainLayout";
-import { ZodError, z } from "zod";
+import { ZodError, set, z } from "zod";
 import { getPublishDate, isTestFormFilled } from "./utils/functions";
 import { TestFormSchemaType } from "./utils/types";
 import { useLocation, useParams } from "react-router";
@@ -94,12 +94,13 @@ const CreateTest = () => {
   useEffect(() => {
     setEditMode(pathname?.includes("edit"));
   }, [pathname]);
-
+  console.log({ pattern, sections });
   useEffect(() => {
     async function fetchFullTest() {
       try {
         const res = await fetchTestByID(testId as string);
         const { data } = res;
+        console.log({ data });
         const {
           name,
           description,
@@ -147,18 +148,13 @@ const CreateTest = () => {
         if (batches?.length) {
           setBatches(batches);
         }
+        console.log({ patternId, patternOptions });
         if (patternId) {
-          let patternObj = patternOptions.find((pt) => pt.id === patternId);
+          let patternObj = patternOptions.find((pt) => pt?._id === patternId);
+          console.log({ patternObj });
           if (patternObj?.name) {
             // TODO: Resolve TS Issue, should not be any
-            setPattern((prev: any) => {
-              if (prev) {
-                return {
-                  ...prev,
-                  name: patternObj?.name,
-                };
-              }
-            });
+            setPattern(patternObj);
           }
         }
         if (sections) {
@@ -170,7 +166,7 @@ const CreateTest = () => {
     if (editMode && testId?.length) {
       fetchFullTest();
     }
-  }, [editMode, testId]);
+  }, [editMode, testId, patternOptions]);
 
   useEffect(() => {
     async function fetchBatch() {
@@ -284,7 +280,7 @@ const CreateTest = () => {
           durationInMinutes: editMode
             ? test.durationInMinutes
             : pattern?.durationInMinutes,
-          patternId: pattern?.id,
+          patternId: pattern?._id,
           batches,
         };
 
@@ -406,15 +402,25 @@ const CreateTest = () => {
           />
           <MUISimpleAutocomplete
             label="Pattern"
-            onChange={(val: any) => setPattern(val)}
+            onChange={(val: any) => {
+              setPattern(
+                patternOptions?.find((pt) => pt.name === val.name) || null
+              );
+              setTest((prev) => ({
+                ...prev,
+                sections:
+                  patternOptions?.find((pt) => pt.name === val.name)
+                    ?.sections || [],
+              }));
+            }}
             options={patternOptions?.map((pt) => ({
               name: pt.name,
-              value: pt.name,
+              value: pt?._id || "",
             }))}
             disabled={!Boolean(patternOptions.length) || editMode}
             value={{
               name: pattern?.name || "",
-              value: pattern?.name || "",
+              value: pattern?._id || "",
             }}
           />
           <MUISimpleAutocomplete

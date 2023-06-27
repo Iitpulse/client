@@ -79,7 +79,7 @@ const Pattern = () => {
       await API_TESTS().delete(`/pattern/delete`, {
         params: { id },
       });
-      setPatterns((prev) => prev.filter((pattern) => pattern.id !== id));
+      setPatterns((prev) => prev.filter((pattern) => pattern._id !== id));
       antLoading();
       setLoading(false);
       message.success("Pattern Deleted Successfully");
