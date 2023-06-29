@@ -385,6 +385,7 @@ const CreateTest = () => {
               showTime={true}
               onChange={(props: any) => setTestDateRange(props)}
               value={testDateRange}
+              disablePrevDates={true}
             />
           </div>
           <MUISimpleAutocomplete
