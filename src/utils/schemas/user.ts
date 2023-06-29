@@ -74,25 +74,7 @@ export const userSchema = z.object({
   modifiedAt: z.string(),
 
   //Fields to be added later
-  roles: z.union([
-    z.array(
-      roleSchema
-        .pick({ id: true })
-        .extend({ from: z.string(), to: z.string() })
-        .strict()
-    ),
-    z.array(
-      roleSchema
-        .pick({
-          id: true,
-          members: true,
-          permissions: true,
-          name: true,
-        })
-        .extend({ from: z.string(), to: z.string() })
-        .strict()
-    ),
-  ]), // Since we are using this schema for both create and update, we need to add this union type so that we can use the same schema for both create and update since we are going to use this schema for  create, update functionality and to validate the data we get from backends
+  // Since we are using this schema for both create and update, we need to add this union type so that we can use the same schema for both create and update since we are going to use this schema for  create, update functionality and to validate the data we get from backends
 });
 
 export const studentSchema = userSchema.extend({
@@ -122,6 +104,21 @@ export const studentSchema = userSchema.extend({
 
   //Field to be removed later
   joiningCode: z.string().min(3).max(255),
+  roles: z
+    .union([
+      z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
+      z.array(
+        roleSchema
+          .pick({
+            id: true,
+            members: true,
+            permissions: true,
+            name: true,
+          })
+          .strict()
+      ),
+    ])
+    .optional(),
 });
 
 export const teacherSchema = userSchema.extend({
@@ -143,12 +140,81 @@ export const teacherSchema = userSchema.extend({
       })
       .strict()
   ),
+  roles: z.union([
+    z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
+    z.array(
+      roleSchema
+        .pick({
+          id: true,
+          members: true,
+          permissions: true,
+          name: true,
+        })
+        .strict()
+    ),
+  ]),
 });
 
-export const adminSchema = userSchema;
-export const operatorSchema = userSchema;
-export const managerSchema = userSchema;
-export const superAdminSchema = userSchema;
+export const adminSchema = userSchema.extend({
+  roles: z.union([
+    z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
+    z.array(
+      roleSchema
+        .pick({
+          id: true,
+          members: true,
+          permissions: true,
+          name: true,
+        })
+        .strict()
+    ),
+  ]),
+});
+export const operatorSchema = userSchema.extend({
+  roles: z.union([
+    z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
+    z.array(
+      roleSchema
+        .pick({
+          id: true,
+          members: true,
+          permissions: true,
+          name: true,
+        })
+        .strict()
+    ),
+  ]),
+});
+export const managerSchema = userSchema.extend({
+  roles: z.union([
+    z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
+    z.array(
+      roleSchema
+        .pick({
+          id: true,
+          members: true,
+          permissions: true,
+          name: true,
+        })
+        .strict()
+    ),
+  ]),
+});
+export const superAdminSchema = userSchema.extend({
+  roles: z.union([
+    z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
+    z.array(
+      roleSchema
+        .pick({
+          id: true,
+          members: true,
+          permissions: true,
+          name: true,
+        })
+        .strict()
+    ),
+  ]),
+});
 //Whenever we are going to create a superAdmin we need to make sure that we add validity to infinite but need to set it
 
 export type StudentType = z.infer<typeof studentSchema>;

@@ -30,6 +30,7 @@ import {
   validateField,
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
+import RolesTable from "../components/RolesTable";
 
 const { Option } = Select;
 
@@ -51,8 +52,10 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     options: [],
     actual: [],
   });
-  const [batchOptions, setBatchOptions] = useState<any>([]);
+  const [roleValidity, setRoleValidity] = useState<any>({});
+  const [validity, setValidity] = useState<any>({});
   const [roles, setRoles] = useState<any>([]);
+  const [batchOptions, setBatchOptions] = useState<any>([]);
 
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
@@ -67,7 +70,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     password: null,
     dob: {
       convert: (value: Dayjs) =>
-        value ? dayjs(value).format("DD-MM-YYYY") : undefined,
+        value ? dayjs(value).toISOString() : undefined,
       revert: (value: string) =>
         value ? dayjs(value, "DD-MM-YYYY").toDate() : null,
     },
@@ -75,9 +78,21 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     roles: {
       convert: (values: string[]) => {
         const roles = values?.map((value: string) => {
-          const role = roleDetails.actual.find(
-            (role: any) => role.id === value
-          );
+          let role = roleDetails.actual.find((role: any) => role.id === value);
+          let thisRoleValidity = roleValidity[value];
+          if (thisRoleValidity) {
+            role = {
+              id: role.id,
+              from: thisRoleValidity.from,
+              to: thisRoleValidity.to,
+            };
+          } else {
+            role = {
+              id: role.id,
+              from: validity?.from,
+              to: validity?.to,
+            };
+          }
           return role;
         });
         return roles;
@@ -99,8 +114,8 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
       convert: (value: Dayjs[]) =>
         value
           ? {
-              from: dayjs(value[0]).format("DD-MM-YYYY"),
-              to: dayjs(value[1]).format("DD-MM-YYYY"),
+              from: dayjs(value[0]).toISOString(),
+              to: dayjs(value[1]).toISOString(),
             }
           : undefined,
       revert: (value: { from: string; to: string }) =>
@@ -156,8 +171,8 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           id: userCtx?.currentUser?.id,
           userType: userCtx?.currentUser?.userType,
         },
-        createdAt: dayjs().format("DD-MM-YYYY"),
-        modifiedAt: dayjs().format("DD-MM-YYYY"),
+        createdAt: dayjs().toISOString(),
+        modifiedAt: dayjs().toISOString(),
         attemptedTests: [],
         isEmailVerified: null,
         isPhoneVerified: null,
@@ -177,7 +192,14 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
         additionalValues
       );
       console.log({ result });
-      // await onFinish(result);
+      result.roles = result.roles.map((role: any) => {
+        return {
+          id: role.id,
+          from: role.from,
+          to: role.to,
+        };
+      });
+      await onFinish(result);
     } catch (error) {
       onFinishFailed(error);
     }
@@ -201,11 +223,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
         value: item.id,
       }));
       let actual = res.data;
-      actual = actual.map((item: any) => ({
-        ...item,
-        from: null,
-        to: null,
-      }));
+
       setRoleDetails({ options, actual });
     }
     async function getBatchOption() {
@@ -223,27 +241,20 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     getRolesOption();
   }, []);
 
-  function setRoleValidity(id: string, value: any) {
+  function updateRoleValidity(id: string, value: any) {
     let rolesData = form.getFieldValue("roles");
     console.log(rolesData, value, roleDetails);
-    setRoleDetails((prev: any) => {
-      let data = roleDetails.actual.find((a: any) => {
-        return a.id == id;
-      });
-      data = {
-        ...data,
-        from: dayjs(value[0]).format("DD-MM-YYYY"),
-        to: dayjs(value[1]).format("DD-MM-YYYY"),
-      };
-      console.log(data);
+
+    setRoleValidity((prev: any) => {
       return {
         ...prev,
-        actual: [...prev.actual.filter((a: any) => a.id != id), data],
+        [id]: {
+          from: dayjs(value[0]).toISOString(),
+          to: dayjs(value[1]).toISOString(),
+        },
       };
     });
   }
-
-  console.log(roleDetails.actual);
 
   return (
     <>
@@ -519,42 +530,27 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                   format="DD-MM-YYYY"
                   style={{ width: "100%" }}
                   getPopupContainer={(trigger) => trigger.parentElement!}
+                  onChange={(e: any) => {
+                    setValidity({
+                      from: dayjs(e[0]).toISOString(),
+                      to: dayjs(e[1]).toISOString(),
+                    });
+                  }}
                 />
               </Form.Item>
             </Col>
           </Row>
           <Row style={{ gap: "2.2rem" }}>
-            {/* {form} */}
-            {/* <Col> */}
-            {roles.map((role: any) => {
-              // console.log(role);
-              return (
-                <Form.Item
-                  name={"validity_for_" + role}
-                  label={"Validity for " + role}
-                  key={role}
-                  // rules={getRules("validity")}
-                >
-                  <DatePicker.RangePicker
-                    format="DD-MM-YYYY"
-                    style={{ width: "100%" }}
-                    onChange={(e) => {
-                      // console.log(e, role);
-                      setRoleValidity(role, e);
-                    }}
-                    getPopupContainer={(trigger) => trigger.parentElement!}
-                  />
-                </Form.Item>
-              );
-            })}
-
-            {/* </Col> */}
+            {roles.length > 0 && (
+              <RolesTable updateValidity={updateRoleValidity} roles={roles} />
+            )}
           </Row>
         </Form>
       </Drawer>
     </>
   );
 };
+
 export default AddNewStudent;
 
 const SectionHeader = ({
