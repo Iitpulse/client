@@ -70,7 +70,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     password: null,
     dob: {
       convert: (value: Dayjs) =>
-        value ? dayjs(value).toISOString() : undefined,
+        value ? dayjs(value).format("DD-MM-YYYY") : undefined,
       revert: (value: string) =>
         value ? dayjs(value, "DD-MM-YYYY").toDate() : null,
     },

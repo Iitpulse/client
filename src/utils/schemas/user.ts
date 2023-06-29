@@ -11,7 +11,7 @@ export const userSchema = z.object({
     .string()
     .min(3)
     .max(255)
-    .regex(/^\d{2}-\d{2}-\d{4}$/, {
+    .regex(/^(\d{2}-\d{2}-\d{4})$/, {
       message: "Invalid date",
     })
     .refine(
@@ -125,8 +125,14 @@ export const teacherSchema = userSchema.extend({
   subjects: z.array(
     z
       .object({
-        id: z.string(),
+        _id: z.string(),
         name: z.string(),
+        chapters: z.array(z.object({
+            id: z.string().nullish(),
+            name: z.string().nullish(),
+            topics: z.array(z.string()).nullish()
+        })),
+        __v: z.number()
       })
       .strict()
   ),
