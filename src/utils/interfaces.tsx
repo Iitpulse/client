@@ -43,6 +43,10 @@ export interface ITestTable {
   id: string; //TT_AB123
   name: string;
   description: string;
+  batches: Array<{
+    id: string;
+    name: string;
+  }>;
   exam: {
     id: string;
     name: string;

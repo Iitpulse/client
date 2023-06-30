@@ -28,7 +28,7 @@ import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api/config";
 import CustomTable from "../../components/CustomTable/CustomTable";
 import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
-import { message, Popconfirm } from "antd";
+import { Form, Input, message, Popconfirm, Select } from "antd";
 import { TestContext, useTestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import MainLayout from "../../layouts/MainLayout";
@@ -300,24 +300,6 @@ const CreateTest = () => {
     }
   }
 
-  // function handleAddQuestion(
-  //   sectionId: string,
-  //   subSectionId: string,
-  //   question: any
-  // ) {
-  //   let newTest = { ...test };
-  //   newTest.sections.forEach((section: ISection) => {
-  //     if (section.id === sectionId) {
-  //       section.subSections.forEach((subSection: ISubSection) => {
-  //         if (subSection.id === subSectionId) {
-  //           subSection.questions[question.id] = question;
-  //         }
-  //       });
-  //     }
-  //   });
-  //   setTest(newTest);
-  // }
-
   function handleUpdateSection(sectionId: string, data: any) {
     setTest((prev) => ({
       ...prev,
@@ -334,115 +316,133 @@ const CreateTest = () => {
     <MainLayout name="Create Test">
       <div className={styles.container}>
         <div className={styles.inputFields}>
-          {/* <StyledMUITextField
+          <Form
+            layout="vertical"
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
+          >
+            {/* <StyledMUITextField
             id="id"
             label="Id"
             value={id}
             variant="outlined"
             onChange={onChangeInput}
           /> */}
-          <StyledMUITextField
-            id="name"
-            label="Name"
-            value={name}
-            variant="outlined"
-            helperText={helperTexts.nam}
-            onChange={onChangeInput}
-          />
-          <StyledMUITextField
-            id="description"
-            label="Description"
-            value={description}
-            variant="outlined"
-            helperText={helperTexts.desc}
-            onChange={onChangeInput}
-          />
-          <MUISimpleAutocomplete
-            label="Exam"
-            disabled={editMode}
-            onChange={(val: any) => {
-              console.log({ val });
-              onChangeInput({ target: { id: "exam", value: val } });
-            }}
-            options={exams?.map((exam) => ({
-              id: exam._id,
-              name: exam.name,
-              value: exam.name,
-            }))}
-            value={{ name: test.exam?.name, value: test.exam?.name }}
-          />
-          <CreatableSelect
-            multiple
-            onAddModalSubmit={() => {}}
-            options={batchesOptions}
-            setValue={setBatches}
-            value={batches}
-            label={"Batche(s)"}
-            id="batches"
-          />
-          <div className={styles.dateSelector}>
-            <CustomDateRangePicker
-              showTime={true}
-              onChange={(props: any) => setTestDateRange(props)}
-              value={testDateRange}
-              disablePrevDates={true}
+            {/* <Form.Item> */}
+            <Form.Item label="Name" help={helperTexts.name}>
+              <Input id="name" onChange={onChangeInput} value={test.name} />
+            </Form.Item>
+            <Form.Item label="Description" help={helperTexts.desc}>
+              <Input
+                id="description"
+                onChange={onChangeInput}
+                value={test.description}
+              />
+            </Form.Item>
+            {/* </Form.Item> */}
+            <Form.Item label="Exam" help={helperTexts.exam}>
+              <Select
+                allowClear
+                onChange={(val, option) => {
+                  console.log({ val, option });
+                  onChangeInput({ target: { id: "exam", value: option } });
+                }}
+                options={exams?.map((exam) => ({
+                  id: exam._id,
+                  name: exam.name,
+                  value: exam.name,
+                }))}
+                showSearch
+                value={test.exam}
+                maxTagCount="responsive"
+                showArrow
+              />
+            </Form.Item>
+            <Form.Item label="Batches" help={helperTexts.batches}>
+              <Select
+                mode="multiple"
+                allowClear
+                onChange={(vals, options) => {
+                  console.log({ vals, options });
+                  onChangeInput({ target: { id: "batches", value: options } });
+                }}
+                options={batchesOptions?.map(
+                  (batch: { _id: string; name: string }) => ({
+                    id: batch._id,
+                    name: batch.name,
+                    value: batch.name,
+                  })
+                )}
+                value={test.batches}
+                maxTagCount="responsive"
+                showArrow
+              />
+            </Form.Item>
+            <div className={styles.dateSelector}>
+              <CustomDateRangePicker
+                showTime={true}
+                onChange={(props: any) => setTestDateRange(props)}
+                value={testDateRange}
+                disablePrevDates={true}
+              />
+            </div>
+            <Form.Item label="Status" help={helperTexts.status}>
+              <Select
+                onChange={(val) => {
+                  console.log({ val });
+                  onChangeInput({ target: { id: "status", value: val } });
+                }}
+                options={statusOptions}
+                value={status}
+              />
+            </Form.Item>
+            <Form.Item label="Pattern" help={helperTexts.pattern}>
+              <Select
+                onChange={(_, val) => {
+                  console.log({ val });
+                  // onChangeInput({ target: { id: "pattern", value: val } });
+                  setPattern(
+                    patternOptions?.find((pt) => pt.name === val.name) || null
+                  );
+                  setTest((prev) => ({
+                    ...prev,
+                    sections:
+                      patternOptions?.find((pt) => pt.name === val.name)
+                        ?.sections || [],
+                  }));
+                }}
+                disabled={!Boolean(patternOptions.length) || editMode}
+                options={patternOptions?.map((pt) => ({
+                  id: pt._id,
+                  name: pt.name,
+                  value: pt.name,
+                }))}
+                value={{
+                  name: pattern?.name || "",
+                  value: pattern?._id || "",
+                }}
+              />
+            </Form.Item>
+            <MUISimpleAutocomplete
+              label="Result Publish Type"
+              onChange={(val: any) => setPublishType(val)}
+              options={publishTypeOptions}
+              value={publishType}
             />
-          </div>
-          <MUISimpleAutocomplete
-            label="Status"
-            onChange={(val: any) => {
-              console.log({ val });
-              setStatus(val);
-            }}
-            options={statusOptions}
-            disabled={!Boolean(statusOptions.length)}
-            value={{
-              name: status?.name || "",
-              value: status?.value || "",
-            }}
-          />
-          <MUISimpleAutocomplete
-            label="Pattern"
-            onChange={(val: any) => {
-              setPattern(
-                patternOptions?.find((pt) => pt.name === val.name) || null
-              );
-              setTest((prev) => ({
-                ...prev,
-                sections:
-                  patternOptions?.find((pt) => pt.name === val.name)
-                    ?.sections || [],
-              }));
-            }}
-            options={patternOptions?.map((pt) => ({
-              name: pt.name,
-              value: pt?._id || "",
-            }))}
-            disabled={!Boolean(patternOptions.length) || editMode}
-            value={{
-              name: pattern?.name || "",
-              value: pattern?._id || "",
-            }}
-          />
-          <MUISimpleAutocomplete
-            label="Result Publish Type"
-            onChange={(val: any) => setPublishType(val)}
-            options={publishTypeOptions}
-            value={publishType}
-          />
-          {publishType.value === "autoAfterXDays" && (
-            <StyledMUITextField
-              id="daysAfter"
-              label="Publish after - Day(s)"
-              type="number"
-              value={daysAfter}
-              variant="outlined"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setDaysAfter(parseInt(e.target.value))
-              }
-              inputProps={{ min: 1 }}
-            />
-          )}
+            {publishType.value === "autoAfterXDays" && (
+              <StyledMUITextField
+                id="daysAfter"
+                label="Publish after - Day(s)"
+                type="number"
+                value={daysAfter}
+                variant="outlined"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setDaysAfter(parseInt(e.target.value))
+                }
+                inputProps={{ min: 1 }}
+              />
+            )}
+          </Form>
         </div>
         {sections && (editMode || pattern) && (
           <section className={styles.sections}>

@@ -4,13 +4,13 @@
   width: 100%;
   .inputFields {
     width: 100%;
-    @extend .flexRow;
-    flex-wrap: wrap;
-    > div {
-      margin: 0.5rem;
-      flex: 1;
-      min-width: 200px;
-    }
+    // @extend .flexRow;
+    // flex-wrap: wrap;
+    // > div {
+    //   margin: 0.5rem;
+    //   flex: 1;
+    //   min-width: 200px;
+    // }
     // .dateSelector {
     //   display: block;
     // }

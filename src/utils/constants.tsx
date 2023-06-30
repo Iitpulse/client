@@ -75,6 +75,7 @@ export const SAMPLE_TEST = {
   description: "",
   durationInMinutes: 0,
   sections: [],
+  batches: [],
   exam: {
     id: "",
     name: "",
