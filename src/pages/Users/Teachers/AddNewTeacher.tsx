@@ -174,7 +174,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
         previousTests: [],
         isEmailVerified: false,
         isPhoneVerified: false,
-        subjects: [],
+        // subjects: [],
       };
       const result = performZodValidation(
         form,

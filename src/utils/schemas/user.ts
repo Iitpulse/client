@@ -131,6 +131,9 @@ export const teacherSchema = userSchema.extend({
             id: z.string().nullish(),
             name: z.string().nullish(),
             topics: z.array(z.string()).nullish()
+            // id: z.string(),
+            // name: z.string(),
+            // topics: z.array(z.string())
         })),
         __v: z.number()
       })
