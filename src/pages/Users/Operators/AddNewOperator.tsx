@@ -33,6 +33,7 @@ import {
   validateField,
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
+import RolesTable from "../components/RolesTable";
 const { Option } = Select;
 
 interface IAddNewOperator {
@@ -53,6 +54,9 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
     options: [],
     actual: [],
   });
+  const [roleValidity, setRoleValidity] = useState<any>({});
+  const [validity, setValidity] = useState<any>({});
+  const [roles, setRoles] = useState<any>([]);
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
@@ -99,16 +103,27 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
     roles: {
       convert: (values: string[]) => {
         const roles = values?.map((value: string) => {
-          const role = roleDetails.actual.find(
-            (role: any) => role.id === value
-          );
+          let role = roleDetails.actual.find((role: any) => role.id === value);
+          let thisRoleValidity = roleValidity[value];
+          if (thisRoleValidity) {
+            role = {
+              id: role.id,
+              from: thisRoleValidity.from,
+              to: thisRoleValidity.to,
+            };
+          } else {
+            role = {
+              id: role.id,
+              from: validity?.from,
+              to: validity?.to,
+            };
+          }
           return role;
         });
         return roles;
       },
       revert: (roles: any[]) => roles?.map((role: any) => role.id),
     },
-
     createdBy: null,
     createdAt: null,
     modifiedAt: null,
@@ -146,7 +161,14 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
         conversionObject,
         operatorSchema,
         additionalValues
-      )
+      );
+      result.roles = result.roles.map((role: any) => {
+        return {
+          id: role.id,
+          from: role.from,
+          to: role.to,
+        };
+      });
       console.log(result);
       await onFinish(result);
     } catch (error) {
@@ -178,6 +200,20 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
     getRolesOption();
   }, []);
 
+  function updateRoleValidity(id: string, value: any) {
+    let rolesData = form.getFieldValue("roles");
+    console.log(rolesData, value, roleDetails);
+
+    setRoleValidity((prev: any) => {
+      return {
+        ...prev,
+        [id]: {
+          from: dayjs(value[0]).toISOString(),
+          to: dayjs(value[1]).toISOString(),
+        },
+      };
+    });
+  }
   return (
     <>
       <Drawer
@@ -334,7 +370,13 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
             </Col> */}
             <Col span={12}>
               <Form.Item name="roles" label="Roles" rules={getRules("roles")}>
-                <Select mode="tags" placeholder="Please choose a role/s">
+                <Select
+                  onChange={(e) => {
+                    setRoles(e);
+                  }}
+                  mode="tags"
+                  placeholder="Please choose a role/s"
+                >
                   {roleDetails.options?.map((option: any) => (
                     <Select.Option key={option.value} value={option.value}>
                       {option.label}
@@ -350,12 +392,23 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
                 rules={getRules("validity")}
               >
                 <DatePicker.RangePicker
+                  onChange={(e: any) => {
+                    setValidity({
+                      from: dayjs(e[0]).toISOString(),
+                      to: dayjs(e[1]).toISOString(),
+                    });
+                  }}
                   format="DD-MM-YYYY"
                   style={{ width: "100%" }}
                   getPopupContainer={(trigger) => trigger.parentElement!}
                 />
               </Form.Item>
             </Col>
+          </Row>
+          <Row style={{ gap: "2.2rem" }}>
+            {roles.length > 0 && (
+              <RolesTable updateValidity={updateRoleValidity} roles={roles} />
+            )}
           </Row>
         </Form>
       </Drawer>

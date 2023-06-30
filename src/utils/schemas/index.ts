@@ -68,7 +68,7 @@ export async function validateField(
     // checkIfTheKeyIsPresentInSchema(desiredKey, obejctToApplyarseTo);// This needs to be done because the schema is not strict
     console.log({ parsedFieldValue });
     obejctToApplyarseTo.parse(parsedFieldValue);
-    console.log();
+    console.log("chal gaya");
     return; // Validation successful
   } catch (error: any) {
     const errorMessage = error?.issues?.[0]?.message || error?.message;
