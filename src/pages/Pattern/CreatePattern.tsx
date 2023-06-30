@@ -9,13 +9,22 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS, TEST } from "../../utils/constants";
 import { Error } from "../";
-import { message } from "antd";
+import { AutoComplete, Input, message } from "antd";
 import { API_TESTS } from "../../utils/api/config";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
-import { hasPatternPemissions } from "./utils";
+import { hasPatternPemissions, isPatternFormFilled } from "./utils";
 import MainLayout from "../../layouts/MainLayout";
 import Section from "./components/Section/Section";
+import { style } from "@mui/system";
+import { isTestFormFilled } from "../Test/utils/functions";
+
+const defaultState: any = {
+  name: "",
+  exam: "",
+  durationInMinutes: "",
+  sections: "",
+};
 
 const CreatePattern = () => {
   const isReadPermitted = usePermission(PERMISSIONS.PATTERN.READ);
@@ -36,6 +45,7 @@ const CreatePattern = () => {
   const [exam, setExam] = useState("");
   const [durationInMinutes, setDurationInMinutes] = useState("");
 
+  const [helperTexts, setHelperTexts] = useState<any>(defaultState);
   useEffect(() => {
     async function fetchPattern() {
       setLoading(true);
@@ -104,6 +114,12 @@ const CreatePattern = () => {
   async function handleClickSubmit() {
     let areErrors: boolean = false;
     try {
+      isPatternFormFilled(setHelperTexts, defaultState, {
+        name,
+        exam,
+        durationInMinutes,
+        sections,
+      });
       if (!currentUser) {
         message.error("User not found");
         return;
@@ -249,6 +265,8 @@ const CreatePattern = () => {
         usedIn: [],
       };
       if (areErrors) return;
+      console.log({ pattern });
+
       //check if url contains new or edit
       if (patternId) {
         await API_TESTS().patch(`/pattern/update`, pattern, {
@@ -266,7 +284,7 @@ const CreatePattern = () => {
       message.error("Error creating pattern");
     }
   }
-
+  console.log({ helperTexts });
   return (
     <MainLayout name="Create Pattern">
       {hasPatternPemissions(
@@ -286,20 +304,26 @@ const CreatePattern = () => {
           <>
             <section className={styles.container}>
               <div className={styles.header}>
-                <StyledMUITextField
+                <Input
+                  status={helperTexts.name !== "" ? "error" : undefined}
+                  type="text"
                   value={name}
-                  label="Name"
+                  size="large"
+                  placeholder="Name"
                   onChange={(e: any) => setName(e.target.value)}
                 />
-                <StyledMUITextField
-                  value={durationInMinutes}
+
+                <Input
                   type="number"
-                  label="Duration (in Minutes)"
+                  status={helperTexts.durationInMinutes !== "" ? "error" : ""}
+                  value={durationInMinutes}
+                  placeholder="Duration (in Minutes)"
+                  size="large"
                   onChange={(e: any) => setDurationInMinutes(e.target.value)}
                 />
-                <MUISimpleAutocomplete
-                  label="Exam"
-                  onChange={setExam}
+                <AutoComplete
+                  status={helperTexts?.exam !== "" ? "error" : undefined}
+                  size="large"
                   options={
                     exams?.map((exam) => ({
                       name: exam.name,
@@ -308,11 +332,19 @@ const CreatePattern = () => {
                     })) || []
                   }
                   value={exam}
+                  placeholder="Exam"
+                  filterOption={(inputValue, option) =>
+                    option?.value
+                      .toUpperCase()
+                      .indexOf(inputValue.toUpperCase()) !== -1
+                  }
+                  onChange={(value) => setExam(value)}
                 />
               </div>
               <div className={styles.sections}>
                 {sections.map((section, i) => (
                   <Section
+                    helperTexts={helperTexts}
                     key={i}
                     handleDuplicateSection={handleDuplicateSection}
                     section={section}

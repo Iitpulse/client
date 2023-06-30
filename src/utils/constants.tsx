@@ -63,7 +63,7 @@ export const TEST = {
     totalQuestions: 1,
     toBeAttempted: 1,
     markingScheme: {
-      correct: 1,
+      correct: [1],
       incorrect: 0,
     },
   },
