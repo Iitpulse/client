@@ -14,6 +14,17 @@
     // .dateSelector {
     //   display: block;
     // }
+    .form {
+      display: flex;
+      justify-content: start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      > div {
+        min-width: 200px;
+        max-width: 250px;
+        flex: 1;
+      }
+    }
   }
 
   .sections {

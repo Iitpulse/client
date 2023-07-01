@@ -28,7 +28,15 @@ import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api/config";
 import CustomTable from "../../components/CustomTable/CustomTable";
 import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
-import { Form, Input, message, Popconfirm, Select } from "antd";
+import {
+  Collapse,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Popconfirm,
+  Select,
+} from "antd";
 import { TestContext, useTestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import MainLayout from "../../layouts/MainLayout";
@@ -318,17 +326,10 @@ const CreateTest = () => {
         <div className={styles.inputFields}>
           <Form
             layout="vertical"
-            labelCol={{ span: 8 }}
-            wrapperCol={{ span: 16 }}
+            // labelCol={{ span: 8 }}
+            // wrapperCol={{ span: 16 }}
+            className={styles.form}
           >
-            {/* <StyledMUITextField
-            id="id"
-            label="Id"
-            value={id}
-            variant="outlined"
-            onChange={onChangeInput}
-          /> */}
-            {/* <Form.Item> */}
             <Form.Item label="Name" help={helperTexts.name}>
               <Input id="name" onChange={onChangeInput} value={test.name} />
             </Form.Item>
@@ -339,7 +340,6 @@ const CreateTest = () => {
                 value={test.description}
               />
             </Form.Item>
-            {/* </Form.Item> */}
             <Form.Item label="Exam" help={helperTexts.exam}>
               <Select
                 allowClear
@@ -378,14 +378,14 @@ const CreateTest = () => {
                 showArrow
               />
             </Form.Item>
-            <div className={styles.dateSelector}>
+            <Form.Item label="Validity" help={helperTexts.dateRange}>
               <CustomDateRangePicker
                 showTime={true}
                 onChange={(props: any) => setTestDateRange(props)}
                 value={testDateRange}
                 disablePrevDates={true}
               />
-            </div>
+            </Form.Item>
             <Form.Item label="Status" help={helperTexts.status}>
               <Select
                 onChange={(val) => {
@@ -393,11 +393,12 @@ const CreateTest = () => {
                   onChangeInput({ target: { id: "status", value: val } });
                 }}
                 options={statusOptions}
-                value={status}
+                value={test.status}
               />
             </Form.Item>
             <Form.Item label="Pattern" help={helperTexts.pattern}>
               <Select
+                showSearch
                 onChange={(_, val) => {
                   console.log({ val });
                   // onChangeInput({ target: { id: "pattern", value: val } });
@@ -417,42 +418,49 @@ const CreateTest = () => {
                   name: pt.name,
                   value: pt.name,
                 }))}
-                value={{
-                  name: pattern?.name || "",
-                  value: pattern?._id || "",
-                }}
+                value={pattern?.name}
               />
             </Form.Item>
-            <MUISimpleAutocomplete
-              label="Result Publish Type"
-              onChange={(val: any) => setPublishType(val)}
-              options={publishTypeOptions}
-              value={publishType}
-            />
-            {publishType.value === "autoAfterXDays" && (
-              <StyledMUITextField
-                id="daysAfter"
-                label="Publish after - Day(s)"
-                type="number"
-                value={daysAfter}
-                variant="outlined"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setDaysAfter(parseInt(e.target.value))
-                }
-                inputProps={{ min: 1 }}
+            <Form.Item label="Result Publish Type">
+              <Select
+                showSearch
+                options={publishTypeOptions}
+                onChange={(val, option) => {
+                  setTest((prev) => ({
+                    ...prev,
+                    result: {
+                      ...prev.result,
+                      publishProps: {
+                        ...prev.result?.publishProps,
+                        type: val,
+                      },
+                    },
+                  }));
+                  setPublishType({ value: val, name: option.name });
+                }}
+                value={test.result?.publishProps?.type}
               />
+            </Form.Item>
+            {publishType.value === "autoAfterXDays" && (
+              <Form.Item label="Publish after - Day(s)">
+                <InputNumber
+                  id="daysAfter"
+                  value={daysAfter}
+                  onChange={(val) => setDaysAfter(val as number)}
+                  min={1}
+                />
+              </Form.Item>
             )}
           </Form>
         </div>
         {sections && (editMode || pattern) && (
           <section className={styles.sections}>
-            {sections.map((section) => (
-              <Section
-                section={section}
-                key={section.id}
-                handleUpdateSection={handleUpdateSection}
-              />
-            ))}
+            {/* {sections.map((section) => ( */}
+            <Sections
+              sections={sections}
+              handleUpdateSection={handleUpdateSection}
+            />
+            {/* ))} */}
           </section>
         )}
         {!sections.length && (
@@ -473,60 +481,86 @@ const CreateTest = () => {
 
 export default CreateTest;
 
-const Section: React.FC<{
-  section: ISection;
+const Sections: React.FC<{
+  sections: ISection[];
   handleUpdateSection: (sectionId: string, data: any) => void;
-}> = ({ section, handleUpdateSection }) => {
-  const { name, subject, totalQuestions, toBeAttempted, subSections } = section;
+}> = ({ sections, handleUpdateSection }) => {
+  const [accordionItems, setAccordionItems] = useState<
+    Array<{
+      label: string;
+      key: string;
+      children: React.ReactNode;
+    }>
+  >([]);
 
-  console.log({ subject });
-
-  function handleUpdateSubSection(subSectionId: string, data: any) {
-    handleUpdateSection(section.id, {
-      subSections: section.subSections.map((subSection) => {
-        if (subSection.id === subSectionId) {
-          return { ...subSection, ...data };
-        }
-        return subSection;
-      }),
-    });
+  function handleUpdateSubSection(section: ISection) {
+    return (subSectionId: string, data: any) =>
+      handleUpdateSection(section.id, {
+        subSections: section.subSections.map((subSection) => {
+          if (subSection.id === subSectionId) {
+            return { ...subSection, ...data };
+          }
+          return subSection;
+        }),
+      });
   }
 
-  return (
-    <CustomAccordion className={styles.section}>
-      <CustomAccordionSummary>{name}</CustomAccordionSummary>
-      <CustomAccordionDetails>
-        <div className={styles.header}>
-          <div>
-            <span>Name</span>
-            <p>{name}</p>
-          </div>
-          <div>
-            <span>Subject</span>
-            <p>{subject}</p>
-          </div>
-          <div>
-            <span>Total Questions</span>
-            <p>{totalQuestions}</p>
-          </div>
-          <div>
-            <span>To Be Attempted</span>
-            <p>{toBeAttempted}</p>
-          </div>
-        </div>
-        <div className={styles.subSections}>
-          {subSections?.map((subSection: ISubSection) => (
-            <SubSection
-              key={subSection.id}
-              subSection={subSection}
-              handleUpdateSubSection={handleUpdateSubSection}
-              subject={subject}
-            />
-          ))}
-        </div>
-      </CustomAccordionDetails>
-    </CustomAccordion>
+  const HeaderEl: React.FC<{
+    name: string;
+    subject: string;
+    totalQuestions: number | null;
+    toBeAttempted: number | null;
+  }> = ({ name, subject, totalQuestions, toBeAttempted }) => (
+    <div className={styles.header}>
+      <div>
+        <span>Name</span>
+        <p>{name}</p>
+      </div>
+      <div>
+        <span>Subject</span>
+        <p>{subject}</p>
+      </div>
+      <div>
+        <span>Total Questions</span>
+        <p>{totalQuestions}</p>
+      </div>
+      <div>
+        <span>To Be Attempted</span>
+        <p>{toBeAttempted}</p>
+      </div>
+    </div>
   );
+
+  useEffect(() => {
+    setAccordionItems(
+      sections?.map((section, i) => ({
+        label: section.name,
+        key: i.toString(),
+        children: (
+          <>
+            <HeaderEl
+              name={section.name}
+              toBeAttempted={section.toBeAttempted}
+              totalQuestions={section.totalQuestions}
+              subject={section.subject}
+            />
+            <div className={styles.subSections}>
+              {section?.subSections?.map((subSection: ISubSection) => (
+                <SubSection
+                  key={subSection.id}
+                  subSection={subSection}
+                  handleUpdateSubSection={handleUpdateSubSection(section)}
+                  subject={section.subject}
+                />
+              ))}
+            </div>
+          </>
+        ),
+      }))
+    );
+  }, [sections]);
+
+  return <Collapse items={accordionItems} />;
 };
 
 const SubSection: React.FC<{

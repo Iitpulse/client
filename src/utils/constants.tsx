@@ -95,6 +95,16 @@ export const SAMPLE_TEST = {
     averageMarks: null,
     averageCompletionTime: null,
     students: [],
+    publishProps: {
+      type: "",
+      publishDate: null,
+      isPublished: false,
+      publishedBy: {
+        userType: "",
+        id: "",
+        name: "",
+      },
+    },
   },
   createdBy: {
     id: "",

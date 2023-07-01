@@ -64,6 +64,19 @@ export interface ITestTable {
   createdAt: string;
 }
 
+// type: {
+//   type: String,
+//   enum: ["immediately", "atTheEndOfTest", "autoAfterXDays", "manual"],
+//   default: "immediately",
+// },
+// publishDate: String | null, // ISO String
+// isPublished: Boolean,
+// publishedBy: {
+//   userType: String,
+//   id: String,
+//   name: String,
+// },
+
 export interface ITest extends ITestTable {
   durationInMinutes: number | null;
   sections: ISection[];
@@ -71,10 +84,20 @@ export interface ITest extends ITestTable {
     studentsCount: number | null;
     locations: Array<string>;
   };
-  result?: {
+  result: {
     maxMarks: number | null;
     averageMarks: number | null;
     averageCompletionTime: number | null;
+    publishProps: {
+      type: string;
+      publishDate: string | null;
+      isPublished: boolean;
+      publishedBy: {
+        userType: string;
+        id: string;
+        name: string;
+      };
+    };
     students: Array<{
       name: string;
       id: string;
