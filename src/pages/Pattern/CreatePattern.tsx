@@ -9,7 +9,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS, TEST } from "../../utils/constants";
 import { Error } from "../";
-import { AutoComplete, Input, message } from "antd";
+import { AutoComplete, Input, Select, message } from "antd";
 import { API_TESTS } from "../../utils/api/config";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
@@ -321,7 +321,7 @@ const CreatePattern = () => {
                   size="large"
                   onChange={(e: any) => setDurationInMinutes(e.target.value)}
                 />
-                <AutoComplete
+                <Select
                   status={helperTexts?.exam !== "" ? "error" : undefined}
                   size="large"
                   options={
@@ -339,6 +339,7 @@ const CreatePattern = () => {
                       .indexOf(inputValue.toUpperCase()) !== -1
                   }
                   onChange={(value) => setExam(value)}
+                  showSearch
                 />
               </div>
               <div className={styles.sections}>
