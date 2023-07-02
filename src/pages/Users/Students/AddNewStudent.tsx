@@ -56,6 +56,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
   const [validity, setValidity] = useState<any>({});
   const [roles, setRoles] = useState<any>([]);
   const [batchOptions, setBatchOptions] = useState<any>([]);
+  const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
 
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
@@ -202,7 +203,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
       });
       await onFinish(result);
     } catch (error) {
-      onFinishFailed(error);
+      onFinishFailed(error); 
     }
   }
 
@@ -269,15 +270,18 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           <Space>
             <Button onClick={onClose}>Cancel</Button>
             <Button
-              onClick={() => {
-                document
+              onClick={async () => {
+                setSubmitDisabled(true);
+                await document
                   .getElementById("studentUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
+                setSubmitDisabled(false);
               }}
               type="primary"
               htmlType="submit"
+              disabled={submitDisabled}
             >
               Submit
             </Button>
