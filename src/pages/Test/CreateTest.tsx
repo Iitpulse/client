@@ -321,7 +321,16 @@ const CreateTest = () => {
   }
 
   return (
-    <MainLayout name="Create Test">
+    <MainLayout
+      name="Create Test"
+      menuActions={
+        <div className={styles.submitBtn}>
+          <Button onClick={handleClickSubmit}>
+            {editMode ? "Update Test" : "Create Test"}
+          </Button>
+        </div>
+      }
+    >
       <div className={styles.container}>
         <div className={styles.inputFields}>
           <Form
@@ -331,11 +340,17 @@ const CreateTest = () => {
             className={styles.form}
           >
             <Form.Item label="Name" help={helperTexts.name}>
-              <Input id="name" onChange={onChangeInput} value={test.name} />
+              <Input
+                id="name"
+                onChange={onChangeInput}
+                value={test.name}
+                placeholder="Title for test"
+              />
             </Form.Item>
             <Form.Item label="Description" help={helperTexts.desc}>
               <Input
                 id="description"
+                placeholder="Small description for test"
                 onChange={onChangeInput}
                 value={test.description}
               />
@@ -343,6 +358,7 @@ const CreateTest = () => {
             <Form.Item label="Exam" help={helperTexts.exam}>
               <Select
                 allowClear
+                placeholder="Select Exam"
                 onChange={(val, option) => {
                   console.log({ val, option });
                   onChangeInput({ target: { id: "exam", value: option } });
@@ -353,7 +369,7 @@ const CreateTest = () => {
                   value: exam.name,
                 }))}
                 showSearch
-                value={test.exam}
+                value={test.exam || null}
                 maxTagCount="responsive"
                 showArrow
               />
@@ -362,6 +378,7 @@ const CreateTest = () => {
               <Select
                 mode="multiple"
                 allowClear
+                placeholder="Select Batches"
                 onChange={(vals, options) => {
                   console.log({ vals, options });
                   onChangeInput({ target: { id: "batches", value: options } });
@@ -388,17 +405,20 @@ const CreateTest = () => {
             </Form.Item>
             <Form.Item label="Status" help={helperTexts.status}>
               <Select
+                placeholder="Select Status"
+                showSearch
                 onChange={(val) => {
                   console.log({ val });
                   onChangeInput({ target: { id: "status", value: val } });
                 }}
                 options={statusOptions}
-                value={test.status}
+                value={test.status || null}
               />
             </Form.Item>
             <Form.Item label="Pattern" help={helperTexts.pattern}>
               <Select
                 showSearch
+                placeholder="Select Pattern"
                 onChange={(_, val) => {
                   console.log({ val });
                   // onChangeInput({ target: { id: "pattern", value: val } });
@@ -468,11 +488,6 @@ const CreateTest = () => {
             Please select a pattern to create Test
           </p>
         )}
-        <div className={styles.submitBtn}>
-          <Button onClick={handleClickSubmit}>
-            {editMode ? "Update Test" : "Create Test"}
-          </Button>
-        </div>
       </div>
       {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
     </MainLayout>
