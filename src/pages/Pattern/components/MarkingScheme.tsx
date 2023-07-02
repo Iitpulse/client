@@ -10,6 +10,8 @@ interface IMarkingSchemeProps {
   subSectionId: string;
   type: string;
   setSubSection: (id: string, data: any) => void;
+  errorCorrect?: Array<string>;
+  errorIncorrect?: string;
 }
 
 const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
@@ -18,6 +20,8 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
   subSectionId,
   type,
   setSubSection,
+  errorCorrect,
+  errorIncorrect,
 }) => {
   const [markingSchemeCorrect, setMarkingSchemeCorrect] =
     useState<Array<number>>(vcorrect);
@@ -33,9 +37,11 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
     // console.log(arr);
     setMarkingSchemeCorrect([...arr]);
   };
+  console.log(errorCorrect);
   return (
     <>
       <CustomInputSection
+        error={errorIncorrect}
         value={markingSchemeIncorrect}
         label="Incorrect Marks"
         type="number"
@@ -54,6 +60,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
       {markingSchemeCorrect.map((correctMark: number, idx: number) => {
         return (
           <CustomInputSection
+            error={(errorCorrect && errorCorrect[idx]) || ""}
             value={correctMark}
             label={`Correct Marks ${idx ? idx + 1 : ""}`}
             type="number"
