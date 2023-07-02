@@ -59,6 +59,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
   const [roleValidity, setRoleValidity] = useState<any>({});
   const [validity, setValidity] = useState<any>({});
   const [roles, setRoles] = useState<any>([]);
+  const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   let permissions: any = [];
   Object.values(rolesAllowed)?.map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
@@ -228,15 +229,18 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
           <Space>
             <Button onClick={onClose}>Cancel</Button>
             <Button
-              onClick={() => {
-                document
-                  .getElementById("managerUserForm")
+              onClick={async () => {
+                setSubmitDisabled(true);
+                await document
+                  .getElementById("studentUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
+                setSubmitDisabled(false);
               }}
               type="primary"
               htmlType="submit"
+              disabled={submitDisabled}
             >
               Submit
             </Button>

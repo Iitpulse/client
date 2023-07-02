@@ -57,6 +57,7 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
   const [validity, setValidity] = useState<any>({});
   const [roles, setRoles] = useState<any>([]);
   const [subjectOptions, setSubjectOptions] = useState<any>([]);
+  const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
@@ -228,15 +229,18 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
           <Space>
             <Button onClick={onClose}>Cancel</Button>
             <Button
-              onClick={() => {
-                document
-                  .getElementById("adminUserForm")
+              onClick={async () => {
+                setSubmitDisabled(true);
+                await document
+                  .getElementById("studentUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
+                setSubmitDisabled(false);
               }}
               type="primary"
               htmlType="submit"
+              disabled={submitDisabled}
             >
               Submit
             </Button>

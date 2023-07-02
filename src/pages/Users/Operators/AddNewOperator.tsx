@@ -57,6 +57,7 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
   const [roleValidity, setRoleValidity] = useState<any>({});
   const [validity, setValidity] = useState<any>({});
   const [roles, setRoles] = useState<any>([]);
+  const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
@@ -227,15 +228,18 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
           <Space>
             <Button onClick={onClose}>Cancel</Button>
             <Button
-              onClick={() => {
-                document
-                  .getElementById("operatorUserForm")
+              onClick={async () => {
+                setSubmitDisabled(true);
+                await document
+                  .getElementById("studentUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
+                setSubmitDisabled(false);
               }}
               type="primary"
               htmlType="submit"
+              disabled={submitDisabled}
             >
               Submit
             </Button>
