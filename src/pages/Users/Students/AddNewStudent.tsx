@@ -155,12 +155,13 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
   async function onFinish(values: any) {
     const res = await API_USERS().post(`/student/create`, { ...values });
     message.success("Student created successfully");
+    form.resetFields();
     console.log(res);
   }
 
   function onFinishFailed(errorInfo: any) {
-    message.error("Student creation failed");
-    console.log("Failed:", errorInfo);
+    message.error(errorInfo.response.data.message);
+    console.log("Failed:", errorInfo.response.data.message);
   }
 
   async function validateForm() {
@@ -324,7 +325,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 label="Date of Birth"
                 rules={getRules("dob")}
               >
-                <DatePicker format="DD-MM-YYYY" style={{ width: "100%" }} />
+                <DatePicker format="DD-MM-YYYY" disabledDate={(current)=>{return current && current.valueOf() > Date.now();}} style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>
