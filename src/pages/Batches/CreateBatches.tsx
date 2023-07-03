@@ -105,14 +105,14 @@ const CreateNewBatch = () => {
             medium: values.medium,
             institute: currentUser?.instituteId,
             validity: {
-            from: dayjs(validity[0]).toISOString(),
-            to: dayjs(validity[1]).toISOString(),
+                from: dayjs(validity[0]).toISOString(),
+                to: dayjs(validity[1]).toISOString(),
             },
             // classes: classes.map((value: any) => value.name),
             classes: values.classes,
             createdBy: {
-            userType: currentUser?.userType,
-            id: currentUser?.id,
+                id: currentUser?.id,
+                userType: currentUser?.userType,
             },
             createdAt: new Date().toISOString(),
             modifiedAt: new Date().toISOString(),

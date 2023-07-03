@@ -16,7 +16,6 @@ import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";
 import { message } from "antd";
 import deleteIcon from "../../assets/icons/delete.svg";
-import { NavLink } from "react-router-dom";
 
 const Roles = () => {
   const hasPermission = usePermission(PERMISSIONS.ROLE.READ);
@@ -68,14 +67,12 @@ const Roles = () => {
             <div className={styles.tableHeader}>
               <h4>Roles</h4>
               <h4>Members</h4>
-              <NavLink to="/roles/addNewRole">
               <Button
-                // onClick={()=>setIsOpenAddNewRole(true)}
+                onClick={() => setIsOpenAddNewRole(true)}
                 icon={<AddIcon />}
-                >
+              >
                 Create New
               </Button>
-              </NavLink>
             </div>
             <div className={styles.tableContent}>
               {allRoles?.map((role: any) => (
@@ -106,10 +103,10 @@ const Roles = () => {
             handleClose={handleCloseIsOpenAddNewRole}
           </Sidebar> */}
 
-          {/* <AddNewRoleSidebar
+          <AddNewRoleSidebar
             open={isOpenAddNewRole}
             handleClose={handleCloseIsOpenAddNewRole}
-          /> */}
+          />
         </>
       ) : (
         <Error />

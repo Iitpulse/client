@@ -1,5 +1,5 @@
 import { useCallback, useContext, useRef, useState } from "react";
-// import { InputField, Modal, Button, Sidebar } from "../../components";
+import { InputField, Modal, Sidebar } from "../../components";
 import styles from "./AddNewRole.module.scss";
 import { APIS, PERMISSIONS } from "../../utils/constants";
 import { Permission } from "./EditRole/EditRole";
@@ -32,7 +32,10 @@ export const flattendPermissions = () => {
   return final;
 };
 
-const AddNewRole = () => {
+const AddNewRole: React.FC<{
+  open: boolean;
+  handleClose: () => void;
+}> = ({ open, handleClose }) => {
   const [name, setName] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +46,7 @@ const AddNewRole = () => {
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
-      // e.preventDefault();
+      e.preventDefault();
       if (!name) {
         message.error("Role name is required");
         inputRef.current?.focus();
@@ -54,40 +57,50 @@ const AddNewRole = () => {
         const newRole = await createNewRole(name);
         loading();
         message.success(`Role ${name} created successfully`);
-        // handleClose();
+        handleClose();
         setTimeout(() => {
           navigate(`/roles/${newRole.id || newRole._id}`);
         }, 1000);
       } catch (error) {
         loading();
-        message.error(error?.response?.data?.message);
-        console.log({error});
+        message.error(`Error creating role ${name}`);
+        console.log(error);
       }
     },
-    [name, createNewRole, navigate]
+    [name, createNewRole, handleClose, navigate]
   );
 
   return (
-    <MainLayout name="Create Pattern">
-        <Form onFinish={handleSubmit}>
-            <div className={styles.inputFields}>
-            <Input
-                required
-                size="large"
-                // value={name}
-                onChange={(e)=>{setName(e.target.value)}}
-                placeholder="Role Name"
-                // variant="outlined"
-            />
-            </div>
-            <span></span>
-            <Button 
-              type="primary"
-              htmlType="submit"
-            //   disabled={submitDisabled}
-        >Submit</Button>
-      </Form>
-    </MainLayout>
+    <Sidebar
+      title="Create New Role"
+      open={open}
+      width="30%"
+      handleClose={handleClose}
+      extra={
+        <Button
+          onClick={() => {
+            if (formRef.current)
+              formRef.current?.dispatchEvent(
+                new Event("submit", { cancelable: true, bubbles: true })
+              );
+          }}
+          type="primary"
+          >
+          Submit
+        </Button>
+      }
+    >
+      <form className={styles.container} ref={formRef} onSubmit={handleSubmit}>
+        <Input
+          required
+          size="large"
+          // value={name}
+          onChange={(e)=>{setName(e.target.value)}}
+          placeholder="Role Name"
+          // variant="outlined"
+        />
+      </form>
+    </Sidebar>
   );
 };
 

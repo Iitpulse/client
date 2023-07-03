@@ -217,10 +217,6 @@ const App = () => {
                       element={<PrivateRoute component={Roles} name="Roles" />}
                     />
                     <Route
-                      path="/roles/addNewRole"
-                      element={<PrivateRoute component={AddNewRole} name="Roles" />}
-                    />
-                    <Route
                       path="/roles/:roleName"
                       element={
                         <PrivateRoute component={EditRole} name="Edit Role" />
