@@ -6,7 +6,7 @@ import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
 import { TestContext } from "../../utils/contexts/TestContext";
 import dayjs from "dayjs";
 import {
-    // Button,
+    Button,
     Col,
     DatePicker,
     Divider,
@@ -22,15 +22,15 @@ import CustomDateRangePicker from "../../components/CustomDateRangePicker/Custom
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
-import {
-    Button,
-    Card,
-    CreatableSelect,
-    CustomTable,
-    MUIChipsAutocomplete,
-    Sidebar,
-    StyledMUISelect,
-} from "../../components";
+// import {
+//     Button,
+//     Card,
+//     CreatableSelect,
+//     CustomTable,
+//     MUIChipsAutocomplete,
+//     Sidebar,
+//     StyledMUISelect,
+// } from "../../components";
 
 const StyledMUITextField = styled(TextField)(() => {
     return {
@@ -87,6 +87,7 @@ const CreateNewBatch = () => {
     }, [allRoles]);
 
     function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
+        // console.log(e.target)
         const { id, value } = e.target;
         // console.log({ id, value });
         setValues({ ...values, [id]: value });
@@ -94,19 +95,21 @@ const CreateNewBatch = () => {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         // handleReset();
-        e.preventDefault();
+        // e.preventDefault();
     //   setLoading(true);
         try {
         const finalData = {
             name: values.batchName,
-            exams: values.exams?.map((exam: any) => exam.name),
+            // exams: values.exams?.map((exam: any) => exam.name),
+            exams: values.exams,
             medium: values.medium,
             institute: currentUser?.instituteId,
             validity: {
             from: dayjs(validity[0]).toISOString(),
             to: dayjs(validity[1]).toISOString(),
             },
-            classes: classes.map((value: any) => value.name),
+            // classes: classes.map((value: any) => value.name),
+            classes: values.classes,
             createdBy: {
             userType: currentUser?.userType,
             id: currentUser?.id,
@@ -114,8 +117,10 @@ const CreateNewBatch = () => {
             createdAt: new Date().toISOString(),
             modifiedAt: new Date().toISOString(),
             members: [],
-            roles: roles.map((value: any) => value.value),
+            roles: values.roles,
+            // roles: roles.map((value: any) => value.value),
         };
+        console.log("Final Data ->", {finalData});
         // console.log({ finalData });
         const res = await API_USERS().post(`/batch/create`, finalData);
         setBatches((prev: any) => [...prev, res?.data?.data]);
@@ -124,8 +129,8 @@ const CreateNewBatch = () => {
         setRoles([]);
         message.success(res?.data?.message);
         } catch (error: any) {
-        console.log("ERROR_CREATE_BATCH", error);
-        message.error(error?.response?.data?.message);
+        console.log("ERROR_CREATE_BATCH", {error});
+        message.error(error?.response?.data?.error);
         }
     //   setLoading(false);
         // console.log({ res });
@@ -145,7 +150,7 @@ const CreateNewBatch = () => {
     //     width="350px"
     //     handleClose={handleClose}
     //   >
-    <MainLayout name="Create Pattern">
+    <MainLayout name="Create Batches">
         <Form onFinish={handleSubmit}>
             <div className={styles.inputFields}>
             <Input
@@ -168,8 +173,11 @@ const CreateNewBatch = () => {
                 <Select
                   size="large"
                   onChange={(e) => {
-                    setValues(e);
+                    setValues({ ...values, ["exams"]:e});
+                    // console.log(values);
                   }}
+                id="Exams"
+                // onChange={handleChangeValues}
                   mode="tags"
                   placeholder="Exam(s)"
                 >
@@ -197,6 +205,7 @@ const CreateNewBatch = () => {
             <Form.Item >
                 <Select
                   showSearch
+                  id="Medium"
                   size="large"
                   filterOption={(input, option) =>
                     (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
@@ -213,8 +222,9 @@ const CreateNewBatch = () => {
                   ]}
                   onChange={(val: string) => {
                     console.log(val);
-                    setValues({medium: val});
+                    setValues({ ...values, ["medium"]:val});
                   }}
+                //   onChange={handleChangeValues}
                   value={values.medium}
                   placeholder="Medium"
                 />
@@ -235,8 +245,9 @@ const CreateNewBatch = () => {
             <Form.Item >
                 <Select
                   size="large"
+                  id="Classes"
                   onChange={(e) => {
-                    setClasses(e);
+                    setValues({ ...values, ["classes"]:e});
                   }}
                   mode="tags"
                   placeholder="Classes"
@@ -264,12 +275,14 @@ const CreateNewBatch = () => {
                 <Select
                   size="large"
                   onChange={(e) => {
-                    setValues(e);
+                    console.log(values);
+                    setValues({ ...values, ["roles"]:e});
                   }}
+                  id="Roles"
                   mode="tags"
                   placeholder="Roles(s)"
                 >
-                {console.log(roleOptions)}
+                {/* {console.log(roleOptions)} */}
                 {roleOptions?.map((option: any) => (
                     <Select.Option key={option.id} value={option.name}>
                         {option.name}
@@ -287,7 +300,20 @@ const CreateNewBatch = () => {
             /> */}
             </div>
             <div className={styles.buttons}>
-            <Button>Submit</Button>
+            <Button 
+                onClick={async () => {
+                    // setSubmitDisabled(true);
+                    await document
+                      .getElementById("studentUserForm")
+                      ?.dispatchEvent(
+                        new Event("submit", { cancelable: true, bubbles: true })
+                      );
+                    // setSubmitDisabled(false);
+                  }}
+                  type="primary"
+                  htmlType="submit"
+                //   disabled={submitDisabled}
+            >Submit</Button>
             </div>
         </Form>
         </MainLayout>

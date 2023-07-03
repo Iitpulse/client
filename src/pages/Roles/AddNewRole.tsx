@@ -1,14 +1,27 @@
 import { useCallback, useContext, useRef, useState } from "react";
-import { InputField, Modal, Button, Sidebar } from "../../components";
+// import { InputField, Modal, Button, Sidebar } from "../../components";
 import styles from "./AddNewRole.module.scss";
 import { APIS, PERMISSIONS } from "../../utils/constants";
 import { Permission } from "./EditRole/EditRole";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_USERS } from "../../utils/api/config";
-import { message } from "antd";
 import { useNavigate } from "react-router";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
+import MainLayout from "../../layouts/MainLayout";
+import {
+  Button,
+  Col,
+  DatePicker,
+  Divider,
+  Drawer,
+  Form,
+  Input,
+  Row,
+  Select,
+  Space,
+  message,
+} from "antd";
 
 export const flattendPermissions = () => {
   let final: any = [];
@@ -19,10 +32,7 @@ export const flattendPermissions = () => {
   return final;
 };
 
-const AddNewRole: React.FC<{
-  open: boolean;
-  handleClose: () => void;
-}> = ({ open, handleClose }) => {
+const AddNewRole = () => {
   const [name, setName] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +43,7 @@ const AddNewRole: React.FC<{
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
+      // e.preventDefault();
       if (!name) {
         message.error("Role name is required");
         inputRef.current?.focus();
@@ -44,50 +54,40 @@ const AddNewRole: React.FC<{
         const newRole = await createNewRole(name);
         loading();
         message.success(`Role ${name} created successfully`);
-        handleClose();
+        // handleClose();
         setTimeout(() => {
           navigate(`/roles/${newRole.id || newRole._id}`);
         }, 1000);
       } catch (error) {
         loading();
-        message.error(`Error creating role ${name}`);
-        console.log(error);
+        message.error(error?.response?.data?.message);
+        console.log({error});
       }
     },
-    [name, createNewRole, handleClose, navigate]
+    [name, createNewRole, navigate]
   );
 
   return (
-    <Sidebar
-      title="Create New Role"
-      open={open}
-      width="30%"
-      handleClose={handleClose}
-      extra={
-        <Button
-          onClick={() => {
-            if (formRef.current)
-              formRef.current?.dispatchEvent(
-                new Event("submit", { cancelable: true, bubbles: true })
-              );
-          }}
-        >
-          Submit
-        </Button>
-      }
-    >
-      <form className={styles.container} ref={formRef} onSubmit={handleSubmit}>
-        <InputField
-          required
-          ref={inputRef}
-          type="text"
-          id="name"
-          value={name}
-          onChange={(e: any) => setName(e.target.value)}
-          label="Name"
-        />
-      </form>
-    </Sidebar>
+    <MainLayout name="Create Pattern">
+        <Form onFinish={handleSubmit}>
+            <div className={styles.inputFields}>
+            <Input
+                required
+                size="large"
+                // value={name}
+                onChange={(e)=>{setName(e.target.value)}}
+                placeholder="Role Name"
+                // variant="outlined"
+            />
+            </div>
+            <span></span>
+            <Button 
+              type="primary"
+              htmlType="submit"
+            //   disabled={submitDisabled}
+        >Submit</Button>
+      </Form>
+    </MainLayout>
   );
 };
 
