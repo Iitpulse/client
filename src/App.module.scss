@@ -71,6 +71,9 @@ html {
   background: rgb(194, 194, 194);
   border-radius: 0.5rem;
 }
+a {
+  text-decoration: none;
+}
 
 // Reduce the size of right side bar on 1400px and
 // display: none on width <= 1300px

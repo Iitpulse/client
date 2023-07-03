@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { ZodError } from "zod";
+import { PatternFormSchema, PatternFormSchemaType } from "./types";
+import { IPattern, ISection } from "../../utils/interfaces";
 
 export function hasPatternPemissions(
   permissions: {
@@ -90,3 +93,45 @@ export function convertMinutesToHoursAndMinutes(minutes: number) {
   const mins = minutes % 60;
   return `${hours} h ${mins} m`;
 }
+
+export const isPatternFormFilled = (
+  setHelperTexts: React.Dispatch<React.SetStateAction<any>>,
+  defaultState: PatternFormSchemaType,
+  data: {
+    name: string;
+    exam: string;
+    durationInMinutes: string;
+    sections: Array<ISection>;
+  }
+) => {
+  setHelperTexts(defaultState);
+  // const { test, batches, status, testDateRange, pattern } = data;
+  const { name, exam, durationInMinutes, sections } = data;
+  try {
+    // This will throw an error if the validation fails
+    console.log("data", data);
+    PatternFormSchema.parse({
+      name,
+      exam,
+      durationInMinutes,
+      sections,
+    });
+
+    // If the above line didn't throw, validation passed
+    return true;
+  } catch (error) {
+    if (error instanceof ZodError) {
+      error.errors.forEach((issue) => {
+        let path = issue.path.join(".");
+        let message = issue.message;
+        setHelperTexts((prevState: any) => ({
+          ...prevState,
+          [path]: message,
+        }));
+      });
+    } else {
+      console.error(error);
+    }
+    return false;
+  }
+};
