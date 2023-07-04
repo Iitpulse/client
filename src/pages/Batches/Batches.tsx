@@ -158,18 +158,15 @@ const Batches = () => {
     <MainLayout name="Batches">
       <Card classes={[styles.container]}>
         <div className={styles.header}>
-          <NavLink to="/batches/new">
-            <Button icon={<AddIcon />}>
+            <Button onClick={() => setToggleSideBar(true)} icon={<AddIcon />}>
               Create New
             </Button>
-          </NavLink>
-
-          {/* <CreateNewBatch
+          <CreateNewBatch
             handleClose={() => setToggleSideBar(false)}
             toggleSideBar={toggleSideBar}
             setLoading={setLoading}
             setBatches={setData}
-          /> */}
+          />
         </div>
         <div className={styles.data}>
           <CustomTable

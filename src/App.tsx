@@ -19,7 +19,6 @@ import {
   StudentRegister,
   PasswordReset,
   Profile,
-  CreateNewBatch,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -88,7 +87,7 @@ const App = () => {
                       //   "Batches"
                       // )}
                     />
-                    <Route
+                    {/* <Route
                       path="/batches/new"
                       element={
                         <PrivateRoute
@@ -96,7 +95,7 @@ const App = () => {
                           name="Create Batches"
                         />
                       }
-                    />
+                    /> */}
                     <Route
                       path="/profile/:userId"
                       element={

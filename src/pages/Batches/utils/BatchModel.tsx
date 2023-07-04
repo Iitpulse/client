@@ -16,24 +16,7 @@ export const batchSchema = z.object({
     id: z.string(),
     userType: z.string(),
   }),
-  userType: z
-    .enum(["student", "teacher", "admin", "superAdmin", "operator", "manager"])
-    .refine(
-      (value) => {
-        return [
-          "student",
-          "teacher",
-          "admin",
-          "superAdmin",
-          "operator",
-          "manager",
-        ].includes(value);
-      },
-      {
-        message:
-          "Invalid enum value. Expected 'student' | 'teacher' | 'admin' | 'superAdmin' | 'operator' | 'manager'",
-      }
-    ),
+  // userType: z.array(z.string()),
   createdAt: z.string(),
   modifiedAt: z.string(),
   roles: z.array(z.string()),

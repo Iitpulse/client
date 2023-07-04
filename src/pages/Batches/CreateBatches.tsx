@@ -18,10 +18,20 @@ import {
     Space,
     message,
   } from "antd";
+import { Sidebar } from "../../components";
 import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
+import { Dayjs } from "dayjs";
+import {
+  convertFieldValue,
+  convertStringToValidationFormat,
+  mapIdWithValues,
+  performZodValidation,
+  validateField,
+} from "../../utils/schemas";
+import { batchSchema } from "./utils/BatchModel";
 // import {
 //     Button,
 //     Card,
@@ -62,7 +72,13 @@ const StyledMUITextField = styled(TextField)(() => {
     }
 
 
-const CreateNewBatch = () => {
+    const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
+      handleClose,
+      toggleSideBar,
+      setLoading,
+      setBatches,
+    }) => {
+    const [form] = Form.useForm();
     const [batch, setBatch] = useState();
     const [validity, setValidity] = useState([]);
     const [classes, setClasses] = useState<any>([]);
@@ -73,7 +89,6 @@ const CreateNewBatch = () => {
     const { currentUser } = useContext(AuthContext);
     const { allRoles } = useContext(PermissionsContext);
     const { exams: examOptions } = useContext(TestContext);
-    const [batches, setBatches] = useState<any>([]);
 
     useEffect(() => {
         if (allRoles) {
@@ -93,46 +108,106 @@ const CreateNewBatch = () => {
         setValues({ ...values, [id]: value });
     }
 
+    const conversionObject: any = {
+      name: null,
+      exams: null,
+      medium: null,
+      institute: null,
+      validity: {
+        convert: (value: Dayjs[]) =>
+          value
+            ? {
+                from: dayjs(value[0]).toISOString(),
+                to: dayjs(value[1]).toISOString(),
+              }
+            : undefined,
+        revert: (value: { from: string; to: string }) =>
+          value
+            ? [dayjs(value.from, "DD-MM-YYYY"), dayjs(value.to, "DD-MM-YYYY")]
+            : [],
+      },
+      classes: null,
+      createdBy: null,
+      createdAt: null,
+      modifiedAt: null,
+      roles:null,
+    };
+
+
+    function getRules(fieldName: any) {
+      return [
+        {
+          validateTrigger: "onSubmit",
+          validator: (_: any, value: any) =>
+            validateField(fieldName, value, conversionObject, batchSchema),
+        },
+      ];
+    }
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         // handleReset();
         // e.preventDefault();
     //   setLoading(true);
         try {
-        const finalData = {
-            name: values.batchName,
-            // exams: values.exams?.map((exam: any) => exam.name),
-            exams: values.exams,
-            medium: values.medium,
-            institute: currentUser?.instituteId,
-            validity: {
-                from: dayjs(validity[0]).toISOString(),
-                to: dayjs(validity[1]).toISOString(),
-            },
-            // classes: classes.map((value: any) => value.name),
-            classes: values.classes,
-            createdBy: {
-                id: currentUser?.id,
-                userType: currentUser?.userType,
-            },
-            createdAt: new Date().toISOString(),
-            modifiedAt: new Date().toISOString(),
-            members: [],
-            roles: values.roles,
-            // roles: roles.map((value: any) => value.value),
-        };
-        console.log("Final Data ->", {finalData});
+        // const finalData = {
+        //     name: values.batchName,
+        //     // exams: values.exams?.map((exam: any) => exam.name),
+        //     exams: values.exams,
+        //     medium: values.medium,
+        //     institute: currentUser?.instituteId,
+        //     validity: {
+        //         from: dayjs(validity[0]).toISOString(),
+        //         to: dayjs(validity[1]).toISOString(),
+        //     },
+        //     // classes: classes.map((value: any) => value.name),
+        //     classes: values.classes,
+        //     createdBy: {
+        //         id: currentUser?.id,
+        //         userType: currentUser?.userType,
+        //     },
+        //     createdAt: new Date().toISOString(),
+        //     modifiedAt: new Date().toISOString(),
+        //     members: [],
+        //     roles: values.roles,
+        //     // roles: roles.map((value: any) => value.value),
+        // };
+        const additionalValues = {
+          institute: currentUser?.instituteId,
+          validity: {
+              from: dayjs(validity[0]).toISOString(),
+              to: dayjs(validity[1]).toISOString(),
+          },
+          createdBy: {
+              id: currentUser?.id,
+              userType: currentUser?.userType,
+          },
+          createdAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
+          modifiedAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
+          members: [],
+        }
+        console.log("form->", {form});
+        const result = performZodValidation(
+          form,
+          conversionObject,
+          batchSchema,
+          additionalValues
+        );
+        console.log("Final Data ->", {result});
         // console.log({ finalData });
-        const res = await API_USERS().post(`/batch/create`, finalData);
+        const res = await API_USERS().post(`/batch/create`, result);
         setBatches((prev: any) => [...prev, res?.data?.data]);
         setValues({});
         setClasses([]);
         setRoles([]);
+        form.resetFields();
+        handleClose();
         message.success(res?.data?.message);
         } catch (error: any) {
-        console.log("ERROR_CREATE_BATCH", {error});
-        message.error(error?.response?.data?.error);
+          console.log("ERROR_CREATE_BATCH", {error});
+          form.resetFields();
+          message.error(error?.response?.data?.error);
         }
-    //   setLoading(false);
+      setLoading(false);
         // console.log({ res });
     }
     const options = [
@@ -150,9 +225,19 @@ const CreateNewBatch = () => {
     //     width="350px"
     //     handleClose={handleClose}
     //   >
-    <MainLayout name="Create Batches">
-        <Form onFinish={handleSubmit}>
+    <Sidebar
+      title="Create New Batch"
+      open={toggleSideBar}
+      width="350px"
+      handleClose={handleClose}
+    >
+        <Form 
+          form={form}
+          id="teacherUserForm"
+          layout="vertical"
+          onFinish={handleSubmit}>
             <div className={styles.inputFields}>
+            <Form.Item name="name">
             <Input
                 id="batchName"
                 required
@@ -162,6 +247,8 @@ const CreateNewBatch = () => {
                 placeholder="Batch Name"
                 // variant="outlined"
             />
+            </Form.Item>
+            <Form.Item >  
             <div className={styles.dateSelector}>
                 <CustomDateRangePicker
                 showTime={false}
@@ -169,15 +256,15 @@ const CreateNewBatch = () => {
                 value={validity}
                 />
             </div>
-            <Form.Item >
+            </Form.Item>
+            <Form.Item name="exams">
                 <Select
                   size="large"
                   onChange={(e) => {
                     setValues({ ...values, ["exams"]:e});
                     // console.log(values);
                   }}
-                id="Exams"
-                // onChange={handleChangeValues}
+                  id="Exams"
                   mode="tags"
                   placeholder="Exam(s)"
                 >
@@ -202,7 +289,7 @@ const CreateNewBatch = () => {
                 label={"Exam(s)"}
                 id="Exams"
             /> */}
-            <Form.Item >
+            <Form.Item name="medium">
                 <Select
                   showSearch
                   id="Medium"
@@ -242,7 +329,7 @@ const CreateNewBatch = () => {
                 }}
             /> */}
 
-            <Form.Item >
+            <Form.Item name="classes">
                 <Select
                   size="large"
                   id="Classes"
@@ -271,7 +358,7 @@ const CreateNewBatch = () => {
             /> */}
 
             
-            <Form.Item >
+            <Form.Item name="roles">
                 <Select
                   size="large"
                   onChange={(e) => {
@@ -316,7 +403,7 @@ const CreateNewBatch = () => {
             >Submit</Button>
             </div>
         </Form>
-        </MainLayout>
+        </Sidebar>
     );
 };
 
