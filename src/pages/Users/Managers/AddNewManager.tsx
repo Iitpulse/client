@@ -34,6 +34,7 @@ import {
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
+import { INDIAN_STATES } from "../../../utils/constants";
 const { Option } = Select;
 
 interface IAddNewManager {
@@ -341,7 +342,13 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
             </Col>
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Input placeholder="Please enter a state" />
+                <Select placeholder="Please enter a state">
+                  {
+                    INDIAN_STATES.map((e)=>(
+                      <Select.Option key={e} value={e}>{e}</Select.Option>
+                    ))
+                  }
+                </Select>
               </Form.Item>
             </Col>
           </Row>
