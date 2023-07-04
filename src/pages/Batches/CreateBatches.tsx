@@ -205,7 +205,7 @@ const StyledMUITextField = styled(TextField)(() => {
         } catch (error: any) {
           console.log("ERROR_CREATE_BATCH", {error});
           form.resetFields();
-          message.error(error?.response?.data?.error);
+          message.error(error.response.data.error);
         }
       setLoading(false);
         // console.log({ res });
@@ -237,10 +237,9 @@ const StyledMUITextField = styled(TextField)(() => {
           layout="vertical"
           onFinish={handleSubmit}>
             <div className={styles.inputFields}>
-            <Form.Item name="name">
+            <Form.Item name="name" rules={getRules("name")}>
             <Input
                 id="batchName"
-                required
                 size="large"
                 value={values.batchName}
                 onChange={handleChangeValues}
@@ -248,7 +247,7 @@ const StyledMUITextField = styled(TextField)(() => {
                 // variant="outlined"
             />
             </Form.Item>
-            <Form.Item >  
+            <Form.Item name="validity" rules={getRules("validity")}>  
             <div className={styles.dateSelector}>
                 <CustomDateRangePicker
                 showTime={false}
@@ -257,7 +256,7 @@ const StyledMUITextField = styled(TextField)(() => {
                 />
             </div>
             </Form.Item>
-            <Form.Item name="exams">
+            <Form.Item name="exams" rules={getRules("exams")}>
                 <Select
                   size="large"
                   onChange={(e) => {
@@ -289,7 +288,7 @@ const StyledMUITextField = styled(TextField)(() => {
                 label={"Exam(s)"}
                 id="Exams"
             /> */}
-            <Form.Item name="medium">
+            <Form.Item name="medium" rules={getRules("medium")}>
                 <Select
                   showSearch
                   id="Medium"
@@ -329,7 +328,7 @@ const StyledMUITextField = styled(TextField)(() => {
                 }}
             /> */}
 
-            <Form.Item name="classes">
+            <Form.Item name="classes" rules={getRules("classes")}>
                 <Select
                   size="large"
                   id="Classes"
@@ -358,7 +357,7 @@ const StyledMUITextField = styled(TextField)(() => {
             /> */}
 
             
-            <Form.Item name="roles">
+            <Form.Item name="roles" rules={getRules("roles")}>
                 <Select
                   size="large"
                   onChange={(e) => {
