@@ -162,13 +162,20 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
         operatorSchema,
         additionalValues
       );
-      result.roles = result.roles.map((role: any) => {
-        return {
-          id: role.id,
-          from: role.from,
-          to: role.to,
-        };
-      });
+      if (
+        !result?.roles ||
+        !result?.roles?.find((role: any) => role.id === "ROLE_OPERATOR")
+      ) {
+        if (!result?.roles) result.roles = [];
+        result.roles = [
+          ...result?.roles,
+          {
+            id: "ROLE_OPERATOR",
+            from: result.validity.from,
+            to: result.validity.to,
+          },
+        ];
+      }
       console.log(result);
       await onFinish(result);
     } catch (error) {

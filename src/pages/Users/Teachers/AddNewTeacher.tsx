@@ -182,13 +182,20 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
         teacherSchema,
         additionalValues
       );
-      result.roles = result.roles.map((role: any) => {
-        return {
-          id: role.id,
-          from: role.from,
-          to: role.to,
-        };
-      });
+      if (
+        !result?.roles ||
+        !result?.roles?.find((role: any) => role.id === "ROLE_TEACHER")
+      ) {
+        if (!result?.roles) result.roles = [];
+        result.roles = [
+          ...result?.roles,
+          {
+            id: "ROLE_TEACHER",
+            from: result.validity.from,
+            to: result.validity.to,
+          },
+        ];
+      }
       console.log(result);
       await onFinish(result);
     } catch (error) {

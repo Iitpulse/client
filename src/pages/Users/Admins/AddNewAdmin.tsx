@@ -163,13 +163,20 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
         adminSchema,
         additionalValues
       );
-      result.roles = result.roles.map((role: any) => {
-        return {
-          id: role.id,
-          from: role.from,
-          to: role.to,
-        };
-      });
+      if (
+        !result?.roles ||
+        !result?.roles?.find((role: any) => role.id === "ROLE_ADMIN")
+      ) {
+        if (!result?.roles) result.roles = [];
+        result.roles = [
+          ...result?.roles,
+          {
+            id: "ROLE_ADMIN",
+            from: result.validity.from,
+            to: result.validity.to,
+          },
+        ];
+      }
       console.log({ result });
       await onFinish(result);
     } catch (error) {
