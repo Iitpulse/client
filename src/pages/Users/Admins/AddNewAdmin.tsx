@@ -33,6 +33,7 @@ import {
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
+import { ROLES } from "../../../utils/constants";
 const { Option } = Select;
 
 interface IAddNewAdmin {
@@ -163,15 +164,16 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
         adminSchema,
         additionalValues
       );
-      if (
+
+      const hasAdmin =
         !result?.roles ||
-        !result?.roles?.find((role: any) => role.id === "ROLE_ADMIN")
-      ) {
+        !result?.roles?.find((role: any) => role.id === ROLES.ADMIN);
+      if (hasAdmin) {
         if (!result?.roles) result.roles = [];
         result.roles = [
           ...result?.roles,
           {
-            id: "ROLE_ADMIN",
+            id: ROLES.ADMIN,
             from: result.validity.from,
             to: result.validity.to,
           },

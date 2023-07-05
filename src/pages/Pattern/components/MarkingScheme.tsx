@@ -1,5 +1,5 @@
 import { IconButton } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CustomInputSection from "./CustomInputSection";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -37,6 +37,11 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
     // console.log(arr);
     setMarkingSchemeCorrect([...arr]);
   };
+  useEffect(() => {
+    if (type === "single" || type === "integer") {
+      setMarkingSchemeCorrect([1]);
+    }
+  });
   console.log(errorCorrect);
   return (
     <>

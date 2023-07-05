@@ -32,6 +32,7 @@ import {
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
+import { ROLES } from "../../../utils/constants";
 const { Option } = Select;
 
 interface IAddNewTeacher {
@@ -182,15 +183,15 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
         teacherSchema,
         additionalValues
       );
-      if (
+      const hasTeacher =
         !result?.roles ||
-        !result?.roles?.find((role: any) => role.id === "ROLE_TEACHER")
-      ) {
+        !result?.roles?.find((role: any) => role.id === ROLES.TEACHER);
+      if (hasTeacher) {
         if (!result?.roles) result.roles = [];
         result.roles = [
           ...result?.roles,
           {
-            id: "ROLE_TEACHER",
+            id: ROLES.TEACHER,
             from: result.validity.from,
             to: result.validity.to,
           },
