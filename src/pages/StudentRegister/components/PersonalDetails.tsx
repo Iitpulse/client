@@ -4,10 +4,22 @@ import { Button, StyledMUISelect } from "../../../components";
 import { useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import { Grid } from "@mui/material";
+import {
+  // Button,
+  Col,
+  DatePicker,
+  Divider,
+  Drawer,
+  Form,
+  Input,
+  Row,
+  Select,
+  Space,
+  message,
+} from "antd";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
-import { message } from "antd";
 import { API_USERS } from "../../../utils/api/config";
 
 const PersonalDetailsSchema = z.object({
@@ -289,7 +301,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
       </div>
-      <Button type="submit">Next</Button>
+      {/* <Button type="submit">Next</Button> */}
     </form>
   );
 };

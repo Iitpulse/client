@@ -1,13 +1,24 @@
 import { StyledMUITextField } from "../../Users/components";
 import z from "zod";
-import { Button } from "../../../components";
+// import { Button } from "../../../components";
 import { Button as MuiButton, TextField } from "@mui/material";
 import { useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import { Grid, Stack } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-
-import { message } from "antd";
+import {
+  Button,
+  Col,
+  DatePicker,
+  Divider,
+  Drawer,
+  Form,
+  Input,
+  Row,
+  Select,
+  Space,
+  message,
+} from "antd";
 import { API_USERS } from "../../../utils/api/config";
 
 const AccountDetailsSchema = z.object({
@@ -46,7 +57,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   });
   const [helperTexts, setHelperTexts] = useState(defaultState);
 
-  function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChangeValues(e: any) {
+    console.log(values);
     const { id, value } = e.target;
     setValues((prevState) => ({
       ...prevState,
@@ -97,7 +109,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [Verified, setVerified] = useState(false);
 
   const handleGenerate = async (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    e: any
   ) => {
     e.preventDefault();
     try {
@@ -116,7 +128,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   };
 
   const handleVerify = async (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    e: any
   ) => {
     e.preventDefault();
     try {
@@ -159,92 +171,103 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       <ThemeProvider theme={theme}>
         <Grid container spacing={2} justifyContent={"space-between"}>
           <Grid item xs={12}>
-            <TextField
+            <Input
+              size="large"
               disabled={Verified}
-              fullWidth
+              // fullWidth
               required
               id="email"
-              type="email"
-              autoComplete="email"
-              error={errors.email}
+              // type="email"
+              // autoComplete="email"
+              // error={errors.email}
               value={values.email}
-              helperText={helperTexts.email}
+              // helperText={helperTexts.email}
               onChange={handleChangeValues}
-              label="Email"
-              variant="outlined"
+              placeholder="Email"
+              // variant="outlined"
             />
           </Grid>
         </Grid>
         {/* <Grid item xs={10}> */}
 
-        <Button onClick={handleGenerate} hidden={showTextField || Verified}>
-          {buttonText}
-        </Button>
+        {!(Verified || showTextField) && (
+          <Button onClick={handleGenerate} size="large" type="primary">
+            {buttonText}
+          </Button>
+        )}
         {/* </Grid> */}
         {showTextField && (
           <Grid container spacing={2} justifyContent={"space-between"}>
             <Grid item xs={8}>
-              <TextField
-                fullWidth
+              <Input
+                // fullWidth
+                size="large"
                 required
                 id="emailotp"
-                type="number"
-                value={values.emailotp}
-                helperText=" We have sent an OTP to your Email"
+                // type="number"
+                // value={values.emailotp}
+                // helperText=" We have sent an OTP to your Email"
                 onChange={handleChangeValues}
-                label="Email OTP"
-                variant="outlined"
+                placeholder="Email OTP"
+                // variant="outlined"
               />
             </Grid>
 
             <Grid item xs={4}>
-              <Button onClick={handleVerify}>Verify</Button>
+              <Button onClick={handleVerify} size="large" type="primary">Verify</Button>
             </Grid>
           </Grid>
         )}
 
-        {Verified && (
+{Verified && 
           <>
-            <StyledMUITextField
-              required
-              id="password"
-              autoComplete="new-password"
-              value={values.password}
-              error={errors.password}
-              helperText={helperTexts.password}
-              type="password"
-              onChange={handleChangeValues}
-              label="Password"
-              variant="outlined"
-            />
-
-            <StyledMUITextField
-              required
-              id="confirmPassword"
-              autoComplete="new-password"
-              value={values.confirmPassword}
-              error={errors.confirmPassword}
-              helperText={helperTexts.confirmPassword}
-              type="password"
-              onChange={handleChangeValues}
-              label="Confirm Password"
-              variant="outlined"
-            />
-
-            <StyledMUITextField
-              required
-              id="joiningCode"
-              value={values.joiningCode}
-              error={errors.joiningCode}
-              helperText={helperTexts.joiningCode}
-              type="text"
-              onChange={handleChangeValues}
-              label="Joining Code"
-              variant="outlined"
-            />
-            <Button type="submit">Next</Button>
+            <Form>
+              <Form.Item>
+              <Input
+                size="large"
+                required
+                id="password"
+                // autoComplete="new-password"
+                // value={values.password}
+                // error={errors.password}
+                // helperText={helperTexts.password}
+                type="password"
+                onChange={handleChangeValues}
+                placeholder="Password"
+                />
+              </Form.Item>
+              <Form.Item>
+                <Input
+                  size="large"
+                  required
+                  id="confirmPassword"
+                  autoComplete="new-password"
+                  // value={values.confirmPassword}
+                  // error={errors.confirmPassword}
+                  // helperText={helperTexts.confirmPassword}
+                  type="password"
+                  onChange={handleChangeValues}
+                  placeholder="Confirm Password"
+                />
+              </Form.Item>
+              
+              <Form.Item>
+                <Input
+                  size="large"
+                  required
+                  id="joiningCode"
+                  // value={values.joiningCode}
+                  // error={errors.joiningCode}
+                  // helperText={helperTexts.joiningCode}
+                  type="text"
+                  onChange={handleChangeValues}
+                  placeholder="Joining Code"
+                  />
+              </Form.Item>
+            <Button type="primary">Next</Button>
+            </Form>
           </>
-        )}
+        }
       </ThemeProvider>
     </form>
   );
