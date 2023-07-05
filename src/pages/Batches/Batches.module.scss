@@ -1,5 +1,9 @@
 @import "../../utils/commons.scss";
 
+:where(.css-dev-only-do-not-override-14wwjjs).ant-picker{
+  padding: 7px 11px !important;
+}
+
 .container {
   // margin-top: 1rem;
   width: 100%;

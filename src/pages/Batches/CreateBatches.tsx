@@ -80,7 +80,7 @@ const StyledMUITextField = styled(TextField)(() => {
     }) => {
     const [form] = Form.useForm();
     const [batch, setBatch] = useState();
-    const [validity, setValidity] = useState([]);
+    const [validity, setValidity] = useState({} as any);
     const [classes, setClasses] = useState<any>([]);
     const [roleOptions, setRoleOptions] = useState<any>([]);
     const [roles, setRoles] = useState<any>([]);
@@ -248,13 +248,18 @@ const StyledMUITextField = styled(TextField)(() => {
             />
             </Form.Item>
             <Form.Item name="validity" rules={getRules("validity")}>  
-            <div className={styles.dateSelector}>
-                <CustomDateRangePicker
-                showTime={false}
-                onChange={(props: any) => setValidity(props)}
-                value={validity}
-                />
-            </div>
+              <DatePicker.RangePicker
+                  format="DD-MM-YYYY"
+                  size="large"
+                  style={{ width: "100%" }}
+                  // getPopupContainer={(trigger) => trigger.parentElement!}
+                  onChange={(e: any) => {
+                    setValidity({
+                      from: dayjs(e[0]).toISOString(),
+                      to: dayjs(e[1]).toISOString(),
+                    });
+                  }}
+              />
             </Form.Item>
             <Form.Item name="exams" rules={getRules("exams")}>
                 <Select
