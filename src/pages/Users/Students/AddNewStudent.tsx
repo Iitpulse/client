@@ -195,13 +195,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
         additionalValues
       );
       console.log({ result });
-      result.roles = result.roles.map((role: any) => {
-        return {
-          id: role.id,
-          from: role.from,
-          to: role.to,
-        };
-      });
+
       await onFinish(result);
     } catch (error) {
       onFinishFailed(error); 
@@ -488,7 +482,11 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="batch" label="Batch" rules={getRules("batch")}>
+              <Form.Item
+                name="batch"
+                label="Batch"
+                rules={getRules("joiningCode")}
+              >
                 <Select placeholder="Please choose a batch">
                   {batchOptions?.map((option: any) => (
                     <Select.Option key={option.value} value={option.value}>

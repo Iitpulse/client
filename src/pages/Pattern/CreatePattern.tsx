@@ -42,7 +42,7 @@ const CreatePattern = () => {
   // const [subjects, setSubjects] = useState([]);
 
   const [name, setName] = useState("");
-  const [exam, setExam] = useState("");
+  const [exam, setExam] = useState<string | undefined>(undefined);
   const [durationInMinutes, setDurationInMinutes] = useState("");
 
   const [helperTexts, setHelperTexts] = useState<any>(defaultState);
@@ -95,7 +95,7 @@ const CreatePattern = () => {
       {
         ...TEST.SAMPLE_SECTION,
         id: `${Math.random() * 100}`,
-        exam: exam,
+        exam: exam || "",
         subject: "physics",
       },
     ]);
@@ -116,7 +116,7 @@ const CreatePattern = () => {
     try {
       isPatternFormFilled(setHelperTexts, defaultState, {
         name,
-        exam,
+        exam: exam || "",
         durationInMinutes,
         sections,
       });
@@ -315,6 +315,7 @@ const CreatePattern = () => {
 
                 <Input
                   type="number"
+                  min={0}
                   status={helperTexts.durationInMinutes !== "" ? "error" : ""}
                   value={durationInMinutes}
                   placeholder="Duration (in Minutes)"
@@ -332,6 +333,7 @@ const CreatePattern = () => {
                     })) || []
                   }
                   value={exam}
+                  title="Exam"
                   placeholder="Exam"
                   filterOption={(inputValue, option) =>
                     option?.value
