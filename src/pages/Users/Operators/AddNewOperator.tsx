@@ -34,7 +34,7 @@ import {
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
-import { INDIAN_STATES } from "../../../utils/constants";
+import { INDIAN_STATES, ROLES } from "../../../utils/constants";
 const { Option } = Select;
 
 interface IAddNewOperator {
@@ -165,13 +165,20 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({ setOpen, open }) => {
         operatorSchema,
         additionalValues
       );
-      result.roles = result.roles.map((role: any) => {
-        return {
-          id: role.id,
-          from: role.from,
-          to: role.to,
-        };
-      });
+      const hasOperator =
+        !result?.roles ||
+        !result?.roles?.find((role: any) => role.id === ROLES.OPERATOR);
+      if (hasOperator) {
+        if (!result?.roles) result.roles = [];
+        result.roles = [
+          ...result?.roles,
+          {
+            id: ROLES.OPERATOR,
+            from: result.validity.from,
+            to: result.validity.to,
+          },
+        ];
+      }
       console.log(result);
       await onFinish(result);
     } catch (error) {

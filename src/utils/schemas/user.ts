@@ -127,15 +127,17 @@ export const teacherSchema = userSchema.extend({
       .object({
         _id: z.string(),
         name: z.string(),
-        chapters: z.array(z.object({
+        chapters: z.array(
+          z.object({
             id: z.string().nullish(),
             name: z.string().nullish(),
-            topics: z.array(z.string()).nullish()
+            topics: z.array(z.string()).nullish(),
             // id: z.string(),
             // name: z.string(),
             // topics: z.array(z.string())
-        })),
-        __v: z.number()
+          })
+        ),
+        __v: z.number(),
       })
       .strict()
   ),
@@ -149,19 +151,21 @@ export const teacherSchema = userSchema.extend({
       })
       .strict()
   ),
-  roles: z.union([
-    z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
-    z.array(
-      roleSchema
-        .pick({
-          id: true,
-          members: true,
-          permissions: true,
-          name: true,
-        })
-        .strict()
-    ),
-  ]),
+  roles: z
+    .union([
+      z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
+      z.array(
+        roleSchema
+          .pick({
+            id: true,
+            members: true,
+            permissions: true,
+            name: true,
+          })
+          .strict()
+      ),
+    ])
+    ?.optional(),
 });
 
 export const adminSchema = userSchema.extend({
@@ -176,23 +180,26 @@ export const adminSchema = userSchema.extend({
           name: true,
         })
         .strict()
+        ?.optional()
     ),
   ]),
 });
 export const operatorSchema = userSchema.extend({
-  roles: z.union([
-    z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
-    z.array(
-      roleSchema
-        .pick({
-          id: true,
-          members: true,
-          permissions: true,
-          name: true,
-        })
-        .strict()
-    ),
-  ]),
+  roles: z
+    .union([
+      z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),
+      z.array(
+        roleSchema
+          .pick({
+            id: true,
+            members: true,
+            permissions: true,
+            name: true,
+          })
+          .strict()
+      ),
+    ])
+    ?.optional(),
 });
 export const managerSchema = userSchema.extend({
   roles: z.union([

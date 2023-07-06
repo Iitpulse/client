@@ -95,6 +95,7 @@ const EditRole = () => {
   }, [roleName, allRoles]);
   console.log({ permissions });
   useEffect(() => {
+    console.log({ roleName, allRoles });
     if (roleName && allRoles) {
       setMembers(
         allRoles.filter((role: any) => role.id === roleName)[0]?.members

@@ -156,6 +156,13 @@ export const PERMISSIONS = {
     DELETE: "DELETE_ROLE",
   },
 };
+export const ROLES = {
+  ADMIN: "ROLE_ADMIN",
+  OPERATOR: "ROLE_OPERATOR",
+  STUDENT: "ROLE_STUDENT",
+  TEACHER: "ROLE_TEACHER",
+  MANAGER: "ROLE_MANAGER",
+};
 
 // export const SAMPLE_TEST = {
 //   id: "IITP_AB123",
