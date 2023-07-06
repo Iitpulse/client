@@ -142,7 +142,7 @@ const StudentRegister: React.FC = () => {
         {/* </div> */}
         <div className={styles.stepsContent}>
         {steps[current].content}
-        <div style={{ marginTop: 24 }}>
+        {/* <div style={{ marginTop: 24 }}>
           {current < steps.length - 1 && (
             <Button type="primary" onClick={() => next()}>
               Next
@@ -163,7 +163,7 @@ const StudentRegister: React.FC = () => {
               Previous
             </Button>
           )}
-        </div>
+        </div> */}
           {/* {activeStep === 0 && (
             <AccountDetails handleSubmit={handleSubmitAccountDetails} />
           )}

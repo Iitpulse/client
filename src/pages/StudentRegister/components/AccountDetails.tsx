@@ -1,11 +1,11 @@
-import { StyledMUITextField } from "../../Users/components";
+// import { StyledMUITextField } from "../../Users/components";
 import z from "zod";
 // import { Button } from "../../../components";
-import { Button as MuiButton, TextField } from "@mui/material";
+// import { Button as MuiButton, TextField } from "@mui/material";
 import { useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import { Grid, Stack } from "@mui/material";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+// import { ThemeProvider, createTheme } from "@mui/material/styles";
 import {
   Button,
   Col,
@@ -151,26 +151,25 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       message.destroy("verify");
     }, 1000);
   };
-  const theme = createTheme({
-    components: {
-      MuiTextField: {
-        styleOverrides: {
-          root: {
-            "& .MuiInputBase-root.Mui-disabled": {
-              backgroundColor: "#f2f2f2",
-              color: "#808080",
-            },
-          },
-        },
-      },
-    },
-  });
+  // const theme = createTheme({
+  //   components: {
+  //     MuiTextField: {
+  //       styleOverrides: {
+  //         root: {
+  //           "& .MuiInputBase-root.Mui-disabled": {
+  //             backgroundColor: "#f2f2f2",
+  //             color: "#808080",
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  // });
 
   return (
     <form onSubmit={handleSubmitForm} className={styles.regForm}>
-      <ThemeProvider theme={theme}>
-        <Grid container spacing={2} justifyContent={"space-between"}>
-          <Grid item xs={12}>
+        <Row>
+          <Col span={24}>
             <Input
               size="large"
               disabled={Verified}
@@ -186,8 +185,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
               placeholder="Email"
               // variant="outlined"
             />
-          </Grid>
-        </Grid>
+          </Col>
+        </Row>
         {/* <Grid item xs={10}> */}
 
         {!(Verified || showTextField) && (
@@ -197,8 +196,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         )}
         {/* </Grid> */}
         {showTextField && (
-          <Grid container spacing={2} justifyContent={"space-between"}>
-            <Grid item xs={8}>
+          <Row gutter={10}>
+            <Col span={12}>
               <Input
                 // fullWidth
                 size="large"
@@ -211,12 +210,12 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
                 placeholder="Email OTP"
                 // variant="outlined"
               />
-            </Grid>
+            </Col>
 
-            <Grid item xs={4}>
+            <Col span={4}>
               <Button onClick={handleVerify} size="large" type="primary">Verify</Button>
-            </Grid>
-          </Grid>
+            </Col>
+          </Row>
         )}
 
 {Verified && 
@@ -268,7 +267,6 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
             </Form>
           </>
         }
-      </ThemeProvider>
     </form>
   );
 };

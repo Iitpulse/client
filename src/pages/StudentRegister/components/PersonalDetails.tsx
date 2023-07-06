@@ -1,11 +1,11 @@
 import { StyledMUITextField } from "../../Users/components";
 import z from "zod";
-import { Button, StyledMUISelect } from "../../../components";
+// import { Button, StyledMUISelect } from "../../../components";
 import { useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import { Grid } from "@mui/material";
 import {
-  // Button,
+  Button,
   Col,
   DatePicker,
   Divider,
@@ -14,9 +14,12 @@ import {
   Input,
   Row,
   Select,
+  DatePickerProps,
   Space,
   message,
 } from "antd";
+import { INDIAN_STATES } from "../../../utils/constants";
+const { Option } = Select;
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
@@ -59,6 +62,7 @@ interface Props {
   handleSubmit: (values: PersonalDetailsValues) => void;
 }
 
+
 const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [gender, setGender] = useState("");
   const [values, setValues] = useState(defaultState);
@@ -71,7 +75,15 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
       ...prevState,
       [id]: value,
     }));
+    console.log(values);
   }
+
+  const onChangee: DatePickerProps['onChange'] = (date, dateString) => {
+    setValues((prevState) => ({
+      ...prevState,
+      ["dob"]: dateString,
+    }));
+  };
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -165,27 +177,27 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   return (
     <form onSubmit={handleSubmitForm} className={styles.regForm}>
       <div className={styles.regFormGrid}>
-        <StyledMUITextField
+        <Input
+          size="large"
           id="name"
           required
-          label="Name"
-          autoComplete="name"
+          placeholder="Name"
+          // autoComplete="name"
           value={values.name}
           onChange={handleChangeValues}
-          variant="outlined"
+          // variant="outlined"
         />
-        <StyledMUISelect
-          options={[
-            { name: "male", value: "male" },
-            { name: "female", value: "female" },
-            { name: "other", value: "other" },
-          ]}
-          value={gender}
-          label="Gender"
+        <Select
+          size="large"
+          placeholder="Gender"
           onChange={setGender}
-        />
+        >
+          <Option value="male">Male</Option>
+          <Option value="female">Female</Option>
+          <Option value="other">Other</Option>
+        </Select>
 
-        <StyledMUITextField
+        {/* <StyledMUITextField
           required
           id="dob"
           inputProps={{
@@ -199,16 +211,18 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           onChange={handleChangeValues}
           label="Date of Birth"
           variant="outlined"
-        />
-        <StyledMUITextField
+        /> */}
+        <DatePicker id="dob" size="large" placeholder="Date of Birth" onChange={onChangee} />
+        <Input
+          size="large"
           id="city"
           required
-          label="City"
+          placeholder="City"
           value={values.city}
           onChange={handleChangeValues}
-          variant="outlined"
+          // variant="outlined"
         />
-        <StyledMUITextField
+        {/* <StyledMUITextField
           required
           id="state"
           type="state"
@@ -218,44 +232,49 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           onChange={handleChangeValues}
           label="State"
           variant="outlined"
-        />
-        <StyledMUITextField
-          required
+        /> */}
+        <Select size="large" id="state" placeholder="State" onChange={(e)=>{setValues((prevState)=>({...prevState, ["state"]:e}))}}>
+          {
+            INDIAN_STATES.map((e)=>(
+              <Select.Option key={e} value={e}>{e}</Select.Option>
+            ))
+          }
+        </Select>
+        <Input
+          size="large"
           id="parentName"
-          value={values.parentName}
-          error={errors.parentName}
-          helperText={helperTexts.parentName}
+          // value={values.parentName}
+          // error={errors.parentName}
+          // helperText={helperTexts.parentName}
           type="text"
           onChange={handleChangeValues}
-          label="Parent Name"
-          variant="outlined"
+          placeholder="Parent Name"
+          // variant="outlined"
         />
-        <StyledMUITextField
-          required
+        <Input
+          size="large"
           id="parentContact"
-          value={values.parentContact}
-          error={errors.parentContact}
-          helperText={helperTexts.parentContact}
-          type="number"
+          // value={values.parentContact}
+          // error={errors.parentContact}
+          // helperText={helperTexts.parentContact}
+          // type="number"
           onChange={handleChangeValues}
-          label="Parent Contact Number"
-          variant="outlined"
+          placeholder="Parent Contact Number"
+          // variant="outlined"
         />
-
-        <ThemeProvider theme={theme}>
-          <StyledMUITextField
-            required
-            disabled={Verified}
-            id="contact"
-            value={values.contact}
-            error={errors.contact}
-            helperText={helperTexts.contact}
-            type="number"
-            onChange={handleChangeValues}
-            label="Contact Number"
-            variant="outlined"
-          />
-        </ThemeProvider>
+        <Input
+          size="large"
+          id="contact"
+          // value={values.contact}
+          // error={errors.contact}
+          // helperText={helperTexts.contact}
+          onChange={handleChangeValues}
+          // type="number"
+          placeholder="Contact Number"
+          // variant="outlined"
+        />
+          
+        
         {/* <Button onClick={handleGenerate} disabled={Verified || showTextField}>
           {buttonText}
         </Button>
@@ -278,16 +297,16 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         )} */}
       </div>
       <div className={styles.regForm} style={{ marginTop: "0px" }}>
-        <StyledMUITextField
-          required
+        <Input
+          size="large"
           id="currentAddress"
-          value={values.currentAddress}
-          error={errors.currentAddress}
-          helperText={helperTexts.currentAddress}
+          // value={values.currentAddress}
+          // error={errors.currentAddress}
+          // helperText={helperTexts.currentAddress}
           type="text"
           onChange={handleChangeValues}
-          label="Current Address"
-          variant="outlined"
+          placeholder="Current Address"
+          // variant="outlined"
         />
         {/* <StyledMUITextField
           required
@@ -301,7 +320,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
       </div>
-      {/* <Button type="submit">Next</Button> */}
+      <Button htmlType="submit" type="primary">Next</Button>
     </form>
   );
 };
