@@ -38,11 +38,13 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
     setMarkingSchemeCorrect([...arr]);
   };
   useEffect(() => {
-    if (type === "single" || type === "integer") {
-      setMarkingSchemeCorrect([1]);
+    if (
+      (type === "single" || type === "integer") &&
+      markingSchemeCorrect?.length > 1
+    ) {
+      setMarkingSchemeCorrect([4]);
     }
-  });
-  console.log(errorCorrect);
+  }, [type]);
   return (
     <>
       <CustomInputSection
@@ -50,7 +52,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
         value={markingSchemeIncorrect}
         label="Incorrect Marks"
         type="number"
-        inputProps={{ max: 0 }}
+        inputProps={{ min: 0 }}
         onChange={(e: any) => {
           console.log(vcorrect);
           setSubSection(subSectionId, {
