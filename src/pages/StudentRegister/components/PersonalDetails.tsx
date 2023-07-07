@@ -1,5 +1,5 @@
 import { StyledMUITextField } from "../../Users/components";
-import z from "zod";
+import z, { number } from "zod";
 // import { Button, StyledMUISelect } from "../../../components";
 import { useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
@@ -24,6 +24,17 @@ const { Option } = Select;
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 import { API_USERS } from "../../../utils/api/config";
+
+const validateMessages = {
+  required: '${label} is required!',
+  types: {
+    email: '${label} is not a valid email!',
+    number: 'Not a valid number!',
+  },
+  number: {
+    range: '${label} must be 10 digit',
+  },
+};
 
 const PersonalDetailsSchema = z.object({
   name: z.string().min(3).max(50),
@@ -175,27 +186,31 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   });
 
   return (
-    <form onSubmit={handleSubmitForm} className={styles.regForm}>
+    <Form onFinish={handleSubmitForm}  className={styles.regForm} validateMessages={validateMessages}>
       <div className={styles.regFormGrid}>
-        <Input
-          size="large"
-          id="name"
-          required
-          placeholder="Name"
-          // autoComplete="name"
-          value={values.name}
-          onChange={handleChangeValues}
-          // variant="outlined"
-        />
-        <Select
-          size="large"
-          placeholder="Gender"
-          onChange={setGender}
-        >
-          <Option value="male">Male</Option>
-          <Option value="female">Female</Option>
-          <Option value="other">Other</Option>
-        </Select>
+        <Form.Item name="Name" rules={[{required:true}]}>
+          <Input
+            size="large"
+            id="name"
+            placeholder="Name"
+            // autoComplete="name"
+            value={values.name}
+            onChange={handleChangeValues}
+            // variant="outlined"
+          />
+        </Form.Item>
+        
+        <Form.Item name="Gender" rules={[{required:true}]}>
+          <Select
+            size="large"
+            placeholder="Gender"
+            onChange={setGender}
+          >
+            <Option value="male">Male</Option>
+            <Option value="female">Female</Option>
+            <Option value="other">Other</Option>
+          </Select>
+        </Form.Item>
 
         {/* <StyledMUITextField
           required
@@ -212,16 +227,19 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           label="Date of Birth"
           variant="outlined"
         /> */}
-        <DatePicker id="dob" size="large" placeholder="Date of Birth" onChange={onChangee} />
-        <Input
-          size="large"
-          id="city"
-          required
-          placeholder="City"
-          value={values.city}
-          onChange={handleChangeValues}
-          // variant="outlined"
-        />
+        <Form.Item name="Date of Birth" rules={[{required:true}]}>
+          <DatePicker style={{ width: '100%' }} id="dob" size="large" placeholder="Date of Birth" onChange={onChangee}/>
+        </Form.Item>
+        <Form.Item name="City" rules={[{required:true}]}>  
+          <Input
+            size="large"
+            id="city"
+            placeholder="City"
+            value={values.city}
+            onChange={handleChangeValues}
+            // variant="outlined"
+          />
+        </Form.Item>
         {/* <StyledMUITextField
           required
           id="state"
@@ -233,46 +251,62 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           label="State"
           variant="outlined"
         /> */}
-        <Select size="large" id="state" placeholder="State" onChange={(e)=>{setValues((prevState)=>({...prevState, ["state"]:e}))}}>
-          {
-            INDIAN_STATES.map((e)=>(
-              <Select.Option key={e} value={e}>{e}</Select.Option>
-            ))
-          }
-        </Select>
-        <Input
-          size="large"
-          id="parentName"
-          // value={values.parentName}
-          // error={errors.parentName}
-          // helperText={helperTexts.parentName}
-          type="text"
-          onChange={handleChangeValues}
-          placeholder="Parent Name"
-          // variant="outlined"
-        />
-        <Input
-          size="large"
-          id="parentContact"
-          // value={values.parentContact}
-          // error={errors.parentContact}
-          // helperText={helperTexts.parentContact}
-          // type="number"
-          onChange={handleChangeValues}
-          placeholder="Parent Contact Number"
-          // variant="outlined"
-        />
-        <Input
-          size="large"
-          id="contact"
-          // value={values.contact}
-          // error={errors.contact}
-          // helperText={helperTexts.contact}
-          onChange={handleChangeValues}
-          // type="number"
-          placeholder="Contact Number"
-          // variant="outlined"
-        />
+
+
+        <Form.Item name="State" rules={[{required:true}]}>
+          <Select size="large" id="state" placeholder="State" onChange={(e)=>{setValues((prevState)=>({...prevState, ["state"]:e}))}}>
+            {
+              INDIAN_STATES.map((e)=>(
+                <Select.Option key={e} value={e}>{e}</Select.Option>
+              ))
+            }
+          </Select>  
+        </Form.Item>
+
+
+        <Form.Item name="Parent Name" rules={[{required:true}]}>
+          <Input
+            size="large"
+            id="parentName"
+            // value={values.parentName}
+            // error={errors.parentName}
+            // helperText={helperTexts.parentName}
+            type="text"
+            onChange={handleChangeValues}
+            placeholder="Parent Name"
+            // variant="outlined"
+          />
+        </Form.Item>
+
+
+        <Form.Item name="Parent Contact" rules={[{required:true, type:"number",min:1000000000, max:999999999}]}>
+          <Input
+            size="large"
+            id="parentContact"
+            // value={values.parentContact}
+            // error={errors.parentContact}
+            // helperText={helperTexts.parentContact}
+            // type="number"
+            onChange={handleChangeValues}
+            placeholder="Parent Contact Number"
+            // variant="outlined"
+          />
+        </Form.Item>
+
+
+        <Form.Item name="Contact" rules={[{required:true, type:"number",min:1000000000, max:999999999}]}>
+          <Input
+            size="large"
+            id="contact"
+            // value={values.contact}
+            // error={errors.contact}
+            // helperText={helperTexts.contact}
+            onChange={handleChangeValues}
+            // type="number"
+            placeholder="Contact Number"
+            // variant="outlined"
+          />
+        </Form.Item>
           
         
         {/* <Button onClick={handleGenerate} disabled={Verified || showTextField}>
@@ -297,6 +331,8 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         )} */}
       </div>
       <div className={styles.regForm} style={{ marginTop: "0px" }}>
+
+      <Form.Item name="Current Address" rules={[{required:true}]}>
         <Input
           size="large"
           id="currentAddress"
@@ -308,6 +344,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           placeholder="Current Address"
           // variant="outlined"
         />
+      </Form.Item>
         {/* <StyledMUITextField
           required
           id="permanentAddress"
@@ -320,8 +357,8 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
       </div>
-      <Button htmlType="submit" type="primary">Next</Button>
-    </form>
+      <Button size="large" htmlType="submit" type="primary">Next</Button>
+    </Form>
   );
 };
 

@@ -38,6 +38,17 @@ const defaultState: AccountDetailsValues = {
   joiningCode: "",
 };
 
+const validateMessages = {
+  required: '${label} is required!',
+  types: {
+    email: '${label} is not a valid email!',
+    number: '${label} is not a valid number!',
+  },
+  number: {
+    range: '${label} must be between ${min} and ${max}',
+  },
+};
+
 function getErrorDefaultState(valuesObj: typeof defaultState) {
   const errorObj: any = {};
   Object.keys(valuesObj).forEach((key) => {
@@ -68,6 +79,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if(values.password.length == 0 || values.confirmPassword.length == 0 || values.joiningCode.length == 0 ) return;
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
     const isValid = AccountDetailsSchema.safeParse(values);
@@ -111,7 +123,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   const handleGenerate = async (
     e: any
   ) => {
-    e.preventDefault();
+    // e.preventDefault();
+    if(values.email.length === 0) return;
     try {
       const response = await API_USERS().post(`/emailotp/generate`, {
         email: values.email,
@@ -190,7 +203,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         {/* <Grid item xs={10}> */}
 
         {!(Verified || showTextField) && (
-          <Button onClick={handleGenerate} size="large" type="primary">
+          <Button onClick={handleGenerate} htmlType="submit" size="large" type="primary">
             {buttonText}
           </Button>
         )}
