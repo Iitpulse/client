@@ -32,7 +32,7 @@ import {
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
-import { ROLES } from "../../../utils/constants";
+import { INDIAN_STATES, ROLES } from "../../../utils/constants";
 const { Option } = Select;
 
 interface IAddNewTeacher {
@@ -61,6 +61,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
   const [roleValidity, setRoleValidity] = useState<any>({});
   const [validity, setValidity] = useState<any>({});
   const [roles, setRoles] = useState<any>([]);
+  const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
@@ -154,12 +155,13 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
   async function onFinish(values: any) {
     const res = await API_USERS().post(`/teacher/create`, { ...values });
     message.success("Teacher created successfully");
+    form.resetFields();
     console.log(res);
   }
 
   function onFinishFailed(errorInfo: any) {
-    message.error("Teacher creation failed");
-    console.log("Failed:", errorInfo);
+    message.error(errorInfo.response.data.message);
+    console.log("Failed:", errorInfo.response.data.message);
   }
 
   async function validateForm() {
@@ -270,15 +272,18 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
           <Space>
             <Button onClick={onClose}>Cancel</Button>
             <Button
-              onClick={() => {
-                document
-                  .getElementById("teacherUserForm")
+              onClick={async () => {
+                setSubmitDisabled(true);
+                await document
+                  .getElementById("studentUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
+                setSubmitDisabled(false);
               }}
               type="primary"
               htmlType="submit"
+              disabled={submitDisabled}
             >
               Submit
             </Button>
@@ -326,7 +331,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
                 label="Date of Birth"
                 rules={getRules("dob")}
               >
-                <DatePicker format="DD-MM-YYYY" style={{ width: "100%" }} />
+                <DatePicker format="DD-MM-YYYY" disabledDate={(current)=>{return current && current.valueOf() > Date.now();}} style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>
@@ -379,7 +384,13 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
             </Col>
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Input placeholder="Please enter a state" />
+                <Select placeholder="Please enter a state">
+                  {
+                    INDIAN_STATES.map((e)=>(
+                      <Select.Option key={e} value={e}>{e}</Select.Option>
+                    ))
+                  }
+                </Select>
               </Form.Item>
             </Col>
           </Row>

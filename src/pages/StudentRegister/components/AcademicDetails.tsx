@@ -1,8 +1,24 @@
 import { StyledMUITextField } from "../../Users/components";
 import z from "zod";
-import { Button, StyledMUISelect } from "../../../components";
+// import { Button, StyledMUISelect } from "../../../components"; 
 import { useState } from "react";
 import styles from "../StudentRegister.module.scss";
+import {
+  Button,
+  Col,
+  DatePicker,
+  Divider,
+  Drawer,
+  Form,
+  Input,
+  Row,
+  Select,
+  Space,
+  message,
+} from "antd";
+
+import {validateField} from "../../../utils/schemas";
+const { Option } = Select;
 
 const AcademicDetailsSchema = z.object({
   school: z.string().min(3).max(50),
@@ -17,6 +33,8 @@ const defaultState = {
   medium: "",
   stream: "",
 };
+
+
 
 function getErrorDefaultState(valuesObj: typeof defaultState) {
   const errorObj: any = {};
@@ -33,6 +51,7 @@ interface Props {
 }
 
 const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
+  const [form] = Form.useForm();
   const [values, setValues] = useState(defaultState);
   const [errors, setErrors] = useState(getErrorDefaultState(defaultState));
   const [helperTexts, setHelperTexts] = useState(defaultState);
@@ -40,7 +59,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [standard, setStandard] = useState("");
   const [medium, setMedium] = useState("");
 
-  function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChangeValues(e: any) {
     const { id, value } = e.target;
     setValues((prevState) => ({
       ...prevState,
@@ -48,8 +67,19 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
     }));
   }
 
+  const validateMessages = {
+    required: '${label} is required!',
+    types: {
+      email: '${label} is not a valid email!',
+      number: '${label} is not a valid number!',
+    },
+    number: {
+      range: '${label} must be between ${min} and ${max}',
+    },
+  };
+
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    // e.preventDefault();
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
     const finalValues: AcademicDetailsValues = {
@@ -58,6 +88,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
       medium,
       stream,
     };
+    console.log({finalValues});
     const isValid = AcademicDetailsSchema.safeParse(finalValues);
     if (!isValid.success) {
       console.log(isValid);
@@ -77,7 +108,45 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
   }
 
   return (
-    <form onSubmit={handleSubmitForm} className={styles.regForm}>
+    <>
+    <Form
+      className={styles.regForm2}
+      form={form}
+      id="managerUserForm"
+      layout="vertical"
+      onFinish={handleSubmitForm}
+      validateMessages={validateMessages}
+      // onFinishFailed={handleFinishFailed}
+    > 
+      <Form.Item name="School" rules={[{ required: true }]}>
+        <Input size="large" placeholder="School*" onChange={handleChangeValues}/>
+      </Form.Item>
+      <Form.Item name="Gender" rules={[{ required: true }]}>
+        <Select placeholder="Standard" size="large" onChange={(e)=>{setStandard(e)}}>
+          <Option value="11">11</Option>
+          <Option value="12">12</Option>
+          <Option value="dropper">dropper</Option>
+        </Select>
+      </Form.Item>
+      <Form.Item name="Medium" rules={[{ required: true }]}>
+        <Select placeholder="Medium" size="large" onChange={(e)=>{setMedium(e)}}>
+          <Option value="hindi">Hindi</Option>
+          <Option value="english">English</Option>
+          <Option value="dropper">dropper</Option>
+        </Select>
+      </Form.Item>
+      <Form.Item name="Stream" rules={[{ required: true }]}>
+        <Select placeholder="Stream" size="large" onChange={(e)=>{setStream(e)}}>
+          <Option value="pcm">PCM</Option>
+          <Option value="pcb">PCB</Option>
+          <Option value="pcmb">PCMB</Option>
+          <Option value="arts">Arts</Option>
+          <Option value="commerce">Commerce</Option>
+        </Select>
+      </Form.Item>
+      <Button size="large" type="primary" htmlType="submit">Submit</Button>
+    </Form>
+    {/* <form onSubmit={handleSubmitForm} className={styles.regForm}>
       <StyledMUITextField
         id="school"
         required
@@ -121,7 +190,8 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
       />
 
       <Button type="submit">Submit</Button>
-    </form>
+    </form> */}
+    </>
   );
 };
 

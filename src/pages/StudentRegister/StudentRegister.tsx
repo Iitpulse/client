@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styles from "./StudentRegister.module.scss";
 import { Stepper, Step, StepButton } from "@mui/material";
+import { Button, message, Steps, theme } from 'antd';
 import AccountDetails, {
   AccountDetailsValues,
 } from "./components/AccountDetails";
@@ -11,11 +12,12 @@ import AcademicDetails, {
   AcademicDetailsValues,
 } from "./components/AcademicDetails";
 import { API_USERS } from "../../utils/api/config";
-import { message } from "antd";
 import logo from "../../assets/images/logo.svg";
 
+
+
 const StudentRegister: React.FC = () => {
-  const [activeStep, setActiveStep] = useState(0);
+  const [current, setCurrent] = useState(0);
   const [values, setValues] = useState({
     accountDetails: {} as AccountDetailsValues,
     personalDetails: {} as PersonalDetailsValues,
@@ -34,7 +36,7 @@ const StudentRegister: React.FC = () => {
       ...values,
       accountDetails: vals,
     });
-    setActiveStep(1);
+    setCurrent(1);
   }
   function handleSubmitPersonalDetails(vals: PersonalDetailsValues) {
     console.log(vals);
@@ -42,7 +44,7 @@ const StudentRegister: React.FC = () => {
       ...values,
       personalDetails: vals,
     });
-    setActiveStep(2);
+    setCurrent(2);
   }
   function handleSubmitAcademicDetails(vals: AcademicDetailsValues) {
     console.log(vals);
@@ -84,15 +86,44 @@ const StudentRegister: React.FC = () => {
     }
   }
 
+  const onChange = (value: number) => {
+    console.log('onChange:', value);
+    setCurrent(value);
+  };
+
+  const next = () => {
+    setCurrent(current + 1);
+  };
+
+  const prev = () => {
+    setCurrent(current - 1);
+  };
+  const steps = [
+    {
+      title: "Create Account",
+      content: <AccountDetails handleSubmit={handleSubmitAccountDetails} />,
+    },
+    {
+      title: "Personal Details",
+      content: <PersonalDetails handleSubmit={handleSubmitPersonalDetails} />,
+    },
+    {
+      title: "Academic Details",
+      content: <AcademicDetails handleSubmit={handleSubmitAcademicDetails} />,
+    },
+  ];
+  const items = steps.map((item) => ({ key: item.title, title: item.title }));
+
   return (
+    <>
     <div className={styles.container}>
       <nav className={styles.flexRow}>
         <img src={logo} alt="logo" />
       </nav>
       <div className={styles.content}>
         <h2>Student Registration</h2>
-        <div className={styles.stepsHeader}>
-          <Stepper nonLinear activeStep={activeStep}>
+        {/* <div className={styles.stepsHeader}> */}
+          {/* <Stepper nonLinear activeStep={activeStep}>
             {stepsHeader.map((label, index) => (
               <Step key={label} completed={activeStep > index}>
                 <StepButton
@@ -105,10 +136,35 @@ const StudentRegister: React.FC = () => {
                 </StepButton>
               </Step>
             ))}
-          </Stepper>
-        </div>
+          </Stepper> */}
+          {/* <Steps current={current} items={items} /> */}
+        <Steps current={current} onChange={onChange} items={items}/>
+        {/* </div> */}
         <div className={styles.stepsContent}>
-          {activeStep === 0 && (
+        {steps[current].content}
+        {/* <div style={{ marginTop: 24 }}>
+          {current < steps.length - 1 && (
+            <Button type="primary" onClick={() => next()}>
+              Next
+            </Button>
+          )}
+          {current === steps.length - 1 && (
+            <Button type="primary" disabled>
+              Next
+            </Button>
+          )}
+          {current > 0 && (
+            <Button style={{ margin: '0 8px' }} onClick={() => prev()}>
+              Previous
+            </Button>
+          )}
+          {current === 0 && (
+            <Button style={{ margin: '0 8px' }} disabled>
+              Previous
+            </Button>
+          )}
+        </div> */}
+          {/* {activeStep === 0 && (
             <AccountDetails handleSubmit={handleSubmitAccountDetails} />
           )}
           {activeStep === 1 && (
@@ -116,10 +172,11 @@ const StudentRegister: React.FC = () => {
           )}
           {activeStep === 2 && (
             <AcademicDetails handleSubmit={handleSubmitAcademicDetails} />
-          )}
+          )} */}
         </div>
       </div>
     </div>
+    </>
   );
 };
 

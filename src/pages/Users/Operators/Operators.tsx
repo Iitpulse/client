@@ -70,7 +70,6 @@ const Operators: React.FC<{
         <span style={{ textTransform: "capitalize" }}>{text}</span>
       ),
     },
-
     {
       title: "Contact",
       dataIndex: "contact",
