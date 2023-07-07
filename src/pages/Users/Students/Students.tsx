@@ -65,10 +65,10 @@ const Students: React.FC<{
   handleCloseModal,
   loading,
 }) => {
-  const { students } = useContext(UsersContext);
+  const { students, fetchStudents } = useContext(UsersContext);
   const [currentStudent, setCurrentStudent] = useState<any>(null);
   const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
-
+  const [edit, setEdit] = useState<any>(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<any>(null);
@@ -332,6 +332,20 @@ const Students: React.FC<{
   //   fetchStudents();
   // }, []);
   console.log({ students });
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/student/${currentStudent?.id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchStudents();
+        message.success("Student deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting student");
+    }
+  };
   return (
     <div className={styles.container}>
       <CustomTable
@@ -344,6 +358,8 @@ const Students: React.FC<{
 
       {activeTab === 0 && (
         <AddNewStudent
+          edit={edit}
+          current={currentStudent}
           open={isDrawerOpen}
           setOpen={setIsDrawerOpen}
           student={student}
@@ -365,13 +381,16 @@ const Students: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <DeleteOutline />
                 {/* <img src={deleteIcon} alt="Delete" /> */}

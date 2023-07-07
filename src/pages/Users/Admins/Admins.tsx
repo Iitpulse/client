@@ -5,7 +5,14 @@ import styles from "./Admins.module.scss";
 import { Button, CustomTable, Sidebar, UserProfile } from "../../../components";
 import { Grid, IconButton } from "@mui/material";
 import axios from "axios";
-import { Input, Space, Table, Button as AntButton, Popconfirm } from "antd";
+import {
+  Input,
+  Space,
+  Table,
+  Button as AntButton,
+  Popconfirm,
+  message,
+} from "antd";
 import { DataType, rowSelection } from "../Users";
 import { useContext, useEffect, useRef, useState } from "react";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
@@ -172,14 +179,7 @@ const Admins: React.FC<{
         <span style={{ textTransform: "capitalize" }}>{text}</span>
       ),
     },
-    {
-      title: "Batch",
-      dataIndex: "batch",
-      // width: 100,
-      render: (text: string) => (
-        <span style={{ textTransform: "capitalize" }}> {text}</span>
-      ),
-    },
+
     {
       title: "Contact",
       dataIndex: "contact",
@@ -187,8 +187,21 @@ const Admins: React.FC<{
     },
   ];
 
-  const { admins } = useContext(UsersContext);
-
+  const { admins, fetchAdmins } = useContext(UsersContext);
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/admin/${current?._id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchAdmins();
+        message.success("User deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting User");
+    }
+  };
   return (
     <div className={styles.container}>
       <CustomTable
@@ -214,10 +227,7 @@ const Admins: React.FC<{
             <IconButton onClick={() => setIsSidebarOpen(false)}>
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <img src={deleteIcon} alt="Delete" />
               </IconButton>

@@ -199,6 +199,10 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
       }
       console.log(result);
       await onFinish(result);
+      form.resetFields();
+      setValidity({});
+      setRoleValidity({});
+      setRoles([]);
     } catch (error) {
       onFinishFailed(error);
     }

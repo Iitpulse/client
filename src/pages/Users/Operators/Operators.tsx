@@ -28,7 +28,7 @@ const Operators: React.FC<{
   loading: boolean;
 }> = ({ activeTab, operator, openModal, handleCloseModal, loading }) => {
   // const data: any = [];
-  const { operators } = useContext(UsersContext);
+  const { operators, fetchOperators } = useContext(UsersContext);
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const columns: any = [
@@ -70,21 +70,27 @@ const Operators: React.FC<{
         <span style={{ textTransform: "capitalize" }}>{text}</span>
       ),
     },
-    {
-      title: "Batch",
-      dataIndex: "batch",
-      // width: 100,
-      render: (text: string) => (
-        <span style={{ textTransform: "capitalize" }}> {text}</span>
-      ),
-    },
+
     {
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
     },
   ];
-
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/operator/${current?._id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchOperators();
+        message.success("User deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting User");
+    }
+  };
   return (
     <div className={styles.container}>
       <AddNewOperator
@@ -104,10 +110,7 @@ const Operators: React.FC<{
             <IconButton onClick={() => setIsSidebarOpen(false)}>
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <img src={deleteIcon} alt="Delete" />
               </IconButton>

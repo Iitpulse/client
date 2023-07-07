@@ -181,6 +181,10 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
       }
       console.log({ result });
       await onFinish(result);
+      form.resetFields();
+      setRoles([]);
+      setValidity({});
+      setRoleValidity({});
     } catch (error) {
       onFinishFailed(error);
     }

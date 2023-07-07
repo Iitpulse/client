@@ -7,6 +7,7 @@ import {
   Divider,
   Drawer,
   Form,
+  FormInstance,
   Input,
   Row,
   Select,
@@ -38,16 +39,21 @@ interface IAddNewStudent {
   student?: UserProps;
   title?: string;
   handleCloseModal: () => void;
-  edit?: {
-    values: any;
-  };
+  edit: boolean;
+  current: any;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
-  const [form] = Form.useForm();
+const AddNewStudent: React.FC<IAddNewStudent> = ({
+  setOpen,
+  open,
+  edit,
+  current,
+}) => {
   // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
+  const [form] = Form.useForm();
+
   const [roleDetails, setRoleDetails] = useState<any>({
     options: [],
     actual: [],
@@ -63,7 +69,37 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
   Object.values(rolesAllowed)?.map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-
+  console.log({ current });
+  // useEffect(() => {
+  //   if (edit) {
+  //     form.setFieldsValue({
+  //       name: current?.name,
+  //       email: current?.email,
+  //       password: current?.password,
+  //       dob: dayjs(current?.dob, "DD-MM-YYYY"),
+  //       gender: current?.gender,
+  //       contact: current?.contact,
+  //       address: current?.address,
+  //       city: current?.city,
+  //       state: current?.state,
+  //       parentDetails: {
+  //         name: current?.parentDetails?.name,
+  //         contact: current?.parentDetails?.contact,
+  //       },
+  //       institute: current?.institute,
+  //       standard: current?.standard,
+  //       stream: current?.stream,
+  //       medium: current?.medium,
+  //       school: current?.school,
+  //       batch: current?.batch,
+  //       roles: current?.roles?.map((role: any) => role.id),
+  //       validity: [
+  //         dayjs(current?.validity?.from, "DD-MM-YYYY"),
+  //         dayjs(current?.validity?.to, "DD-MM-YYYY"),
+  //       ],
+  //     });
+  //   }
+  // }, []);
   const conversionObject: any = {
     name: null,
     email: null,
@@ -126,6 +162,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     createdBy: null,
     createdAt: null,
     modifiedAt: null,
+
     parentDetails: {
       name: null,
       contact: {
@@ -146,7 +183,6 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     //Field to be removed later
     joiningCode: null,
   };
-
   const onClose = () => {
     setOpen(false);
     form.resetFields();
@@ -194,6 +230,10 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
       console.log({ result });
 
       await onFinish(result);
+      form.resetFields();
+      setRoles([]);
+      setValidity({});
+      setRoleValidity({});
     } catch (error) {
       onFinishFailed(error);
     }
