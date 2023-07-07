@@ -109,8 +109,8 @@ const SideMenu = (props: SideMenuProps) => {
           </p>
 
           <div className={styles.detail}>
-            <p className={styles.key}>Roll No.</p>
-            <p className={styles.value}>20T2121</p>
+            {userType === "student" && <p className={styles.key}>Roll No.</p>}
+            {userType === "student" && <p className={styles.value}>20T2121</p>}
             {batch && <p className={styles.key}>Batch</p>}
             {batch && <p className={styles.value}>{batch}</p>}
             {standard && <p className={styles.key}>Class</p>}

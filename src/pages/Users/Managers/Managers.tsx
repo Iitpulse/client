@@ -69,14 +69,14 @@ const Managers: React.FC<{
         <span style={{ textTransform: "capitalize" }}>{text}</span>
       ),
     },
-    {
-      title: "Batch",
-      dataIndex: "batch",
-      // width: 100,
-      render: (text: string) => (
-        <span style={{ textTransform: "capitalize" }}> {text}</span>
-      ),
-    },
+    // {
+    //   title: "Batch",
+    //   dataIndex: "batch",
+    //   // width: 100,
+    //   render: (text: string) => (
+    //     <span style={{ textTransform: "capitalize" }}> {text}</span>
+    //   ),
+    // },
     {
       title: "Contact",
       dataIndex: "contact",

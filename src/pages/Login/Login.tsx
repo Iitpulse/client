@@ -39,10 +39,11 @@ const Login = () => {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    const resEmail = email.toLowerCase();
     message.loading({ content: "Logging in", key: "loader" });
     try {
       const response = await API_USERS().post(`/auth/login/`, {
-        email,
+        email:resEmail,
         password,
       });
 
