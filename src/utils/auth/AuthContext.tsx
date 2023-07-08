@@ -17,6 +17,7 @@ const defaultAuthContext = {
   setRoles: () => {},
   setCurrentUser: () => {},
   setLoading: () => {},
+  userExists: () => false,
 };
 
 export const AuthContext = createContext<IAuthContext>(defaultAuthContext);
@@ -76,6 +77,10 @@ const AuthContextProvider = (props: ProviderProps) => {
     // console.log({ roles });
   }, [roles]);
 
+  function userExists() {
+    return currentUser !== null;
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -86,6 +91,7 @@ const AuthContextProvider = (props: ProviderProps) => {
         setRoles,
         loading,
         setLoading,
+        userExists,
       }}
     >
       {props.children}

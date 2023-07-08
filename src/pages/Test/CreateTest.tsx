@@ -42,7 +42,12 @@ import CustomDateRangePicker from "../../components/CustomDateRangePicker/Custom
 import MainLayout from "../../layouts/MainLayout";
 import { ZodError, set, z } from "zod";
 import { getPublishDate, isTestFormFilled } from "./utils/functions";
-import { TestFormSchemaType } from "./utils/types";
+import {
+  TSectionSchema,
+  TSubSectionSchema,
+  TTestSchema,
+  TestFormSchemaType,
+} from "./utils/types";
 import { useLocation, useParams } from "react-router";
 import { MessageType } from "antd/es/message/interface";
 import dayjs from "dayjs";
@@ -73,7 +78,7 @@ const defaultState: any = {
 };
 
 const CreateTest = () => {
-  const [test, setTest] = useState<ITest>(SAMPLE_TEST);
+  const [test, setTest] = useState<TTestSchema>(SAMPLE_TEST);
   const { id, name, description, exam, validity, sections } = test;
   const [pattern, setPattern] = useState<IPattern | null>(null);
   const [patternOptions, setPatternOptions] = useState<Array<IPattern>>([]);
@@ -92,7 +97,7 @@ const CreateTest = () => {
   const [testDateRange, setTestDateRange] = useState<Array<any>>([]);
   const [daysAfter, setDaysAfter] = useState(1);
 
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, userExists } = useContext(AuthContext);
   const { exams, fetchTestByID } = useTestContext();
   const { pathname } = useLocation();
   const { testId } = useParams();
@@ -223,8 +228,8 @@ const CreateTest = () => {
 
   const allQuestionsFilled = () => {
     let allFilled = true;
-    test.sections.forEach((section: ISection) => {
-      section.subSections.forEach((subSection: ISubSection) => {
+    test.sections.forEach((section) => {
+      section.subSections.forEach((subSection) => {
         if (!subSection?.questions) {
           allFilled = false;
         }
@@ -246,66 +251,77 @@ const CreateTest = () => {
   }
 
   async function handleClickSubmit() {
+    const creatingTest = message.loading(
+      `${editMode ? "Updating" : "Creating"} Test...`,
+      0
+    );
+    if (!userExists()) {
+      creatingTest();
+      return message.error("Please login to continue");
+    }
+
+    console.log({ testDateRange });
+
+    let finalTest: TTestSchema = {
+      ...test,
+      createdBy: {
+        id: currentUser?.id as string,
+        userType: currentUser?.userType as string,
+      },
+      validity: {
+        from: testDateRange[0] ? dayjs(testDateRange[0]).toISOString() : "",
+        to: testDateRange[1] ? dayjs(testDateRange[1]).toISOString() : "",
+      },
+      result: {
+        maxMarks: null,
+        averageMarks: null,
+        averageCompletionTime: null,
+        publishProps: {
+          type: publishType.value,
+          publishDate: getPublishDate(
+            publishType.value,
+            daysAfter,
+            testDateRange
+          ),
+          isPublished: false,
+        },
+        students: [],
+      },
+      createdAt: new Date().toISOString(),
+      modifiedAt: new Date().toISOString(),
+      durationInMinutes: editMode
+        ? test.durationInMinutes
+        : (pattern?.durationInMinutes as number),
+      patternId: pattern?._id as string,
+      batches,
+    };
+    if (editMode) {
+      finalTest.createdAt = test.createdAt;
+    }
+    console.log({ finalTest, editMode });
     if (
-      !isTestFormFilled(setHelperTexts, defaultState, {
-        test,
-        status,
-        testDateRange,
-        batches,
-        pattern,
-      }) &&
+      !isTestFormFilled(setHelperTexts, defaultState, test) ||
       !allQuestionsFilled()
     ) {
+      creatingTest();
+      console.log({ helperTexts });
       return message.error("Please fill all the fields");
     }
-    if (currentUser) {
-      const creatingTest = message.loading("Updating Test", 0);
-      try {
-        let finalTest = {
-          ...test,
-          status: status.name,
-          createdBy: {
-            id: currentUser.id,
-            userType: currentUser.userType,
-          },
-          validity: {
-            from: dayjs(testDateRange[0]).toISOString(),
-            to: dayjs(testDateRange[1]).toISOString(),
-          },
-          result: {
-            publishProps: {
-              type: publishType.value,
-              publishDate: getPublishDate(
-                publishType.value,
-                daysAfter,
-                testDateRange
-              ),
-              isPublished: false,
-            },
-          },
-          createdAt: editMode ? test.createdAt : new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-          durationInMinutes: editMode
-            ? test.durationInMinutes
-            : pattern?.durationInMinutes,
-          patternId: pattern?._id,
-          batches,
-        };
-
-        if (editMode) {
-          updateTest(finalTest, creatingTest);
-          return;
-        }
-
-        let response = await API_TESTS().post(`/test/create`, finalTest);
-        creatingTest();
-        message.success("Test Created Successfully");
-      } catch (error: any) {
-        creatingTest();
-        message.error("Error: " + error?.response?.data?.message);
+    return;
+    try {
+      if (editMode) {
+        updateTest(finalTest, creatingTest);
+        return;
       }
-      // const id = ``
+
+      let response = await API_TESTS().post(`/test/create`, finalTest);
+      creatingTest();
+      message.success("Test Created Successfully");
+    } catch (error: any) {
+      creatingTest();
+      message.error("Error: " + error?.response?.data?.message);
     }
+    // const id = ``
   }
 
   function handleUpdateSection(sectionId: string, data: any) {
@@ -318,6 +334,21 @@ const CreateTest = () => {
         return section;
       }),
     }));
+  }
+
+  function getInputStatus(field: string | string[]) {
+    if (Array.isArray(field)) {
+      for (let i = 0; i < field.length; i++) {
+        if (helperTexts[field[i]]) {
+          return "error";
+        }
+      }
+      return "validating";
+    }
+    if (helperTexts[field]) {
+      return "error";
+    }
+    return "validating";
   }
 
   return (
@@ -339,7 +370,11 @@ const CreateTest = () => {
             // wrapperCol={{ span: 16 }}
             className={styles.form}
           >
-            <Form.Item label="Name" help={helperTexts.name}>
+            <Form.Item
+              label="Name"
+              help={helperTexts.name}
+              validateStatus={getInputStatus("name")}
+            >
               <Input
                 id="name"
                 onChange={onChangeInput}
@@ -347,7 +382,11 @@ const CreateTest = () => {
                 placeholder="Title for test"
               />
             </Form.Item>
-            <Form.Item label="Description" help={helperTexts.desc}>
+            <Form.Item
+              label="Description"
+              help={helperTexts.desc}
+              validateStatus={getInputStatus("desc")}
+            >
               <Input
                 id="description"
                 placeholder="Small description for test"
@@ -355,7 +394,11 @@ const CreateTest = () => {
                 value={test.description}
               />
             </Form.Item>
-            <Form.Item label="Exam" help={helperTexts.exam}>
+            <Form.Item
+              label="Exam"
+              help={helperTexts.exam}
+              validateStatus={getInputStatus("exam")}
+            >
               <Select
                 allowClear
                 placeholder="Select Exam"
@@ -369,12 +412,16 @@ const CreateTest = () => {
                   value: exam.name,
                 }))}
                 showSearch
-                value={test.exam || null}
+                value={test.exam?.name || null}
                 maxTagCount="responsive"
                 showArrow
               />
             </Form.Item>
-            <Form.Item label="Batches" help={helperTexts.batches}>
+            <Form.Item
+              label="Batches"
+              help={helperTexts.batches}
+              validateStatus={getInputStatus("batches")}
+            >
               <Select
                 mode="multiple"
                 allowClear
@@ -395,7 +442,13 @@ const CreateTest = () => {
                 showArrow
               />
             </Form.Item>
-            <Form.Item label="Validity" help={helperTexts.dateRange}>
+            <Form.Item
+              label="Validity"
+              help={
+                helperTexts?.["validity.from"] || helperTexts?.["validity.to"]
+              }
+              validateStatus={getInputStatus(["vavlidity.from", "validity.to"])}
+            >
               <CustomDateRangePicker
                 showTime={true}
                 onChange={(props: any) => setTestDateRange(props)}
@@ -403,7 +456,11 @@ const CreateTest = () => {
                 disablePrevDates={true}
               />
             </Form.Item>
-            <Form.Item label="Status" help={helperTexts.status}>
+            <Form.Item
+              label="Status"
+              help={helperTexts.status}
+              validateStatus={getInputStatus("status")}
+            >
               <Select
                 placeholder="Select Status"
                 showSearch
@@ -415,20 +472,25 @@ const CreateTest = () => {
                 value={test.status || null}
               />
             </Form.Item>
-            <Form.Item label="Pattern" help={helperTexts.pattern}>
+            <Form.Item
+              label="Pattern"
+              help={helperTexts.pattern}
+              validateStatus={getInputStatus("pattern")}
+            >
               <Select
                 showSearch
                 placeholder="Select Pattern"
                 onChange={(_, val) => {
                   console.log({ val });
-                  // onChangeInput({ target: { id: "pattern", value: val } });
+                  const option = val as { id: string; name: string };
                   setPattern(
-                    patternOptions?.find((pt) => pt.name === val.name) || null
+                    patternOptions?.find((pt) => pt.name === option.name) ||
+                      null
                   );
                   setTest((prev) => ({
                     ...prev,
                     sections:
-                      patternOptions?.find((pt) => pt.name === val.name)
+                      patternOptions?.find((pt) => pt.name === option.name)
                         ?.sections || [],
                   }));
                 }}
@@ -446,6 +508,7 @@ const CreateTest = () => {
                 showSearch
                 options={publishTypeOptions}
                 onChange={(val, option) => {
+                  const op = option as { name: string; value: string };
                   setTest((prev) => ({
                     ...prev,
                     result: {
@@ -456,7 +519,7 @@ const CreateTest = () => {
                       },
                     },
                   }));
-                  setPublishType({ value: val, name: option.name });
+                  setPublishType({ value: val, name: op.name });
                 }}
                 value={test.result?.publishProps?.type}
               />
@@ -497,7 +560,7 @@ const CreateTest = () => {
 export default CreateTest;
 
 const Sections: React.FC<{
-  sections: ISection[];
+  sections: TSectionSchema[];
   handleUpdateSection: (sectionId: string, data: any) => void;
 }> = ({ sections, handleUpdateSection }) => {
   const [accordionItems, setAccordionItems] = useState<
@@ -508,7 +571,7 @@ const Sections: React.FC<{
     }>
   >([]);
 
-  function handleUpdateSubSection(section: ISection) {
+  function handleUpdateSubSection(section: TSectionSchema) {
     return (subSectionId: string, data: any) =>
       handleUpdateSection(section.id, {
         subSections: section.subSections.map((subSection) => {
@@ -560,7 +623,7 @@ const Sections: React.FC<{
               subject={section.subject}
             />
             <div className={styles.subSections}>
-              {section?.subSections?.map((subSection: ISubSection) => (
+              {section?.subSections?.map((subSection) => (
                 <SubSection
                   key={subSection.id}
                   subSection={subSection}
@@ -579,7 +642,7 @@ const Sections: React.FC<{
 };
 
 const SubSection: React.FC<{
-  subSection: ISubSection;
+  subSection: TSubSectionSchema;
   handleUpdateSubSection: (subSectionId: string, data: any) => void;
   subject: string;
 }> = ({ subSection, handleUpdateSubSection, subject }) => {

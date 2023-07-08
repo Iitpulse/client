@@ -10,6 +10,7 @@ import {
   WarningAmber,
   WarningAmberOutlined,
 } from "@mui/icons-material";
+import { TTestSchema } from "../pages/Test/utils/types";
 
 export const APIS = {
   USERS_API:
@@ -69,7 +70,7 @@ export const TEST = {
   },
 };
 
-export const SAMPLE_TEST = {
+export const SAMPLE_TEST: TTestSchema = {
   id: "",
   name: "",
   description: "",
@@ -81,7 +82,7 @@ export const SAMPLE_TEST = {
     name: "",
     fullName: "",
   },
-  status: "",
+  status: "inactive",
   validity: {
     from: "",
     to: "",
@@ -108,9 +109,9 @@ export const SAMPLE_TEST = {
   },
   createdBy: {
     id: "",
-    name: "",
     userType: "",
   },
+  patternId: "",
   createdAt: "",
   modifiedAt: "",
 };

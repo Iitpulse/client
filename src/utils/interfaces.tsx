@@ -37,6 +37,7 @@ export interface IAuthContext {
   setRoles: (roles: any) => void;
   setCurrentUser: React.Dispatch<React.SetStateAction<ICurrentUser | null>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  userExists: () => boolean;
 }
 
 export interface ITestTable {
@@ -63,19 +64,6 @@ export interface ITestTable {
   };
   createdAt: string;
 }
-
-// type: {
-//   type: String,
-//   enum: ["immediately", "atTheEndOfTest", "autoAfterXDays", "manual"],
-//   default: "immediately",
-// },
-// publishDate: String | null, // ISO String
-// isPublished: Boolean,
-// publishedBy: {
-//   userType: String,
-//   id: String,
-//   name: String,
-// },
 
 export interface ITest extends ITestTable {
   durationInMinutes: number | null;
