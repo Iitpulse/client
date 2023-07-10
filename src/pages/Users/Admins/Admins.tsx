@@ -44,6 +44,13 @@ const Admins: React.FC<{
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const searchInput = useRef<any>(null);
+  const [edit, setEdit] = useState<any>(false);
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+
+  useEffect(() => {
+    setIsDrawerOpen(openModal);
+  }, [openModal]);
   // const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleSearch = (
     selectedKeys: string[],
@@ -210,13 +217,30 @@ const Admins: React.FC<{
         dataSource={admins as any}
         loading={loading}
       />
-      <AddNewAdmin
-        open={openModal}
-        setOpen={handleCloseModal}
-        admin={admin}
-        title="Add an Admin"
-        handleCloseModal={handleCloseModal}
-      />
+      {!edit && (
+        <AddNewAdmin
+          open={isDrawerOpen}
+          setOpen={handleCloseModal}
+          admin={admin}
+          title="Add an Admin"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewAdmin
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            handleCloseModal();
+            setIsDrawerOpen(false);
+          }}
+          admin={admin}
+          title="Edit an Admin"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -224,7 +248,13 @@ const Admins: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
             <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>

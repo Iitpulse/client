@@ -40,14 +40,19 @@ interface IAddNewAdmin {
   admin?: UserProps;
   title?: string;
   handleCloseModal: () => void;
-  edit?: {
-    values: any;
-  };
+  edit?: boolean;
+  current?: any;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
+const AddNewAdmin: React.FC<IAddNewAdmin> = ({
+  setOpen,
+  open,
+  current,
+  edit,
+  title,
+}) => {
   const [form] = Form.useForm();
   // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
   const [roleDetails, setRoleDetails] = useState<any>({
@@ -65,6 +70,48 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
 
+  useEffect(() => {
+    console.log(current);
+    if (edit) {
+      form.setFieldsValue({
+        name: current?.name,
+        email: current?.email,
+        password: current?.password,
+        dob: dayjs(current?.dob, "DD-MM-YYYY"),
+        gender: current?.gender,
+        contact: current?.contact,
+        address: current?.address,
+        city: current?.city,
+        state: current?.state,
+        institute: current?.institute,
+        roles: current?.roles?.map((role: any) => role.id),
+        validity: [
+          dayjs(current?.validity?.from, "DD-MM-YYYY"),
+          dayjs(current?.validity?.to, "DD-MM-YYYY"),
+        ],
+      });
+      setValidity({
+        from: dayjs(current?.validity?.from, "DD-MM-YYYY"),
+        to: dayjs(current?.validity?.to, "DD-MM-YYYY"),
+      });
+      setRoles(current?.roles?.map((role: any) => role.id));
+      let roleval = {};
+      current?.roles?.map((role: any) => {
+        roleval = {
+          ...roleval,
+          [role.id]: {
+            from: dayjs(new Date(role.from)),
+            to: dayjs(new Date(role.to)),
+          },
+        };
+      });
+      setRoleValidity(roleval);
+      console.log({
+        roleval,
+        roles: current?.roles,
+      });
+    }
+  }, [edit, current]);
   const conversionObject: any = {
     name: null,
     email: null,
@@ -107,14 +154,14 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
           if (thisRoleValidity) {
             role = {
               id: role.id,
-              from: thisRoleValidity.from,
-              to: thisRoleValidity.to,
+              from: new Date(thisRoleValidity.from).toISOString(),
+              to: new Date(thisRoleValidity.to).toISOString(),
             };
           } else {
             role = {
               id: role.id,
-              from: validity?.from,
-              to: validity?.to,
+              from: new Date(validity?.from).toISOString(),
+              to: new Date(validity?.to).toISOString(),
             };
           }
           return role;
@@ -139,7 +186,13 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
     message.success("admin created successfully");
     console.log(res);
   }
-
+  async function onUpdate(values: any) {
+    const res = await API_USERS().patch(`/admin/` + current?._id, {
+      ...values,
+    });
+    message.success("Admin Updated successfully");
+    console.log(res);
+  }
   function onFinishFailed(errorInfo: any) {
     message.error("admin creation failed");
     console.log("Failed:", errorInfo);
@@ -174,14 +227,18 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
           ...result?.roles,
           {
             id: ROLES.ADMIN,
-            from: result.validity.from,
-            to: result.validity.to,
+            from: dayjs(result.validity.from, "DD-MM-YYYY").toISOString(),
+            to: dayjs(result.validity.to, "DD-MM-YYYY").toISOString(),
           },
         ];
       }
       console.log({ result });
-      await onFinish(result);
-      form.resetFields();
+      if (!edit) {
+        await onFinish(result);
+        form.resetFields();
+      } else {
+        await onUpdate(result);
+      }
       setRoles([]);
       setValidity({});
       setRoleValidity({});
@@ -228,10 +285,11 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
       };
     });
   }
+  console.log({ current });
   return (
     <>
       <Drawer
-        title="Create a new account"
+        title={title}
         width={720}
         onClose={onClose}
         open={open}
@@ -420,8 +478,12 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({ setOpen, open }) => {
             </Col>
           </Row>
           <Row style={{ gap: "2.2rem" }}>
-            {roles.length > 0 && (
-              <RolesTable updateValidity={updateRoleValidity} roles={roles} />
+            {roles?.length > 0 && (
+              <RolesTable
+                roleValidity={roleValidity}
+                updateValidity={updateRoleValidity}
+                roles={roles}
+              />
             )}
           </Row>
         </Form>

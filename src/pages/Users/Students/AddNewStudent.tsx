@@ -32,6 +32,7 @@ import {
 } from "../../../utils/schemas";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
+import { on } from "events";
 
 const { Option } = Select;
 
@@ -50,6 +51,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
   open,
   edit,
   current,
+  title,
 }) => {
   // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
   const [form] = Form.useForm();
@@ -69,37 +71,55 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
   Object.values(rolesAllowed)?.map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-  console.log({ current });
-  // useEffect(() => {
-  //   if (edit) {
-  //     form.setFieldsValue({
-  //       name: current?.name,
-  //       email: current?.email,
-  //       password: current?.password,
-  //       dob: dayjs(current?.dob, "DD-MM-YYYY"),
-  //       gender: current?.gender,
-  //       contact: current?.contact,
-  //       address: current?.address,
-  //       city: current?.city,
-  //       state: current?.state,
-  //       parentDetails: {
-  //         name: current?.parentDetails?.name,
-  //         contact: current?.parentDetails?.contact,
-  //       },
-  //       institute: current?.institute,
-  //       standard: current?.standard,
-  //       stream: current?.stream,
-  //       medium: current?.medium,
-  //       school: current?.school,
-  //       batch: current?.batch,
-  //       roles: current?.roles?.map((role: any) => role.id),
-  //       validity: [
-  //         dayjs(current?.validity?.from, "DD-MM-YYYY"),
-  //         dayjs(current?.validity?.to, "DD-MM-YYYY"),
-  //       ],
-  //     });
-  //   }
-  // }, []);
+  // console.log({ current });
+  useEffect(() => {
+    if (edit) {
+      form.setFieldsValue({
+        name: current?.name,
+        email: current?.email,
+        password: current?.password,
+        dob: dayjs(current?.dob, "DD-MM-YYYY"),
+        gender: current?.gender,
+        contact: current?.contact,
+        address: current?.address,
+        city: current?.city,
+        state: current?.state,
+        "parentDetails-name": current?.parentDetails?.name,
+        "parentDetails-contact": current?.parentDetails?.contact,
+        institute: current?.institute,
+        standard: current?.standard,
+        stream: current?.stream,
+        medium: current?.medium,
+        school: current?.school,
+        batch: current?.batch,
+        roles: current?.roles?.map((role: any) => role.id),
+        validity: [
+          dayjs(new Date(current?.validity?.from)),
+          dayjs(new Date(current?.validity?.to)),
+        ],
+      });
+      setValidity({
+        from: dayjs(new Date(current?.validity?.from)),
+        to: dayjs(new Date(current?.validity?.to)),
+      });
+      setRoles(current?.roles?.map((role: any) => role.id));
+      let roleval = {};
+      current?.roles?.map((role: any) => {
+        roleval = {
+          ...roleval,
+          [role.id]: {
+            from: dayjs(new Date(role.from)),
+            to: dayjs(new Date(role.to)),
+          },
+        };
+      });
+      setRoleValidity(roleval);
+      console.log({
+        roleval,
+        roles: current?.roles,
+      });
+    }
+  }, [edit, current]);
   const conversionObject: any = {
     name: null,
     email: null,
@@ -119,8 +139,8 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
           if (thisRoleValidity) {
             role = {
               id: role.id,
-              from: thisRoleValidity.from,
-              to: thisRoleValidity.to,
+              from: new Date(thisRoleValidity.from).toISOString(),
+              to: new Date(thisRoleValidity.to).toISOString(),
             };
           } else {
             role = {
@@ -193,6 +213,13 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
     message.success("Student created successfully");
     console.log(res);
   }
+  async function onUpdate(values: any) {
+    const res = await API_USERS().patch(`/student/${current?.id}`, {
+      ...values,
+    });
+    message.success("Student updated successfully");
+    console.log(res);
+  }
 
   function onFinishFailed(errorInfo: any) {
     message.error("Student creation failed");
@@ -221,6 +248,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
           return batch.joiningCode;
         })(),
       };
+      console.log({ additionalValues });
       const result = performZodValidation(
         form,
         conversionObject,
@@ -228,9 +256,12 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
         additionalValues
       );
       console.log({ result });
-
-      await onFinish(result);
-      form.resetFields();
+      if (!edit) {
+        await onFinish(result);
+        form.resetFields();
+      } else {
+        await onUpdate(result);
+      }
       setRoles([]);
       setValidity({});
       setRoleValidity({});
@@ -240,13 +271,17 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
   }
 
   function getRules(fieldName: any) {
-    return [
-      {
-        validateTrigger: "onSubmit",
-        validator: (_: any, value: any) =>
-          validateField(fieldName, value, conversionObject, studentSchema),
-      },
-    ];
+    try {
+      return [
+        {
+          validateTrigger: "onSubmit",
+          validator: (_: any, value: any) =>
+            validateField(fieldName, value, conversionObject, studentSchema),
+        },
+      ];
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   useEffect(() => {
@@ -289,11 +324,14 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
       };
     });
   }
+  const handleFinishFailed = (errorInfo: any) => {
+    console.log("Failed:", errorInfo);
+  };
 
   return (
     <>
       <Drawer
-        title="Create a new account"
+        title={title}
         width={720}
         onClose={onClose}
         open={open}
@@ -322,7 +360,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
           id="studentUserForm"
           layout="vertical"
           onFinish={validateForm}
-          // onFinishFailed={handleFinishFailed}
+          onFinishFailed={handleFinishFailed}
         >
           <SectionHeader title="Personal Details" />
           <Row gutter={16}>
@@ -579,8 +617,12 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
             </Col>
           </Row>
           <Row style={{ gap: "2.2rem" }}>
-            {roles.length > 0 && (
-              <RolesTable updateValidity={updateRoleValidity} roles={roles} />
+            {roles?.length > 0 && (
+              <RolesTable
+                updateValidity={updateRoleValidity}
+                roles={roles}
+                roleValidity={roleValidity}
+              />
             )}
           </Row>
         </Form>

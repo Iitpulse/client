@@ -64,13 +64,14 @@ export async function validateField(
       fieldName,
       studentSchema
     );
-
+    // console.log({ desiredKey, obejctToApplyarseTo });
     // checkIfTheKeyIsPresentInSchema(desiredKey, obejctToApplyarseTo);// This needs to be done because the schema is not strict
-    // console.log({ parsedFieldValue });
+    console.log({ parsedFieldValue });
     obejctToApplyarseTo.parse(parsedFieldValue);
     // console.log("chal gaya");
     return; // Validation successful
   } catch (error: any) {
+    console.log({ error });
     const errorMessage = error?.issues?.[0]?.message || error?.message;
     throw errorMessage; // Validation failed
   }
@@ -114,8 +115,10 @@ export function performZodValidation(
     // Convert the ID to the desired format
     const value = fieldValues[id];
     const convertedValue = convertFieldValue(id, value, conversionObject);
+
     setNestedValue(convertedValues, id, convertedValue);
   }
+  console.log({ convertedValues });
   const result = studentSchema.parse({
     ...convertedValues,
     ...additionalValues,

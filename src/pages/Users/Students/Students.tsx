@@ -356,10 +356,10 @@ const Students: React.FC<{
         scroll={{ x: 200, y: "50vh" }}
       />
 
-      {activeTab === 0 && (
+      {!edit && activeTab === 0 && (
         <AddNewStudent
-          edit={edit}
-          current={currentStudent}
+          edit={false}
+          current={null}
           open={isDrawerOpen}
           setOpen={setIsDrawerOpen}
           student={student}
@@ -367,6 +367,24 @@ const Students: React.FC<{
           handleCloseModal={handleCloseModal}
         />
       )}
+      {edit && activeTab === 0 && (
+        <AddNewStudent
+          edit={true}
+          current={currentStudent}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            setIsDrawerOpen(false);
+          }}
+          student={student}
+          title="Edit a Student"
+          handleCloseModal={() => {
+            setEdit(false);
+            handleCloseModal();
+          }}
+        />
+      )}
+
       {isEditModalOpen && (
         <Student
           title="Edit a Student"
@@ -384,6 +402,7 @@ const Students: React.FC<{
             <IconButton
               onClick={() => {
                 setEdit(true);
+                console.log({ currentStudent });
                 setIsDrawerOpen(true);
                 setIsSidebarOpen(false);
               }}

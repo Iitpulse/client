@@ -29,7 +29,13 @@ const Managers: React.FC<{
 }> = ({ activeTab, manager, openModal, handleCloseModal, loading }) => {
   const { managers, fetchManagers } = useContext(UsersContext);
   const [current, setCurrent] = useState<any>(null);
+  const [edit, setEdit] = useState<any>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+
+  useEffect(() => {
+    setIsDrawerOpen(openModal);
+  }, [openModal]);
   const columns: any = [
     {
       title: "View",
@@ -97,13 +103,30 @@ const Managers: React.FC<{
         dataSource={managers as any}
         loading={loading}
       />
-      <AddNewManager
-        open={openModal}
-        setOpen={handleCloseModal}
-        manager={manager}
-        title="Add an Admin"
-        handleCloseModal={handleCloseModal}
-      />
+      {!edit && (
+        <AddNewManager
+          open={isDrawerOpen}
+          setOpen={handleCloseModal}
+          manager={manager}
+          title="Add a Manager"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewManager
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            handleCloseModal();
+            setIsDrawerOpen(false);
+          }}
+          manager={manager}
+          title="Edit a Manager"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -111,7 +134,13 @@ const Managers: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
             <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>

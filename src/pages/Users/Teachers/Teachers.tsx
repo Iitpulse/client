@@ -39,6 +39,7 @@ import deleteIcon from "../../../assets/icons/delete.svg";
 import { useTestContext } from "../../../utils/contexts/TestContext";
 import AddNewTeacher from "./AddNewTeacher";
 import { render } from "@testing-library/react";
+import { set } from "zod";
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
@@ -57,6 +58,7 @@ const Teachers: React.FC<{
   loading,
 }) => {
   const [searchText, setSearchText] = useState("");
+  const [edit, setEdit] = useState<any>(false);
   const [searchedColumn, setSearchedColumn] = useState("");
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -287,13 +289,29 @@ const Teachers: React.FC<{
         loading={loading}
         scroll={{ x: 100 }}
       />
-      <AddNewTeacher
-        open={isDrawerOpen}
-        setOpen={setIsDrawerOpen}
-        teacher={teacher}
-        title="Add a Teacher"
-        handleCloseModal={handleCloseModal}
-      />
+      {!edit && (
+        <AddNewTeacher
+          open={isDrawerOpen}
+          setOpen={setIsDrawerOpen}
+          teacher={teacher}
+          title="Add a Teacher"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewTeacher
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setIsDrawerOpen(false);
+            setEdit(false);
+          }}
+          teacher={teacher}
+          title="Add a Teacher"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title="User Details"
         open={isSidebarOpen}
@@ -301,7 +319,13 @@ const Teachers: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
             <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>

@@ -19,6 +19,7 @@ import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
 import AddNewOperator from "./AddNewOperator";
+import { set } from "zod";
 
 const Operators: React.FC<{
   activeTab: number;
@@ -29,8 +30,13 @@ const Operators: React.FC<{
 }> = ({ activeTab, operator, openModal, handleCloseModal, loading }) => {
   // const data: any = [];
   const { operators, fetchOperators } = useContext(UsersContext);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+  const [edit, setEdit] = useState<any>(false);
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  useEffect(() => {
+    setIsDrawerOpen(openModal);
+  }, [openModal]);
   const columns: any = [
     {
       title: "View",
@@ -93,13 +99,30 @@ const Operators: React.FC<{
   };
   return (
     <div className={styles.container}>
-      <AddNewOperator
-        open={openModal}
-        setOpen={handleCloseModal}
-        operator={operator}
-        title="Add an Admin"
-        handleCloseModal={handleCloseModal}
-      />
+      {!edit && (
+        <AddNewOperator
+          open={isDrawerOpen}
+          setOpen={handleCloseModal}
+          operator={operator}
+          title="Add an Operator"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewOperator
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            handleCloseModal();
+            setIsDrawerOpen(false);
+          }}
+          operator={operator}
+          title="Edit an Operator"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -107,7 +130,13 @@ const Operators: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsSidebarOpen(false);
+                setIsDrawerOpen(true);
+              }}
+            >
               <Edit />
             </IconButton>
             <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>

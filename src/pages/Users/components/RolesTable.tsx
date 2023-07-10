@@ -5,6 +5,7 @@ import type { ColumnsType } from "antd/es/table";
 interface DataType {
   role: string;
   onChange: (date: any, dateString: any) => void;
+  value: any;
 }
 
 const columns: ColumnsType<DataType> = [
@@ -20,6 +21,7 @@ const columns: ColumnsType<DataType> = [
     key: "validity",
     render: (_, record) => (
       <DatePicker.RangePicker
+        value={[record.value.from, record.value.to]}
         format="DD-MM-YYYY"
         onChange={record.onChange}
         getPopupContainer={(trigger) => trigger.parentElement!}
@@ -31,9 +33,14 @@ const columns: ColumnsType<DataType> = [
 const RolesTable: React.FC<{
   roles: string[];
   updateValidity: (role: string, e: any) => void;
-}> = ({ updateValidity, roles }) => {
+  roleValidity: any;
+}> = ({ updateValidity, roles, roleValidity }) => {
   const data: DataType[] = roles?.map((role: string) => ({
     role,
+    value: roleValidity[role] || {
+      from: null,
+      to: null,
+    },
     onChange: (e: any) => {
       updateValidity(role, e);
       // updateValidity({ from: dateString[0], to: dateString[1] });
