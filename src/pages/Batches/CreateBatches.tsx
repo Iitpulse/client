@@ -228,7 +228,7 @@ const StyledMUITextField = styled(TextField)(() => {
     <Sidebar
       title="Create New Batch"
       open={toggleSideBar}
-      width="350px"
+      width="30%"
       handleClose={handleClose}
     >
         <Form 
@@ -236,7 +236,7 @@ const StyledMUITextField = styled(TextField)(() => {
           id="teacherUserForm"
           layout="vertical"
           onFinish={handleSubmit}>
-            <div className={styles.inputFields}>
+            {/* <div className={styles.inputFields}> */}
             <Form.Item name="name" rules={getRules("name")}>
             <Input
                 id="batchName"
@@ -389,8 +389,8 @@ const StyledMUITextField = styled(TextField)(() => {
                 error={false}
                 helperText=""
             /> */}
-            </div>
-            <div className={styles.buttons}>
+            {/* </div> */}
+            {/* <div className={styles.buttons}> */}
             <Button 
                 onClick={async () => {
                     // setSubmitDisabled(true);
@@ -405,7 +405,7 @@ const StyledMUITextField = styled(TextField)(() => {
                   htmlType="submit"
                 //   disabled={submitDisabled}
             >Submit</Button>
-            </div>
+            {/* </div> */}
         </Form>
         </Sidebar>
     );

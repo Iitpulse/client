@@ -300,7 +300,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
                 label="Gender"
                 rules={getRules("gender")}
               >
-                <Select placeholder="Please choose a gender">
+                <Select showSearch placeholder="Please choose a gender" filterOption={(input:any, option:any) => (option?.value?.toLowerCase() ?? '').includes(input.toLowerCase())}>
                   <Option value="male">Male</Option>
                   <Option value="female">Female</Option>
                   <Option value="other">Other</Option>
@@ -342,7 +342,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
             </Col>
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Select placeholder="Please enter a state">
+                <Select showSearch placeholder="Please enter a state" filterOption={(input:any, option:any) => (option?.value?.toLowerCase() ?? '').includes(input.toLowerCase())}>
                   {
                     INDIAN_STATES.map((e)=>(
                       <Select.Option key={e} value={e}>{e}</Select.Option>
@@ -387,11 +387,13 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
                   onChange={(e) => {
                     setRoles(e);
                   }}
-                  mode="tags"
+                  mode="multiple"
+                  showSearch
+                  filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}
                   placeholder="Please choose a role/s"
                 >
                   {roleDetails.options?.map((option: any) => (
-                    <Select.Option key={option.value} value={option.value}>
+                    <Select.Option key={option.value} value={option.value} label={option.label}>
                       {option.label}
                     </Select.Option>
                   ))}

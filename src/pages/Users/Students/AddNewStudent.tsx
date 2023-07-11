@@ -335,10 +335,10 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 label="Gender"
                 rules={getRules("gender")}
               >
-                <Select placeholder="Please choose a gender">
-                  <Option value="male">Male</Option>
-                  <Option value="female">Female</Option>
-                  <Option value="other">Other</Option>
+                <Select showSearch placeholder="Please choose a gender" optionLabelProp="label">
+                  <Option value="male" label="Male">Male</Option>
+                  <Option value="female" label="Female">Female</Option>
+                  <Option value="other" label="Other">Other</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -377,10 +377,10 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
             </Col>
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Select placeholder="Please enter a state">
+                <Select showSearch placeholder="Please enter a state" optionLabelProp="label">
                   {
                     INDIAN_STATES.map((e)=>(
-                      <Select.Option key={e} value={e}>{e}</Select.Option>
+                      <Select.Option key={e} value={e} label={e}>{e}</Select.Option>
                     ))
                   }
                 </Select>
@@ -423,11 +423,25 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 label="Standard"
                 rules={getRules("standard")}
               >
-                <Select placeholder="Please choose a standard">
-                  <Option value="11">11 th</Option>
-                  <Option value="12">12 th</Option>
-                  <Option value="13">Dropper</Option>
-                </Select>
+                <Select 
+                  showSearch 
+                  placeholder="Please choose a standard" 
+                  filterOption={(input, option) => (option?.label.toLowerCase() ?? '').includes(input.toLowerCase())}
+                  options={[
+                    {
+                      value: '11',
+                      label: '11 th',
+                    },
+                    {
+                      value: '12',
+                      label: '12 th',
+                    },
+                    {
+                      value: '13',
+                      label: 'Dropper',
+                    },
+                  ]}  
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -447,12 +461,12 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 label="Stream"
                 rules={getRules("stream")}
               >
-                <Select placeholder="Please choose a stream">
-                  <Option value="PCM">PCM</Option>
-                  <Option value="PCB">PCB</Option>
-                  <Option value="Commerce">Commerce</Option>
-                  <Option value="male">Other Stream 1</Option>
-                  <Option value="female">Other Stream 2</Option>
+                <Select showSearch placeholder="Please choose a stream" filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}>
+                  <Option value="PCM" label="PCM">PCM</Option>
+                  <Option value="PCB" label="PCB">PCB</Option>
+                  <Option value="Commerce" label="Commerce">Commerce</Option>
+                  <Option value="other1" label="Other Stream 1">Other Stream 1</Option>
+                  <Option value="other2" label="Other Stream 2">Other Stream 2</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -462,10 +476,10 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 label="Medium"
                 rules={getRules("medium")}
               >
-                <Select placeholder="Please choose a medium">
-                  <Option value="hindi">हिंदी</Option>
-                  <Option value="english">English</Option>
-                  <Option value="other">other</Option>
+                <Select showSearch placeholder="Please choose a medium" optionLabelProp="label">
+                  <Option value="hindi" label="हिंदी">हिंदी</Option>
+                  <Option value="english" label="English">English</Option>
+                  <Option value="other" label="other">other</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -487,9 +501,9 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 label="Batch"
                 rules={getRules("joiningCode")}
               >
-                <Select placeholder="Please choose a batch">
+                <Select showSearch placeholder="Please choose a batch" filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}>
                   {batchOptions?.map((option: any) => (
-                    <Select.Option key={option.value} value={option.value}>
+                    <Select.Option key={option.value} value={option.value} label={option.label}>
                       {option.label}
                     </Select.Option>
                   ))}
@@ -504,7 +518,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 label="User Type"
                 rules={getRules("userType")}
               >
-                <Select placeholder="Please choose a user type">
+                <Select showSearch placeholder="Please choose a user type">
                   <Option value="admin">Admin</Option>
                   <Option value="student">Student</Option>
                   <Option value="teacher">Teacher</Option>
@@ -516,7 +530,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
             <Col span={12}>
               <Form.Item name="roles" label="Roles" rules={getRules("roles")}>
                 <Select
-                  mode="tags"
+                  mode="multiple"
                   placeholder="Please choose a role/s"
                   onChange={(e) => {
                     setRoles(e);

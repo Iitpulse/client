@@ -125,13 +125,15 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   ) => {
     // e.preventDefault();
     if(values.email.length === 0) return;
+    const resEmail = values.email.toLowerCase();
+    setValues((prevState)=>({...prevState, email:resEmail}));
     try {
       const response = await API_USERS().post(`/emailotp/generate`, {
-        email: values.email,
+        email: resEmail,
       });
       message.loading({ content: response.data.message, key: "otp" });
     } catch (error) {
-      console.log(error);
+      console.log({error});
     }
 
     setTimeout(() => {
@@ -144,9 +146,11 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     e: any
   ) => {
     e.preventDefault();
+    const resEmail = values.email.toLowerCase();
+    setValues((prevState)=>({...prevState, email:resEmail}));
     try {
       const response = await API_USERS().post(`/emailotp/verify`, {
-        email: values.email,
+        email: resEmail,
         emailotp: values.emailotp,
       });
       message.loading({ content: response.data.message, key: "verify" });
@@ -157,7 +161,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         setButtonText("Verified");
       }
     } catch (error) {
-      console.log(error);
+      console.log({error});
     }
 
     setTimeout(() => {
