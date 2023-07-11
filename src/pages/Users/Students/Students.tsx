@@ -65,10 +65,10 @@ const Students: React.FC<{
   handleCloseModal,
   loading,
 }) => {
-  const { students } = useContext(UsersContext);
+  const { students, fetchStudents } = useContext(UsersContext);
   const [currentStudent, setCurrentStudent] = useState<any>(null);
   const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
-
+  const [edit, setEdit] = useState<any>(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<any>(null);
@@ -332,6 +332,20 @@ const Students: React.FC<{
   //   fetchStudents();
   // }, []);
   console.log({ students });
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/student/${currentStudent?.id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchStudents();
+        message.success("Student deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting student");
+    }
+  };
   return (
     <div className={styles.container}>
       <CustomTable
@@ -342,8 +356,10 @@ const Students: React.FC<{
         scroll={{ x: 200, y: "50vh" }}
       />
 
-      {activeTab === 0 && (
+      {!edit && activeTab === 0 && (
         <AddNewStudent
+          edit={false}
+          current={null}
           open={isDrawerOpen}
           setOpen={setIsDrawerOpen}
           student={student}
@@ -351,6 +367,24 @@ const Students: React.FC<{
           handleCloseModal={handleCloseModal}
         />
       )}
+      {edit && activeTab === 0 && (
+        <AddNewStudent
+          edit={true}
+          current={currentStudent}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            setIsDrawerOpen(false);
+          }}
+          student={student}
+          title="Edit a Student"
+          handleCloseModal={() => {
+            setEdit(false);
+            handleCloseModal();
+          }}
+        />
+      )}
+
       {isEditModalOpen && (
         <Student
           title="Edit a Student"
@@ -365,13 +399,17 @@ const Students: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                console.log({ currentStudent });
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <DeleteOutline />
                 {/* <img src={deleteIcon} alt="Delete" /> */}

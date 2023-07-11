@@ -21,6 +21,7 @@ import {
   Button as AntButton,
   Popconfirm,
   message,
+  Tag,
 } from "antd";
 import { DataType, rowSelection } from "../Users";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
@@ -37,6 +38,8 @@ import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
 import { useTestContext } from "../../../utils/contexts/TestContext";
 import AddNewTeacher from "./AddNewTeacher";
+import { render } from "@testing-library/react";
+import { set } from "zod";
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
@@ -55,6 +58,7 @@ const Teachers: React.FC<{
   loading,
 }) => {
   const [searchText, setSearchText] = useState("");
+  const [edit, setEdit] = useState<any>(false);
   const [searchedColumn, setSearchedColumn] = useState("");
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -218,7 +222,19 @@ const Teachers: React.FC<{
     },
     {
       title: "Subject",
-      dataIndex: "subject",
+      dataIndex: "subjects",
+      render: (subjects: Array<Object>) => (
+        <div>
+          {subjects?.length > 0 &&
+            subjects.map((subject: any) => (
+              <Tag style={{ textTransform: "capitalize", margin: "2px" }}>
+                {" "}
+                {subject.name}
+              </Tag>
+            ))}
+        </div>
+      ),
+
       // width: 200,
     },
     // {
@@ -247,9 +263,23 @@ const Teachers: React.FC<{
     },
   ];
 
-  const { teachers } = useContext(UsersContext);
+  const { teachers, fetchTeachers } = useContext(UsersContext);
   console.log({ teachers });
-
+  const deleteUser = async () => {
+    console.log(current);
+    try {
+      const res = await API_USERS().delete(`/teacher/${current?._id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchTeachers();
+        message.success("Teacher deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting Teacher");
+    }
+  };
   return (
     <div className={styles.container}>
       <CustomTable
@@ -259,13 +289,29 @@ const Teachers: React.FC<{
         loading={loading}
         scroll={{ x: 100 }}
       />
-      <AddNewTeacher
-        open={isDrawerOpen}
-        setOpen={setIsDrawerOpen}
-        teacher={teacher}
-        title="Add a Teacher"
-        handleCloseModal={handleCloseModal}
-      />
+      {!edit && (
+        <AddNewTeacher
+          open={isDrawerOpen}
+          setOpen={setIsDrawerOpen}
+          teacher={teacher}
+          title="Add a Teacher"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewTeacher
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setIsDrawerOpen(false);
+            setEdit(false);
+          }}
+          teacher={teacher}
+          title="Add a Teacher"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title="User Details"
         open={isSidebarOpen}
@@ -273,13 +319,16 @@ const Teachers: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <img src={deleteIcon} alt="Delete" />
               </IconButton>

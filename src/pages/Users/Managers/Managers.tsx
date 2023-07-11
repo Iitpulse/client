@@ -27,9 +27,15 @@ const Managers: React.FC<{
   handleCloseModal: () => void;
   loading: boolean;
 }> = ({ activeTab, manager, openModal, handleCloseModal, loading }) => {
-  const { managers } = useContext(UsersContext);
+  const { managers, fetchManagers } = useContext(UsersContext);
   const [current, setCurrent] = useState<any>(null);
+  const [edit, setEdit] = useState<any>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+
+  useEffect(() => {
+    setIsDrawerOpen(openModal);
+  }, [openModal]);
   const columns: any = [
     {
       title: "View",
@@ -69,20 +75,26 @@ const Managers: React.FC<{
         <span style={{ textTransform: "capitalize" }}>{text}</span>
       ),
     },
-    // {
-    //   title: "Batch",
-    //   dataIndex: "batch",
-    //   // width: 100,
-    //   render: (text: string) => (
-    //     <span style={{ textTransform: "capitalize" }}> {text}</span>
-    //   ),
-    // },
     {
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
     },
   ];
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/manager/${current?._id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchManagers();
+        message.success("User deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting User");
+    }
+  };
   return (
     <div className={styles.container}>
       <CustomTable
@@ -90,13 +102,30 @@ const Managers: React.FC<{
         dataSource={managers as any}
         loading={loading}
       />
-      <AddNewManager
-        open={openModal}
-        setOpen={handleCloseModal}
-        manager={manager}
-        title="Add an Admin"
-        handleCloseModal={handleCloseModal}
-      />
+      {!edit && (
+        <AddNewManager
+          open={isDrawerOpen}
+          setOpen={handleCloseModal}
+          manager={manager}
+          title="Add a Manager"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewManager
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            handleCloseModal();
+            setIsDrawerOpen(false);
+          }}
+          manager={manager}
+          title="Edit a Manager"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -104,13 +133,16 @@ const Managers: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <img src={deleteIcon} alt="Delete" />
               </IconButton>
