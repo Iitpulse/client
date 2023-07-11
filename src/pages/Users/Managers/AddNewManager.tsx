@@ -41,14 +41,19 @@ interface IAddNewManager {
   manager?: UserProps;
   title?: string;
   handleCloseModal: () => void;
-  edit?: {
-    values: any;
-  };
+  edit?: boolean;
+  current?: any;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
+const AddNewManager: React.FC<IAddNewManager> = ({
+  setOpen,
+  open,
+  edit,
+  current,
+  title,
+}) => {
   const [form] = Form.useForm();
   // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
   const [roleDetails, setRoleDetails] = useState<any>({
@@ -65,6 +70,49 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
   Object.values(rolesAllowed)?.map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
+
+  useEffect(() => {
+    console.log(current);
+    if (edit) {
+      form.setFieldsValue({
+        name: current?.name,
+        email: current?.email,
+        password: current?.password,
+        dob: dayjs(current?.dob, "DD-MM-YYYY"),
+        gender: current?.gender,
+        contact: current?.contact,
+        address: current?.address,
+        city: current?.city,
+        state: current?.state,
+        institute: current?.institute,
+        roles: current?.roles?.map((role: any) => role.id),
+        validity: [
+          dayjs(current?.validity?.from, "DD-MM-YYYY"),
+          dayjs(current?.validity?.to, "DD-MM-YYYY"),
+        ],
+      });
+      setValidity({
+        from: dayjs(current?.validity?.from, "DD-MM-YYYY"),
+        to: dayjs(current?.validity?.to, "DD-MM-YYYY"),
+      });
+      setRoles(current?.roles?.map((role: any) => role.id));
+      let roleval = {};
+      current?.roles?.map((role: any) => {
+        roleval = {
+          ...roleval,
+          [role.id]: {
+            from: dayjs(new Date(role.from)),
+            to: dayjs(new Date(role.to)),
+          },
+        };
+      });
+      setRoleValidity(roleval);
+      console.log({
+        roleval,
+        roles: current?.roles,
+      });
+    }
+  }, [edit, current]);
 
   const conversionObject: any = {
     name: null,
@@ -110,14 +158,15 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
           if (thisRoleValidity) {
             role = {
               id: role.id,
-              from: thisRoleValidity.from,
-              to: thisRoleValidity.to,
+              from: new Date(thisRoleValidity.from).toISOString(),
+              to: new Date(thisRoleValidity.to).toISOString(),
             };
           } else {
+            console.log(validity);
             role = {
               id: role.id,
-              from: validity?.from,
-              to: validity?.to,
+              from: dayjs(validity?.from, "DD-MM-YYYY").toISOString(),
+              to: dayjs(validity?.to, "DD-MM-YYYY").toISOString(),
             };
           }
           return role;
@@ -141,6 +190,13 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
     const res = await API_USERS().post(`/manager/create`, { ...values });
     message.success("manager created successfully");
     form.resetFields();
+    console.log(res);
+  }
+  async function onUpdate(values: any) {
+    const res = await API_USERS().patch(`/manager/` + current?._id, {
+      ...values,
+    });
+    message.success("Manager Updated successfully");
     console.log(res);
   }
 
@@ -174,7 +230,15 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
         };
       });
       console.log(result);
-      await onFinish(result);
+      if (!edit) {
+        await onFinish(result);
+        form.resetFields();
+      } else {
+        await onUpdate(result);
+      }
+      setRoles([]);
+      setValidity({});
+      setRoleValidity({});
     } catch (error) {
       onFinishFailed(error);
     }
@@ -221,7 +285,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
   return (
     <>
       <Drawer
-        title="Create a new account"
+        title={title}
         width={720}
         onClose={onClose}
         open={open}
@@ -409,8 +473,8 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
                 <DatePicker.RangePicker
                   onChange={(e: any) => {
                     setValidity({
-                      from: dayjs(e[0]).toISOString(),
-                      to: dayjs(e[1]).toISOString(),
+                      from: dayjs(e[0]).format("DD-MM-YYYY"),
+                      to: dayjs(e[1]).format("DD-MM-YYYY"),
                     });
                   }}
                   format="DD-MM-YYYY"
@@ -421,8 +485,12 @@ const AddNewManager: React.FC<IAddNewManager> = ({ setOpen, open }) => {
             </Col>
           </Row>
           <Row style={{ gap: "2.2rem" }}>
-            {roles.length > 0 && (
-              <RolesTable updateValidity={updateRoleValidity} roles={roles} />
+            {roles?.length > 0 && (
+              <RolesTable
+                roleValidity={roleValidity}
+                updateValidity={updateRoleValidity}
+                roles={roles}
+              />
             )}
           </Row>
         </Form>

@@ -9,7 +9,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS, TEST } from "../../utils/constants";
 import { Error } from "../";
-import { AutoComplete, Input, Select, message } from "antd";
+import { AutoComplete, Input, InputNumber, Select, message } from "antd";
 import { API_TESTS } from "../../utils/api/config";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
@@ -276,6 +276,10 @@ const CreatePattern = () => {
       } else {
         await API_TESTS().post(`/pattern/create`, pattern);
         message.success("Pattern created successfully");
+        setDurationInMinutes("");
+        setName("");
+        setExam("");
+        setSections([]);
       }
       // const res = await API_TESTS().post(`/pattern/create`, pattern);
       // message.success("Pattern created successfully");
@@ -313,14 +317,14 @@ const CreatePattern = () => {
                   onChange={(e: any) => setName(e.target.value)}
                 />
 
-                <Input
+                <InputNumber
                   type="number"
                   min={0}
                   status={helperTexts.durationInMinutes !== "" ? "error" : ""}
-                  value={durationInMinutes}
+                  value={Number(durationInMinutes)}
                   placeholder="Duration (in Minutes)"
                   size="large"
-                  onChange={(e: any) => setDurationInMinutes(e.target.value)}
+                  onChange={(e: any) => setDurationInMinutes(String(e))}
                 />
                 <Select
                   status={helperTexts?.exam !== "" ? "error" : undefined}

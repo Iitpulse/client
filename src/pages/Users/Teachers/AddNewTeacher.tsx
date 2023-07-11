@@ -36,17 +36,21 @@ import { INDIAN_STATES, ROLES } from "../../../utils/constants";
 const { Option } = Select;
 
 interface IAddNewTeacher {
+  edit?: boolean;
+  current?: any;
   teacher?: UserProps;
   title?: string;
   handleCloseModal: () => void;
-  edit?: {
-    values: any;
-  };
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
+const AddNewTeacher: React.FC<IAddNewTeacher> = ({
+  setOpen,
+  open,
+  edit,
+  current,
+}) => {
   const [form] = Form.useForm();
   // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
   const [roleDetails, setRoleDetails] = useState<any>({
@@ -68,7 +72,48 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
   Object.values(rolesAllowed)?.map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-
+  useEffect(() => {
+    if (edit) {
+      form.setFieldsValue({
+        name: current?.name,
+        email: current?.email,
+        password: current?.password,
+        dob: dayjs(current?.dob, "DD-MM-YYYY"),
+        gender: current?.gender,
+        contact: current?.contact,
+        address: current?.address,
+        city: current?.city,
+        state: current?.state,
+        subjects: current?.subjects?.map((subject: any) => subject._id),
+        institute: current?.institute,
+        roles: current?.roles?.map((role: any) => role.id),
+        validity: [
+          dayjs(new Date(current?.validity?.from)),
+          dayjs(new Date(current?.validity?.to)),
+        ],
+      });
+      setValidity({
+        from: dayjs(new Date(current?.validity?.from)),
+        to: dayjs(new Date(current?.validity?.to)),
+      });
+      setRoles(current?.roles?.map((role: any) => role.id));
+      let roleval = {};
+      current?.roles?.map((role: any) => {
+        roleval = {
+          ...roleval,
+          [role.id]: {
+            from: dayjs(new Date(role.from)),
+            to: dayjs(new Date(role.to)),
+          },
+        };
+      });
+      setRoleValidity(roleval);
+      console.log({
+        roleval,
+        roles: current?.roles,
+      });
+    }
+  }, [edit, current]);
   const conversionObject: any = {
     name: null,
     email: null,
@@ -125,8 +170,8 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
           if (thisRoleValidity) {
             role = {
               id: role.id,
-              from: thisRoleValidity.from,
-              to: thisRoleValidity.to,
+              from: new Date(thisRoleValidity.from).toISOString(),
+              to: new Date(thisRoleValidity.to).toISOString(),
             };
           } else {
             role = {
@@ -158,7 +203,14 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
     form.resetFields();
     console.log(res);
   }
-
+  async function onUpdate(values: any) {
+    console.log(current);
+    const res = await API_USERS().patch(`/teacher/${current?._id}`, {
+      ...values,
+    });
+    message.success("Teacher updated successfully");
+    console.log(res);
+  }
   function onFinishFailed(errorInfo: any) {
     message.error(errorInfo.response.data.message);
     console.log("Failed:", errorInfo.response.data.message);
@@ -200,7 +252,15 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
         ];
       }
       console.log(result);
-      await onFinish(result);
+      if (!edit) {
+        await onFinish(result);
+        form.resetFields();
+      } else {
+        await onUpdate(result);
+      }
+      setValidity({});
+      setRoleValidity({});
+      setRoles([]);
     } catch (error) {
       onFinishFailed(error);
     }
@@ -474,8 +534,12 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({ setOpen, open }) => {
             </Col>
           </Row>
           <Row style={{ gap: "2.2rem" }}>
-            {roles.length > 0 && (
-              <RolesTable updateValidity={updateRoleValidity} roles={roles} />
+            {roles?.length > 0 && (
+              <RolesTable
+                roleValidity={roleValidity}
+                updateValidity={updateRoleValidity}
+                roles={roles}
+              />
             )}
             {/* </Col> */}
           </Row>

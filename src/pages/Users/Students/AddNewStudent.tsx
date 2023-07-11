@@ -7,6 +7,7 @@ import {
   Divider,
   Drawer,
   Form,
+  FormInstance,
   Input,
   Row,
   Select,
@@ -39,16 +40,22 @@ interface IAddNewStudent {
   student?: UserProps;
   title?: string;
   handleCloseModal: () => void;
-  edit?: {
-    values: any;
-  };
+  edit: boolean;
+  current: any;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
-  const [form] = Form.useForm();
+const AddNewStudent: React.FC<IAddNewStudent> = ({
+  setOpen,
+  open,
+  edit,
+  current,
+  title,
+}) => {
   // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
+  const [form] = Form.useForm();
+
   const [roleDetails, setRoleDetails] = useState<any>({
     options: [],
     actual: [],
@@ -65,7 +72,55 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
   Object.values(rolesAllowed)?.map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
-
+  // console.log({ current });
+  useEffect(() => {
+    if (edit) {
+      form.setFieldsValue({
+        name: current?.name,
+        email: current?.email,
+        password: current?.password,
+        dob: dayjs(current?.dob, "DD-MM-YYYY"),
+        gender: current?.gender,
+        contact: current?.contact,
+        address: current?.address,
+        city: current?.city,
+        state: current?.state,
+        "parentDetails-name": current?.parentDetails?.name,
+        "parentDetails-contact": current?.parentDetails?.contact,
+        institute: current?.institute,
+        standard: current?.standard,
+        stream: current?.stream,
+        medium: current?.medium,
+        school: current?.school,
+        batch: current?.batch,
+        roles: current?.roles?.map((role: any) => role.id),
+        validity: [
+          dayjs(new Date(current?.validity?.from)),
+          dayjs(new Date(current?.validity?.to)),
+        ],
+      });
+      setValidity({
+        from: dayjs(new Date(current?.validity?.from)),
+        to: dayjs(new Date(current?.validity?.to)),
+      });
+      setRoles(current?.roles?.map((role: any) => role.id));
+      let roleval = {};
+      current?.roles?.map((role: any) => {
+        roleval = {
+          ...roleval,
+          [role.id]: {
+            from: dayjs(new Date(role.from)),
+            to: dayjs(new Date(role.to)),
+          },
+        };
+      });
+      setRoleValidity(roleval);
+      console.log({
+        roleval,
+        roles: current?.roles,
+      });
+    }
+  }, [edit, current]);
   const conversionObject: any = {
     name: null,
     email: null,
@@ -85,8 +140,8 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           if (thisRoleValidity) {
             role = {
               id: role.id,
-              from: thisRoleValidity.from,
-              to: thisRoleValidity.to,
+              from: new Date(thisRoleValidity.from).toISOString(),
+              to: new Date(thisRoleValidity.to).toISOString(),
             };
           } else {
             role = {
@@ -128,6 +183,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     createdBy: null,
     createdAt: null,
     modifiedAt: null,
+
     parentDetails: {
       name: null,
       contact: {
@@ -148,7 +204,6 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     //Field to be removed later
     joiningCode: null,
   };
-
   const onClose = () => {
     setOpen(false);
     form.resetFields();
@@ -158,6 +213,13 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
     const res = await API_USERS().post(`/student/create`, { ...values });
     message.success("Student created successfully");
     form.resetFields();
+    console.log(res);
+  }
+  async function onUpdate(values: any) {
+    const res = await API_USERS().patch(`/student/${current?.id}`, {
+      ...values,
+    });
+    message.success("Student updated successfully");
     console.log(res);
   }
 
@@ -188,6 +250,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           return batch.joiningCode;
         })(),
       };
+      console.log({ additionalValues });
       const result = performZodValidation(
         form,
         conversionObject,
@@ -195,21 +258,32 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
         additionalValues
       );
       console.log({ result });
-
-      await onFinish(result);
+      if (!edit) {
+        await onFinish(result);
+        form.resetFields();
+      } else {
+        await onUpdate(result);
+      }
+      setRoles([]);
+      setValidity({});
+      setRoleValidity({});
     } catch (error) {
-      onFinishFailed(error); 
+      onFinishFailed(error);
     }
   }
 
   function getRules(fieldName: any) {
-    return [
-      {
-        validateTrigger: "onSubmit",
-        validator: (_: any, value: any) =>
-          validateField(fieldName, value, conversionObject, studentSchema),
-      },
-    ];
+    try {
+      return [
+        {
+          validateTrigger: "onSubmit",
+          validator: (_: any, value: any) =>
+            validateField(fieldName, value, conversionObject, studentSchema),
+        },
+      ];
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   useEffect(() => {
@@ -252,11 +326,14 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
       };
     });
   }
+  const handleFinishFailed = (errorInfo: any) => {
+    console.log("Failed:", errorInfo);
+  };
 
   return (
     <>
       <Drawer
-        title="Create a new account"
+        title={title}
         width={720}
         onClose={onClose}
         open={open}
@@ -288,7 +365,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
           id="studentUserForm"
           layout="vertical"
           onFinish={validateForm}
-          // onFinishFailed={handleFinishFailed}
+          onFinishFailed={handleFinishFailed}
         >
           <SectionHeader title="Personal Details" />
           <Row gutter={16}>
@@ -324,7 +401,13 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
                 label="Date of Birth"
                 rules={getRules("dob")}
               >
-                <DatePicker format="DD-MM-YYYY" disabledDate={(current)=>{return current && current.valueOf() > Date.now();}} style={{ width: "100%" }} />
+                <DatePicker
+                  format="DD-MM-YYYY"
+                  disabledDate={(current) => {
+                    return current && current.valueOf() > Date.now();
+                  }}
+                  style={{ width: "100%" }}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -377,7 +460,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
             </Col>
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Select showSearch placeholder="Please enter a state" optionLabelProp="label">
+                <Select showSearch placeholder="Please enter a state" filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}>
                   {
                     INDIAN_STATES.map((e)=>(
                       <Select.Option key={e} value={e} label={e}>{e}</Select.Option>
@@ -565,8 +648,12 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({ setOpen, open }) => {
             </Col>
           </Row>
           <Row style={{ gap: "2.2rem" }}>
-            {roles.length > 0 && (
-              <RolesTable updateValidity={updateRoleValidity} roles={roles} />
+            {roles?.length > 0 && (
+              <RolesTable
+                updateValidity={updateRoleValidity}
+                roles={roles}
+                roleValidity={roleValidity}
+              />
             )}
           </Row>
         </Form>
