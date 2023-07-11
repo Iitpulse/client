@@ -22,6 +22,9 @@ import { TestContext } from "../../utils/contexts/TestContext";
 import { capitalizeFirstLetter } from "../../utils";
 import AddIcon from "@mui/icons-material/Add";
 import dayjs from "dayjs";
+import { NavLink } from "react-router-dom";
+import CreateNewBatch from "./CreateBatches";
+
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -155,10 +158,9 @@ const Batches = () => {
     <MainLayout name="Batches">
       <Card classes={[styles.container]}>
         <div className={styles.header}>
-          <Button onClick={() => setToggleSideBar(true)} icon={<AddIcon />}>
-            Create New
-          </Button>
-
+            <Button onClick={() => setToggleSideBar(true)} icon={<AddIcon />}>
+              Create New
+            </Button>
           <CreateNewBatch
             handleClose={() => setToggleSideBar(false)}
             toggleSideBar={toggleSideBar}
@@ -182,167 +184,6 @@ const Batches = () => {
   );
 };
 
-interface CreateNewBatchProps {
-  handleClose: () => void;
-  toggleSideBar: boolean;
-  setLoading: (loading: boolean) => void;
-  setBatches: any;
-}
-const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
-  handleClose,
-  toggleSideBar,
-  setLoading,
-  setBatches,
-}) => {
-  const [batch, setBatch] = useState();
-  const [validity, setValidity] = useState([]);
-  const [classes, setClasses] = useState<any>([]);
-  const [roleOptions, setRoleOptions] = useState<any>([]);
-  const [roles, setRoles] = useState<any>([]);
-  const [values, setValues] = useState({} as any);
 
-  const { currentUser } = useContext(AuthContext);
-  const { allRoles } = useContext(PermissionsContext);
-  const { exams: examOptions } = useContext(TestContext);
-
-  useEffect(() => {
-    if (allRoles) {
-      // console.log({ allRoles });
-      const options = allRoles.map((value: any) => ({
-        value: value.id,
-        name: value.name,
-      }));
-      setRoleOptions(options);
-    }
-  }, [allRoles]);
-
-  function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
-    const { id, value } = e.target;
-    // console.log({ id, value });
-    setValues({ ...values, [id]: value });
-  }
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    // handleReset();
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const finalData = {
-        name: values.batchName,
-        exams: values.exams?.map((exam: any) => exam.name),
-        medium: values.medium,
-        institute: currentUser?.instituteId,
-        validity: {
-          from: dayjs(validity[0]).toISOString(),
-          to: dayjs(validity[1]).toISOString(),
-        },
-        classes: classes.map((value: any) => value.name),
-        createdBy: {
-          userType: currentUser?.userType,
-          id: currentUser?.id,
-        },
-        createdAt: new Date().toISOString(),
-        modifiedAt: new Date().toISOString(),
-        members: [],
-        roles: roles.map((value: any) => value.value),
-      };
-      // console.log({ finalData });
-      const res = await API_USERS().post(`/batch/create`, finalData);
-      setBatches((prev: any) => [...prev, res?.data?.data]);
-      setValues({});
-      setClasses([]);
-      setRoles([]);
-
-      handleClose();
-      message.success(res?.data?.message);
-    } catch (error: any) {
-      console.log("ERROR_CREATE_BATCH", error);
-      message.error(error?.response?.data?.message);
-    }
-    setLoading(false);
-    // console.log({ res });
-  }
-  const options = [
-    { value: "9", name: "9" },
-    { value: "10", name: "10" },
-    { value: "11", name: "11" },
-    { value: "12", name: "12" },
-    { value: "13", name: "dropper" },
-  ];
-
-  return (
-    <Sidebar
-      title="Create New Batch"
-      open={toggleSideBar}
-      width="350px"
-      handleClose={handleClose}
-    >
-      <form onSubmit={handleSubmit}>
-        <div className={styles.inputFields}>
-          <StyledMUITextField
-            id="batchName"
-            required
-            value={values.batchName}
-            onChange={handleChangeValues}
-            label="Batch Name"
-            variant="outlined"
-          />
-          <div className={styles.dateSelector}>
-            <CustomDateRangePicker
-              showTime={false}
-              onChange={(props: any) => setValidity(props)}
-              value={validity}
-            />
-          </div>
-          <CreatableSelect
-            multiple
-            onAddModalSubmit={() => {}}
-            options={examOptions.map((exam: any) => ({
-              name: exam.name,
-            }))}
-            setValue={(vals: any) => {
-              setValues({ ...values, exams: vals });
-            }}
-            value={values.exams}
-            label={"Exam(s)"}
-            id="Exams"
-          />
-          <StyledMUISelect
-            options={[
-              { name: "Hindi", value: "hindi" },
-              { name: "English", value: "english" },
-            ]}
-            value={values.medium}
-            label="Medium"
-            // @ts-ignore
-            onChange={(val: string) => {
-              setValues({ ...values, medium: val });
-            }}
-          />
-          <CreatableSelect
-            multiple
-            options={options}
-            setValue={setClasses}
-            value={classes}
-            label={"Classes"}
-            id="Classes"
-            onAddModalSubmit={function (value: any): void {}}
-          />
-          <MUIChipsAutocomplete
-            label="Role(s)"
-            value={roles}
-            options={roleOptions || []}
-            onChange={setRoles}
-            error={false}
-            helperText=""
-          />
-        </div>
-        <div className={styles.buttons}>
-          <Button>Submit</Button>
-        </div>
-      </form>
-    </Sidebar>
-  );
-};
 
 export default Batches;
