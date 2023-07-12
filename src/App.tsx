@@ -32,6 +32,7 @@ import CreateQuestion from "./pages/Questions/CreateQuestion";
 import "./App.css";
 import BulkWord from "./pages/Questions/BulkWord/BulkWord";
 import AddNewRole from "./pages/Roles/AddNewRole";
+import Subjects from "./pages/Subjects/Subjects";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(
@@ -66,6 +67,13 @@ const App = () => {
                       path="/"
                       element={<PrivateRoute component={Home} name="Home" />}
                     />
+                    <Route
+                      path="/subjects"
+                      element={
+                        <PrivateRoute component={Subjects} name="Home" />
+                      }
+                    />
+
                     <Route
                       path="/questions/new-bulk-word"
                       element={
