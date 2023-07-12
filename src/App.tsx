@@ -33,6 +33,7 @@ import "./App.css";
 import BulkWord from "./pages/Questions/BulkWord/BulkWord";
 import AddNewRole from "./pages/Roles/AddNewRole";
 import Subjects from "./pages/Subjects/Subjects";
+import Chapters from "./Chapters/Chapters";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(
@@ -71,6 +72,12 @@ const App = () => {
                       path="/subjects"
                       element={
                         <PrivateRoute component={Subjects} name="Home" />
+                      }
+                    />
+                    <Route
+                      path="/chapters"
+                      element={
+                        <PrivateRoute component={Chapters} name="Home" />
                       }
                     />
 
