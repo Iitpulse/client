@@ -183,6 +183,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({
 
   const onClose = () => {
     setOpen(false);
+    setRoles([]);
     form.resetFields();
   };
 

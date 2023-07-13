@@ -179,6 +179,7 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
 
   const onClose = () => {
     setOpen(false);
+    setRoles([]);
     form.resetFields();
   };
 

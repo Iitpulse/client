@@ -179,6 +179,7 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
 
   const onClose = () => {
     setOpen(false);
+    setRoles([]);
     form.resetFields();
   };
 

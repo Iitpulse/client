@@ -194,6 +194,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({
 
   const onClose = () => {
     setOpen(false);
+    setRoles([]);
     form.resetFields();
   };
 
