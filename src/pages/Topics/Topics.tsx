@@ -24,14 +24,13 @@ import AddIcon from "@mui/icons-material/Add";
 
 import dayjs from "dayjs";
 import { NavLink } from "react-router-dom";
-import CreateNewChapter from "./CreateTopics";
+import CreateNewTopic from "./CreateTopics";
 import { API_QUESTIONS } from "../../utils/api/config";
 import EditIcon from "@mui/icons-material/Edit";
 import { Edit } from "@mui/icons-material";
 
 import { Tag } from "antd";
 import { set } from "zod";
-import CreateNewTopic from "./CreateTopics";
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -59,12 +58,12 @@ const Topics = ({
   toggleSideBar,
   setToggleSideBar,
 }: {
-  toggleSideBar: boolean;
-  setToggleSideBar: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleSideBar: number;
+  setToggleSideBar: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedChapter, setSelectedChapter] = useState<any>();
+  const [selectedTopic, setSelectedTopic] = useState<any>();
   const [editMode, setEditMode] = useState(false);
   const { currentUser } = useContext(AuthContext);
 
@@ -72,12 +71,12 @@ const Topics = ({
     async function fetchTopics() {
       setLoading(true);
       try {
-        const res = await API_QUESTIONS().get(`/subject/chapter/all`);
+        const res = await API_QUESTIONS().get(`/subject/topic/all`);
         console.log({ res });
         setData(res?.data);
       } catch (error) {
-        console.log("ERROR_FETCH_Chapters", error);
-        message.error("Error fetching Chapters");
+        console.log("ERROR_FETCH_Topics", error);
+        message.error("Error fetching Topics");
       }
       setLoading(false);
     }
@@ -87,17 +86,19 @@ const Topics = ({
     }
   }, [currentUser]);
 
-  const handleDeleteChapters = async (id: string) => {
+  const handleDeleteTopics = async (value: {
+    subjectId: string;
+    chapter: string;
+    topic: string;
+  }) => {
     setLoading(true);
     try {
-      const res = await API_QUESTIONS().delete(`/subject/chapter`, {
-        params: {
-          id,
-        },
-      });
+      const res = await API_QUESTIONS().post(`/subject/topic/delete`, value);
       if (res?.status === 200) {
         message.success(res?.data?.message);
-        setData((data) => data.filter((values: any) => values._id !== id));
+        setData((data) =>
+          data.filter((values: any) => values.topic !== value.topic)
+        );
       } else {
         message.error(res?.statusText);
       }
@@ -109,32 +110,16 @@ const Topics = ({
 
   const columns = [
     {
-      title: "Chapter",
-      dataIndex: "name",
+      title: "Name",
+      dataIndex: "topic",
     },
     {
       title: "Subject",
       dataIndex: "subject",
     },
     {
-      title: "Topics",
-      dataIndex: "topics",
-      render: (topics: any) => {
-        return (
-          <>
-            {topics?.map((topic: any) => (
-              <Tag
-                style={{
-                  margin: "0.2rem",
-                }}
-                color="blue"
-              >
-                {topic}
-              </Tag>
-            ))}
-          </>
-        );
-      },
+      title: "Chapter",
+      dataIndex: "chapter",
     },
     {
       title: "Edit",
@@ -145,8 +130,8 @@ const Topics = ({
           onClick={() => {
             setEditMode(true);
             console.log(record);
-            setSelectedChapter(record);
-            setToggleSideBar(true);
+            setSelectedTopic(record);
+            setToggleSideBar(3);
           }}
         />
       ),
@@ -156,9 +141,14 @@ const Topics = ({
       key: "delete",
       render: (_: any, record: any) => (
         <Popconfirm
-          title="Sure to delete this Chapter?"
+          title="Sure to delete this Topic?"
           onConfirm={() => {
-            handleDeleteChapters(record._id);
+            console.log(record);
+            handleDeleteTopics({
+              subjectId: record?.subjectId,
+              chapter: record?.chapter,
+              topic: record?.topic,
+            });
           }}
         >
           <IconButton>
@@ -174,16 +164,16 @@ const Topics = ({
       <div className={styles.header}>
         <CreateNewTopic
           editMode={editMode}
-          selectedChapter={selectedChapter}
+          selectedTopic={selectedTopic}
           title={"Create New Topic"}
           handleClose={() => {
             setEditMode(false);
-            setSelectedChapter(null);
-            setToggleSideBar(false);
+            setSelectedTopic(null);
+            setToggleSideBar(0);
           }}
-          toggleSideBar={toggleSideBar}
+          toggleSideBar={toggleSideBar === 3}
           setLoading={setLoading}
-          setChapters={setData}
+          setTopics={setData}
         />
       </div>
       <div className={styles.data}>

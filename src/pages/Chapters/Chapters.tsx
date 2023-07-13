@@ -67,6 +67,8 @@ const Chapters = ({
   const [editMode, setEditMode] = useState(false);
   const { currentUser } = useContext(AuthContext);
 
+  const { subjects: subjectOptions } = useContext(TestContext);
+
   useEffect(() => {
     async function fetchChapters() {
       setLoading(true);
@@ -86,17 +88,28 @@ const Chapters = ({
     }
   }, [currentUser]);
 
-  const handleDeleteChapters = async (id: string) => {
+  const handleDeleteChapters = async ({
+    subject,
+    chapter,
+  }: {
+    subject: string;
+    chapter: string;
+  }) => {
     setLoading(true);
     try {
-      const res = await API_QUESTIONS().delete(`/subject/chapter`, {
-        params: {
-          id,
-        },
+      const subjectId = subjectOptions.find(
+        (value) => value.name === subject
+      )._id;
+      console.log(subjectOptions, subjectId);
+      const res = await API_QUESTIONS().post(`/subject/chapter/delete`, {
+        subjectId,
+        chapter,
       });
       if (res?.status === 200) {
         message.success(res?.data?.message);
-        setData((data) => data.filter((values: any) => values._id !== id));
+        setData((data) =>
+          data.filter((values: any) => values.name !== chapter)
+        );
       } else {
         message.error(res?.statusText);
       }
@@ -157,7 +170,11 @@ const Chapters = ({
         <Popconfirm
           title="Sure to delete this Chapter?"
           onConfirm={() => {
-            handleDeleteChapters(record._id);
+            console.log(record);
+            handleDeleteChapters({
+              subject: record.subject,
+              chapter: record.name,
+            });
           }}
         >
           <IconButton>

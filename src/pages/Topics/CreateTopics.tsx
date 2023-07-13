@@ -69,34 +69,52 @@ interface CreateNewTopicProps {
   handleClose: () => void;
   toggleSideBar: boolean;
   setLoading: (loading: boolean) => void;
-  setChapters: any;
+  setTopics: any;
   title: string;
   editMode: boolean;
-  selectedChapter: any;
+  selectedTopic: any;
 }
 
 const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
   handleClose,
   toggleSideBar,
   setLoading,
-  setChapters,
+  setTopics,
   title,
   editMode,
-  selectedChapter,
+  selectedTopic,
 }) => {
   const [form] = Form.useForm();
   const [values, setValues] = useState<any>({
     name: "",
     subject: "",
-    chapter: ""
+    topic: "",
   });
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const { currentUser } = useContext(AuthContext);
   const { subjects: subjectOptions } = useContext(TestContext);
-  const [chaptersList, setChaptersList] = useState<Array<string>>([]);
-
+  const [chapterList, setChapterList] = useState<any>([]);
+  useEffect(() => {
+    const fetchChapters = async () => {
+      try {
+        const res = await API_QUESTIONS().get(
+          `/subject/chapter?subject=${values.subject}`
+        );
+        console.log({ res });
+        setChapterList(res?.data?.map((chap: { name: string }) => chap?.name));
+      } catch (error) {
+        console.log({ error });
+      }
+    };
+    if (values.subject) {
+      fetchChapters();
+    }
+  }, [values.subject]);
+  console.log(chapterList);
   const conversionObject: any = {
     name: null,
+    subject: null,
+    chapter: null,
   };
 
   function getRules(fieldName: any) {
@@ -109,20 +127,20 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
     ];
   }
   useEffect(() => {
-    if (editMode && selectedChapter) {
-      console.log({ selectedChapter });
+    if (editMode && selectedTopic) {
+      console.log({ selectedTopic });
       setValues({
-        name: selectedChapter?.name,
-        subject: selectedChapter?.subject,
-        chapter: selectedChapter?.chapter,
+        name: selectedTopic?.name,
+        subject: selectedTopic?.subject,
+        chapter: selectedTopic?.chapter,
       });
       form.setFieldsValue({
-        name: selectedChapter?.name,
-        subject: selectedChapter?.subject,
-        chapter: selectedChapter?.chapter,
+        name: selectedTopic?.name,
+        subject: selectedTopic?.subject,
+        chapter: selectedTopic?.chapter,
       });
     }
-  }, [editMode, selectedChapter]);
+  }, [editMode, selectedTopic]);
   console.log({ values });
   async function handleSubmit() {
     try {
@@ -144,36 +162,49 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
       // console.log({ finalData });
       result.subject = subjectOptions.find(
         (subject: any) => subject.name === result.subject
-      ).id;
+      )._id;
       setLoading(true);
-      console.log({ result });
+      console.log({ result, subjectOptions });
+
       if (!editMode) {
         const res = await API_QUESTIONS().post(`/subject/create-topic`, result);
         // const res = await API_QUESTIONS().post("/subject/create-topic", {
         //   subjectId: subject._id,
-        //   chapter: chapterName,
+        //   topic: topicName,
         //   topic: topicName,
         // });
-        setChapters((prev: any) => [...prev, res?.data?.data]);
+        setTopics((prev: any) => [
+          ...prev,
+          {
+            topic: result.name,
+            subjectId: result.subject,
+            subject: values.subject,
+            chapter: result.chapter,
+          },
+        ]);
         form.resetFields();
-        message.success(res?.data?.message);
+        message.success(res?.data?.status);
       } else {
-        console.log(selectedChapter);
-        result.id = selectedChapter?._id;
-        const res = await API_QUESTIONS().patch(`/subject/chapters`, result);
-        setChapters((prev: any) => {
+        console.log(selectedTopic);
+        result.id = selectedTopic?._id;
+        const res = await API_QUESTIONS().patch(`/subject/topics`, result);
+        setTopics((prev: any) => {
           const temp = [...prev];
           const index = temp.findIndex(
-            (chapter: any) => chapter?.id === selectedChapter?.id
+            (topic: any) => topic?.id === selectedTopic?.id
           );
-          temp[index] = result;
+          temp[index] = {
+            name: result.name,
+            subject: values.subject,
+            chapter: result.chapter,
+          };
           return temp;
         });
         message.success(res?.data?.message);
       }
       handleClose();
     } catch (error: any) {
-      console.log("ERROR_CREATE_chapter", { error });
+      console.log("ERROR_CREATE_topic", { error });
       message.error(error?.response?.data?.error);
     }
     setLoading(false);
@@ -193,29 +224,32 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
     >
       <Form
         form={form}
-        id="ChapterForm"
+        id="TopicForm"
         layout="vertical"
         onFinish={handleSubmit}
       >
         <div className={styles.inputFields}>
           <Form.Item name="name" rules={getRules("name")}>
             <Input
-              id="chapterName"
+              id="name"
               size="large"
-              value={values.chapterName}
-              onChange={(e)=>{
-                setValues((prev:any)=>({...prev, ["name"]:e.target.value}))
+              value={values.name}
+              onChange={(e) => {
+                setValues((prev: any) => ({
+                  ...prev,
+                  ["name"]: e.target.value,
+                }));
               }}
-              placeholder="Chapter Name"
+              placeholder="Topic Name"
               // variant="outlined"
             />
           </Form.Item>
-          
-          <Form.Item name="Subject" rules={getRules("subject")}>
+
+          <Form.Item name="subject" rules={getRules("subject")}>
             <Select
               size="large"
-              onChange={(e)=>{
-                setValues((prev:any)=>({...prev, ["subject"]:e}))
+              onChange={(e) => {
+                setValues((prev: any) => ({ ...prev, ["subject"]: e }));
               }}
               id="subject"
               placeholder="Subject"
@@ -230,42 +264,29 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item name="Chapter" rules={getRules("chapter")}>
+          <Form.Item name="chapter" rules={getRules("chapter")}>
             <Select
               size="large"
-              onChange={(e)=>{
+              onChange={(e) => {
                 console.log(e);
-                setValues((prev:any)=>({...prev, ["chapter"]:e}))
+                setValues((prev: any) => ({ ...prev, ["chapter"]: e }));
               }}
               id="chapter"
               placeholder="Chapter"
               value={values.chapter}
-              disabled={values?.subject?.length == 0? true:false}
+              disabled={values?.chapter?.length == 0 ? true : false}
             >
               {/* {console.log(examOptions)} */}
-              {chaptersList?.map((option: any) => (
-                <Select.Option key={option.id} value={option.name}>
-                  {option.name}
+              {chapterList?.map((option: any, index: number) => (
+                <Select.Option key={index} value={option}>
+                  {option}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
           <div className={styles.buttons}>
-            <Button
-              onClick={async () => {
-                setSubmitDisabled(true);
-                await document
-                  .getElementById("ChapterForm")
-                  ?.dispatchEvent(
-                    new Event("submit", { cancelable: true, bubbles: true })
-                  );
-                setSubmitDisabled(false);
-              }}
-              type="primary"
-              htmlType="submit"
-              disabled={submitDisabled}
-            >
+            <Button type="primary" htmlType="submit" disabled={submitDisabled}>
               Submit
             </Button>
           </div>

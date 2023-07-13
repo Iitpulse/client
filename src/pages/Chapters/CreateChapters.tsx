@@ -101,6 +101,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
 
   const conversionObject: any = {
     name: null,
+    subject: null,
   };
 
   function getRules(fieldName: any) {
@@ -146,18 +147,27 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       // console.log({ finalData });
       result.subject = subjectOptions.find(
         (subject: any) => subject.name === result.subject
-      ).id;
+      )._id;
       setLoading(true);
       console.log({ result });
       if (!editMode) {
-        const res = await API_QUESTIONS().post(`/chapter/create`, result);
-        setChapters((prev: any) => [...prev, res?.data?.data]);
+        const res = await API_QUESTIONS().post(
+          `/subject/create-chapter`,
+          result
+        );
+        setChapters((prev: any) => [
+          ...prev,
+          {
+            name: result.name,
+            subject: values.subject,
+          },
+        ]);
         form.resetFields();
         message.success(res?.data?.message);
       } else {
         console.log(selectedChapter);
         result.id = selectedChapter?._id;
-        const res = await API_QUESTIONS().patch(`/chapter/chapters`, result);
+        const res = await API_QUESTIONS().patch(`/subject/chapters`, result);
         setChapters((prev: any) => {
           const temp = [...prev];
           const index = temp.findIndex(
@@ -185,7 +195,10 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       handleClose={() => {
         handleClose();
         form.resetFields();
-        setValues({});
+        setValues({
+          name: "",
+          subject: "",
+        });
       }}
     >
       <Form
@@ -199,13 +212,13 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
             <Input
               id="chapterName"
               size="large"
-              value={values.chapterName}
+              value={values.name}
               onChange={handleChangeValues}
               placeholder="Chapter Name"
               // variant="outlined"
             />
           </Form.Item>
-          <Form.Item name="Subject" rules={getRules("subject")} >
+          <Form.Item name="subject" rules={getRules("subject")}>
             <Select
               size="large"
               onChange={(e) => {
@@ -227,20 +240,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
             </Select>
           </Form.Item>
           <div className={styles.buttons}>
-            <Button
-              onClick={async () => {
-                setSubmitDisabled(true);
-                await document
-                  .getElementById("ChapterForm")
-                  ?.dispatchEvent(
-                    new Event("submit", { cancelable: true, bubbles: true })
-                  );
-                setSubmitDisabled(false);
-              }}
-              type="primary"
-              htmlType="submit"
-              disabled={submitDisabled}
-            >
+            <Button type="primary" htmlType="submit" disabled={submitDisabled}>
               Submit
             </Button>
           </div>
