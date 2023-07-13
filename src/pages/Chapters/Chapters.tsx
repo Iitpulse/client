@@ -54,10 +54,15 @@ const StyledMUITextField = styled(TextField)(() => {
   };
 });
 
-const Chapters = () => {
+const Chapters = ({
+  toggleSideBar,
+  setToggleSideBar,
+}: {
+  toggleSideBar: boolean;
+  setToggleSideBar: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [toggleSideBar, setToggleSideBar] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState<any>();
   const [editMode, setEditMode] = useState(false);
   const { currentUser } = useContext(AuthContext);
@@ -66,7 +71,7 @@ const Chapters = () => {
     async function fetchChapters() {
       setLoading(true);
       try {
-        const res = await API_QUESTIONS().get(`/chapter/chapter`);
+        const res = await API_QUESTIONS().get(`/subject/chapter/all`);
         console.log({ res });
         setData(res?.data);
       } catch (error) {
@@ -107,22 +112,29 @@ const Chapters = () => {
       dataIndex: "name",
     },
     {
-      title: "chapters",
-      dataIndex: "chapters",
-      render: (chapters: any) => {
-        return chapters?.map((chapter: any) => (
-          <Tag
-            style={{
-              margin: "0.2rem",
-            }}
-          >
-            {" "}
-            {chapter.name}
-          </Tag>
-        ));
+      title: "Subject",
+      dataIndex: "subject",
+    },
+    {
+      title: "Topics",
+      dataIndex: "topics",
+      render: (topics: any) => {
+        return (
+          <>
+            {topics?.map((topic: any) => (
+              <Tag
+                style={{
+                  margin: "0.2rem",
+                }}
+                color="blue"
+              >
+                {topic}
+              </Tag>
+            ))}
+          </>
+        );
       },
     },
-
     {
       title: "Edit",
       key: "edit",
@@ -157,39 +169,34 @@ const Chapters = () => {
   ];
 
   return (
-    <MainLayout name="Chapters">
-      <Card classes={[styles.container]}>
-        <div className={styles.header}>
-          <Button onClick={() => setToggleSideBar(true)} icon={<AddIcon />}>
-            Create New
-          </Button>
-          <CreateNewChapter
-            editMode={editMode}
-            selectedChapter={selectedChapter}
-            title={"Create New Chapter"}
-            handleClose={() => {
-              setEditMode(false);
-              setSelectedChapter(null);
-              setToggleSideBar(false);
-            }}
-            toggleSideBar={toggleSideBar}
-            setLoading={setLoading}
-            setChapters={setData}
-          />
-        </div>
-        <div className={styles.data}>
-          <CustomTable
-            scroll={{
-              x: 1000,
-            }}
-            loading={loading}
-            columns={columns}
-            dataSource={data}
-          />
-        </div>
-        {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
-      </Card>
-    </MainLayout>
+    <Card classes={[styles.container]}>
+      <div className={styles.header}>
+        <CreateNewChapter
+          editMode={editMode}
+          selectedChapter={selectedChapter}
+          title={"Create New Chapter"}
+          handleClose={() => {
+            setEditMode(false);
+            setSelectedChapter(null);
+            setToggleSideBar(false);
+          }}
+          toggleSideBar={toggleSideBar}
+          setLoading={setLoading}
+          setChapters={setData}
+        />
+      </div>
+      <div className={styles.data}>
+        <CustomTable
+          scroll={{
+            x: 1000,
+          }}
+          loading={loading}
+          columns={columns}
+          dataSource={data}
+        />
+      </div>
+      {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
+    </Card>
   );
 };
 

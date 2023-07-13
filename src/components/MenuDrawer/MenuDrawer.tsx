@@ -300,46 +300,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Subjects</span>}
           </NavLink>
         }
-        {
-          <NavLink
-            to="/chapters"
-            style={isCollapsed ? { width: "fit-content" } : {}}
-            className={({ isActive }) =>
-              isActive
-                ? clsx(
-                    styles.navLink,
-                    styles.activeNavLink,
-                    styles.activeNavLinkForRole
-                  )
-                : styles.navLink
-            }
-          >
-            <div className={styles.iconContainer}>
-              <RolesIcon />
-            </div>{" "}
-            {isCollapsed || <span>Chapters</span>}
-          </NavLink>
-        }
-        {
-          <NavLink
-            to="/topics"
-            style={isCollapsed ? { width: "fit-content" } : {}}
-            className={({ isActive }) =>
-              isActive
-                ? clsx(
-                    styles.navLink,
-                    styles.activeNavLink,
-                    styles.activeNavLinkForRole
-                  )
-                : styles.navLink
-            }
-          >
-            <div className={styles.iconContainer}>
-              <RolesIcon />
-            </div>{" "}
-            {isCollapsed || <span>Topics</span>}
-          </NavLink>
-        }
+
         {currentUser?.id && (
           <NavLink
             to={`/profile/${currentUser?.id}`}

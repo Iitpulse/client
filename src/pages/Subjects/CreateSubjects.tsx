@@ -88,7 +88,6 @@ const CreateNewSubject: React.FC<CreateNewSubjectProps> = ({
   const [values, setValues] = useState<any>({});
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const { currentUser } = useContext(AuthContext);
-  const { chapters: chapterOptions } = useContext(TestContext);
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     // console.log(e.target)
     const { id, value } = e.target;
@@ -113,15 +112,9 @@ const CreateNewSubject: React.FC<CreateNewSubjectProps> = ({
     if (editMode && selectedSubject) {
       form.setFieldsValue({
         name: selectedSubject?.name,
-        chapters: selectedSubject?.chapters?.map((chapter: any) => {
-          return chapter.name;
-        }),
       });
       setValues({
         name: selectedSubject?.name,
-        chapters: selectedSubject?.chapters?.map((chapter: any) => {
-          return chapter.name;
-        }),
       });
     }
   }, [editMode, selectedSubject]);
@@ -142,10 +135,7 @@ const CreateNewSubject: React.FC<CreateNewSubjectProps> = ({
         additionalValues
       );
       console.log("Final Data ->", { result });
-      // console.log({ finalData });
-      result.chapters = result.chapters.map((chapter: any) => {
-        return chapterOptions.find((option: any) => option.name === chapter);
-      });
+
       setLoading(true);
       console.log({ result });
       if (!editMode) {
@@ -203,40 +193,9 @@ const CreateNewSubject: React.FC<CreateNewSubjectProps> = ({
               // variant="outlined"
             />
           </Form.Item>
-          <Form.Item name="chapters" rules={getRules("chapters")}>
-            <Select
-              size="large"
-              onChange={(e) => {
-                setValues({ ...values, ["chapters"]: e });
-                // console.log(values);
-              }}
-              id="chapters"
-              mode="tags"
-              placeholder="Chapter(s)"
-            >
-              {/* {console.log(examOptions)} */}
-              {chapterOptions?.map((option: any) => (
-                <Select.Option key={option.id} value={option.name}>
-                  {option.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+
           <div className={styles.buttons}>
-            <Button
-              onClick={async () => {
-                setSubmitDisabled(true);
-                await document
-                  .getElementById("SubjectForm")
-                  ?.dispatchEvent(
-                    new Event("submit", { cancelable: true, bubbles: true })
-                  );
-                setSubmitDisabled(false);
-              }}
-              type="primary"
-              htmlType="submit"
-              disabled={submitDisabled}
-            >
+            <Button type="primary" htmlType="submit" disabled={submitDisabled}>
               Submit
             </Button>
           </div>

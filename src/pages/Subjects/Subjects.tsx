@@ -54,10 +54,15 @@ const StyledMUITextField = styled(TextField)(() => {
   };
 });
 
-const Subjects = () => {
+const Subjects = ({
+  toggleSideBar,
+  setToggleSideBar,
+}: {
+  toggleSideBar: boolean;
+  setToggleSideBar: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [toggleSideBar, setToggleSideBar] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<any>();
   const [editMode, setEditMode] = useState(false);
   const { currentUser } = useContext(AuthContext);
@@ -157,39 +162,34 @@ const Subjects = () => {
   ];
 
   return (
-    <MainLayout name="Subjects">
-      <Card classes={[styles.container]}>
-        <div className={styles.header}>
-          <Button onClick={() => setToggleSideBar(true)} icon={<AddIcon />}>
-            Create New
-          </Button>
-          <CreateNewSubject
-            editMode={editMode}
-            selectedSubject={selectedSubject}
-            title={"Create New Subject"}
-            handleClose={() => {
-              setEditMode(false);
-              setSelectedSubject(null);
-              setToggleSideBar(false);
-            }}
-            toggleSideBar={toggleSideBar}
-            setLoading={setLoading}
-            setSubjects={setData}
-          />
-        </div>
-        <div className={styles.data}>
-          <CustomTable
-            scroll={{
-              x: 1000,
-            }}
-            loading={loading}
-            columns={columns}
-            dataSource={data}
-          />
-        </div>
-        {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
-      </Card>
-    </MainLayout>
+    <Card classes={[styles.container]}>
+      <div className={styles.header}>
+        <CreateNewSubject
+          editMode={editMode}
+          selectedSubject={selectedSubject}
+          title={"Create New Subject"}
+          handleClose={() => {
+            setEditMode(false);
+            setSelectedSubject(null);
+            setToggleSideBar(false);
+          }}
+          toggleSideBar={toggleSideBar}
+          setLoading={setLoading}
+          setSubjects={setData}
+        />
+      </div>
+      <div className={styles.data}>
+        <CustomTable
+          scroll={{
+            x: 1000,
+          }}
+          loading={loading}
+          columns={columns}
+          dataSource={data}
+        />
+      </div>
+      {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
+    </Card>
   );
 };
 

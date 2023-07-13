@@ -85,10 +85,13 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
   selectedChapter,
 }) => {
   const [form] = Form.useForm();
-  const [values, setValues] = useState<any>({});
+  const [values, setValues] = useState<any>({
+    name: "",
+    subject: "",
+  });
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const { currentUser } = useContext(AuthContext);
-  const { chapters: chapterOptions } = useContext(TestContext);
+  const { subjects: subjectOptions } = useContext(TestContext);
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     // console.log(e.target)
     const { id, value } = e.target;
@@ -111,20 +114,18 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
   }
   useEffect(() => {
     if (editMode && selectedChapter) {
-      form.setFieldsValue({
-        name: selectedChapter?.name,
-        chapters: selectedChapter?.chapters?.map((chapter: any) => {
-          return chapter.name;
-        }),
-      });
+      console.log({ selectedChapter });
       setValues({
         name: selectedChapter?.name,
-        chapters: selectedChapter?.chapters?.map((chapter: any) => {
-          return chapter.name;
-        }),
+        subject: selectedChapter?.subject,
+      });
+      form.setFieldsValue({
+        name: selectedChapter?.name,
+        subject: selectedChapter?.subject,
       });
     }
   }, [editMode, selectedChapter]);
+  console.log({ values });
   async function handleSubmit() {
     try {
       const additionalValues = {
@@ -143,9 +144,9 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       );
       console.log("Final Data ->", { result });
       // console.log({ finalData });
-      result.chapters = result.chapters.map((chapter: any) => {
-        return chapterOptions.find((option: any) => option.name === chapter);
-      });
+      result.subject = subjectOptions.find(
+        (subject: any) => subject.name === result.subject
+      ).id;
       setLoading(true);
       console.log({ result });
       if (!editMode) {
@@ -184,6 +185,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       handleClose={() => {
         handleClose();
         form.resetFields();
+        setValues({});
       }}
     >
       <Form
@@ -203,19 +205,20 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
               // variant="outlined"
             />
           </Form.Item>
-          <Form.Item name="chapters" rules={getRules("chapters")}>
+          <Form.Item name="Subject" rules={getRules("subject")}>
             <Select
               size="large"
               onChange={(e) => {
-                setValues({ ...values, ["chapters"]: e });
-                // console.log(values);
+                console.log(e);
+                setValues({ ...values, ["subject"]: e });
+                console.log(values);
               }}
-              id="chapters"
-              mode="tags"
-              placeholder="Chapter(s)"
+              id="subject"
+              placeholder="Subject"
+              value={values.subject}
             >
               {/* {console.log(examOptions)} */}
-              {chapterOptions?.map((option: any) => (
+              {subjectOptions?.map((option: any) => (
                 <Select.Option key={option.id} value={option.name}>
                   {option.name}
                 </Select.Option>
