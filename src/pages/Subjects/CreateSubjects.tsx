@@ -155,7 +155,7 @@ const CreateNewSubject: React.FC<CreateNewSubjectProps> = ({
           const index = temp.findIndex(
             (subject: any) => subject?.id === selectedSubject?.id
           );
-          temp[index] = result;
+          temp[index] = { ...temp[index], name: result?.name };
           return temp;
         });
         message.success(res?.data?.message);
