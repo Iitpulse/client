@@ -58,8 +58,8 @@ const Chapters = ({
   toggleSideBar,
   setToggleSideBar,
 }: {
-  toggleSideBar: boolean;
-  setToggleSideBar: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleSideBar: number;
+  setToggleSideBar: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -145,7 +145,7 @@ const Chapters = ({
             setEditMode(true);
             console.log(record);
             setSelectedChapter(record);
-            setToggleSideBar(true);
+            setToggleSideBar(2);
           }}
         />
       ),
@@ -178,9 +178,9 @@ const Chapters = ({
           handleClose={() => {
             setEditMode(false);
             setSelectedChapter(null);
-            setToggleSideBar(false);
+            setToggleSideBar(0);
           }}
-          toggleSideBar={toggleSideBar}
+          toggleSideBar={toggleSideBar === 2}
           setLoading={setLoading}
           setChapters={setData}
         />

@@ -58,8 +58,8 @@ const Subjects = ({
   toggleSideBar,
   setToggleSideBar,
 }: {
-  toggleSideBar: boolean;
-  setToggleSideBar: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleSideBar: number;
+  setToggleSideBar: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -138,7 +138,7 @@ const Subjects = ({
             setEditMode(true);
             console.log(record);
             setSelectedSubject(record);
-            setToggleSideBar(true);
+            setToggleSideBar(1);
           }}
         />
       ),
@@ -171,9 +171,9 @@ const Subjects = ({
           handleClose={() => {
             setEditMode(false);
             setSelectedSubject(null);
-            setToggleSideBar(false);
+            setToggleSideBar(0);
           }}
-          toggleSideBar={toggleSideBar}
+          toggleSideBar={toggleSideBar === 1}
           setLoading={setLoading}
           setSubjects={setData}
         />

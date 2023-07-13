@@ -146,7 +146,10 @@ const CreateNewSubject: React.FC<CreateNewSubjectProps> = ({
       } else {
         console.log(selectedSubject);
         result.id = selectedSubject?._id;
-        const res = await API_QUESTIONS().patch(`/subject/subjects`, result);
+        const res = await API_QUESTIONS().patch(
+          `/subject/subjects/name`,
+          result
+        );
         setSubjects((prev: any) => {
           const temp = [...prev];
           const index = temp.findIndex(

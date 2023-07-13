@@ -7,12 +7,13 @@ import Chapters from "../Chapters/Chapters";
 import AddIcon from "@mui/icons-material/Add";
 import styles from "./SubjectManagement.module.scss";
 
-const onChange = (key: string) => {
-  console.log(key);
-};
-
 const SubjectManagement: React.FC = () => {
-  const [toggleSideBar, setToggleSideBar] = useState(false);
+  const [toggleSideBar, setToggleSideBar] = useState(0);
+  const [tab, setTab] = useState(1);
+  const onChange = (key: string) => {
+    console.log(key);
+    setTab(parseInt(key));
+  };
   const items: TabsProps["items"] = [
     {
       key: "1",
@@ -52,7 +53,7 @@ const SubjectManagement: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onClick={() => setToggleSideBar(true)}
+            onClick={() => setToggleSideBar(tab)}
             icon={<AddIcon />}
           >
             Create New
