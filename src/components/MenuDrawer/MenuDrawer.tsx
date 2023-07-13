@@ -280,6 +280,27 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Roles</span>}
           </NavLink>
         )}
+        {
+          <NavLink
+            to="/subjects"
+            style={isCollapsed ? { width: "fit-content" } : {}}
+            className={({ isActive }) =>
+              isActive
+                ? clsx(
+                    styles.navLink,
+                    styles.activeNavLink,
+                    styles.activeNavLinkForRole
+                  )
+                : styles.navLink
+            }
+          >
+            <div className={styles.iconContainer}>
+              <RolesIcon />
+            </div>{" "}
+            {isCollapsed || <span>Subjects</span>}
+          </NavLink>
+        }
+
         {currentUser?.id && (
           <NavLink
             to={`/profile/${currentUser?.id}`}
