@@ -1,4 +1,4 @@
-import styles from "./Chapters.module.scss";
+import styles from "./Topics.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_QUESTIONS } from "../../utils/api/config";
@@ -31,7 +31,7 @@ import {
   performZodValidation,
   validateField,
 } from "../../utils/schemas";
-import { ChapterSchema } from "./utils/ChapterModel";
+import { TopicSchema } from "./utils/TopicModel";
 // import {
 // import { API_QUESTIONS } from './../../utils/api/config';
 // Button,
@@ -65,7 +65,7 @@ const StyledMUITextField = styled(TextField)(() => {
   };
 });
 
-interface CreateNewChapterProps {
+interface CreateNewTopicProps {
   handleClose: () => void;
   toggleSideBar: boolean;
   setLoading: (loading: boolean) => void;
@@ -75,7 +75,7 @@ interface CreateNewChapterProps {
   selectedChapter: any;
 }
 
-const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
+const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
   handleClose,
   toggleSideBar,
   setLoading,
@@ -88,16 +88,12 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
   const [values, setValues] = useState<any>({
     name: "",
     subject: "",
+    chapter: ""
   });
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const { currentUser } = useContext(AuthContext);
   const { subjects: subjectOptions } = useContext(TestContext);
-  function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
-    // console.log(e.target)
-    const { id, value } = e.target;
-    // console.log({ id, value });
-    setValues({ ...values, [id]: value });
-  }
+  const [chaptersList, setChaptersList] = useState<Array<string>>([]);
 
   const conversionObject: any = {
     name: null,
@@ -108,7 +104,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       {
         validateTrigger: "onSubmit",
         validator: (_: any, value: any) =>
-          validateField(fieldName, value, conversionObject, ChapterSchema),
+          validateField(fieldName, value, conversionObject, TopicSchema),
       },
     ];
   }
@@ -118,10 +114,12 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       setValues({
         name: selectedChapter?.name,
         subject: selectedChapter?.subject,
+        chapter: selectedChapter?.chapter,
       });
       form.setFieldsValue({
         name: selectedChapter?.name,
         subject: selectedChapter?.subject,
+        chapter: selectedChapter?.chapter,
       });
     }
   }, [editMode, selectedChapter]);
@@ -139,7 +137,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       const result = performZodValidation(
         form,
         conversionObject,
-        ChapterSchema,
+        TopicSchema,
         additionalValues
       );
       console.log("Final Data ->", { result });
@@ -150,14 +148,19 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       setLoading(true);
       console.log({ result });
       if (!editMode) {
-        const res = await API_QUESTIONS().post(`/chapter/create`, result);
+        const res = await API_QUESTIONS().post(`/subject/create-topic`, result);
+        // const res = await API_QUESTIONS().post("/subject/create-topic", {
+        //   subjectId: subject._id,
+        //   chapter: chapterName,
+        //   topic: topicName,
+        // });
         setChapters((prev: any) => [...prev, res?.data?.data]);
         form.resetFields();
         message.success(res?.data?.message);
       } else {
         console.log(selectedChapter);
         result.id = selectedChapter?._id;
-        const res = await API_QUESTIONS().patch(`/chapter/chapters`, result);
+        const res = await API_QUESTIONS().patch(`/subject/chapters`, result);
         setChapters((prev: any) => {
           const temp = [...prev];
           const index = temp.findIndex(
@@ -200,23 +203,23 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
               id="chapterName"
               size="large"
               value={values.chapterName}
-              onChange={handleChangeValues}
+              onChange={(e)=>{
+                setValues((prev:any)=>({...prev, ["name"]:e.target.value}))
+              }}
               placeholder="Chapter Name"
               // variant="outlined"
             />
           </Form.Item>
-          <Form.Item name="Subject" rules={getRules("subject")} >
+          
+          <Form.Item name="Subject" rules={getRules("subject")}>
             <Select
               size="large"
-              onChange={(e) => {
-                console.log(e);
-                setValues({ ...values, ["subject"]: e });
-                console.log(values);
+              onChange={(e)=>{
+                setValues((prev:any)=>({...prev, ["subject"]:e}))
               }}
               id="subject"
               placeholder="Subject"
               value={values.subject}
-              defaultValue={values.subject}
             >
               {/* {console.log(examOptions)} */}
               {subjectOptions?.map((option: any) => (
@@ -226,6 +229,28 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
               ))}
             </Select>
           </Form.Item>
+
+          <Form.Item name="Chapter" rules={getRules("chapter")}>
+            <Select
+              size="large"
+              onChange={(e)=>{
+                console.log(e);
+                setValues((prev:any)=>({...prev, ["chapter"]:e}))
+              }}
+              id="chapter"
+              placeholder="Chapter"
+              value={values.chapter}
+              disabled={values?.subject?.length == 0? true:false}
+            >
+              {/* {console.log(examOptions)} */}
+              {chaptersList?.map((option: any) => (
+                <Select.Option key={option.id} value={option.name}>
+                  {option.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
           <div className={styles.buttons}>
             <Button
               onClick={async () => {
@@ -250,4 +275,4 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
   );
 };
 
-export default CreateNewChapter;
+export default CreateNewTopic;
