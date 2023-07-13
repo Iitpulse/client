@@ -6,6 +6,7 @@ import MainLayout from "../../layouts/MainLayout";
 import Chapters from "../Chapters/Chapters";
 import AddIcon from "@mui/icons-material/Add";
 import styles from "./SubjectManagement.module.scss";
+import Topics from "../Topics/Topics";
 
 const onChange = (key: string) => {
   console.log(key);
@@ -37,8 +38,13 @@ const SubjectManagement: React.FC = () => {
     {
       key: "3",
       label: `Topics`,
-      children: `Content of Tab Pane 3`,
-    },
+      children: (
+        <Topics
+          toggleSideBar={toggleSideBar}
+          setToggleSideBar={setToggleSideBar}
+        />
+      ),
+    }
   ];
   return (
     <MainLayout name="Subjects Management">

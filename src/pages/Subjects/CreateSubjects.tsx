@@ -112,6 +112,7 @@ const CreateNewSubject: React.FC<CreateNewSubjectProps> = ({
     if (editMode && selectedSubject) {
       form.setFieldsValue({
         name: selectedSubject?.name,
+        
       });
       setValues({
         name: selectedSubject?.name,
