@@ -45,26 +45,27 @@ const SubjectManagement: React.FC = () => {
           setToggleSideBar={setToggleSideBar}
         />
       ),
-    }
+    },
   ];
   return (
-    <MainLayout name="Subjects Management">
+    <MainLayout
+      name="Subjects Management"
+      menuActions={
+        <Button
+          type="primary"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => setToggleSideBar(tab)}
+          icon={<AddIcon />}
+        >
+          Create New
+        </Button>
+      }
+    >
       <Tabs
-        className={styles.tabs}
-        tabBarExtraContent={
-          <Button
-            type="primary"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            onClick={() => setToggleSideBar(tab)}
-            icon={<AddIcon />}
-          >
-            Create New
-          </Button>
-        }
         style={{
           width: "100%",
         }}
