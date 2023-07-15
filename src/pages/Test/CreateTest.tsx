@@ -38,6 +38,7 @@ import {
 import { useLocation, useParams } from "react-router";
 import { MessageType } from "antd/es/message/interface";
 import dayjs from "dayjs";
+import { ThunderboltOutlined } from "@ant-design/icons";
 
 const statusOptions = [
   {
@@ -364,12 +365,7 @@ const CreateTest = () => {
     >
       <div className={styles.container}>
         <div className={styles.inputFields}>
-          <Form
-            layout="vertical"
-            // labelCol={{ span: 8 }}
-            // wrapperCol={{ span: 16 }}
-            className={styles.form}
-          >
+          <Form layout="vertical" className={styles.form}>
             <Form.Item
               label="Name"
               help={helperTexts.name}
@@ -823,6 +819,17 @@ const SubSection: React.FC<{
     setQuestionModal(false);
   }
 
+  function getMaxAllowedCount(type: "easy" | "medium" | "hard") {
+    if (!totalQuestions) return 0;
+    if (type === "easy") {
+      return totalQuestions - parseInt(medium) - parseInt(hard);
+    } else if (type === "medium") {
+      return totalQuestions - parseInt(easy) - parseInt(hard);
+    } else if (type === "hard") {
+      return totalQuestions - parseInt(easy) - parseInt(medium);
+    }
+  }
+
   return (
     <div className={styles.subSection}>
       <div className={styles.header}>
@@ -850,48 +857,61 @@ const SubSection: React.FC<{
             onChange={() => {}}
             options={[]}
           /> */}
-          <div
+          <Button
             className={styles.addQuestion}
             onClick={() => setQuestionModal(true)}
+            type="dashed"
           >
-            + Add Question
-          </div>
-          <Button onClick={() => handleClickAutoGenerate(type)}>
+            + Click to Add Question
+          </Button>
+          <Button
+            onClick={() => handleClickAutoGenerate(type)}
+            type="primary"
+            icon={<ThunderboltOutlined />}
+          >
             Auto Generate
           </Button>
         </div>
-        <div className={styles.inputSection}>
-          <InputField
-            id="amt-easy"
-            type="number"
-            label="Easy"
-            required={true}
-            value={easy}
-            onChange={(e: any) => {
-              setEasy(e.target.value);
-            }}
-          />
-          <InputField
-            id="amt-medium"
-            type="number"
-            label="Medium"
-            required={true}
-            value={medium}
-            onChange={(e: any) => {
-              setMedium(e.target.value);
-            }}
-          />
-          <InputField
-            id="amt-hard"
-            type="number"
-            label="Hard"
-            required={true}
-            value={hard}
-            onChange={(e: any) => {
-              setHard(e.target.value);
-            }}
-          />
-        </div>
+        <Form layout="vertical" className={styles.inputSection}>
+          <Form.Item label="Easy" required>
+            <InputNumber
+              className={styles.inputNumber}
+              min={"0"}
+              max={getMaxAllowedCount("easy")?.toString()}
+              id="amt-easy"
+              value={easy}
+              onChange={(val) => {
+                setEasy(val ?? "");
+              }}
+            />
+          </Form.Item>
+          <Form.Item label="Medium" required>
+            <InputNumber
+              className={styles.inputNumber}
+              min={"0"}
+              max={getMaxAllowedCount("medium")?.toString()}
+              id="amt-medium"
+              required={true}
+              value={medium}
+              onChange={(val) => {
+                setMedium(val ?? "");
+              }}
+            />
+          </Form.Item>
+          <Form.Item label="Hard" required>
+            <InputNumber
+              className={styles.inputNumber}
+              min={"0"}
+              max={getMaxAllowedCount("hard")?.toString()}
+              id="amt-hard"
+              required={true}
+              value={hard}
+              onChange={(val) => {
+                setHard(val ?? "");
+              }}
+            />
+          </Form.Item>
+        </Form>
         <div className={styles.questionsList}>
           <CustomTable
             columns={
