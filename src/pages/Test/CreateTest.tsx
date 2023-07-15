@@ -412,6 +412,7 @@ const CreateTest = () => {
                   name: exam.name,
                   value: exam.name,
                 }))}
+                disabled={editMode}
                 showSearch
                 value={test.exam?.name || null}
                 maxTagCount="responsive"
