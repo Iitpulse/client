@@ -19,6 +19,7 @@ interface ISubjectCard {
   maxTime: string;
   timeTakenInSeconds: number;
   totalQuestions: number;
+  totalMarksSection: number;
 }
 
 const SubjectCard: React.FC<ISubjectCard> = ({
@@ -30,18 +31,19 @@ const SubjectCard: React.FC<ISubjectCard> = ({
   incorrect,
   timeTakenInSeconds,
   totalQuestions,
+  totalMarksSection,
 }) => {
   const chartData = {
     labels: ["Correct", "Incorrect", "Unattemped"],
     datasets: [
       {
         label: "# of Votes",
-        data: [correct, incorrect, totalQuestions - attempted],
-        backgroundColor: ["green", "red", "yellow"],
+        data: [correct, incorrect, totalQuestions/3 - (correct+incorrect)],
+        backgroundColor: ["#54B435", "red", "#FBDF07"], //green, red, yellow
         borderColor: [
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
+          "#54B435",
+          "red",
+          "#FBDF07",
         ],
         borderWidth: 1,
       },
@@ -58,7 +60,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
         <div className={styles.mid}>
           <div className={styles.left}>
             <h2 className={styles.marks}>
-              {marks}/{360}
+              {marks}/{totalMarksSection}
             </h2>
             <p className={styles.accuracy}>
               Accuracy:
@@ -76,13 +78,16 @@ const SubjectCard: React.FC<ISubjectCard> = ({
             </p>
           </div>
 
-          <CircularProgress color={color} progress={(marks / 360) * 100} />
+          <CircularProgress color={color} progress={(marks / totalMarksSection) * 100} />
         </div>
       </div>
       <div className={styles.content}>
         <div className={styles.moreInfo}>
           <p>
-            Attempted :<span className={styles.highlight}>{attempted}</span>{" "}
+            Visited :<span className={styles.highlight}>{attempted}</span>{" "}
+          </p>
+          <p>
+            Attempted :<span className={styles.highlight}>{correct+incorrect}</span>{" "}
           </p>
           <p>
             Correct :<span className={styles.highlight}>{correct}</span>{" "}

@@ -31,7 +31,7 @@ interface MenuDrawerProps {
 const MenuDrawer = (props: MenuDrawerProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { currentUser, setCurrentUser } = useContext(AuthContext);
+  const { currentUser, setCurrentUser } = useContext<any>(AuthContext);
   const { hasPermissions, loading } = useContext(PermissionsContext);
 
   // const hasQuestionPermission: boolean = usePermission(
@@ -383,13 +383,14 @@ const Profile = (props: ProfileProps) => {
           </div>
         )}
       </div>
-      <ProfileOptionsMenu style={props.isCollapsed ? { margin: "auto" } : {}} />
+      <ProfileOptionsMenu id={props.id} style={props.isCollapsed ? { margin: "auto" } : {}} />
     </div>
     </>
   );
 };
 
 interface ProfileOptionMenuProps {
+  id: string;
   style?: HTMLStyleElement | any;
 }
 
@@ -442,6 +443,7 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
       >
         {/* <MenuItem onClick={handleClose}>My account</MenuItem> */}
         {/* <MenuItem > <NavLink to={`/profile/${props.currentUser?.id}`}> Profile </NavLink></MenuItem> */}
+        <MenuItem onClick={()=>{navigate(`/profile/${props.id}`)}}>Profile</MenuItem>
         <MenuItem onClick={handleClickLogout}>Logout</MenuItem>
       </Menu>
     </div>
