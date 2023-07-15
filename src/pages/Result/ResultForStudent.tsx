@@ -97,12 +97,11 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         let totalMarksPerSection = 0;
 
         section.subSections?.forEach((subSection: any) => {
+          totalMarksPerSection +=
+            subSection.toBeAttempted * subSection.markingScheme.correct.at(-1);
           Object.values(subSection?.questions)?.forEach((question: any) => {
             const { timeTakenInSeconds: qTimeTakenInSeconds } = question;
 
-            totalMarksPerSection += parseInt(
-              subSection?.markingScheme?.correct?.at(-1)
-            );
             // if not null -> Question is attempted
             if (qTimeTakenInSeconds) {
               attempted += 1;
