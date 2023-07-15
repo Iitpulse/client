@@ -74,6 +74,9 @@
       }
     }
   }
+  .profileContainer2 {
+    @extend .flexRow;
+  }
   .instituteInfoContainer {
     width: 100%;
     padding: 0rem;
@@ -168,6 +171,7 @@
 //   }
 // }
 .profileContainer {
+  cursor: pointer;
   width: 100%;
   margin-bottom: 2rem;
   span {

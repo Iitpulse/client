@@ -88,7 +88,8 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
   const [values, setValues] = useState<any>({
     name: "",
     subject: "",
-    topic: "",
+    chapter: "",
+    oldTopic:"",
   });
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const { currentUser } = useContext(AuthContext);
@@ -130,12 +131,13 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
     if (editMode && selectedTopic) {
       console.log({ selectedTopic });
       setValues({
-        name: selectedTopic?.name,
+        name: selectedTopic?.topic,
         subject: selectedTopic?.subject,
         chapter: selectedTopic?.chapter,
+        oldTopic: selectedTopic?.topic,
       });
       form.setFieldsValue({
-        name: selectedTopic?.name,
+        name: selectedTopic?.topic,
         subject: selectedTopic?.subject,
         chapter: selectedTopic?.chapter,
       });
@@ -187,7 +189,9 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
       } else {
         console.log(selectedTopic);
         result.id = selectedTopic?._id;
-        const res = await API_QUESTIONS().patch(`/subject/topics`, result);
+        result.oldTopic = values.oldTopic;
+        const res = await API_QUESTIONS().patch(`/subject/update-topic`, result);
+        console.log({res});
         setTopics((prev: any) => {
           const temp = [...prev];
           const index = temp.findIndex(
@@ -250,10 +254,12 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
               size="large"
               onChange={(e) => {
                 setValues((prev: any) => ({ ...prev, ["subject"]: e }));
+                form.setFieldsValue({chapter: ""});
               }}
               id="subject"
               placeholder="Subject"
               value={values.subject}
+              disabled={editMode}
             >
               {/* {console.log(examOptions)} */}
               {subjectOptions?.map((option: any) => (
@@ -274,7 +280,7 @@ const CreateNewTopic: React.FC<CreateNewTopicProps> = ({
               id="chapter"
               placeholder="Chapter"
               value={values.chapter}
-              disabled={values?.chapter?.length == 0 ? true : false}
+              disabled={(values?.subject === ""?true:false) || (editMode)}
             >
               {/* {console.log(examOptions)} */}
               {chapterList?.map((option: any, index: number) => (

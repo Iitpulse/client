@@ -88,6 +88,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
   const [values, setValues] = useState<any>({
     name: "",
     subject: "",
+    oldChapter: "",
   });
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const { currentUser } = useContext(AuthContext);
@@ -119,6 +120,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       setValues({
         name: selectedChapter?.name,
         subject: selectedChapter?.subject,
+        oldChapter: selectedChapter?.name,
       });
       form.setFieldsValue({
         name: selectedChapter?.name,
@@ -145,7 +147,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       );
       console.log("Final Data ->", { result });
       // console.log({ finalData });
-      result.subject = subjectOptions.find(
+      result.subjectId = subjectOptions.find(
         (subject: any) => subject.name === result.subject
       )._id;
       setLoading(true);
@@ -166,8 +168,10 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
         message.success(res?.data?.message);
       } else {
         console.log(selectedChapter);
-        result.id = selectedChapter?._id;
-        const res = await API_QUESTIONS().patch(`/subject/chapters`, result);
+        result.id = selectedChapter?.id;
+        result.oldChapter = values.oldChapter;
+        console.log({result});
+        const res = await API_QUESTIONS().patch(`/subject/update-chapter`, result);
         setChapters((prev: any) => {
           const temp = [...prev];
           const index = temp.findIndex(
@@ -184,6 +188,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
       message.error(error?.response?.data?.error);
     }
     setLoading(false);
+    form.resetFields();
     // console.log({ res });
   }
 
@@ -230,6 +235,7 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
               placeholder="Subject"
               value={values.subject}
               defaultValue={values.subject}
+              disabled={editMode}
             >
               {/* {console.log(examOptions)} */}
               {subjectOptions?.map((option: any) => (
