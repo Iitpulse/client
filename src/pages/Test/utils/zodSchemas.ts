@@ -66,8 +66,8 @@ export const testSchema = z.object({
     name: z.string().nonempty("Please fill in Exam"),
   }),
   status: z
-    .enum(["active", "inactive", "ongoing", "expired"])
-    .default("inactive"),
+    .enum(["Active", "Inactive", "Ongoing", "Expired"])
+    .default("Inactive"),
   validity: z.object({
     from: z.string().nonempty("Please fill in Validity (From)"),
     to: z.string().nonempty("Please fill in Validity (To)"),

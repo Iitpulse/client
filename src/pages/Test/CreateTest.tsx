@@ -43,15 +43,15 @@ import { ThunderboltOutlined } from "@ant-design/icons";
 const statusOptions = [
   {
     name: "Ongoing",
-    value: "ongoing",
+    value: "Ongoing",
   },
   {
     name: "Active",
-    value: "active",
+    value: "Active",
   },
   {
     name: "Inactive",
-    value: "inactive",
+    value: "Inactive",
   },
 ];
 
@@ -126,13 +126,17 @@ const CreateTest = () => {
           exam,
           validity,
           sections,
-          batches,
+          batches: batches?.map((batch: any) => ({
+            ...batch,
+            value: batch.name,
+          })),
           publishType,
           status,
           daysAfter,
           pattern,
           ...rest,
         }));
+        console.log({ batches });
         if (validity?.from && validity?.to) {
           setTestDateRange([dayjs(validity?.from), dayjs(validity?.to)]);
         }
@@ -427,13 +431,11 @@ const CreateTest = () => {
                   console.log({ vals, options });
                   onChangeInput({ target: { id: "batches", value: options } });
                 }}
-                options={batchesOptions?.map(
-                  (batch: { _id: string; name: string }) => ({
-                    id: batch._id,
-                    name: batch.name,
-                    value: batch.name,
-                  })
-                )}
+                options={batchesOptions?.map((batch: any) => ({
+                  id: batch._id,
+                  name: batch.name,
+                  value: batch.name,
+                }))}
                 value={test.batches}
                 maxTagCount="responsive"
                 showArrow

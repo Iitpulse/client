@@ -81,7 +81,7 @@ export const SAMPLE_TEST: TTestSchema = {
     id: "",
     name: "",
   },
-  status: "inactive",
+  status: "Inactive",
   validity: {
     from: "",
     to: "",
