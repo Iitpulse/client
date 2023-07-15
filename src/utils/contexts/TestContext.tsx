@@ -67,6 +67,7 @@ export const TestContext = createContext<{
   recentTest: defaultRecentTestContext,
   fetchTest: () => {},
   fetchTestByID: async () => {},
+  chapters: [],
 });
 
 function getActionTypeFromTestType(status: string) {
