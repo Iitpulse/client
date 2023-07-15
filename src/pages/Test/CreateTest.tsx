@@ -1,26 +1,13 @@
 import styles from "./CreateTest.module.scss";
-import { Button, CreatableSelect, InputField, Sidebar } from "../../components";
+import { InputField } from "../../components";
 import { useContext, useEffect, useState } from "react";
-import {
-  ITest,
-  IPattern,
-  ISection,
-  ISubSection,
-  ITestQuestionObjective,
-} from "../../utils/interfaces";
+import { IPattern, ITestQuestionObjective } from "../../utils/interfaces";
 import {
   QUESTION_COLS_ALL,
   SAMPLE_TEST,
   TEST_GENERAL,
 } from "../../utils/constants";
-import { StyledMUITextField } from "../Users/components";
 import { IconButton } from "@mui/material";
-import {
-  CustomAccordion,
-  CustomAccordionDetails,
-  CustomAccordionSummary,
-} from "../Pattern/components/CustomAccordion";
-import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
@@ -29,6 +16,7 @@ import CustomTable from "../../components/CustomTable/CustomTable";
 import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
 import {
+  Button,
   Collapse,
   Form,
   Input,
@@ -37,10 +25,9 @@ import {
   Popconfirm,
   Select,
 } from "antd";
-import { TestContext, useTestContext } from "../../utils/contexts/TestContext";
+import { useTestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import MainLayout from "../../layouts/MainLayout";
-import { ZodError, set, z } from "zod";
 import { getPublishDate, isTestFormFilled } from "./utils/functions";
 import {
   TSectionSchema,
@@ -70,11 +57,13 @@ const statusOptions = [
 const defaultState: any = {
   nam: "",
   desc: "",
-  exam: "",
   batches: "",
   date: "",
   status: "",
-  pattern: "",
+  pattern: {
+    id: "",
+    name: "",
+  },
 };
 
 const CreateTest = () => {
@@ -107,7 +96,9 @@ const CreateTest = () => {
   useEffect(() => {
     setEditMode(pathname?.includes("edit"));
   }, [pathname]);
-  console.log({ pattern, sections });
+
+  // console.log({ pattern, sections });
+
   useEffect(() => {
     async function fetchFullTest() {
       try {
@@ -124,7 +115,7 @@ const CreateTest = () => {
           publishType,
           status,
           daysAfter,
-          patternId,
+          pattern,
           ...rest
         } = data;
         setTest((prev) => ({
@@ -138,7 +129,7 @@ const CreateTest = () => {
           publishType,
           status,
           daysAfter,
-          patternId,
+          pattern,
           ...rest,
         }));
         if (validity?.from && validity?.to) {
@@ -161,9 +152,9 @@ const CreateTest = () => {
         if (batches?.length) {
           setBatches(batches);
         }
-        console.log({ patternId, patternOptions });
-        if (patternId) {
-          let patternObj = patternOptions.find((pt) => pt?._id === patternId);
+        console.log({ pattern, patternOptions });
+        if (pattern) {
+          let patternObj = patternOptions.find((pt) => pt?._id === pattern.id);
           console.log({ patternObj });
           if (patternObj?.name) {
             // TODO: Resolve TS Issue, should not be any
@@ -260,10 +251,14 @@ const CreateTest = () => {
       return message.error("Please login to continue");
     }
 
-    console.log({ testDateRange });
+    // console.log({ testDateRange });
 
     let finalTest: TTestSchema = {
       ...test,
+      exam: {
+        id: test.exam.id,
+        name: test.exam.name,
+      },
       createdBy: {
         id: currentUser?.id as string,
         userType: currentUser?.userType as string,
@@ -287,27 +282,32 @@ const CreateTest = () => {
         },
         students: [],
       },
+      pattern: {
+        name: pattern?.name ?? "",
+        id: pattern?._id ?? "",
+      },
       createdAt: new Date().toISOString(),
       modifiedAt: new Date().toISOString(),
       durationInMinutes: editMode
         ? test.durationInMinutes
         : (pattern?.durationInMinutes as number),
-      patternId: pattern?._id as string,
-      batches,
+      batches: test.batches.map((batch) => ({
+        id: batch.id,
+        name: batch.name,
+      })),
     };
     if (editMode) {
       finalTest.createdAt = test.createdAt;
     }
     console.log({ finalTest, editMode });
     if (
-      !isTestFormFilled(setHelperTexts, defaultState, test) ||
+      !isTestFormFilled(setHelperTexts, defaultState, finalTest) ||
       !allQuestionsFilled()
     ) {
       creatingTest();
       console.log({ helperTexts });
       return message.error("Please fill all the fields");
     }
-    return;
     try {
       if (editMode) {
         updateTest(finalTest, creatingTest);
@@ -356,7 +356,7 @@ const CreateTest = () => {
       name="Create Test"
       menuActions={
         <div className={styles.submitBtn}>
-          <Button onClick={handleClickSubmit}>
+          <Button onClick={handleClickSubmit} type="primary">
             {editMode ? "Update Test" : "Create Test"}
           </Button>
         </div>
@@ -396,8 +396,8 @@ const CreateTest = () => {
             </Form.Item>
             <Form.Item
               label="Exam"
-              help={helperTexts.exam}
-              validateStatus={getInputStatus("exam")}
+              help={helperTexts?.["exam.name"] || helperTexts?.["exam.id"]}
+              validateStatus={getInputStatus(["exam.name", "exam.id"])}
             >
               <Select
                 allowClear
@@ -407,6 +407,7 @@ const CreateTest = () => {
                   onChangeInput({ target: { id: "exam", value: option } });
                 }}
                 options={exams?.map((exam) => ({
+                  ...exam,
                   id: exam._id,
                   name: exam.name,
                   value: exam.name,
@@ -447,7 +448,7 @@ const CreateTest = () => {
               help={
                 helperTexts?.["validity.from"] || helperTexts?.["validity.to"]
               }
-              validateStatus={getInputStatus(["vavlidity.from", "validity.to"])}
+              validateStatus={getInputStatus(["validity.from", "validity.to"])}
             >
               <CustomDateRangePicker
                 showTime={true}
@@ -474,8 +475,10 @@ const CreateTest = () => {
             </Form.Item>
             <Form.Item
               label="Pattern"
-              help={helperTexts.pattern}
-              validateStatus={getInputStatus("pattern")}
+              help={
+                helperTexts?.["pattern.id"] || helperTexts?.["pattern.name"]
+              }
+              validateStatus={getInputStatus(["pattern.id", "pattern.name"])}
             >
               <Select
                 showSearch
@@ -521,7 +524,7 @@ const CreateTest = () => {
                   }));
                   setPublishType({ value: val, name: op.name });
                 }}
-                value={test.result?.publishProps?.type}
+                value={test.result?.publishProps?.type || null}
               />
             </Form.Item>
             {publishType.value === "autoAfterXDays" && (

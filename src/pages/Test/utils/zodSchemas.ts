@@ -62,9 +62,8 @@ export const testSchema = z.object({
     )
     .min(1, "Please select at least one Batch"),
   exam: z.object({
-    id: z.string(),
+    id: z.string().nonempty("Please fill in Exam"),
     name: z.string().nonempty("Please fill in Exam"),
-    fullName: z.string(),
   }),
   status: z
     .enum(["active", "inactive", "ongoing", "expired"])
@@ -86,7 +85,10 @@ export const testSchema = z.object({
     userType: z.string(),
     id: z.string(),
   }),
-  patternId: z.string().nonempty("Please fill in Pattern"),
+  pattern: z.object({
+    name: z.string().nonempty("Please fill in Pattern"),
+    id: z.string().nonempty("Please fill in Pattern"),
+  }),
   createdAt: z.string().nonempty(),
   modifiedAt: z.string(),
 });

@@ -80,7 +80,6 @@ export const SAMPLE_TEST: TTestSchema = {
   exam: {
     id: "",
     name: "",
-    fullName: "",
   },
   status: "inactive",
   validity: {
@@ -97,7 +96,7 @@ export const SAMPLE_TEST: TTestSchema = {
     averageCompletionTime: null,
     students: [],
     publishProps: {
-      type: "",
+      type: "immediately",
       publishDate: null,
       isPublished: false,
       publishedBy: {
@@ -111,7 +110,10 @@ export const SAMPLE_TEST: TTestSchema = {
     id: "",
     userType: "",
   },
-  patternId: "",
+  pattern: {
+    id: "",
+    name: "",
+  },
   createdAt: "",
   modifiedAt: "",
 };
