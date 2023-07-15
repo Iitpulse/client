@@ -121,7 +121,7 @@ const DetailedAnalysisMain = () => {
   useEffect(() => {
     getCurrentResult();
   }, []);
-
+  console.log({ currentResult });
   return (
     <MainLayout name="Detailed Analysis">
       <div className={styles.container}>
