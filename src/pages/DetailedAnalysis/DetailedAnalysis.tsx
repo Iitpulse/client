@@ -485,10 +485,6 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
   }
-  useEffect(() => {
-    setQuestionIndex(0);
-    setSubIdx(0);
-  }, [tab]);
 
   return (
     <>
