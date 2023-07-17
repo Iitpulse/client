@@ -33,7 +33,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
   totalQuestions,
   totalMarksSection,
 }) => {
-  console.log("marks", totalMarksPerSection);
+  // console.log("marks", totalMarksPerSection);
   const chartData = {
     labels: ["Correct", "Incorrect", "Unattemped"],
     datasets: [
