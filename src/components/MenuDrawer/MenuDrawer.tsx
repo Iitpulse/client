@@ -281,6 +281,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
           </NavLink>
         )}
         {
+          hasPermissions?.hasRolePermission && (
           <NavLink
             to="/subjects"
             style={isCollapsed ? { width: "fit-content" } : {}}
@@ -292,13 +293,14 @@ const MenuDrawer = (props: MenuDrawerProps) => {
                     styles.activeNavLinkForRole
                   )
                 : styles.navLink
-            }
+              }
           >
             <div className={styles.iconContainer}>
               <RolesIcon />
             </div>{" "}
             {isCollapsed || <span>Subjects</span>}
           </NavLink>
+          )
         }
 
         {/* {currentUser?.id && (

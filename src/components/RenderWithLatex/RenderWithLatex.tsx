@@ -69,12 +69,13 @@ const RenderWithLatex: React.FC<Props> = ({ quillString }) => {
     </div>
   ) : !previewHTML ? (
     <div>
-      <p>Nothing to preview</p>
+      <p style={{color:"var(--clr-txt-light)"}}>Nothing to preview</p>
     </div>
   ) : (
     <div
       dangerouslySetInnerHTML={{ __html: previewHTML }}
       // style={{ maxHeight: "550PX", overflowY: "auto", overflowX: "hidden" }}
+      style={{fontWeight:"normal"}}
     ></div>
   );
 };

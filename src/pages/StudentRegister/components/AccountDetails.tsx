@@ -61,7 +61,7 @@ interface Props {
   handleSubmit: (values: AccountDetailsValues) => void;
 }
 
-const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
+const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
   const [values, setValues] = useState<AccountDetailsValues>(defaultState);
   const [errors, setErrors] = useState({
     ...getErrorDefaultState(defaultState),
@@ -280,7 +280,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
                   placeholder="Joining Code"
                   />
               </Form.Item>
-            <Button type="primary">Next</Button>
+            <Button size="large" type="primary" htmlType="submit">Next</Button>
             </Form>
           </>
         }

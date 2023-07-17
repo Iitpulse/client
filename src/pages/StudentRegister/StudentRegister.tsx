@@ -86,10 +86,6 @@ const StudentRegister: React.FC = () => {
     }
   }
 
-  const onChange = (value: number) => {
-    console.log('onChange:', value);
-    setCurrent(value);
-  };
 
   const next = () => {
     setCurrent(current + 1);
@@ -101,15 +97,15 @@ const StudentRegister: React.FC = () => {
   const steps = [
     {
       title: "Create Account",
-      content: <AccountDetails handleSubmit={handleSubmitAccountDetails} />,
+      content: <AccountDetails handleSubmit={handleSubmitAccountDetails}/>,
     },
     {
       title: "Personal Details",
-      content: <PersonalDetails handleSubmit={handleSubmitPersonalDetails} />,
+      content: <PersonalDetails handleSubmit={handleSubmitPersonalDetails}/>,
     },
     {
       title: "Academic Details",
-      content: <AcademicDetails handleSubmit={handleSubmitAcademicDetails} />,
+      content: <AcademicDetails handleSubmit={handleSubmitAcademicDetails}/>,
     },
   ];
   const items = steps.map((item) => ({ key: item.title, title: item.title }));
@@ -138,7 +134,7 @@ const StudentRegister: React.FC = () => {
             ))}
           </Stepper> */}
           {/* <Steps current={current} items={items} /> */}
-        <Steps current={current} onChange={onChange} items={items}/>
+        <Steps current={current} items={items}/>
         {/* </div> */}
         <div className={styles.stepsContent}>
         {steps[current].content}
