@@ -33,6 +33,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
   totalQuestions,
   totalMarksSection,
 }) => {
+  console.log("marks", totalMarksPerSection);
   const chartData = {
     labels: ["Correct", "Incorrect", "Unattemped"],
     datasets: [
@@ -56,7 +57,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
       disablePadding
     >
       <div className={styles.header}>
-        <h3 className={styles.subjectName}>{name}</h3>
+        <h3 className={styles.subjectName}>{name?.toUpperCase()}</h3>
         <div className={styles.mid}>
           <div className={styles.left}>
             <h2 className={styles.marks}>
@@ -65,7 +66,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
             <p className={styles.accuracy}>
               Accuracy:
               <span style={{ color: "black" }}>
-                {roundToOne((correct / attempted) * 100)}%
+                {attempted !== 0 ? roundToOne((correct / attempted) * 100) : 0}%
               </span>
             </p>
             <p className={styles.accuracy}>

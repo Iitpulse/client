@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+  resultSchema,
+  sectionSchema,
+  subSectionSchema,
+  testSchema,
+} from "./zodSchemas";
 
 export const testFormSchema = z.object({
   test: z.object({
@@ -19,3 +25,8 @@ export const testFormSchema = z.object({
 });
 
 export type TestFormSchemaType = z.infer<typeof testFormSchema>;
+
+export type TTestSchema = z.infer<typeof testSchema>;
+export type TSectionSchema = z.infer<typeof sectionSchema>;
+export type TSubSectionSchema = z.infer<typeof subSectionSchema>;
+export type TResultSchema = z.infer<typeof resultSchema>;

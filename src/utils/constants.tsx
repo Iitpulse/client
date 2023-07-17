@@ -10,6 +10,7 @@ import {
   WarningAmber,
   WarningAmberOutlined,
 } from "@mui/icons-material";
+import { TTestSchema } from "../pages/Test/utils/types";
 
 export const APIS = {
   USERS_API:
@@ -69,18 +70,18 @@ export const TEST = {
   },
 };
 
-export const SAMPLE_TEST = {
+export const SAMPLE_TEST: TTestSchema = {
   id: "",
   name: "",
   description: "",
   durationInMinutes: 0,
   sections: [],
+  batches: [],
   exam: {
     id: "",
     name: "",
-    fullName: "",
   },
-  status: "",
+  status: "Inactive",
   validity: {
     from: "",
     to: "",
@@ -94,11 +95,24 @@ export const SAMPLE_TEST = {
     averageMarks: null,
     averageCompletionTime: null,
     students: [],
+    publishProps: {
+      type: "immediately",
+      publishDate: null,
+      isPublished: false,
+      publishedBy: {
+        userType: "",
+        id: "",
+        name: "",
+      },
+    },
   },
   createdBy: {
     id: "",
-    name: "",
     userType: "",
+  },
+  pattern: {
+    id: "",
+    name: "",
   },
   createdAt: "",
   modifiedAt: "",

@@ -4,20 +4,32 @@
   width: 100%;
   .inputFields {
     width: 100%;
-    @extend .flexRow;
-    flex-wrap: wrap;
-    > div {
-      margin: 0.5rem;
-      flex: 1;
-      min-width: 200px;
-    }
+    // @extend .flexRow;
+    // flex-wrap: wrap;
+    // > div {
+    //   margin: 0.5rem;
+    //   flex: 1;
+    //   min-width: 200px;
+    // }
     // .dateSelector {
     //   display: block;
     // }
+    .form {
+      display: flex;
+      justify-content: start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      > div {
+        min-width: 200px;
+        max-width: 250px;
+        flex: 1;
+      }
+    }
   }
 
   .sections {
     margin-top: 1rem;
+    padding-bottom: 2rem;
     .section {
       background: white;
       border-radius: 0.3rem;
@@ -50,13 +62,15 @@
   }
   .searchHeader {
     @extend .flexRow;
+    margin-top: 0.5rem;
     .addQuestion {
       flex: 1;
-      background: white;
-      text-align: center;
-      padding: 0.6rem 0;
-      border-radius: 0.2rem;
-      cursor: pointer;
+      // background: white;
+      // text-align: center;
+      // padding: 0.6rem 0;
+      // border-radius: 0.2rem;
+      // cursor: pointer;
+      margin: 0;
     }
     button {
       margin-left: 1rem;
@@ -114,4 +128,17 @@
 }
 .inputSection {
   @extend .flexRow;
+  > div {
+    flex: 1;
+    margin-right: 0.5rem;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    .inputNumber {
+      width: 100%;
+    }
+  }
+  margin-top: 1rem;
 }
