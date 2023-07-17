@@ -34,6 +34,7 @@ import {
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
 import { INDIAN_STATES, ROLES } from "../../../utils/constants";
+import { UsersContext } from "../../../utils/contexts/UsersContext";
 const { Option } = Select;
 
 interface IAddNewAdmin {
@@ -67,6 +68,7 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
   let permissions: any = [];
+  const { fetchAdmins } = useContext(UsersContext);
   Object.values(rolesAllowed)?.map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
@@ -87,13 +89,13 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
         institute: current?.institute,
         roles: current?.roles?.map((role: any) => role.id),
         validity: [
-          dayjs(current?.validity?.from, "DD-MM-YYYY"),
-          dayjs(current?.validity?.to, "DD-MM-YYYY"),
+          dayjs(current?.validity?.from),
+          dayjs(current?.validity?.to),
         ],
       });
       setValidity({
-        from: dayjs(current?.validity?.from, "DD-MM-YYYY"),
-        to: dayjs(current?.validity?.to, "DD-MM-YYYY"),
+        from: dayjs(current?.validity?.from),
+        to: dayjs(current?.validity?.to),
       });
       setRoles(current?.roles?.map((role: any) => role.id));
       let roleval = {};
@@ -101,16 +103,12 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
         roleval = {
           ...roleval,
           [role.id]: {
-            from: dayjs(new Date(role.from)),
-            to: dayjs(new Date(role.to)),
+            from: dayjs(role.from),
+            to: dayjs(role.to),
           },
         };
       });
       setRoleValidity(roleval);
-      console.log({
-        roleval,
-        roles: current?.roles,
-      });
     }
   }, [edit, current]);
   const conversionObject: any = {
@@ -136,14 +134,12 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
       convert: (value: Dayjs[]) =>
         value
           ? {
-              from: dayjs(value[0]).format("DD-MM-YYYY"),
-              to: dayjs(value[1]).format("DD-MM-YYYY"),
+              from: dayjs(value[0]).toISOString(),
+              to: dayjs(value[1]).toISOString(),
             }
           : undefined,
       revert: (value: { from: string; to: string }) =>
-        value
-          ? [dayjs(value.from, "DD-MM-YYYY"), dayjs(value.to, "DD-MM-YYYY")]
-          : [],
+        value ? [dayjs(value.from), dayjs(value.to)] : [],
     },
 
     gender: null,
@@ -155,14 +151,14 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
           if (thisRoleValidity) {
             role = {
               id: role.id,
-              from: new Date(thisRoleValidity.from).toISOString(),
-              to: new Date(thisRoleValidity.to).toISOString(),
+              from: dayjs(thisRoleValidity.from).toISOString(),
+              to: dayjs(thisRoleValidity.to).toISOString(),
             };
           } else {
             role = {
               id: role.id,
-              from: new Date(validity?.from).toISOString(),
-              to: new Date(validity?.to).toISOString(),
+              from: dayjs(validity?.from).toISOString(),
+              to: dayjs(validity?.to).toISOString(),
             };
           }
           return role;
@@ -230,8 +226,8 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
           ...result?.roles,
           {
             id: ROLES.ADMIN,
-            from: dayjs(result.validity.from, "DD-MM-YYYY").toISOString(),
-            to: dayjs(result.validity.to, "DD-MM-YYYY").toISOString(),
+            from: dayjs(result.validity.from).toISOString(),
+            to: dayjs(result.validity.to).toISOString(),
           },
         ];
       }
@@ -239,13 +235,15 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
       if (!edit) {
         await onFinish(result);
         form.resetFields();
+        setRoles([]);
+        setValidity({});
+        setRoleValidity({});
       } else {
         await onUpdate(result);
       }
-      setRoles([]);
-      setValidity({});
-      setRoleValidity({});
+      fetchAdmins();
     } catch (error) {
+      console.log(error);
       onFinishFailed(error);
     }
   }
@@ -288,7 +286,6 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
       };
     });
   }
-  console.log({ current });
   return (
     <>
       <Drawer
@@ -302,9 +299,10 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
             <Button onClick={onClose}>Cancel</Button>
             <Button
               onClick={async () => {
+                console.log("submitting");
                 setSubmitDisabled(true);
                 await document
-                  .getElementById("studentUserForm")
+                  .getElementById("adminUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
@@ -360,7 +358,13 @@ const AddNewAdmin: React.FC<IAddNewAdmin> = ({
                 label="Date of Birth"
                 rules={getRules("dob")}
               >
-                <DatePicker format="DD-MM-YYYY" disabledDate={(current)=>{return current && current.valueOf() > Date.now();}} style={{ width: "100%" }} />
+                <DatePicker
+                  format="DD-MM-YYYY"
+                  disabledDate={(current) => {
+                    return current && current.valueOf() > Date.now();
+                  }}
+                  style={{ width: "100%" }}
+                />
               </Form.Item>
             </Col>
           </Row>

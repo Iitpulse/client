@@ -51,6 +51,7 @@ export const TestContext = createContext<{
   dispatch: React.Dispatch<TEST_ACTION>;
   exams: Array<any>;
   subjects: Array<any>;
+  chapters: Array<any>;
   recentTest: recenTestContext[];
   fetchTest: (
     type: "active" | "ongoing" | "inactive" | "expired",
@@ -66,6 +67,7 @@ export const TestContext = createContext<{
   recentTest: defaultRecentTestContext,
   fetchTest: () => {},
   fetchTestByID: async () => {},
+  chapters: [],
 });
 
 function getActionTypeFromTestType(status: string) {
@@ -88,7 +90,8 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
   const [exams, setExams] = useState<any>([]);
   const [recentTest, setRecentTest] = useState<any>(defaultRecentTestContext);
   const [subjects, setsubjects] = useState<any>([]);
-
+  const [chapters, setChapters] = useState<any>([]);
+  const [topics, setTopics] = useState<any>([]);
   const { currentUser, userDetails } = useContext(AuthContext);
   // console.log(currentUser, userDetails);
   async function fetchTest(
@@ -147,6 +150,22 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
         setsubjects(res.data);
       }
     }
+    async function fetchChapters() {
+      const res = await API_QUESTIONS().get(`/subject/chapter`);
+      // console.log({ res });
+      if (res.data?.length > 0) {
+        // console.log({ res });
+        setChapters(res.data);
+      }
+    }
+    async function fetchTopics() {
+      const res = await API_QUESTIONS().get(`/subject/topic`);
+      // console.log({ res });
+      if (res.data?.length > 0) {
+        // console.log({ res });
+        setTopics(res.data);
+      }
+    }
     async function fetchRecentTest() {
       const res = await API_TESTS().get(`/test/recent`, {
         params: {
@@ -167,7 +186,9 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
     }
     fetchExams();
     fetchSubjects();
+    fetchChapters();
     fetchRecentTest();
+    fetchTopics();
   }, [currentUser, userDetails]);
 
   return (
@@ -180,6 +201,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
         recentTest,
         fetchTest,
         fetchTestByID,
+        chapters,
       }}
     >
       {children}

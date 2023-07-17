@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from "react";
 import { API_USERS } from "../../utils/api/config";
 import { UserType, studentSchema } from "../../utils/schemas/user";
 import { images } from "../../assets";
-import { Button, DatePicker, Form, Input, message } from "antd";
+import { Button, DatePicker, Form, Input, Popconfirm, message } from "antd";
 import { performZodValidation, validateField } from "../../utils/schemas";
 
 import dayjs, { Dayjs } from "dayjs";
@@ -147,7 +147,21 @@ const Profile = () => {
     }
     if (userId) getUser();
   }, [userId]);
-
+  const resetPasswordHandler = async () => {
+    try {
+      const res = await API_USERS().post(`/reset-password/request`, {
+        email: user?.email,
+      });
+      if (res.status === 200) {
+        message.success(res?.data?.message);
+      } else {
+        message.error(res?.data?.message);
+      }
+    } catch (err) {
+      message.error("Something went wrong");
+      console.log(err);
+    }
+  };
   return (
     <MainLayout name="Profile">
       {isDataLoading ? (
@@ -159,34 +173,53 @@ const Profile = () => {
               <img src={profilePlaceholder} alt="profile" />
             </div>
             <div className={styles.nameAndUserType}>
-              <h1>{user.name}</h1>
-              <p>{user.userType}</p>
-            </div>
-            <div className={styles.actionBtn}>
-              {isEditMode ? (
-                <div className={styles.saveAndCancel}>
-                  <Button
-                    onClick={() => {
-                      document.getElementById("profileUserForm")?.dispatchEvent(
-                        new Event("submit", {
-                          cancelable: true,
-                          bubbles: true,
-                        })
-                      );
-                    }}
-                    htmlType="submit"
-                  >
-                    Save
-                  </Button>
-                  <Button type="primary" onClick={() => setIsEditMode(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <Button type="primary" onClick={() => setIsEditMode(true)}>
-                  Edit
-                </Button>
-              )}
+              <div>
+                <h1>{user.name}</h1>
+                <p>{user.userType}</p>
+              </div>
+              <div className={styles.actionBtn}>
+                {isEditMode ? (
+                  <div className={styles.saveAndCancel}>
+                    <Button
+                      onClick={() => {
+                        document
+                          .getElementById("profileUserForm")
+                          ?.dispatchEvent(
+                            new Event("submit", {
+                              cancelable: true,
+                              bubbles: true,
+                            })
+                          );
+                      }}
+                      htmlType="submit"
+                    >
+                      Save
+                    </Button>
+                    <Button type="primary" onClick={() => setIsEditMode(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div className={styles.saveAndCancel}>
+                    <Button type="primary" onClick={() => setIsEditMode(true)}>
+                      Edit
+                    </Button>
+                    <Popconfirm
+                      title="Reset Password"
+                      description="Are you sure to Reset your password?"
+                      onConfirm={() => {
+                        resetPasswordHandler();
+                      }}
+                      okText="Yes"
+                      cancelText="No"
+                    >
+                      <Button type="primary" danger>
+                        Reset Password
+                      </Button>
+                    </Popconfirm>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className={styles.informationContainer}>
