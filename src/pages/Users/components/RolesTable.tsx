@@ -1,6 +1,7 @@
 import React from "react";
 import { DatePicker, Space, Table, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import dayjs from "dayjs";
 
 interface DataType {
   role: string;
@@ -37,10 +38,15 @@ const RolesTable: React.FC<{
 }> = ({ updateValidity, roles, roleValidity }) => {
   const data: DataType[] = roles?.map((role: string) => ({
     role,
-    value: roleValidity[role] || {
-      from: null,
-      to: null,
-    },
+    value: roleValidity[role]
+      ? {
+          from: dayjs(roleValidity[role].from),
+          to: dayjs(roleValidity[role].to),
+        }
+      : {
+          from: null,
+          to: null,
+        },
     onChange: (e: any) => {
       updateValidity(role, e);
       // updateValidity({ from: dateString[0], to: dateString[1] });

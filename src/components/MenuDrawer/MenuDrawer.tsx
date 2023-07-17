@@ -30,7 +30,7 @@ interface MenuDrawerProps {
 
 const MenuDrawer = (props: MenuDrawerProps) => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
-
+  const navigate = useNavigate();
   const { currentUser, setCurrentUser } = useContext(AuthContext);
   const { hasPermissions, loading } = useContext(PermissionsContext);
 
@@ -280,7 +280,28 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Roles</span>}
           </NavLink>
         )}
-        {currentUser?.id && (
+        {
+          <NavLink
+            to="/subjects"
+            style={isCollapsed ? { width: "fit-content" } : {}}
+            className={({ isActive }) =>
+              isActive
+                ? clsx(
+                    styles.navLink,
+                    styles.activeNavLink,
+                    styles.activeNavLinkForRole
+                  )
+                : styles.navLink
+            }
+          >
+            <div className={styles.iconContainer}>
+              <RolesIcon />
+            </div>{" "}
+            {isCollapsed || <span>Subjects</span>}
+          </NavLink>
+        }
+
+        {/* {currentUser?.id && (
           <NavLink
             to={`/profile/${currentUser?.id}`}
             style={isCollapsed ? { width: "fit-content" } : {}}
@@ -299,7 +320,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             </div>{" "}
             {isCollapsed || <span>My Profile</span>}
           </NavLink>
-        )}
+        )} */}
       </section>
       {isCollapsed || <div className={styles.divider}></div>}
       {/* {isCollapsed || (
@@ -316,6 +337,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
         image={profilePlaceholder}
         email={currentUser?.email || "User"}
         userType={currentUser?.userType || "NA"}
+        id = {currentUser?.id || ""}
       />
     </div>
   );
@@ -326,10 +348,16 @@ interface ProfileProps {
   email: string;
   userType: string;
   isCollapsed: boolean;
+  id: string;
 }
 
 const Profile = (props: ProfileProps) => {
+  const navigate = useNavigate();
+  function handleProfileView(){
+    navigate(`/profile/${props.id}`)
+  }
   return (
+    <>
     <div
       style={
         props.isCollapsed
@@ -338,20 +366,26 @@ const Profile = (props: ProfileProps) => {
       }
       className={styles.profileContainer}
     >
-      <div
-        style={props.isCollapsed ? { margin: "auto" } : {}}
-        className={styles.imageContainer}
-      >
-        <img src={props.image} alt={props.image} />
-      </div>
-      {props.isCollapsed || (
-        <div className={styles.textContainer}>
-          <span>{props.email}</span>
-          <span>({props.userType})</span>
+      <div className={styles.profileContainer2} onClick={handleProfileView}>
+        <div
+          style={props.isCollapsed ? { margin: "auto" } : {}}
+          className={styles.imageContainer}
+          >
+            <img src={props.image} alt={props.image} />
         </div>
-      )}
+
+        {props.isCollapsed || (
+          <div 
+          className={styles.textContainer} 
+          >
+            <span>{props.email}</span>
+            <span>({props.userType})</span>
+          </div>
+        )}
+      </div>
       <ProfileOptionsMenu style={props.isCollapsed ? { margin: "auto" } : {}} />
     </div>
+    </>
   );
 };
 
@@ -361,6 +395,7 @@ interface ProfileOptionMenuProps {
 
 const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -368,8 +403,6 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
 
   const { resetPermissions } = useContext(PermissionsContext);
   const { setCurrentUser } = useContext(AuthContext);
-
-  const navigate = useNavigate();
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -387,15 +420,17 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
 
   return (
     <div style={props.style} className={styles.profileOptionsMenuContainer}>
-      <IconButton
-        id="basic-button"
-        aria-controls={open ? "basic-menu" : undefined}
-        aria-haspopup="true"
-        aria-expanded={open ? "true" : undefined}
-        onClick={handleClick}
-      >
-        <img src={dropdown} alt="Dropdown" />
-      </IconButton>
+      
+        <IconButton
+          id="basic-button"
+          aria-controls={open ? "basic-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? "true" : undefined}
+          onClick={handleClick}
+        >
+          <img src={dropdown} alt="Dropdown" />
+        </IconButton>
+      
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}
@@ -406,6 +441,7 @@ const ProfileOptionsMenu = (props: ProfileOptionMenuProps) => {
         }}
       >
         {/* <MenuItem onClick={handleClose}>My account</MenuItem> */}
+        {/* <MenuItem > <NavLink to={`/profile/${props.currentUser?.id}`}> Profile </NavLink></MenuItem> */}
         <MenuItem onClick={handleClickLogout}>Logout</MenuItem>
       </Menu>
     </div>

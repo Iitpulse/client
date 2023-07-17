@@ -35,6 +35,7 @@ import {
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
 import { INDIAN_STATES } from "../../../utils/constants";
+import { UsersContext } from "../../../utils/contexts/UsersContext";
 const { Option } = Select;
 
 interface IAddNewManager {
@@ -61,6 +62,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({
     actual: [],
   });
   const userCtx = useContext(AuthContext);
+  const { fetchManagers } = useContext(UsersContext);
   const rolesAllowed = userCtx?.roles;
   const [roleValidity, setRoleValidity] = useState<any>({});
   const [validity, setValidity] = useState<any>({});
@@ -87,13 +89,13 @@ const AddNewManager: React.FC<IAddNewManager> = ({
         institute: current?.institute,
         roles: current?.roles?.map((role: any) => role.id),
         validity: [
-          dayjs(current?.validity?.from, "DD-MM-YYYY"),
-          dayjs(current?.validity?.to, "DD-MM-YYYY"),
+          dayjs(current?.validity?.from),
+          dayjs(current?.validity?.to),
         ],
       });
       setValidity({
-        from: dayjs(current?.validity?.from, "DD-MM-YYYY"),
-        to: dayjs(current?.validity?.to, "DD-MM-YYYY"),
+        from: dayjs(current?.validity?.from),
+        to: dayjs(current?.validity?.to),
       });
       setRoles(current?.roles?.map((role: any) => role.id));
       let roleval = {};
@@ -101,16 +103,12 @@ const AddNewManager: React.FC<IAddNewManager> = ({
         roleval = {
           ...roleval,
           [role.id]: {
-            from: dayjs(new Date(role.from)),
-            to: dayjs(new Date(role.to)),
+            from: dayjs(role.from),
+            to: dayjs(role.to),
           },
         };
       });
       setRoleValidity(roleval);
-      console.log({
-        roleval,
-        roles: current?.roles,
-      });
     }
   }, [edit, current]);
 
@@ -139,14 +137,12 @@ const AddNewManager: React.FC<IAddNewManager> = ({
       convert: (value: Dayjs[]) =>
         value
           ? {
-              from: dayjs(value[0]).format("DD-MM-YYYY"),
-              to: dayjs(value[1]).format("DD-MM-YYYY"),
+              from: dayjs(value[0]).toISOString(),
+              to: dayjs(value[1]).toISOString(),
             }
           : undefined,
       revert: (value: { from: string; to: string }) =>
-        value
-          ? [dayjs(value.from, "DD-MM-YYYY"), dayjs(value.to, "DD-MM-YYYY")]
-          : [],
+        value ? [dayjs(value.from), dayjs(value.to)] : [],
     },
 
     gender: null,
@@ -158,15 +154,15 @@ const AddNewManager: React.FC<IAddNewManager> = ({
           if (thisRoleValidity) {
             role = {
               id: role.id,
-              from: new Date(thisRoleValidity.from).toISOString(),
-              to: new Date(thisRoleValidity.to).toISOString(),
+              from: dayjs(thisRoleValidity.from).toISOString(),
+              to: dayjs(thisRoleValidity.to).toISOString(),
             };
           } else {
             console.log(validity);
             role = {
               id: role.id,
-              from: dayjs(validity?.from, "DD-MM-YYYY").toISOString(),
-              to: dayjs(validity?.to, "DD-MM-YYYY").toISOString(),
+              from: dayjs(validity?.from).toISOString(),
+              to: dayjs(validity?.to).toISOString(),
             };
           }
           return role;
@@ -233,12 +229,13 @@ const AddNewManager: React.FC<IAddNewManager> = ({
       if (!edit) {
         await onFinish(result);
         form.resetFields();
+        setRoles([]);
+        setValidity({});
+        setRoleValidity({});
       } else {
         await onUpdate(result);
       }
-      setRoles([]);
-      setValidity({});
-      setRoleValidity({});
+      await fetchManagers();
     } catch (error) {
       onFinishFailed(error);
     }
@@ -297,7 +294,7 @@ const AddNewManager: React.FC<IAddNewManager> = ({
               onClick={async () => {
                 setSubmitDisabled(true);
                 await document
-                  .getElementById("studentUserForm")
+                  .getElementById("managerUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
@@ -353,7 +350,13 @@ const AddNewManager: React.FC<IAddNewManager> = ({
                 label="Date of Birth"
                 rules={getRules("dob")}
               >
-                <DatePicker format="DD-MM-YYYY" disabledDate={(current)=>{return current && current.valueOf() > Date.now();}} style={{ width: "100%" }} />
+                <DatePicker
+                  format="DD-MM-YYYY"
+                  disabledDate={(current) => {
+                    return current && current.valueOf() > Date.now();
+                  }}
+                  style={{ width: "100%" }}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -407,11 +410,11 @@ const AddNewManager: React.FC<IAddNewManager> = ({
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
                 <Select placeholder="Please enter a state">
-                  {
-                    INDIAN_STATES.map((e)=>(
-                      <Select.Option key={e} value={e}>{e}</Select.Option>
-                    ))
-                  }
+                  {INDIAN_STATES.map((e) => (
+                    <Select.Option key={e} value={e}>
+                      {e}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
@@ -471,8 +474,8 @@ const AddNewManager: React.FC<IAddNewManager> = ({
                 <DatePicker.RangePicker
                   onChange={(e: any) => {
                     setValidity({
-                      from: dayjs(e[0]).format("DD-MM-YYYY"),
-                      to: dayjs(e[1]).format("DD-MM-YYYY"),
+                      from: dayjs(e[0]).toISOString(),
+                      to: dayjs(e[1]).toISOString(),
                     });
                   }}
                   format="DD-MM-YYYY"

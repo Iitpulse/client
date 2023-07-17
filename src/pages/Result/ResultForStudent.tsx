@@ -76,7 +76,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
   const [resultType, setResultType] = useState<string>("");
 
   const { testId, testName, testExamName } = useParams();
-
+  console.log({ finalTest });
   /*
     Listen to all the changes finalTest obj
   */
@@ -87,7 +87,6 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
       let totalAttempted = 0;
       let totalQuestions = 0;
       let totalIncorrect = 0;
-
       finalTest.sections?.forEach((section: any) => {
         totalQuestions += section.totalQuestions;
         let attempted = 0;
@@ -95,13 +94,16 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         let incorrect = 0;
         let timeTakenInSeconds = 0;
         let marks = 0;
+        let totalMarksPerSection = 0;
 
         section.subSections?.forEach((subSection: any) => {
+          totalMarksPerSection +=
+            subSection.toBeAttempted * subSection.markingScheme.correct.at(-1);
           Object.values(subSection?.questions)?.forEach((question: any) => {
             const { timeTakenInSeconds: qTimeTakenInSeconds } = question;
 
             // if not null -> Question is attempted
-            if (qTimeTakenInSeconds !== null) {
+            if (qTimeTakenInSeconds) {
               attempted += 1;
               totalAttempted += 1;
               marks += question.marks;
@@ -119,6 +121,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
               ...prev,
               [section.id]: {
                 ...section,
+                totalMarksPerSection,
                 attempted,
                 correct,
                 incorrect,

@@ -35,6 +35,7 @@ import {
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import RolesTable from "../components/RolesTable";
 import { INDIAN_STATES, ROLES } from "../../../utils/constants";
+import { UsersContext } from "../../../utils/contexts/UsersContext";
 const { Option } = Select;
 
 interface IAddNewOperator {
@@ -66,6 +67,7 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const userCtx = useContext(AuthContext);
   const rolesAllowed = userCtx?.roles;
+  const { fetchOperators } = useContext(UsersContext);
   let permissions: any = [];
   Object.values(rolesAllowed)?.map(
     (role: any) => (permissions = [...permissions, ...role.permissions])
@@ -86,13 +88,13 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
         institute: current?.institute,
         roles: current?.roles?.map((role: any) => role.id),
         validity: [
-          dayjs(current?.validity?.from, "DD-MM-YYYY"),
-          dayjs(current?.validity?.to, "DD-MM-YYYY"),
+          dayjs(current?.validity?.from),
+          dayjs(current?.validity?.to),
         ],
       });
       setValidity({
-        from: dayjs(current?.validity?.from, "DD-MM-YYYY"),
-        to: dayjs(current?.validity?.to, "DD-MM-YYYY"),
+        from: dayjs(current?.validity?.from),
+        to: dayjs(current?.validity?.to),
       });
       setRoles(current?.roles?.map((role: any) => role.id));
       let roleval = {};
@@ -100,16 +102,12 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
         roleval = {
           ...roleval,
           [role.id]: {
-            from: dayjs(new Date(role.from)),
-            to: dayjs(new Date(role.to)),
+            from: dayjs(role.from),
+            to: dayjs(role.to),
           },
         };
       });
       setRoleValidity(roleval);
-      console.log({
-        roleval,
-        roles: current?.roles,
-      });
     }
   }, [edit, current]);
   const conversionObject: any = {
@@ -137,14 +135,12 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
       convert: (value: Dayjs[]) =>
         value
           ? {
-              from: dayjs(value[0]).format("DD-MM-YYYY"),
-              to: dayjs(value[1]).format("DD-MM-YYYY"),
+              from: dayjs(value[0]).toISOString(),
+              to: dayjs(value[1]).toISOString(),
             }
           : undefined,
       revert: (value: { from: string; to: string }) =>
-        value
-          ? [dayjs(value.from, "DD-MM-YYYY"), dayjs(value.to, "DD-MM-YYYY")]
-          : [],
+        value ? [dayjs(value.from), dayjs(value.to)] : [],
     },
 
     gender: null,
@@ -156,14 +152,14 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
           if (thisRoleValidity) {
             role = {
               id: role.id,
-              from: new Date(thisRoleValidity.from).toISOString(),
-              to: new Date(thisRoleValidity.to).toISOString(),
+              from: dayjs(thisRoleValidity.from).toISOString(),
+              to: dayjs(thisRoleValidity.to).toISOString(),
             };
           } else {
             role = {
               id: role.id,
-              from: validity?.from,
-              to: validity?.to,
+              from: dayjs(validity?.from).toISOString(),
+              to: dayjs(validity?.to).toISOString(),
             };
           }
           return role;
@@ -227,8 +223,8 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
           ...result?.roles,
           {
             id: ROLES.OPERATOR,
-            from: result.validity.from,
-            to: result.validity.to,
+            from: dayjs(result.validity.from).toISOString(),
+            to: dayjs(result.validity.to).toISOString(),
           },
         ];
       }
@@ -236,12 +232,13 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
       if (!edit) {
         await onFinish(result);
         form.resetFields();
+        setRoles([]);
+        setValidity({});
+        setRoleValidity({});
       } else {
         await onUpdate(result);
       }
-      setRoles([]);
-      setValidity({});
-      setRoleValidity({});
+      await fetchOperators();
     } catch (error) {
       onFinishFailed(error);
     }
@@ -300,7 +297,7 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
               onClick={async () => {
                 setSubmitDisabled(true);
                 await document
-                  .getElementById("studentUserForm")
+                  .getElementById("operatorUserForm")
                   ?.dispatchEvent(
                     new Event("submit", { cancelable: true, bubbles: true })
                   );
@@ -356,7 +353,13 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
                 label="Date of Birth"
                 rules={getRules("dob")}
               >
-                <DatePicker format="DD-MM-YYYY" disabledDate={(current)=>{return current && current.valueOf() > Date.now();}} style={{ width: "100%" }} />
+                <DatePicker
+                  format="DD-MM-YYYY"
+                  disabledDate={(current) => {
+                    return current && current.valueOf() > Date.now();
+                  }}
+                  style={{ width: "100%" }}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -410,11 +413,11 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
                 <Select placeholder="Please enter a state">
-                  {
-                    INDIAN_STATES.map((e)=>(
-                      <Select.Option key={e} value={e}>{e}</Select.Option>
-                    ))
-                  }
+                  {INDIAN_STATES.map((e) => (
+                    <Select.Option key={e} value={e}>
+                      {e}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
