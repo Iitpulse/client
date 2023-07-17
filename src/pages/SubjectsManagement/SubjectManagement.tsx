@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Tabs } from "antd";
+import { Button, Card, Tabs } from "antd";
 import type { TabsProps } from "antd";
 import Subjects from "../Subjects/Subjects";
 import MainLayout from "../../layouts/MainLayout";
@@ -7,6 +7,7 @@ import Chapters from "../Chapters/Chapters";
 import AddIcon from "@mui/icons-material/Add";
 import styles from "./SubjectManagement.module.scss";
 import Topics from "../Topics/Topics";
+import Exams from "../Exams/Exams";
 
 const SubjectManagement: React.FC = () => {
   const [toggleSideBar, setToggleSideBar] = useState(0);
@@ -46,6 +47,16 @@ const SubjectManagement: React.FC = () => {
         />
       ),
     },
+    {
+      key: "4",
+      label: `Exams`,
+      children: (
+        <Exams
+          toggleSideBar={toggleSideBar}
+          setToggleSideBar={setToggleSideBar}
+        />
+      ),
+    },
   ];
   return (
     <MainLayout
@@ -65,14 +76,20 @@ const SubjectManagement: React.FC = () => {
         </Button>
       }
     >
-      <Tabs
+      <Card
         style={{
           width: "100%",
         }}
-        defaultActiveKey="1"
-        items={items}
-        onChange={onChange}
-      />
+      >
+        <Tabs
+          style={{
+            width: "100%",
+          }}
+          defaultActiveKey="1"
+          items={items}
+          onChange={onChange}
+        />
+      </Card>
     </MainLayout>
   );
 };
