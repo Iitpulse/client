@@ -226,17 +226,16 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
     <Sidebar
       title="Create New Batch"
       open={toggleSideBar}
-      width="350px"
+      width="30%"
       handleClose={handleClose}
     >
-      <Form
-        form={form}
-        id="teacherUserForm"
-        layout="vertical"
-        onFinish={handleSubmit}
-      >
-        <div className={styles.inputFields}>
-          <Form.Item name="name" rules={getRules("name")}>
+        <Form 
+          form={form}
+          id="teacherUserForm"
+          layout="vertical"
+          onFinish={handleSubmit}>
+            {/* <div className={styles.inputFields}> */}
+            <Form.Item name="name" rules={getRules("name")}>
             <Input
               id="batchName"
               size="large"
@@ -389,28 +388,26 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
                 error={false}
                 helperText=""
             /> */}
-        </div>
-        <div className={styles.buttons}>
-          <Button
-            onClick={async () => {
-              // setSubmitDisabled(true);
-              await document
-                .getElementById("studentUserForm")
-                ?.dispatchEvent(
-                  new Event("submit", { cancelable: true, bubbles: true })
-                );
-              // setSubmitDisabled(false);
-            }}
-            type="primary"
-            htmlType="submit"
-            //   disabled={submitDisabled}
-          >
-            Submit
-          </Button>
-        </div>
-      </Form>
-    </Sidebar>
-  );
+            {/* </div> */}
+            {/* <div className={styles.buttons}> */}
+            <Button 
+                onClick={async () => {
+                    // setSubmitDisabled(true);
+                    await document
+                      .getElementById("studentUserForm")
+                      ?.dispatchEvent(
+                        new Event("submit", { cancelable: true, bubbles: true })
+                      );
+                    // setSubmitDisabled(false);
+                  }}
+                  type="primary"
+                  htmlType="submit"
+                //   disabled={submitDisabled}
+            >Submit</Button>
+            {/* </div> */}
+        </Form>
+        </Sidebar>
+    );
 };
 
 export default CreateNewBatch;
