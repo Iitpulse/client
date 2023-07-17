@@ -555,7 +555,7 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
         ))}
       </Card>
 
-      <Modal
+      {/* <Modal
         isOpen={isViewSolModalOpen}
         title="Solution"
         onClose={() => {
@@ -564,7 +564,7 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
         }}
       >
         <RenderWithLatex quillString={viewSol} />
-      </Modal>
+      </Modal> */}
     </>
   );
 };
@@ -672,6 +672,7 @@ const SubSection: React.FC<ISubSection> = ({
   let question = subSection?.questions[questionIndex];
   return (
     <>
+    {console.log(question)}
       <Question
         totalAppeared={totalAppeared}
         {...question}

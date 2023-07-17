@@ -131,11 +131,12 @@ const Question = (props: QuestionProps) => {
                 <span>{String.fromCharCode(65 + index)}.)</span>&nbsp;
                 <RenderWithLatex quillString={item.value} />
               </p>
-            ))}
+            )
+            )}
           </div>
         </div>
         <div className={styles.right}>
-          <div className={styles.header}>
+          {/* <div className={styles.header}>
             <Button onClick={handleViewSolution} color="success">
               View Full Solution
             </Button>
@@ -148,9 +149,9 @@ const Question = (props: QuestionProps) => {
             >
               <img src={kebabMenu} alt="Kebab Menu" />
             </IconButton>
-          </div>
+          </div> */}
 
-          <Menu
+          {/* <Menu
             id="basic-menu"
             anchorEl={anchorEl}
             open={open}
@@ -160,7 +161,7 @@ const Question = (props: QuestionProps) => {
             }}
           >
             <MenuItem onClick={handleClose}>Report a Problem </MenuItem>
-          </Menu>
+          </Menu> */}
           <div className={styles.moreInfo}>
             <div className={styles.leftMI}>
               <p>Time Taken : {timeTakenInSeconds?.toFixed(2) || 0}s</p>
@@ -202,7 +203,9 @@ const Question = (props: QuestionProps) => {
           </div>
         </div>
       </div>
+      {/* {console.log(solution)} */}
       <div className={styles.horizontalLine}></div>
+      <RenderWithLatex quillString={en?.solution} />
     </>
   );
 };

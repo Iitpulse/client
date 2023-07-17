@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import styles from "./Result.module.scss";
 import { useNavigate, useParams } from "react-router";
-import { Button, Card, CustomTable, Navigate } from "../../components";
+import { Card, CustomTable, Navigate } from "../../components";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import {
   DetailedAnalysis,
@@ -12,6 +12,19 @@ import { CircularProgress as MUICircularProgress } from "@mui/material";
 import MainLayout from "../../layouts/MainLayout";
 import { StyledMUISelect } from "../Questions/components";
 import SubjectCard from "./components/SubjectCard";
+import {
+  Button,
+  Col,
+  DatePicker,
+  Divider,
+  Drawer,
+  Form,
+  Input,
+  Row,
+  Select,
+  Space,
+  message,
+} from "antd";
 
 interface Props {
   finalTest: any;
@@ -72,7 +85,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
   const { currentUser } = useContext(AuthContext);
   const [finalSections, setFinalSections] = useState<any>([]);
   const [headerData, setHeaderData] = useState<any>({} as any);
-  const [viewDetailedAnalysis, setViewDetaildAnalysis] = useState(false);
+  // const [viewDetailedAnalysis, setViewDetaildAnalysis] = useState(false);
   const [resultType, setResultType] = useState<string>("");
 
   const { testId, testName, testExamName } = useParams();
@@ -101,7 +114,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
             subSection.toBeAttempted * subSection.markingScheme.correct.at(-1);
           Object.values(subSection?.questions)?.forEach((question: any) => {
             const { timeTakenInSeconds: qTimeTakenInSeconds } = question;
-
+            console.log({question});
             // if not null -> Question is attempted
             if (qTimeTakenInSeconds) {
               attempted += 1;
@@ -157,33 +170,39 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
     <>
       <div className={styles.cards}>
         {Object.values(finalSections)?.map((item: any, index: number) => (
-          <SubjectCard key={item.id} color={colors[index % 4]} {...item} />
+          <SubjectCard key={item.id} color={colors[index % 4]} {...item} totalMarksSection={finalTest.totalMarks/3}/>
         ))}
       </div>
       <div className={styles.detailedBtns}>
-        <Button
+        {/* <Button
           onClick={() => {
             setViewDetaildAnalysis(true);
           }}
           color="primary"
         >
           View Detailed Analysis
-        </Button>
-        <StyledMUISelect
-          label="Result Type"
+        </Button> */}
+        <Select
+          size="large"
+          placeholder="Result Type"
+          style={{width:"20%"}}
           options={[
             {
-              name: "Subject Wise",
+              label: "Subject Wise",
+              value: "Subject Wise",
             },
             {
-              name: "Question Wise",
+              label: "Question Wise",
+              value: "Question Wise",
             },
           ]}
-          state={resultType}
-          onChange={(val) => setResultType(val)}
+          onChange={(val) =>{
+            console.log(`val = ${val}`);
+            setResultType(val)
+          }}
         />
       </div>
-      {(!hasResultViewPermission || viewDetailedAnalysis) &&
+      {
         (resultType === "Subject Wise" ? (
           <SubjectWiseAnalysis sections={Object.values(finalSections)} />
         ) : (
