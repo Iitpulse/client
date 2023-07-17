@@ -23,7 +23,7 @@ const CustomDateRangePicker: React.FC<{
       showTime={Boolean(showTime)}
       disabledDate={disabledDate}
       onChange={onChange}
-      format="DD-MM-YYYY"
+      format="DD-MM-YYYY HH:mm:ss"
       value={value}
       className={styles.CustomDateRangePicker}
     />
@@ -31,7 +31,7 @@ const CustomDateRangePicker: React.FC<{
     <RangePicker
       showTime={Boolean(showTime)}
       onChange={onChange}
-      format="DD-MM-YYYY"
+      format="DD-MM-YYYY HH:mm:ss"
       value={value}
       className={styles.CustomDateRangePicker}
     />

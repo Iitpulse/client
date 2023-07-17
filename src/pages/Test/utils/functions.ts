@@ -1,8 +1,9 @@
-import { TestFormSchemaType, testFormSchema } from "./types";
+import { TTestSchema, TestFormSchemaType, testFormSchema } from "./types";
 import { ITest } from "../../../utils/interfaces";
 import React from "react";
 import { ZodError } from "zod";
 import dayjs from "dayjs";
+import { testSchema } from "./zodSchemas";
 
 export function getPublishDate(
   publishType: string,
@@ -29,26 +30,12 @@ export function getPublishDate(
 export const isTestFormFilled = (
   setHelperTexts: React.Dispatch<React.SetStateAction<any>>,
   defaultState: TestFormSchemaType,
-  data: {
-    test: ITest;
-    batches: Array<any>;
-    status: any;
-    testDateRange: Array<any>;
-    pattern: any;
-  }
+  test: TTestSchema
 ) => {
   setHelperTexts(defaultState);
-  const { test, batches, status, testDateRange, pattern } = data;
   try {
     // This will throw an error if the validation fails
-    testFormSchema.parse({
-      test: test,
-      batches: batches,
-      status: status,
-      testDateRange: testDateRange,
-      pattern: pattern,
-    });
-
+    testSchema.parse(test);
     // If the above line didn't throw, validation passed
     return true;
   } catch (error) {
