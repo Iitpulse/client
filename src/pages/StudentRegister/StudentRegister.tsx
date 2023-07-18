@@ -105,7 +105,12 @@ const StudentRegister: React.FC = () => {
     },
     {
       title: "Academic Details",
-      content: <AcademicDetails handleSubmit={handleSubmitAcademicDetails} setPrev={prev}/>,
+      content: (
+        <AcademicDetails
+          handleSubmit={handleSubmitAcademicDetails}
+          setPrev={prev}
+        />
+      ),
     },
   ];
   const items = steps.map((item) => ({ key: item.title, title: item.title }));
@@ -134,12 +139,12 @@ const StudentRegister: React.FC = () => {
             ))}
           </Stepper> */}
           {/* <Steps current={current} items={items} /> */}
-        <Steps current={current} items={items}/>
-        {/* </div> */}
-        <div className={styles.stepsContent}>
-        {steps[current].content}
-        <div style={{ marginTop: 24 }}>
-          {/* {current < steps.length - 1 && (
+          <Steps current={current} items={items} />
+          {/* </div> */}
+          <div className={styles.stepsContent}>
+            {steps[current].content}
+            <div style={{ marginTop: 24 }}>
+              {/* {current < steps.length - 1 && (
             <Button type="primary" onClick={() => next()}>
               Next
             </Button>
@@ -148,14 +153,18 @@ const StudentRegister: React.FC = () => {
             <Button type="primary" disabled>
               Next
             </Button>
-          )} */ }
-          {current === steps.length-1 && (
-            <Button size="large" style={{width: "100%" }} onClick={() => prev()}>
-              Previous
-            </Button>
-          )}
-          
-          {/* {current === 0 && (
+          )} */}
+              {current === steps.length - 1 && (
+                <Button
+                  size="large"
+                  style={{ width: "100%" }}
+                  onClick={() => prev()}
+                >
+                  Previous
+                </Button>
+              )}
+
+              {/* {current === 0 && (
             <Button style={{ margin: '0 8px' }} disabled>
               Previous
             </Button>
@@ -169,6 +178,7 @@ const StudentRegister: React.FC = () => {
           {activeStep === 2 && (
             <AcademicDetails handleSubmit={handleSubmitAcademicDetails} />
           )} */}
+            </div>
           </div>
         </div>
       </div>

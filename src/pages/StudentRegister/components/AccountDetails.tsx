@@ -248,7 +248,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       {Verified && (
         <>
           <Form.Item>
-            <Input
+            <Input.Password
               size="large"
               required
               id="password"
@@ -276,53 +276,24 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
             />
           </Form.Item>
 
-{Verified && 
-          <>
-              <Form.Item>
-              <Input.Password
-                size="large"
-                required
-                id="password"
-                // autoComplete="new-password"
-                // value={values.password}
-                // error={errors.password}
-                // helperText={helperTexts.password}
-                type="password"
-                onChange={handleChangeValues}
-                placeholder="Password"
-                />
-              </Form.Item>
-              <Form.Item>
-                <Input
-                  size="large"
-                  required
-                  id="confirmPassword"
-                  autoComplete="new-password"
-                  // value={values.confirmPassword}
-                  // error={errors.confirmPassword}
-                  // helperText={helperTexts.confirmPassword}
-                  type="password"
-                  onChange={handleChangeValues}
-                  placeholder="Confirm Password"
-                />
-              </Form.Item>
-              
-              <Form.Item>
-                <Input
-                  size="large"
-                  required
-                  id="joiningCode"
-                  // value={values.joiningCode}
-                  // error={errors.joiningCode}
-                  // helperText={helperTexts.joiningCode}
-                  type="text"
-                  onChange={handleChangeValues}
-                  placeholder="Joining Code"
-                  />
-              </Form.Item>
-            <Button size="large" type="primary" htmlType="submit">Next</Button>
-          </>
-        }
+          <Form.Item>
+            <Input
+              size="large"
+              required
+              id="joiningCode"
+              // value={values.joiningCode}
+              // error={errors.joiningCode}
+              // helperText={helperTexts.joiningCode}
+              type="text"
+              onChange={handleChangeValues}
+              placeholder="Joining Code"
+            />
+          </Form.Item>
+          <Button size="large" type="primary" htmlType="submit">
+            Next
+          </Button>
+        </>
+      )}
     </form>
   );
 };
