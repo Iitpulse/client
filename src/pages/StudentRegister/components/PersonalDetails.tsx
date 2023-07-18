@@ -98,6 +98,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    message.loading({ content: "Logging in", key: "loader" });
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
     let finalValues: PersonalDetailsValues = {
@@ -121,6 +122,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
       return;
     }
     handleSubmit(isValid.data);
+    message.destroy("loader");
   }
 
   const [showTextField, setShowTextField] = useState(false);

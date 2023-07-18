@@ -79,6 +79,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    message.loading({ content: "Logging in", key: "loader" });
     if(values.password.length == 0 || values.confirmPassword.length == 0 || values.joiningCode.length == 0 ) return;
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
@@ -114,6 +115,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
       return;
     }
     handleSubmit(isValid.data);
+    message.destroy("loader");
   }
 
   const [showTextField, setShowTextField] = useState(false);
@@ -123,7 +125,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
   const handleGenerate = async (
     e: any
   ) => {
-    // e.preventDefault();
+    e.preventDefault();
     if(values.email.length === 0) return;
     const resEmail = values.email.toLowerCase();
     setValues((prevState)=>({...prevState, email:resEmail}));

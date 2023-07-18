@@ -41,6 +41,7 @@ interface QuestionProps {
   totalAppeared: number;
   correctAnswersTest: Array<string>;
   selectedOptions: Array<string>;
+  markingScheme: any;
   // totalStudentAttempted?: number;
 }
 const Question = (props: QuestionProps) => {
@@ -63,6 +64,7 @@ const Question = (props: QuestionProps) => {
     averageTimeTakenInSeconds,
     timeTakenInSeconds,
     totalAppeared,
+    markingScheme
     // totalStudentAttempted,
   } = props;
   //   console.log({ correctAnswersTest });
@@ -164,6 +166,10 @@ const Question = (props: QuestionProps) => {
           </Menu> */}
           <div className={styles.moreInfo}>
             <div className={styles.leftMI}>
+              <p>Correct marks : +
+                {markingScheme.correct.sort().reverse().map((val:any)=>val).join(", +")}
+              
+              </p>
               <p>Time Taken : {timeTakenInSeconds?.toFixed(2) || 0}s</p>
               <p>
                 Average Time Taken :{" "}
@@ -171,6 +177,7 @@ const Question = (props: QuestionProps) => {
               </p>
             </div>
             <div className={styles.rightMI}>
+              <p>Incorrect marks : {markingScheme.incorrect}</p>
               <p>Quickest Response : {quickestResponse?.toFixed(2) || 0}s</p>
               <p>
                 Attempted By :{" "}
