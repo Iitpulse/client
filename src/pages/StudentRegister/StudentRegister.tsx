@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./StudentRegister.module.scss";
 import { Stepper, Step, StepButton } from "@mui/material";
-import { Button, message, Steps, theme } from 'antd';
+import { Button, message, Steps, theme } from "antd";
 import AccountDetails, {
   AccountDetailsValues,
 } from "./components/AccountDetails";
@@ -13,11 +13,11 @@ import AcademicDetails, {
 } from "./components/AcademicDetails";
 import { API_USERS } from "../../utils/api/config";
 import logo from "../../assets/images/logo.svg";
-
-
+import { useNavigate } from "react-router";
 
 const StudentRegister: React.FC = () => {
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
   const [values, setValues] = useState({
     accountDetails: {} as AccountDetailsValues,
     personalDetails: {} as PersonalDetailsValues,
@@ -78,18 +78,14 @@ const StudentRegister: React.FC = () => {
 
   async function createStudentAccount(finalVals: any) {
     try {
-      const res = await API_USERS().post(`/student/create`, finalVals);
+      const res = await API_USERS().post(`/student/create-student`, finalVals);
       message.success("Student account created successfully");
+      navigate("/login");
     } catch (error) {
       console.log("ERROR_CREATING_STUDENT_ACCOUNT", error);
       message.error("Error creating student account");
     }
   }
-
-  const onChange = (value: number) => {
-    console.log('onChange:', value);
-    setCurrent(value);
-  };
 
   const next = () => {
     setCurrent(current + 1);
@@ -116,13 +112,13 @@ const StudentRegister: React.FC = () => {
 
   return (
     <>
-    <div className={styles.container}>
-      <nav className={styles.flexRow}>
-        <img src={logo} alt="logo" />
-      </nav>
-      <div className={styles.content}>
-        <h2>Student Registration</h2>
-        {/* <div className={styles.stepsHeader}> */}
+      <div className={styles.container}>
+        <nav className={styles.flexRow}>
+          <img src={logo} alt="logo" />
+        </nav>
+        <div className={styles.content}>
+          <h2>Student Registration</h2>
+          {/* <div className={styles.stepsHeader}> */}
           {/* <Stepper nonLinear activeStep={activeStep}>
             {stepsHeader.map((label, index) => (
               <Step key={label} completed={activeStep > index}>
@@ -138,11 +134,11 @@ const StudentRegister: React.FC = () => {
             ))}
           </Stepper> */}
           {/* <Steps current={current} items={items} /> */}
-        <Steps current={current} onChange={onChange} items={items}/>
-        {/* </div> */}
-        <div className={styles.stepsContent}>
-        {steps[current].content}
-        {/* <div style={{ marginTop: 24 }}>
+          <Steps current={current} items={items} />
+          {/* </div> */}
+          <div className={styles.stepsContent}>
+            {steps[current].content}
+            {/* <div style={{ marginTop: 24 }}>
           {current < steps.length - 1 && (
             <Button type="primary" onClick={() => next()}>
               Next
@@ -164,7 +160,7 @@ const StudentRegister: React.FC = () => {
             </Button>
           )}
         </div> */}
-          {/* {activeStep === 0 && (
+            {/* {activeStep === 0 && (
             <AccountDetails handleSubmit={handleSubmitAccountDetails} />
           )}
           {activeStep === 1 && (
@@ -173,9 +169,9 @@ const StudentRegister: React.FC = () => {
           {activeStep === 2 && (
             <AcademicDetails handleSubmit={handleSubmitAcademicDetails} />
           )} */}
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

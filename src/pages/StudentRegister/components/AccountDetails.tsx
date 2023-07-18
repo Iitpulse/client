@@ -79,6 +79,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    message.loading({ content: "Logging in", key: "loader" });
     if (
       values.password.length == 0 ||
       values.confirmPassword.length == 0 ||
@@ -119,6 +120,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       return;
     }
     handleSubmit(isValid.data);
+    message.destroy("loader");
   }
 
   const [showTextField, setShowTextField] = useState(false);
@@ -126,7 +128,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [Verified, setVerified] = useState(false);
 
   const handleGenerate = async (e: any) => {
-    // e.preventDefault();
+    e.preventDefault();
     if (values.email.length === 0) return;
     const resEmail = values.email.toLowerCase();
     setValues((prevState) => ({ ...prevState, email: resEmail }));
@@ -245,51 +247,51 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
       {Verified && (
         <>
-          <Form>
-            <Form.Item>
-              <Input
-                size="large"
-                required
-                id="password"
-                // autoComplete="new-password"
-                // value={values.password}
-                // error={errors.password}
-                // helperText={helperTexts.password}
-                type="password"
-                onChange={handleChangeValues}
-                placeholder="Password"
-              />
-            </Form.Item>
-            <Form.Item>
-              <Input
-                size="large"
-                required
-                id="confirmPassword"
-                autoComplete="new-password"
-                // value={values.confirmPassword}
-                // error={errors.confirmPassword}
-                // helperText={helperTexts.confirmPassword}
-                type="password"
-                onChange={handleChangeValues}
-                placeholder="Confirm Password"
-              />
-            </Form.Item>
+          <Form.Item>
+            <Input
+              size="large"
+              required
+              id="password"
+              // autoComplete="new-password"
+              // value={values.password}
+              // error={errors.password}
+              // helperText={helperTexts.password}
+              type="password"
+              onChange={handleChangeValues}
+              placeholder="Password"
+            />
+          </Form.Item>
+          <Form.Item>
+            <Input
+              size="large"
+              required
+              id="confirmPassword"
+              autoComplete="new-password"
+              // value={values.confirmPassword}
+              // error={errors.confirmPassword}
+              // helperText={helperTexts.confirmPassword}
+              type="password"
+              onChange={handleChangeValues}
+              placeholder="Confirm Password"
+            />
+          </Form.Item>
 
-            <Form.Item>
-              <Input
-                size="large"
-                required
-                id="joiningCode"
-                // value={values.joiningCode}
-                // error={errors.joiningCode}
-                // helperText={helperTexts.joiningCode}
-                type="text"
-                onChange={handleChangeValues}
-                placeholder="Joining Code"
-              />
-            </Form.Item>
-            <Button type="primary">Next</Button>
-          </Form>
+          <Form.Item>
+            <Input
+              size="large"
+              required
+              id="joiningCode"
+              // value={values.joiningCode}
+              // error={errors.joiningCode}
+              // helperText={helperTexts.joiningCode}
+              type="text"
+              onChange={handleChangeValues}
+              placeholder="Joining Code"
+            />
+          </Form.Item>
+          <Button size="large" type="primary" htmlType="submit">
+            Next
+          </Button>
         </>
       )}
     </form>

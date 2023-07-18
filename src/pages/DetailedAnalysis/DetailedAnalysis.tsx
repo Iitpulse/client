@@ -681,6 +681,7 @@ const SubSection: React.FC<ISubSection> = ({
         setViewSol={setViewSol}
         key={question.id}
         count={questionIndex + 1}
+        markingScheme = {subSection.markingScheme}
       />
     </>
   );

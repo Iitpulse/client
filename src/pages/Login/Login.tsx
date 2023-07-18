@@ -1,33 +1,16 @@
-import { useState, useContext, useEffect } from "react";
-import { Button, InputField } from "../../components";
+import { useContext, useEffect } from "react";
 import styles from "./Login.module.scss";
 import { decodeToken } from "react-jwt";
-import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import logo from "../../assets/images/logo.svg";
-import { LinearProgress, TextField } from "@mui/material";
 import { API_USERS } from "../../utils/api/config";
 import { AUTH_TOKEN } from "../../utils/constants";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import InputAdornment from "@mui/material/InputAdornment";
-import { Visibility } from "@mui/icons-material";
-import { VisibilityOff } from "@mui/icons-material";
-import IconButton from "@mui/material/IconButton";
-import { Link } from "react-router-dom";
-import { message } from "antd";
+import { Button, Form, Input, message } from "antd";
 
 const Login = () => {
   const { currentUser, setCurrentUser } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   useEffect(() => {
     console.log(currentUser);
@@ -36,22 +19,22 @@ const Login = () => {
     }
   }, [currentUser]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    const resEmail = email.toLowerCase();
-    message.loading({ content: "Logging in", key: "loader" });
+  async function handleSubmit({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) {
+    let loading = message.loading({ content: "Logging in", key: "loader" });
     try {
       const response = await API_USERS().post(`/auth/login/`, {
-        email:resEmail,
+        email,
         password,
       });
 
-      console.log({ decoded: decodeToken(response.data.token), response });
-
       if (response.status === 200) {
         let decoded = decodeToken(response.data.token) as any;
-        console.log({ decoded });
         let newRoles: any = {};
         decoded?.roles?.forEach((role: any) => {
           newRoles[role.id] = {
@@ -67,22 +50,29 @@ const Login = () => {
           roles: newRoles,
         });
         localStorage.setItem(AUTH_TOKEN, response.data.token);
-        setLoading(false);
+        loading();
+        message.success("Logged in with " + decoded.email);
         navigate("/", { replace: true });
       } else {
       }
     } catch (error: any) {
       console.log("True error", error);
       if (error?.response?.data) {
-        setError(error.response.data.message);
+        loading();
         message.error(error.response.data.message);
       } else {
+        loading();
         message.error("Network Error");
-        setError("Network Error");
       }
-      setLoading(false);
     }
-    message.destroy("loader");
+  }
+
+  function handleClickSignup() {
+    navigate("/student-register", { replace: true });
+  }
+
+  function handleClickForgotPassword() {
+    navigate("/reset-password", { replace: true });
   }
 
   return (
@@ -90,74 +80,50 @@ const Login = () => {
       <div className={styles.formContainer}>
         <img src={logo} className={styles.logo} alt="iitpulse" />
         <p>Please enter your email and password</p>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            className={email.trim().length > 0 ? styles.whitebg : styles.graybg}
-            id="email"
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            type="email"
-            disabled={loading}
-            sx={{ m: 1, width: "42ch" }}
-          />
-          <FormControl sx={{ m: 1, width: "42ch" }} variant="outlined">
-            <InputLabel htmlFor="outlined-adornment-password">
-              Password
-            </InputLabel>
-            <OutlinedInput
-              className={
-                password.trim().length > 0 ? styles.whitebg : styles.graybg
-              }
-              id="outlined-adornment-password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              endAdornment={
-                <InputAdornment
-                  position="end"
-                  style={{ backgroundColor: "#F1F1F1" }}
-                >
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => {
-                      setShowPassword((state) => !state);
-                    }}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              }
+        <div>
+          <Form
+            name="login"
+            layout="vertical"
+            onFinish={handleSubmit}
+            autoComplete="off"
+            className={styles.form}
+          >
+            <Form.Item
+              label="Email"
+              name="email"
+              rules={[{ required: true, message: "Please input your email!" }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
               label="Password"
-              disabled={loading}
-            />
-          </FormControl>
-          {/* <TextField
-          id="password"
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type="password"
-          disabled={loading}
-        /> */}
-          <div className={styles.actionBtns}>
-            <Button title="Submit" type="submit" disabled={loading}>
-              Log in
-            </Button>
-            <Link to="/student-register">
+              name="password"
+              rules={[
+                { required: true, message: "Please input your password!" },
+              ]}
+            >
+              <Input.Password />
+            </Form.Item>
+            <Form.Item>
               <Button
-                title="signup"
-                type="button"
-                variant="outlined"
-                disabled={loading}
+                type="primary"
+                htmlType="submit"
+                className={styles.submitBtn}
               >
-                Sign up
+                Submit
               </Button>
-            </Link>
+            </Form.Item>
+          </Form>
+          <div className={styles.extras}>
+            <Button type="default" onClick={handleClickSignup}>
+              Sign Up
+            </Button>
+            <Button onClick={handleClickForgotPassword} type="link">
+              Forgot Password?
+            </Button>
           </div>
-          <Link to="/reset-password">Forgot your password?</Link>
-        </form>
+        </div>
       </div>
     </div>
   );

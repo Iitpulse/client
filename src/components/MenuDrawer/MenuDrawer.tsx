@@ -281,7 +281,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             {isCollapsed || <span>Roles</span>}
           </NavLink>
         )}
-        {
+        {hasPermissions?.hasRolePermission && (
           <NavLink
             to="/institutes"
             style={isCollapsed ? { width: "fit-content" } : {}}
@@ -304,7 +304,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             </div>{" "}
             {isCollapsed || <span>Intitutes</span>}
           </NavLink>
-        }
+        )}
         {
           <NavLink
             to="/subjects"

@@ -26,13 +26,13 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { API_USERS } from "../../../utils/api/config";
 
 const validateMessages = {
-  required: '${label} is required!',
+  required: "${label} is required!",
   types: {
-    email: '${label} is not a valid email!',
-    number: 'Not a valid number!',
+    email: "${label} is not a valid email!",
+    number: "Not a valid number!",
   },
   number: {
-    range: '${label} must be 10 digit',
+    range: "${label} must be 10 digit",
   },
 };
 
@@ -42,7 +42,7 @@ const PersonalDetailsSchema = z.object({
   city: z.string().max(50),
   state: z.string().max(50),
   gender: z.string(),
-  currentAddress: z.string().min(5).max(150),
+  address: z.string().min(5).max(150),
   parentName: z.string(),
   parentContact: z.string().length(10),
   contact: z.string().length(10),
@@ -56,7 +56,7 @@ const defaultState = {
   parentName: "",
   parentContact: "",
   contact: "",
-  currentAddress: "",
+  address: "",
 };
 
 function getErrorDefaultState(valuesObj: typeof defaultState) {
@@ -73,7 +73,6 @@ interface Props {
   handleSubmit: (values: PersonalDetailsValues) => void;
 }
 
-
 const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [gender, setGender] = useState("");
   const [values, setValues] = useState(defaultState);
@@ -89,7 +88,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
     console.log(values);
   }
 
-  const onChangee: DatePickerProps['onChange'] = (date, dateString) => {
+  const onChangee: DatePickerProps["onChange"] = (date, dateString) => {
     setValues((prevState) => ({
       ...prevState,
       ["dob"]: dateString,
@@ -97,7 +96,8 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   };
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    // e.preventDefault();
+    message.loading({ content: "Logging in", key: "loader" });
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
     let finalValues: PersonalDetailsValues = {
@@ -121,6 +121,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
       return;
     }
     handleSubmit(isValid.data);
+    message.destroy("loader");
   }
 
   const [showTextField, setShowTextField] = useState(false);
@@ -186,9 +187,13 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   });
 
   return (
-    <Form onFinish={handleSubmitForm}  className={styles.regForm} validateMessages={validateMessages}>
+    <Form
+      onFinish={handleSubmitForm}
+      className={styles.regForm}
+      validateMessages={validateMessages}
+    >
       <div className={styles.regFormGrid}>
-        <Form.Item name="Name" rules={[{required:true}]}>
+        <Form.Item name="Name" rules={[{ required: true }]}>
           <Input
             size="large"
             id="name"
@@ -199,13 +204,9 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
             // variant="outlined"
           />
         </Form.Item>
-        
-        <Form.Item name="Gender" rules={[{required:true}]}>
-          <Select
-            size="large"
-            placeholder="Gender"
-            onChange={setGender}
-          >
+
+        <Form.Item name="Gender" rules={[{ required: true }]}>
+          <Select size="large" placeholder="Gender" onChange={setGender}>
             <Option value="male">Male</Option>
             <Option value="female">Female</Option>
             <Option value="other">Other</Option>
@@ -227,10 +228,16 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           label="Date of Birth"
           variant="outlined"
         /> */}
-        <Form.Item name="Date of Birth" rules={[{required:true}]}>
-          <DatePicker style={{ width: '100%' }} id="dob" size="large" placeholder="Date of Birth" onChange={onChangee}/>
+        <Form.Item name="Date of Birth" rules={[{ required: true }]}>
+          <DatePicker
+            style={{ width: "100%" }}
+            id="dob"
+            size="large"
+            placeholder="Date of Birth"
+            onChange={onChangee}
+          />
         </Form.Item>
-        <Form.Item name="City" rules={[{required:true}]}>  
+        <Form.Item name="City" rules={[{ required: true }]}>
           <Input
             size="large"
             id="city"
@@ -252,19 +259,24 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
 
-
-        <Form.Item name="State" rules={[{required:true}]}>
-          <Select size="large" id="state" placeholder="State" onChange={(e)=>{setValues((prevState)=>({...prevState, ["state"]:e}))}}>
-            {
-              INDIAN_STATES.map((e)=>(
-                <Select.Option key={e} value={e}>{e}</Select.Option>
-              ))
-            }
-          </Select>  
+        <Form.Item name="State" rules={[{ required: true }]}>
+          <Select
+            size="large"
+            id="state"
+            placeholder="State"
+            onChange={(e) => {
+              setValues((prevState) => ({ ...prevState, ["state"]: e }));
+            }}
+          >
+            {INDIAN_STATES.map((e) => (
+              <Select.Option key={e} value={e}>
+                {e}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
-
-        <Form.Item name="Parent Name" rules={[{required:true}]}>
+        <Form.Item name="Parent Name" rules={[{ required: true }]}>
           <Input
             size="large"
             id="parentName"
@@ -278,8 +290,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Form.Item>
 
-
-        <Form.Item name="Parent Contact" rules={[{required:true, type:"number",min:1000000000, max:999999999}]}>
+        <Form.Item name="Parent Contact" rules={[{ required: true }]}>
           <Input
             size="large"
             id="parentContact"
@@ -293,8 +304,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Form.Item>
 
-
-        <Form.Item name="Contact" rules={[{required:true, type:"number",min:1000000000, max:999999999}]}>
+        <Form.Item name="Contact" rules={[{ required: true }]}>
           <Input
             size="large"
             id="contact"
@@ -307,8 +317,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
             // variant="outlined"
           />
         </Form.Item>
-          
-        
+
         {/* <Button onClick={handleGenerate} disabled={Verified || showTextField}>
           {buttonText}
         </Button>
@@ -331,20 +340,19 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         )} */}
       </div>
       <div className={styles.regForm} style={{ marginTop: "0px" }}>
-
-      <Form.Item name="Current Address" rules={[{required:true}]}>
-        <Input
-          size="large"
-          id="currentAddress"
-          // value={values.currentAddress}
-          // error={errors.currentAddress}
-          // helperText={helperTexts.currentAddress}
-          type="text"
-          onChange={handleChangeValues}
-          placeholder="Current Address"
-          // variant="outlined"
-        />
-      </Form.Item>
+        <Form.Item name="Address" rules={[{ required: true }]}>
+          <Input
+            size="large"
+            id="address"
+            // value={values.currentAddress}
+            // error={errors.currentAddress}
+            // helperText={helperTexts.currentAddress}
+            type="text"
+            onChange={handleChangeValues}
+            placeholder="Address"
+            // variant="outlined"
+          />
+        </Form.Item>
         {/* <StyledMUITextField
           required
           id="permanentAddress"
@@ -357,7 +365,9 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
       </div>
-      <Button size="large" htmlType="submit" type="primary">Next</Button>
+      <Button size="large" htmlType="submit" type="primary">
+        Next
+      </Button>
     </Form>
   );
 };
