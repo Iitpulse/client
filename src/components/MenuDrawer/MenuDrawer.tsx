@@ -283,6 +283,30 @@ const MenuDrawer = (props: MenuDrawerProps) => {
         )}
         {
           <NavLink
+            to="/institutes"
+            style={isCollapsed ? { width: "fit-content" } : {}}
+            className={({ isActive }) =>
+              isActive
+                ? clsx(
+                    styles.navLink,
+                    styles.activeNavLink,
+                    styles.activeNavLinkForRole
+                  )
+                : styles.navLink
+            }
+          >
+            <div className={styles.iconContainer}>
+              <HomeIcon
+                style={{
+                  fontSize: "1.2rem",
+                }}
+              />
+            </div>{" "}
+            {isCollapsed || <span>Intitutes</span>}
+          </NavLink>
+        }
+        {
+          <NavLink
             to="/subjects"
             style={isCollapsed ? { width: "fit-content" } : {}}
             className={({ isActive }) =>
