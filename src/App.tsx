@@ -35,6 +35,7 @@ import AddNewRole from "./pages/Roles/AddNewRole";
 import Subjects from "./pages/Subjects/Subjects";
 import Chapters from "./pages/Chapters/Chapters";
 import SubjectManagement from "./pages/SubjectsManagement/SubjectManagement";
+import Institutes from "./pages/Institutes/Institutes";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(
@@ -74,7 +75,16 @@ const App = () => {
                       element={
                         <PrivateRoute
                           component={SubjectManagement}
-                          name="Home"
+                          name="Misc"
+                        />
+                      }
+                    />
+                    <Route
+                      path="/institutes"
+                      element={
+                        <PrivateRoute
+                          component={Institutes}
+                          name="Institutes"
                         />
                       }
                     />

@@ -129,15 +129,50 @@ const Home = () => {
   const [open, setOpen] = React.useState(false);
   const [instituteDetailsData, setInstituteDetailsData] = useState({} as any);
   const handleClose = () => setOpen(false);
-
-  const { state, recentTest } = useContext(TestContext);
+  const [upcomingTests, setUpcomingTests] = useState<any>([]);
+  const [ongoingTests, setOngoingTests] = useState<any>([]);
+  const { state, recentTest, fetchTest } = useContext(TestContext);
   const [recentTestIdx, setrecentTestidx] = useState<any>(0);
   const [recentTestValue, setrecentTestValue] = useState<any>(
     recentTest?.at(0)?.name
   );
   const { currentUser } = useContext(AuthContext);
+  console.log({ currentUser });
+  const { activeTests } = state;
 
-  const { ongoingTests, activeTests } = state;
+  useEffect(() => {
+    if (fetchTest)
+      fetchTest("ongoing", false, (error, result) => {
+        console.log({ error, result });
+        setOngoingTests(
+          result
+            ?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
+            ?.filter(
+              (test) =>
+                !test.result.students.find(
+                  (student: any) => student._id === currentUser?.id
+                )
+            )
+        );
+      });
+    fetchTest("active", false, (error, result) => {
+      let upcomingTests = result?.filter(
+        (test: any) =>
+          new Date(test.validity.from).getTime() > new Date().getTime()
+      );
+      setUpcomingTests(
+        upcomingTests?.map((test: any) => ({
+          ...test,
+          key: test._id,
+          id: test._id,
+          name: test.name,
+          createdAt: test.createdAt,
+          status: test.status,
+          exam: test.exam,
+        }))
+      );
+    });
+  }, [currentUser]);
   useEffect(() => {
     const fetchInstituteDetails = async () => {
       try {
@@ -170,7 +205,10 @@ const Home = () => {
     }
     return data;
   }
-
+  console.log({
+    ongoingTests,
+    upcomingTests,
+  });
   return (
     <MainLayout name="Home">
       {currentUser?.userType === "student" ? (
@@ -183,7 +221,7 @@ const Home = () => {
                   styles={{ display: "flex", flexWrap: "wrap" }}
                   classes={[styles.upcomingTestCard]}
                 >
-                  {ongoingTests?.map((test, i) => (
+                  {upcomingTests?.map((test: any, i: number) => (
                     <ListItem
                       key={test.id}
                       id={test.id}
@@ -216,7 +254,7 @@ const Home = () => {
                   styles={{ display: "flex", flexWrap: "wrap" }}
                   classes={[styles.upcomingTestCard]}
                 >
-                  {ongoingTests?.map((test, i) => (
+                  {ongoingTests?.map((test: any, i: number) => (
                     <ListItem
                       key={test.id}
                       id={test.id}
@@ -364,7 +402,7 @@ const Home = () => {
                   styles={{ display: "flex", flexWrap: "wrap" }}
                   classes={[styles.upcomingTestCard]}
                 >
-                  {ongoingTests?.map((test, i) => (
+                  {ongoingTests?.map((test: any, i: number) => (
                     <ListItem
                       key={test.id}
                       id={test.id}
