@@ -1,7 +1,7 @@
 import styles from "./Institutes.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { API_QUESTIONS, API_TESTS } from "../../utils/api/config";
+import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api/config";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
 import { TestContext } from "../../utils/contexts/TestContext";
 import dayjs from "dayjs";
@@ -32,6 +32,7 @@ import {
   validateField,
 } from "../../utils/schemas";
 import { InstituteSchema } from "./utils/InstituteModel";
+import Title from "antd/es/typography/Title";
 // import {
 // import { API_QUESTIONS } from './../../utils/api/config';
 // Button,
@@ -87,9 +88,11 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
   const [form] = Form.useForm();
   const [values, setValues] = useState<any>({
     name: "",
-    subject: "",
-    chapter: "",
-    oldInstitute: "",
+    email: "",
+    address: "",
+    pocName: "",
+    pocEmail: "",
+    pocPhone: "",
   });
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const { currentUser } = useContext(AuthContext);
@@ -97,8 +100,11 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
 
   const conversionObject: any = {
     name: null,
-    subject: null,
-    chapter: null,
+    email: null,
+    address: null,
+    pocName: null,
+    pocEmail: null,
+    pocPhone: null,
   };
 
   function getRules(fieldName: any) {
@@ -115,11 +121,19 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
       console.log({ selectedInstitute });
       setValues({
         name: selectedInstitute?.name,
-        fullName: selectedInstitute?.fullName,
+        email: selectedInstitute?.email,
+        address: selectedInstitute?.address,
+        pocName: selectedInstitute?.poc?.name,
+        pocEmail: selectedInstitute?.poc?.email,
+        pocPhone: selectedInstitute?.poc?.phone?.toString(),
       });
       form.setFieldsValue({
         name: selectedInstitute?.name,
-        fullName: selectedInstitute?.fullName,
+        email: selectedInstitute?.email,
+        address: selectedInstitute?.address,
+        pocName: selectedInstitute?.poc?.name,
+        pocEmail: selectedInstitute?.poc?.email,
+        pocPhone: selectedInstitute?.poc?.phone?.toString(),
       });
     }
   }, [editMode, selectedInstitute]);
@@ -146,13 +160,33 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
       console.log({ result, subjectOptions });
 
       if (!editMode) {
-        const res = await API_TESTS().post(`/institute/create`, result);
-
+        const res = await API_USERS().post(`/institute/create`, {
+          name: result.name,
+          email: result.email,
+          address: result.address,
+          poc: {
+            name: result.pocName,
+            email: result.pocEmail,
+            phone: result.pocPhone,
+          },
+          members: {},
+          ...additionalValues,
+        });
+        console.log({ res });
         setInstitutes((prev: any) => [
           ...prev,
           {
             ...result,
-            _id: res?.data?._id,
+            name: result.name,
+            email: result.email,
+            address: result.address,
+            poc: {
+              name: result.pocName,
+              email: result.pocEmail,
+              phone: result.pocPhone,
+            },
+            _id: res?.data?.data?._id,
+            ...additionalValues,
           },
         ]);
         form.resetFields();
@@ -160,13 +194,36 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
       } else {
         console.log(selectedInstitute);
         result.id = selectedInstitute?._id;
-        const res = await API_TESTS().patch(`/institute/update`, result);
+        const res = await API_USERS().put(`/institute/update`, {
+          _id: selectedInstitute?._id,
+          name: result.name,
+          email: result.email,
+          address: result.address,
+          poc: {
+            name: result.pocName,
+            email: result.pocEmail,
+            phone: result.pocPhone,
+          },
+          modifiedAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
+        });
         setInstitutes((prev: any) => {
           const temp = [...prev];
           const index = temp.findIndex(
             (institute: any) => institute?._id === selectedInstitute?._id
           );
-          temp[index] = result;
+          temp[index] = {
+            ...temp[index],
+            ...result,
+            name: result.name,
+            email: result.email,
+            address: result.address,
+            poc: {
+              name: result.pocName,
+              email: result.pocEmail,
+              phone: result.pocPhone,
+            },
+            modifiedAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
+          };
           return temp;
         });
         message.success("Institute Updated Successfully");
@@ -198,6 +255,8 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
         onFinish={handleSubmit}
       >
         <div className={styles.inputFields}>
+          <h3>Institute Details</h3>
+          <Divider />
           <Form.Item name="name" rules={getRules("name")}>
             <Input
               id="name"
@@ -213,22 +272,85 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
               // variant="outlined"
             />
           </Form.Item>
-          <Form.Item name="fullName" rules={getRules("fullName")}>
+          <Form.Item name="email" rules={getRules("email")}>
             <Input
-              id="fullName"
+              id="email"
               size="large"
-              value={values.fullName}
+              value={values.email}
               onChange={(e) => {
                 setValues((prev: any) => ({
                   ...prev,
-                  ["fullName"]: e.target.value,
+                  ["email"]: e.target.value,
                 }));
               }}
-              placeholder="Institute Full Name"
+              placeholder="Institute Email"
               // variant="outlined"
             />
           </Form.Item>
-
+          <Form.Item name="address" rules={getRules("address")}>
+            <Input
+              id="address"
+              size="large"
+              value={values.email}
+              onChange={(e) => {
+                setValues((prev: any) => ({
+                  ...prev,
+                  ["address"]: e.target.value,
+                }));
+              }}
+              placeholder="Institute Address"
+              // variant="outlined"
+            />
+          </Form.Item>
+          <h3>
+            Point of Contact <small>(POC)</small>
+          </h3>
+          <Divider />
+          <Form.Item name="pocName" rules={getRules("pocName")}>
+            <Input
+              id="pocName"
+              size="large"
+              value={values.pocName}
+              onChange={(e) => {
+                setValues((prev: any) => ({
+                  ...prev,
+                  ["pocName"]: e.target.value,
+                }));
+              }}
+              placeholder="Name"
+              // variant="outlined"
+            />
+          </Form.Item>
+          <Form.Item name="pocEmail" rules={getRules("pocEmail")}>
+            <Input
+              id="pocEmail"
+              size="large"
+              value={values.pocEmail}
+              onChange={(e) => {
+                setValues((prev: any) => ({
+                  ...prev,
+                  ["pocEmail"]: e.target.value,
+                }));
+              }}
+              placeholder="Email"
+              // variant="outlined"
+            />
+          </Form.Item>
+          <Form.Item name="pocPhone" rules={getRules("pocPhone")}>
+            <Input
+              id="pocPhone"
+              size="large"
+              value={values.pocPhone}
+              onChange={(e) => {
+                setValues((prev: any) => ({
+                  ...prev,
+                  ["pocPhone"]: e.target.value,
+                }));
+              }}
+              placeholder="Phone"
+              // variant="outlined"
+            />
+          </Form.Item>
           <div className={styles.buttons}>
             <Button type="primary" htmlType="submit" disabled={submitDisabled}>
               Submit
