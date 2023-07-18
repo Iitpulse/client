@@ -35,28 +35,32 @@ function TabPanel(props: TabPanelProps) {
 
 const Test = () => {
   const [isGiven, setIsGiven] = useState<boolean>(false);
-  async function verifyTestSubmission(row:any){
-    console.log({row});
-    setLoading(true);
-    let studentId = row._id, testId = row.exam.id;
-    let sid = studentId;
-    if (!studentId) sid = currentUser?.id;
-    try {
-      const res = await API_TESTS().get(`/test/result/student`, {
-        params: {
-          testId,
-          studentId: sid,
-        },
-      });
-      // console.log("student result", res.data);
-      // console.log({ data: res.data });
-      setIsGiven(true)
-    } catch (error: any) {
-      // message.error(error?.response?.data?.message);
-      setIsGiven(false)
-    }
-    setLoading(false);
-  }
+
+  const userCtx = useContext(AuthContext);
+  console.log(userCtx);
+  // async function verifyTestSubmission(row: any) {
+  //   console.log({ row });
+  //   setLoading(true);
+  //   let studentId = row._id,
+  //     testId = row.exam.id;
+  //   let sid = studentId;
+  //   if (!studentId) sid = currentUser?.id;
+  //   try {
+  //     const res = await API_TESTS().get(`/test/result/student`, {
+  //       params: {
+  //         testId,
+  //         studentId: sid,
+  //       },
+  //     });
+  //     // console.log("student result", res.data);
+  //     // console.log({ data: res.data });
+  //     setIsGiven(true);
+  //   } catch (error: any) {
+  //     // message.error(error?.response?.data?.message);
+  //     setIsGiven(false);
+  //   }
+  //   setLoading(false);
+  // }
   const columns: any = [
     {
       title: "ID",
@@ -97,16 +101,30 @@ const Test = () => {
     {
       title: "Actions",
       fixed: "right",
-      onCell: verifyTestSubmission,
       render: (row: any) => (
-          <Button
-            onClick={() => {
-              console.log({ row });
-              navigate(`/test/result/${row.name}/${row.exam.name}/${row._id}`);
-            }}
-          >
-            View Result
-          </Button>
+        <>
+          {row?.result?.students?.find(
+            (user: any) => user._id === userCtx?.currentUser?.id
+          ) ? (
+            row.result.publishProps.type === "immediately" ||
+            row.result.publishProps.isPublished ? (
+              <Button
+                onClick={() => {
+                  console.log({ row });
+                  navigate(
+                    `/test/result/${row.name}/${row.exam.name}/${row._id}`
+                  );
+                }}
+              >
+                View Result
+              </Button>
+            ) : (
+              <p>Result not published yet</p>
+            )
+          ) : (
+            <p>Test Not given yet</p>
+          )}
+        </>
       ),
     },
   ];
@@ -137,7 +155,7 @@ const Test = () => {
   // Transfered above code from above the component to its inside to use navigate funtion inside colums array
 
   const [tab, setTab] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
 
   const navigate = useNavigate();
@@ -145,7 +163,6 @@ const Test = () => {
   const [data, setData] = useState<any>([]);
 
   const { state, fetchTest } = useContext(TestContext);
-  const userCtx = useContext(AuthContext);
   // console.log(userCtx);
   const roles = userCtx?.roles;
   let permissions: any = [];
@@ -153,28 +170,15 @@ const Test = () => {
     (role: any) => (permissions = [...permissions, ...role.permissions])
   );
   // console.log(permissions);
-  const { ongoingTests, activeTests, inactiveTests, expiredTests } = state;
-  const { currentUser } = useContext(AuthContext);
+  const { ongoingTests } = state;
 
   useEffect(() => {
-    setLoading(true);
-    if (fetchTest)
-      fetchTest("ongoing", false, (error, result) => {
-        setData(
-          result?.map((test: any) => ({
-            ...test,
-            key: test.id,
-            id: test.id,
-            name: test.name,
-            createdAt: test.createdAt,
-            status: test.status,
-            exam: test.exam,
-          }))
-        );
-        setLoading(false);
-      });
+    fetchTest("ongoing", false, (error, result) => {
+      setData(
+        result?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
+      );
+    });
   }, []);
-
 
   return (
     <MainLayout name="Ongoing Test">
