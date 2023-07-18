@@ -134,7 +134,7 @@ const Test = () => {
   useEffect(() => {
     setLoading(true);
     if (fetchTest)
-      fetchTest("ongoing", false, (error, result) => {
+      fetchTest("active", false, (error, result) => {
         setData(
           result?.map((test: any) => ({
             ...test,

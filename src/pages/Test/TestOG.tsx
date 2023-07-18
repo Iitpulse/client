@@ -9,6 +9,7 @@ import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";
 import { AuthContext } from "./../../utils/auth/AuthContext";
+import { API_TESTS } from "../../utils/api/config";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -33,6 +34,29 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const Test = () => {
+  const [isGiven, setIsGiven] = useState<boolean>(false);
+  async function verifyTestSubmission(row:any){
+    console.log({row});
+    setLoading(true);
+    let studentId = row._id, testId = row.exam.id;
+    let sid = studentId;
+    if (!studentId) sid = currentUser?.id;
+    try {
+      const res = await API_TESTS().get(`/test/result/student`, {
+        params: {
+          testId,
+          studentId: sid,
+        },
+      });
+      // console.log("student result", res.data);
+      // console.log({ data: res.data });
+      setIsGiven(true)
+    } catch (error: any) {
+      // message.error(error?.response?.data?.message);
+      setIsGiven(false)
+    }
+    setLoading(false);
+  }
   const columns: any = [
     {
       title: "ID",
@@ -73,15 +97,16 @@ const Test = () => {
     {
       title: "Actions",
       fixed: "right",
+      onCell: verifyTestSubmission,
       render: (row: any) => (
-        <Button
-          onClick={() => {
-            console.log({ row });
-            navigate(`/test/result/${row.name}/${row.exam.name}/${row._id}`);
-          }}
-        >
-          View Result
-        </Button>
+          <Button
+            onClick={() => {
+              console.log({ row });
+              navigate(`/test/result/${row.name}/${row.exam.name}/${row._id}`);
+            }}
+          >
+            View Result
+          </Button>
       ),
     },
   ];
@@ -149,6 +174,7 @@ const Test = () => {
         setLoading(false);
       });
   }, []);
+
 
   return (
     <MainLayout name="Ongoing Test">

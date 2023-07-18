@@ -33,6 +33,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
   totalQuestions,
   totalMarksSection,
 }) => {
+  // console.log("marks", totalMarksPerSection);
   const chartData = {
     labels: ["Correct", "Incorrect", "Unattemped"],
     datasets: [
@@ -74,10 +75,7 @@ const SubjectCard: React.FC<ISubjectCard> = ({
             </p>
           </div>
 
-          <CircularProgress
-            color={color}
-            progress={(marks / totalMarksSection) * 100}
-          />
+          {/* <CircularProgress color={color} progress={(marks / totalMarksSection) * 100} /> */}
         </div>
       </div>
       <div className={styles.content}>

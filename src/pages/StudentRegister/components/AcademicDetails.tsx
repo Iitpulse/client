@@ -80,6 +80,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     // e.preventDefault();
+    message.loading({ content: "Loading", key: "loader" });
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
     const finalValues: AcademicDetailsValues = {
@@ -105,6 +106,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
       return;
     }
     handleSubmit(isValid.data);
+    message.destroy("loader");
   }
 
   return (
