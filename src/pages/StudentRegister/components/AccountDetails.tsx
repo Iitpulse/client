@@ -239,7 +239,6 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
 
 {Verified && 
           <>
-            <Form>
               <Form.Item>
               <Input
                 size="large"
@@ -283,7 +282,6 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
                   />
               </Form.Item>
             <Button size="large" type="primary" htmlType="submit">Next</Button>
-            </Form>
           </>
         }
     </form>

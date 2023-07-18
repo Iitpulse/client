@@ -36,7 +36,7 @@ const StudentRegister: React.FC = () => {
       ...values,
       accountDetails: vals,
     });
-    setCurrent(1);
+    next();
   }
   function handleSubmitPersonalDetails(vals: PersonalDetailsValues) {
     console.log(vals);
@@ -44,7 +44,7 @@ const StudentRegister: React.FC = () => {
       ...values,
       personalDetails: vals,
     });
-    setCurrent(2);
+    next();
   }
   function handleSubmitAcademicDetails(vals: AcademicDetailsValues) {
     console.log(vals);

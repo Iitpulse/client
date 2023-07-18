@@ -29,7 +29,7 @@ const validateMessages = {
   required: '${label} is required!',
   types: {
     email: '${label} is not a valid email!',
-    number: 'Not a valid number!',
+    // number: 'Not a valid number!',
   },
   number: {
     range: '${label} must be 10 digit',
@@ -97,7 +97,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   };
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    // e.preventDefault();
     message.loading({ content: "Logging in", key: "loader" });
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
@@ -281,7 +281,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         </Form.Item>
 
 
-        <Form.Item name="Parent Contact" rules={[{required:true, type:"number",min:1000000000, max:999999999}]}>
+        <Form.Item name="Parent Contact" rules={[{required:true}]}>
           <Input
             size="large"
             id="parentContact"
@@ -296,7 +296,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         </Form.Item>
 
 
-        <Form.Item name="Contact" rules={[{required:true, type:"number",min:1000000000, max:999999999}]}>
+        <Form.Item name="Contact" rules={[{required:true}]}>
           <Input
             size="large"
             id="contact"
