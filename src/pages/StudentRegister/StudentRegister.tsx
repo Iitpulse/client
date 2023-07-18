@@ -36,7 +36,7 @@ const StudentRegister: React.FC = () => {
       ...values,
       accountDetails: vals,
     });
-    setCurrent(1);
+    next();
   }
   function handleSubmitPersonalDetails(vals: PersonalDetailsValues) {
     console.log(vals);
@@ -44,7 +44,7 @@ const StudentRegister: React.FC = () => {
       ...values,
       personalDetails: vals,
     });
-    setCurrent(2);
+    next();
   }
   function handleSubmitAcademicDetails(vals: AcademicDetailsValues) {
     console.log(vals);
@@ -105,7 +105,7 @@ const StudentRegister: React.FC = () => {
     },
     {
       title: "Academic Details",
-      content: <AcademicDetails handleSubmit={handleSubmitAcademicDetails} />,
+      content: <AcademicDetails handleSubmit={handleSubmitAcademicDetails} setPrev={prev}/>,
     },
   ];
   const items = steps.map((item) => ({ key: item.title, title: item.title }));
@@ -134,12 +134,12 @@ const StudentRegister: React.FC = () => {
             ))}
           </Stepper> */}
           {/* <Steps current={current} items={items} /> */}
-          <Steps current={current} items={items} />
-          {/* </div> */}
-          <div className={styles.stepsContent}>
-            {steps[current].content}
-            {/* <div style={{ marginTop: 24 }}>
-          {current < steps.length - 1 && (
+        <Steps current={current} items={items}/>
+        {/* </div> */}
+        <div className={styles.stepsContent}>
+        {steps[current].content}
+        <div style={{ marginTop: 24 }}>
+          {/* {current < steps.length - 1 && (
             <Button type="primary" onClick={() => next()}>
               Next
             </Button>
@@ -148,19 +148,19 @@ const StudentRegister: React.FC = () => {
             <Button type="primary" disabled>
               Next
             </Button>
-          )}
-          {current > 0 && (
-            <Button style={{ margin: '0 8px' }} onClick={() => prev()}>
+          )} */ }
+          {current === steps.length-1 && (
+            <Button size="large" style={{width: "100%" }} onClick={() => prev()}>
               Previous
             </Button>
           )}
-          {current === 0 && (
+          
+          {/* {current === 0 && (
             <Button style={{ margin: '0 8px' }} disabled>
               Previous
             </Button>
-          )}
-        </div> */}
-            {/* {activeStep === 0 && (
+        </div> 
+          {/* {activeStep === 0 && (
             <AccountDetails handleSubmit={handleSubmitAccountDetails} />
           )}
           {activeStep === 1 && (

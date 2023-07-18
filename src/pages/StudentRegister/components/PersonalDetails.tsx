@@ -28,8 +28,8 @@ import { API_USERS } from "../../../utils/api/config";
 const validateMessages = {
   required: "${label} is required!",
   types: {
-    email: "${label} is not a valid email!",
-    number: "Not a valid number!",
+    email: '${label} is not a valid email!',
+    // number: 'Not a valid number!',
   },
   number: {
     range: "${label} must be 10 digit",
@@ -97,7 +97,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     // e.preventDefault();
-    message.loading({ content: "Logging in", key: "loader" });
+    message.loading({ content: "Loading", key: "loader" });
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
     let finalValues: PersonalDetailsValues = {
@@ -228,14 +228,10 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           label="Date of Birth"
           variant="outlined"
         /> */}
-        <Form.Item name="Date of Birth" rules={[{ required: true }]}>
-          <DatePicker
-            style={{ width: "100%" }}
-            id="dob"
-            size="large"
-            placeholder="Date of Birth"
-            onChange={onChangee}
-          />
+        <Form.Item name="Date of Birth" rules={[{required:true}]}>
+          <DatePicker style={{ width: '100%' }} id="dob" size="large" placeholder="Date of Birth" onChange={onChangee} disabledDate={(current) => {
+                    return current && current.valueOf() > Date.now();
+                  }}/>
         </Form.Item>
         <Form.Item name="City" rules={[{ required: true }]}>
           <Input
@@ -259,21 +255,14 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
 
-        <Form.Item name="State" rules={[{ required: true }]}>
-          <Select
-            size="large"
-            id="state"
-            placeholder="State"
-            onChange={(e) => {
-              setValues((prevState) => ({ ...prevState, ["state"]: e }));
-            }}
-          >
-            {INDIAN_STATES.map((e) => (
-              <Select.Option key={e} value={e}>
-                {e}
-              </Select.Option>
-            ))}
-          </Select>
+        <Form.Item name="State" rules={[{required:true}]}>
+          <Select showSearch size="large" id="state" placeholder="State" onChange={(e)=>{setValues((prevState)=>({...prevState, ["state"]:e}))}}>
+            {
+              INDIAN_STATES.map((e)=>(
+                <Select.Option key={e} value={e}>{e}</Select.Option>
+              ))
+            }
+          </Select>  
         </Form.Item>
 
         <Form.Item name="Parent Name" rules={[{ required: true }]}>
@@ -290,7 +279,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Form.Item>
 
-        <Form.Item name="Parent Contact" rules={[{ required: true }]}>
+        <Form.Item name="Parent Contact" rules={[{required:true}]}>
           <Input
             size="large"
             id="parentContact"
@@ -304,7 +293,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Form.Item>
 
-        <Form.Item name="Contact" rules={[{ required: true }]}>
+        <Form.Item name="Contact" rules={[{required:true}]}>
           <Input
             size="large"
             id="contact"

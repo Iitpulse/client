@@ -46,9 +46,10 @@ export type AcademicDetailsValues = z.infer<typeof AcademicDetailsSchema>;
 
 interface Props {
   handleSubmit: (values: AcademicDetailsValues) => void;
+  setPrev: ()=>void;
 }
 
-const AcademicDetails: React.FC<Props> = ({ handleSubmit }) => {
+const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
   const [form] = Form.useForm();
   const [values, setValues] = useState(defaultState);
   const [errors, setErrors] = useState(getErrorDefaultState(defaultState));
