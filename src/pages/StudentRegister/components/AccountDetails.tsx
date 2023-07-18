@@ -240,7 +240,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
 {Verified && 
           <>
               <Form.Item>
-              <Input
+              <Input.Password
                 size="large"
                 required
                 id="password"
