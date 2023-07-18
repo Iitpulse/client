@@ -1,14 +1,40 @@
 import { StyledMUITextField } from "../../Users/components";
-import z from "zod";
-import { Button, StyledMUISelect } from "../../../components";
+import z, { number } from "zod";
+// import { Button, StyledMUISelect } from "../../../components";
 import { useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import { Grid } from "@mui/material";
+import {
+  Button,
+  Col,
+  DatePicker,
+  Divider,
+  Drawer,
+  Form,
+  Input,
+  Row,
+  Select,
+  DatePickerProps,
+  Space,
+  message,
+} from "antd";
+import { INDIAN_STATES } from "../../../utils/constants";
+const { Option } = Select;
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
-import { message } from "antd";
 import { API_USERS } from "../../../utils/api/config";
+
+const validateMessages = {
+  required: '${label} is required!',
+  types: {
+    email: '${label} is not a valid email!',
+    number: 'Not a valid number!',
+  },
+  number: {
+    range: '${label} must be 10 digit',
+  },
+};
 
 const PersonalDetailsSchema = z.object({
   name: z.string().min(3).max(50),
@@ -47,6 +73,7 @@ interface Props {
   handleSubmit: (values: PersonalDetailsValues) => void;
 }
 
+
 const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [gender, setGender] = useState("");
   const [values, setValues] = useState(defaultState);
@@ -59,7 +86,15 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
       ...prevState,
       [id]: value,
     }));
+    console.log(values);
   }
+
+  const onChangee: DatePickerProps['onChange'] = (date, dateString) => {
+    setValues((prevState) => ({
+      ...prevState,
+      ["dob"]: dateString,
+    }));
+  };
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -151,29 +186,33 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   });
 
   return (
-    <form onSubmit={handleSubmitForm} className={styles.regForm}>
+    <Form onFinish={handleSubmitForm}  className={styles.regForm} validateMessages={validateMessages}>
       <div className={styles.regFormGrid}>
-        <StyledMUITextField
-          id="name"
-          required
-          label="Name"
-          autoComplete="name"
-          value={values.name}
-          onChange={handleChangeValues}
-          variant="outlined"
-        />
-        <StyledMUISelect
-          options={[
-            { name: "male", value: "male" },
-            { name: "female", value: "female" },
-            { name: "other", value: "other" },
-          ]}
-          value={gender}
-          label="Gender"
-          onChange={setGender}
-        />
+        <Form.Item name="Name" rules={[{required:true}]}>
+          <Input
+            size="large"
+            id="name"
+            placeholder="Name"
+            // autoComplete="name"
+            value={values.name}
+            onChange={handleChangeValues}
+            // variant="outlined"
+          />
+        </Form.Item>
+        
+        <Form.Item name="Gender" rules={[{required:true}]}>
+          <Select
+            size="large"
+            placeholder="Gender"
+            onChange={setGender}
+          >
+            <Option value="male">Male</Option>
+            <Option value="female">Female</Option>
+            <Option value="other">Other</Option>
+          </Select>
+        </Form.Item>
 
-        <StyledMUITextField
+        {/* <StyledMUITextField
           required
           id="dob"
           inputProps={{
@@ -187,16 +226,21 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           onChange={handleChangeValues}
           label="Date of Birth"
           variant="outlined"
-        />
-        <StyledMUITextField
-          id="city"
-          required
-          label="City"
-          value={values.city}
-          onChange={handleChangeValues}
-          variant="outlined"
-        />
-        <StyledMUITextField
+        /> */}
+        <Form.Item name="Date of Birth" rules={[{required:true}]}>
+          <DatePicker style={{ width: '100%' }} id="dob" size="large" placeholder="Date of Birth" onChange={onChangee}/>
+        </Form.Item>
+        <Form.Item name="City" rules={[{required:true}]}>  
+          <Input
+            size="large"
+            id="city"
+            placeholder="City"
+            value={values.city}
+            onChange={handleChangeValues}
+            // variant="outlined"
+          />
+        </Form.Item>
+        {/* <StyledMUITextField
           required
           id="state"
           type="state"
@@ -206,44 +250,65 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           onChange={handleChangeValues}
           label="State"
           variant="outlined"
-        />
-        <StyledMUITextField
-          required
-          id="parentName"
-          value={values.parentName}
-          error={errors.parentName}
-          helperText={helperTexts.parentName}
-          type="text"
-          onChange={handleChangeValues}
-          label="Parent Name"
-          variant="outlined"
-        />
-        <StyledMUITextField
-          required
-          id="parentContact"
-          value={values.parentContact}
-          error={errors.parentContact}
-          helperText={helperTexts.parentContact}
-          type="number"
-          onChange={handleChangeValues}
-          label="Parent Contact Number"
-          variant="outlined"
-        />
+        /> */}
 
-        <ThemeProvider theme={theme}>
-          <StyledMUITextField
-            required
-            disabled={Verified}
-            id="contact"
-            value={values.contact}
-            error={errors.contact}
-            helperText={helperTexts.contact}
-            type="number"
+
+        <Form.Item name="State" rules={[{required:true}]}>
+          <Select size="large" id="state" placeholder="State" onChange={(e)=>{setValues((prevState)=>({...prevState, ["state"]:e}))}}>
+            {
+              INDIAN_STATES.map((e)=>(
+                <Select.Option key={e} value={e}>{e}</Select.Option>
+              ))
+            }
+          </Select>  
+        </Form.Item>
+
+
+        <Form.Item name="Parent Name" rules={[{required:true}]}>
+          <Input
+            size="large"
+            id="parentName"
+            // value={values.parentName}
+            // error={errors.parentName}
+            // helperText={helperTexts.parentName}
+            type="text"
             onChange={handleChangeValues}
-            label="Contact Number"
-            variant="outlined"
+            placeholder="Parent Name"
+            // variant="outlined"
           />
-        </ThemeProvider>
+        </Form.Item>
+
+
+        <Form.Item name="Parent Contact" rules={[{required:true, type:"number",min:1000000000, max:999999999}]}>
+          <Input
+            size="large"
+            id="parentContact"
+            // value={values.parentContact}
+            // error={errors.parentContact}
+            // helperText={helperTexts.parentContact}
+            // type="number"
+            onChange={handleChangeValues}
+            placeholder="Parent Contact Number"
+            // variant="outlined"
+          />
+        </Form.Item>
+
+
+        <Form.Item name="Contact" rules={[{required:true, type:"number",min:1000000000, max:999999999}]}>
+          <Input
+            size="large"
+            id="contact"
+            // value={values.contact}
+            // error={errors.contact}
+            // helperText={helperTexts.contact}
+            onChange={handleChangeValues}
+            // type="number"
+            placeholder="Contact Number"
+            // variant="outlined"
+          />
+        </Form.Item>
+          
+        
         {/* <Button onClick={handleGenerate} disabled={Verified || showTextField}>
           {buttonText}
         </Button>
@@ -266,17 +331,20 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         )} */}
       </div>
       <div className={styles.regForm} style={{ marginTop: "0px" }}>
-        <StyledMUITextField
-          required
+
+      <Form.Item name="Current Address" rules={[{required:true}]}>
+        <Input
+          size="large"
           id="currentAddress"
-          value={values.currentAddress}
-          error={errors.currentAddress}
-          helperText={helperTexts.currentAddress}
+          // value={values.currentAddress}
+          // error={errors.currentAddress}
+          // helperText={helperTexts.currentAddress}
           type="text"
           onChange={handleChangeValues}
-          label="Current Address"
-          variant="outlined"
+          placeholder="Current Address"
+          // variant="outlined"
         />
+      </Form.Item>
         {/* <StyledMUITextField
           required
           id="permanentAddress"
@@ -289,8 +357,8 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
       </div>
-      <Button type="submit">Next</Button>
-    </form>
+      <Button size="large" htmlType="submit" type="primary">Next</Button>
+    </Form>
   );
 };
 

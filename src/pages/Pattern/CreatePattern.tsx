@@ -9,13 +9,22 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS, TEST } from "../../utils/constants";
 import { Error } from "../";
-import { message } from "antd";
+import { AutoComplete, Input, InputNumber, Select, message } from "antd";
 import { API_TESTS } from "../../utils/api/config";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
-import { hasPatternPemissions } from "./utils";
+import { hasPatternPemissions, isPatternFormFilled } from "./utils";
 import MainLayout from "../../layouts/MainLayout";
 import Section from "./components/Section/Section";
+import { style } from "@mui/system";
+import { isTestFormFilled } from "../Test/utils/functions";
+
+const defaultState: any = {
+  name: "",
+  exam: "",
+  durationInMinutes: "",
+  sections: "",
+};
 
 const CreatePattern = () => {
   const isReadPermitted = usePermission(PERMISSIONS.PATTERN.READ);
@@ -33,9 +42,10 @@ const CreatePattern = () => {
   // const [subjects, setSubjects] = useState([]);
 
   const [name, setName] = useState("");
-  const [exam, setExam] = useState("");
+  const [exam, setExam] = useState<string | undefined>(undefined);
   const [durationInMinutes, setDurationInMinutes] = useState("");
 
+  const [helperTexts, setHelperTexts] = useState<any>(defaultState);
   useEffect(() => {
     async function fetchPattern() {
       setLoading(true);
@@ -85,7 +95,7 @@ const CreatePattern = () => {
       {
         ...TEST.SAMPLE_SECTION,
         id: `${Math.random() * 100}`,
-        exam: exam,
+        exam: exam || "",
         subject: "physics",
       },
     ]);
@@ -104,8 +114,18 @@ const CreatePattern = () => {
   async function handleClickSubmit() {
     let areErrors: boolean = false;
     try {
+      isPatternFormFilled(setHelperTexts, defaultState, {
+        name,
+        exam: exam || "",
+        durationInMinutes,
+        sections,
+      });
       if (!currentUser) {
         message.error("User not found");
+        return;
+      }
+      if (!name) {
+        message.error("Pattern Name is required");
         return;
       }
       if (!durationInMinutes) {
@@ -116,17 +136,13 @@ const CreatePattern = () => {
         message.error("Exam is required");
         return;
       }
-      if (!name) {
-        message.error("Pattern Name is required");
-        return;
-      }
 
       if (!sections.length) {
         message.error("Atleast 1 section is required");
         return;
       }
       const pattern: IPattern = {
-        id: `${currentUser.instituteId}_${name
+        _id: `${currentUser.instituteId}_${name
           .replace(/ /g, "")
           .toUpperCase()}`,
         name,
@@ -164,6 +180,19 @@ const CreatePattern = () => {
                 message.error(
                   <span>
                     Subsection name is required for{" "}
+                    <strong>Subsection {index + 1}</strong> inside Section{" "}
+                    <strong>{sec.name}</strong>
+                  </span>,
+                  5
+                );
+                areErrors = true;
+                return acc;
+              }
+              console.log({ curr });
+              if (curr.markingScheme.incorrect < 0) {
+                message.error(
+                  <span>
+                    Incorrect marks cannot be negative for{" "}
                     <strong>Subsection {index + 1}</strong> inside Section{" "}
                     <strong>{sec.name}</strong>
                   </span>,
@@ -236,6 +265,8 @@ const CreatePattern = () => {
         usedIn: [],
       };
       if (areErrors) return;
+      console.log({ pattern });
+
       //check if url contains new or edit
       if (patternId) {
         await API_TESTS().patch(`/pattern/update`, pattern, {
@@ -245,6 +276,10 @@ const CreatePattern = () => {
       } else {
         await API_TESTS().post(`/pattern/create`, pattern);
         message.success("Pattern created successfully");
+        setDurationInMinutes("");
+        setName("");
+        setExam("");
+        setSections([]);
       }
       // const res = await API_TESTS().post(`/pattern/create`, pattern);
       // message.success("Pattern created successfully");
@@ -253,7 +288,7 @@ const CreatePattern = () => {
       message.error("Error creating pattern");
     }
   }
-
+  console.log({ helperTexts });
   return (
     <MainLayout name="Create Pattern">
       {hasPatternPemissions(
@@ -273,20 +308,27 @@ const CreatePattern = () => {
           <>
             <section className={styles.container}>
               <div className={styles.header}>
-                <StyledMUITextField
+                <Input
+                  status={helperTexts.name !== "" ? "error" : undefined}
+                  type="text"
                   value={name}
-                  label="Name"
+                  size="large"
+                  placeholder="Name"
                   onChange={(e: any) => setName(e.target.value)}
                 />
-                <StyledMUITextField
-                  value={durationInMinutes}
+
+                <InputNumber
                   type="number"
-                  label="Duration (in Minutes)"
-                  onChange={(e: any) => setDurationInMinutes(e.target.value)}
+                  min={0}
+                  status={helperTexts.durationInMinutes !== "" ? "error" : ""}
+                  value={Number(durationInMinutes)}
+                  placeholder="Duration (in Minutes)"
+                  size="large"
+                  onChange={(e: any) => setDurationInMinutes(String(e))}
                 />
-                <MUISimpleAutocomplete
-                  label="Exam"
-                  onChange={setExam}
+                <Select
+                  status={helperTexts?.exam !== "" ? "error" : undefined}
+                  size="large"
                   options={
                     exams?.map((exam) => ({
                       name: exam.name,
@@ -295,11 +337,21 @@ const CreatePattern = () => {
                     })) || []
                   }
                   value={exam}
+                  title="Exam"
+                  placeholder="Exam"
+                  filterOption={(inputValue, option) =>
+                    option?.value
+                      .toUpperCase()
+                      .indexOf(inputValue.toUpperCase()) !== -1
+                  }
+                  onChange={(value) => setExam(value)}
+                  showSearch
                 />
               </div>
               <div className={styles.sections}>
                 {sections.map((section, i) => (
                   <Section
+                    helperTexts={helperTexts}
                     key={i}
                     handleDuplicateSection={handleDuplicateSection}
                     section={section}

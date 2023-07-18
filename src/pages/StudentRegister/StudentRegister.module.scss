@@ -6,7 +6,7 @@
   @extend .flexRow;
   justify-content: center;
   .content {
-    max-width: 500px;
+    max-width: 40%;
     width: 100%;
     h2 {
       text-align: center;
@@ -18,6 +18,12 @@
     @extend .flexCol;
     align-items: stretch;
     gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  .regForm2 {
+    @extend .flexCol;
+    align-items: stretch;
+    // gap: 1.5rem;
     margin-top: 2rem;
   }
   .regFormGrid {

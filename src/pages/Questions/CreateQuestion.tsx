@@ -287,7 +287,8 @@ const CreateQuestion = () => {
   }
   async function handleAddExam(exam: any) {
     const res = await API_TESTS().post("/exam/create", {
-      exam,
+      name: exam,
+      fullName: exam,
     });
     setExamOptions([...examOptions, res.data]);
     // console.log({ res });

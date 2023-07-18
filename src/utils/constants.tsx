@@ -10,6 +10,7 @@ import {
   WarningAmber,
   WarningAmberOutlined,
 } from "@mui/icons-material";
+import { TTestSchema } from "../pages/Test/utils/types";
 
 export const APIS = {
   USERS_API:
@@ -63,24 +64,24 @@ export const TEST = {
     totalQuestions: 1,
     toBeAttempted: 1,
     markingScheme: {
-      correct: 1,
+      correct: [1],
       incorrect: 0,
     },
   },
 };
 
-export const SAMPLE_TEST = {
+export const SAMPLE_TEST: TTestSchema = {
   id: "",
   name: "",
   description: "",
   durationInMinutes: 0,
   sections: [],
+  batches: [],
   exam: {
     id: "",
     name: "",
-    fullName: "",
   },
-  status: "",
+  status: "Inactive",
   validity: {
     from: "",
     to: "",
@@ -94,11 +95,24 @@ export const SAMPLE_TEST = {
     averageMarks: null,
     averageCompletionTime: null,
     students: [],
+    publishProps: {
+      type: "immediately",
+      publishDate: null,
+      isPublished: false,
+      publishedBy: {
+        userType: "",
+        id: "",
+        name: "",
+      },
+    },
   },
   createdBy: {
     id: "",
-    name: "",
     userType: "",
+  },
+  pattern: {
+    id: "",
+    name: "",
   },
   createdAt: "",
   modifiedAt: "",
@@ -155,6 +169,13 @@ export const PERMISSIONS = {
     UPDATE: "UPDATE_ROLE",
     DELETE: "DELETE_ROLE",
   },
+};
+export const ROLES = {
+  ADMIN: "ROLE_ADMIN",
+  OPERATOR: "ROLE_OPERATOR",
+  STUDENT: "ROLE_STUDENT",
+  TEACHER: "ROLE_TEACHER",
+  MANAGER: "ROLE_MANAGER",
 };
 
 // export const SAMPLE_TEST = {
@@ -363,3 +384,6 @@ export const QUESTION_COLS_ALL = [
   //   ),
   // },
 ];
+
+
+export const INDIAN_STATES = [ "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana","Himachal Pradesh","Jammu and Kashmir","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttarakhand","Uttar Pradesh","West Bengal","Andaman and Nicobar Islands","Chandigarh","Dadra and Nagar Haveli","Daman and Diu","Delhi","Lakshadweep","Puducherry"]

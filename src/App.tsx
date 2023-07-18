@@ -18,6 +18,7 @@ import {
   DetailedAnalysis,
   StudentRegister,
   PasswordReset,
+  Profile,
 } from "./pages";
 import styles from "./App.module.scss";
 import AuthContextProvider from "./utils/auth/AuthContext";
@@ -30,6 +31,10 @@ import CreatePattern from "./pages/Pattern/CreatePattern";
 import CreateQuestion from "./pages/Questions/CreateQuestion";
 import "./App.css";
 import BulkWord from "./pages/Questions/BulkWord/BulkWord";
+import AddNewRole from "./pages/Roles/AddNewRole";
+import Subjects from "./pages/Subjects/Subjects";
+import Chapters from "./pages/Chapters/Chapters";
+import SubjectManagement from "./pages/SubjectsManagement/SubjectManagement";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(
@@ -65,6 +70,16 @@ const App = () => {
                       element={<PrivateRoute component={Home} name="Home" />}
                     />
                     <Route
+                      path="/subjects"
+                      element={
+                        <PrivateRoute
+                          component={SubjectManagement}
+                          name="Home"
+                        />
+                      }
+                    />
+
+                    <Route
                       path="/questions/new-bulk-word"
                       element={
                         <PrivateRoute
@@ -84,6 +99,21 @@ const App = () => {
                       //   Batches,
                       //   "Batches"
                       // )}
+                    />
+                    {/* <Route
+                      path="/batches/new"
+                      element={
+                        <PrivateRoute
+                          component={CreateNewBatch}
+                          name="Create Batches"
+                        />
+                      }
+                    /> */}
+                    <Route
+                      path="/profile/:userId"
+                      element={
+                        <PrivateRoute component={Profile} name="Profile" />
+                      }
                     />
                     <Route
                       path="/pattern"

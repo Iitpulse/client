@@ -18,6 +18,8 @@ import { API_USERS } from "../../../utils/api/config";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import AddNewOperator from "./AddNewOperator";
+import { set } from "zod";
 
 const Operators: React.FC<{
   activeTab: number;
@@ -27,9 +29,14 @@ const Operators: React.FC<{
   loading: boolean;
 }> = ({ activeTab, operator, openModal, handleCloseModal, loading }) => {
   // const data: any = [];
-  const { operators } = useContext(UsersContext);
+  const { operators, fetchOperators } = useContext(UsersContext);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+  const [edit, setEdit] = useState<any>(false);
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  useEffect(() => {
+    setIsDrawerOpen(openModal);
+  }, [openModal]);
   const columns: any = [
     {
       title: "View",
@@ -70,22 +77,51 @@ const Operators: React.FC<{
       ),
     },
     {
-      title: "Batch",
-      dataIndex: "batch",
-      // width: 100,
-      render: (text: string) => (
-        <span style={{ textTransform: "capitalize" }}> {text}</span>
-      ),
-    },
-    {
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
     },
   ];
-
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/operator/${current?._id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchOperators();
+        message.success("User deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting User");
+    }
+  };
   return (
     <div className={styles.container}>
+      {!edit && (
+        <AddNewOperator
+          open={isDrawerOpen}
+          setOpen={handleCloseModal}
+          operator={operator}
+          title="Add an Operator"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewOperator
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            handleCloseModal();
+            setIsDrawerOpen(false);
+          }}
+          operator={operator}
+          title="Edit an Operator"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -93,13 +129,16 @@ const Operators: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsSidebarOpen(false);
+                setIsDrawerOpen(true);
+              }}
+            >
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <img src={deleteIcon} alt="Delete" />
               </IconButton>
@@ -118,9 +157,9 @@ const Operators: React.FC<{
         dataSource={operators as any}
         loading={loading}
       />
-      {openModal && activeTab === 3 && (
+      {/* {openModal && activeTab === 3 && (
         <Operator operator={operator} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };
@@ -134,11 +173,14 @@ const Operator: React.FC<{
   const { uploadedBy, handleReset } = props.operator;
 
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([
+    { name: "Operator", value: "ROLE_OPERATOR" },
+  ]);
   const [rolesInfo, setRolesInfo] = useState({
     options: [],
     actual: [],
   });
+  console.log({ rolesInfo });
   const [error, setError] = useState("");
   const [helperTextObj, setHelperTextObj] = useState({
     email: {
@@ -413,7 +455,7 @@ const Operator: React.FC<{
                   value={roles}
                 />
               </Grid>
-              <Grid item xs={12} md={12} lg={12} xl={8}>
+              {/* <Grid item xs={12} md={12} lg={12} xl={8}>
                 <StyledMUITextField
                   required
                   className="largeWidthInput"
@@ -434,7 +476,7 @@ const Operator: React.FC<{
                   label="Permanent Address"
                   variant="outlined"
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
           </div>
         </form>

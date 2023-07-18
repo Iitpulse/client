@@ -20,6 +20,7 @@ const Section: React.FC<{
   handleDeleteSection: (id: string) => void;
   handleDuplicateSection: (id: string) => void;
   index: number;
+  helperTexts?: any;
   subjects: Array<any>;
 }> = ({
   section,
@@ -28,6 +29,7 @@ const Section: React.FC<{
   index,
   subjects,
   handleDuplicateSection,
+  helperTexts,
 }) => {
   function handleChangeSubSection(id: string, data: any) {
     setSection(section.id, {
@@ -102,6 +104,7 @@ const Section: React.FC<{
           <CustomInputSection
             value={section.name}
             label="Name"
+            error={helperTexts[`sections.${index}.name`]}
             onChange={(e: any) =>
               setSection(section.id, { name: e.target.value })
             }
@@ -110,6 +113,7 @@ const Section: React.FC<{
             id="sction-subject"
             value={section.subject}
             label="Subject"
+            error={helperTexts[`sections.${index}.subject`]}
             onChange={(e: any) => {
               setSection(section.id, { subject: e.target.value });
             }}
@@ -148,6 +152,8 @@ const Section: React.FC<{
             setSubSection={handleChangeSubSection}
             handleDeleteSubSection={handleDeleteSubSection}
             index={i}
+            helperTexts={helperTexts}
+            sectionIndex={index}
           />
         ))}
         <div

@@ -48,18 +48,27 @@ import { API_USERS } from "../../../utils/api/config";
 import { DesktopDatePicker } from "@mui/lab";
 import { DeleteOutline, Edit, Face, Face3, Person } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import AddNewStudent from "./AddNewStudent";
 
 const Students: React.FC<{
   activeTab: number;
   student: UserProps;
-  openModal: boolean;
+  isDrawerOpen: boolean;
+  setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleCloseModal: () => void;
   loading: boolean;
-}> = ({ activeTab, student, openModal, handleCloseModal, loading }) => {
-  const { students } = useContext(UsersContext);
+}> = ({
+  activeTab,
+  student,
+  isDrawerOpen,
+  setIsDrawerOpen,
+  handleCloseModal,
+  loading,
+}) => {
+  const { students, fetchStudents } = useContext(UsersContext);
   const [currentStudent, setCurrentStudent] = useState<any>(null);
   const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
-
+  const [edit, setEdit] = useState<any>(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<any>(null);
@@ -323,6 +332,20 @@ const Students: React.FC<{
   //   fetchStudents();
   // }, []);
   console.log({ students });
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/student/${currentStudent?.id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchStudents();
+        message.success("Student deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting student");
+    }
+  };
   return (
     <div className={styles.container}>
       <CustomTable
@@ -332,13 +355,36 @@ const Students: React.FC<{
         loading={loading}
         scroll={{ x: 200, y: "50vh" }}
       />
-      {openModal && activeTab === 0 && (
-        <Student
-          title="Add a Student"
+
+      {!edit && activeTab === 0 && (
+        <AddNewStudent
+          edit={false}
+          current={null}
+          open={isDrawerOpen}
+          setOpen={setIsDrawerOpen}
           student={student}
+          title="Add a Student"
           handleCloseModal={handleCloseModal}
         />
       )}
+      {edit && activeTab === 0 && (
+        <AddNewStudent
+          edit={true}
+          current={currentStudent}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            setIsDrawerOpen(false);
+          }}
+          student={student}
+          title="Edit a Student"
+          handleCloseModal={() => {
+            setEdit(false);
+            handleCloseModal();
+          }}
+        />
+      )}
+
       {isEditModalOpen && (
         <Student
           title="Edit a Student"
@@ -353,13 +399,17 @@ const Students: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                console.log({ currentStudent });
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <DeleteOutline />
                 {/* <img src={deleteIcon} alt="Delete" /> */}
@@ -425,7 +475,10 @@ export const Student: React.FC<{
     options: [],
     actual: [],
   });
+  const [batches, setBatches] = useState([]);
+
   const [error, setError] = useState("");
+
   const [helperTextObj, setHelperTextObj] = useState({
     email: {
       error: false,
@@ -471,10 +524,34 @@ export const Student: React.FC<{
       },
     },
   });
-  const [roles, setRoles] = useState([]);
-
+  const [roles, setRoles] = useState([
+    { name: "STUDENT", value: "ROLE_STUDENT" },
+  ]);
+  console.log({ roles });
   const { currentUser } = useContext(AuthContext);
+  useEffect(() => {
+    async function fetchBatch() {
+      setLoading(true);
+      try {
+        const res = await API_USERS().get(`/batch/get`);
+        console.log({ res });
+        setBatches(res?.data);
+      } catch (error) {
+        console.log("ERROR_FETCH_BATCH", error);
+        message.error("Error fetching batch");
+      }
+      setLoading(false);
+    }
 
+    if (currentUser?.id) {
+      fetchBatch();
+    }
+  }, [currentUser]);
+  let optionsForBatch = batches.map((item: any) => ({
+    ...item,
+    value: item.id,
+    label: item.name,
+  }));
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
     setValues({ ...values, [id]: value });
@@ -635,12 +712,16 @@ export const Student: React.FC<{
         newValues.confirmPassword = newValues.password;
         newValues.institute = currentUser?.instituteId;
         newValues.standard = parseInt(values?.standard?.value);
-        newValues.batch = values?.batch?.value;
-        newValues.roles = roles?.map((role: any) =>
-          rolesInfo?.actual?.find((roleInfo: any) => {
-            return roleInfo?.id === role?.value;
-          })
-        );
+        newValues.batch = values?.batch?.name;
+        console.log({ jc: values?.batch });
+        newValues.joiningCode = values?.batch?.joiningCode;
+        newValues.roles = roles
+          ?.filter((role: any) =>
+            rolesInfo?.actual?.find((roleInfo: any) => {
+              return roleInfo?.id === role?.value;
+            })
+          )
+          .map((role: any) => role?.value);
         newValues.createdAt = new Date().toISOString();
         newValues.modifiedAt = new Date().toISOString();
 
@@ -649,7 +730,10 @@ export const Student: React.FC<{
         // console.log({ newValues });
         const res = await API_USERS().post(`/student/create`, newValues);
         // console.log({ res });
-
+        if (res.status === 200) {
+          message.success("Student created successfully");
+          handleReset();
+        }
         setSuccess("Student created successfully");
         message.destroy();
         message.success("Student created successfully");
@@ -721,14 +805,12 @@ export const Student: React.FC<{
     { name: "12th", value: "12" },
     { name: "Dropper", value: "13" },
   ];
-  let optionsForBatch = [
-    { name: "TLP31", value: "TLP31" },
-    { name: "IOY12", value: "IOY12" },
-    { name: "SAB12", value: "SAB12" },
-  ];
+
   const userCtx = useContext(AuthContext);
+
   // console.log(userCtx);
   const rolesAllowed = userCtx?.roles;
+
   let permissions: any = [];
   Object.values(rolesAllowed).map(
     (role: any) => (permissions = [...permissions, ...role.permissions])

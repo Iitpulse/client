@@ -6,6 +6,9 @@
   box-sizing: border-box;
   font-family: "Poppins", sans-serif;
 }
+a {
+  text-decoration: none;
+}
 
 :root {
   --clr-primary: #61b4f1;
@@ -67,6 +70,9 @@ html {
 *::-webkit-scrollbar-thumb {
   background: rgb(194, 194, 194);
   border-radius: 0.5rem;
+}
+a {
+  text-decoration: none;
 }
 
 // Reduce the size of right side bar on 1400px and

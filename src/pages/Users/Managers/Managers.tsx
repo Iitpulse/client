@@ -18,6 +18,7 @@ import {
 import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
+import AddNewManager from "./AddNewManager";
 
 const Managers: React.FC<{
   activeTab: number;
@@ -26,9 +27,15 @@ const Managers: React.FC<{
   handleCloseModal: () => void;
   loading: boolean;
 }> = ({ activeTab, manager, openModal, handleCloseModal, loading }) => {
-  const { managers } = useContext(UsersContext);
+  const { managers, fetchManagers } = useContext(UsersContext);
   const [current, setCurrent] = useState<any>(null);
+  const [edit, setEdit] = useState<any>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+
+  useEffect(() => {
+    setIsDrawerOpen(openModal);
+  }, [openModal]);
   const columns: any = [
     {
       title: "View",
@@ -69,19 +76,25 @@ const Managers: React.FC<{
       ),
     },
     {
-      title: "Batch",
-      dataIndex: "batch",
-      // width: 100,
-      render: (text: string) => (
-        <span style={{ textTransform: "capitalize" }}> {text}</span>
-      ),
-    },
-    {
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
     },
   ];
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/manager/${current?._id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchManagers();
+        message.success("User deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting User");
+    }
+  };
   return (
     <div className={styles.container}>
       <CustomTable
@@ -89,6 +102,30 @@ const Managers: React.FC<{
         dataSource={managers as any}
         loading={loading}
       />
+      {!edit && (
+        <AddNewManager
+          open={isDrawerOpen}
+          setOpen={handleCloseModal}
+          manager={manager}
+          title="Add a Manager"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewManager
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            handleCloseModal();
+            setIsDrawerOpen(false);
+          }}
+          manager={manager}
+          title="Edit a Manager"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -96,13 +133,16 @@ const Managers: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <img src={deleteIcon} alt="Delete" />
               </IconButton>
@@ -116,9 +156,9 @@ const Managers: React.FC<{
           handleEditModal={() => {}}
         />
       </Sidebar>
-      {openModal && activeTab === 4 && (
+      {/* {openModal && activeTab === 4 && (
         <Manager manager={manager} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };
@@ -131,7 +171,12 @@ const Manager: React.FC<{
 }> = (props) => {
   const { uploadedBy, handleReset } = props.manager;
   const [values, setValues] = useState({} as any);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([
+    {
+      name: "Manager",
+      value: "ROLE_MANAGER",
+    },
+  ]);
   const { currentUser } = useContext(AuthContext);
   const [rolesInfo, setRolesInfo] = useState({
     options: [],
@@ -407,7 +452,7 @@ const Manager: React.FC<{
                   value={roles}
                 />
               </Grid>
-              <Grid item xs={12} md={12} lg={12} xl={8}>
+              {/* <Grid item xs={12} md={12} lg={12} xl={8}>
                 <StyledMUITextField
                   required
                   className="largeWidthInput"
@@ -428,7 +473,7 @@ const Manager: React.FC<{
                   label="Permanent Address"
                   variant="outlined"
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
           </div>
         </form>

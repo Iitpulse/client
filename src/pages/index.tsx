@@ -16,3 +16,4 @@ export { default as EditRole } from "./Roles/EditRole/EditRole";
 export { default as DetailedAnalysis } from "./DetailedAnalysis/DetailedAnalysis";
 export { default as StudentRegister } from "./StudentRegister/StudentRegister";
 export { default as PasswordReset } from "./PasswordReset/PasswordReset";
+export { default as Profile } from "./Profile/";

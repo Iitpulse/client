@@ -1,5 +1,5 @@
 import { IconButton } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CustomInputSection from "./CustomInputSection";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -10,6 +10,8 @@ interface IMarkingSchemeProps {
   subSectionId: string;
   type: string;
   setSubSection: (id: string, data: any) => void;
+  errorCorrect?: Array<string>;
+  errorIncorrect?: string;
 }
 
 const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
@@ -18,6 +20,8 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
   subSectionId,
   type,
   setSubSection,
+  errorCorrect,
+  errorIncorrect,
 }) => {
   const [markingSchemeCorrect, setMarkingSchemeCorrect] =
     useState<Array<number>>(vcorrect);
@@ -33,13 +37,22 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
     // console.log(arr);
     setMarkingSchemeCorrect([...arr]);
   };
+  useEffect(() => {
+    if (
+      (type === "single" || type === "integer") &&
+      markingSchemeCorrect?.length > 1
+    ) {
+      setMarkingSchemeCorrect([4]);
+    }
+  }, [type]);
   return (
     <>
       <CustomInputSection
+        error={errorIncorrect}
         value={markingSchemeIncorrect}
         label="Incorrect Marks"
         type="number"
-        inputProps={{ max: 0 }}
+        inputProps={{ min: 0 }}
         onChange={(e: any) => {
           console.log(vcorrect);
           setSubSection(subSectionId, {
@@ -54,6 +67,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
       {markingSchemeCorrect.map((correctMark: number, idx: number) => {
         return (
           <CustomInputSection
+            error={(errorCorrect && errorCorrect[idx]) || ""}
             value={correctMark}
             label={`Correct Marks ${idx ? idx + 1 : ""}`}
             type="number"

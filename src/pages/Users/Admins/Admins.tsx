@@ -5,7 +5,14 @@ import styles from "./Admins.module.scss";
 import { Button, CustomTable, Sidebar, UserProfile } from "../../../components";
 import { Grid, IconButton } from "@mui/material";
 import axios from "axios";
-import { Input, Space, Table, Button as AntButton, Popconfirm } from "antd";
+import {
+  Input,
+  Space,
+  Table,
+  Button as AntButton,
+  Popconfirm,
+  message,
+} from "antd";
 import { DataType, rowSelection } from "../Users";
 import { useContext, useEffect, useRef, useState } from "react";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
@@ -23,6 +30,7 @@ import {
 import { FilterConfirmProps } from "antd/lib/table/interface";
 import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
+import AddNewAdmin from "./AddNewAdmin";
 
 const Admins: React.FC<{
   activeTab: number;
@@ -36,7 +44,14 @@ const Admins: React.FC<{
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const searchInput = useRef<any>(null);
+  const [edit, setEdit] = useState<any>(false);
 
+  const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+
+  useEffect(() => {
+    setIsDrawerOpen(openModal);
+  }, [openModal]);
+  // const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleSearch = (
     selectedKeys: string[],
     confirm: (param?: FilterConfirmProps) => void,
@@ -172,22 +187,27 @@ const Admins: React.FC<{
       ),
     },
     {
-      title: "Batch",
-      dataIndex: "batch",
-      // width: 100,
-      render: (text: string) => (
-        <span style={{ textTransform: "capitalize" }}> {text}</span>
-      ),
-    },
-    {
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
     },
   ];
 
-  const { admins } = useContext(UsersContext);
-
+  const { admins, fetchAdmins } = useContext(UsersContext);
+  const deleteUser = async () => {
+    try {
+      const res = await API_USERS().delete(`/admin/${current?._id}`);
+      console.log({ res });
+      if (res.status === 200) {
+        setIsSidebarOpen(false);
+        fetchAdmins();
+        message.success("User deleted successfully");
+      }
+    } catch (error) {
+      console.log({ error });
+      message.error("Error deleting User");
+    }
+  };
   return (
     <div className={styles.container}>
       <CustomTable
@@ -196,6 +216,30 @@ const Admins: React.FC<{
         dataSource={admins as any}
         loading={loading}
       />
+      {!edit && (
+        <AddNewAdmin
+          open={isDrawerOpen}
+          setOpen={handleCloseModal}
+          admin={admin}
+          title="Add an Admin"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
+      {edit && (
+        <AddNewAdmin
+          edit={true}
+          current={current}
+          open={isDrawerOpen}
+          setOpen={() => {
+            setEdit(false);
+            handleCloseModal();
+            setIsDrawerOpen(false);
+          }}
+          admin={admin}
+          title="Edit an Admin"
+          handleCloseModal={handleCloseModal}
+        />
+      )}
       <Sidebar
         title=""
         open={isSidebarOpen}
@@ -203,13 +247,16 @@ const Admins: React.FC<{
         handleClose={() => setIsSidebarOpen(false)}
         extra={
           <div className={styles.flexRow}>
-            <IconButton onClick={() => setIsSidebarOpen(false)}>
+            <IconButton
+              onClick={() => {
+                setEdit(true);
+                setIsDrawerOpen(true);
+                setIsSidebarOpen(false);
+              }}
+            >
               <Edit />
             </IconButton>
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => setIsSidebarOpen(false)}
-            >
+            <Popconfirm title="Sure to delete?" onConfirm={deleteUser}>
               <IconButton>
                 <img src={deleteIcon} alt="Delete" />
               </IconButton>
@@ -223,9 +270,9 @@ const Admins: React.FC<{
           handleEditModal={() => {}}
         />
       </Sidebar>
-      {openModal && activeTab === 2 && (
+      {/* {openModal && activeTab === 2 && (
         <Admin admin={admin} handleCloseModal={handleCloseModal} />
-      )}
+      )} */}
     </div>
   );
 };

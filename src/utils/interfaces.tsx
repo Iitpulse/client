@@ -37,12 +37,17 @@ export interface IAuthContext {
   setRoles: (roles: any) => void;
   setCurrentUser: React.Dispatch<React.SetStateAction<ICurrentUser | null>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  userExists: () => boolean;
 }
 
 export interface ITestTable {
   id: string; //TT_AB123
   name: string;
   description: string;
+  batches: Array<{
+    id: string;
+    name: string;
+  }>;
   exam: {
     id: string;
     name: string;
@@ -67,10 +72,20 @@ export interface ITest extends ITestTable {
     studentsCount: number | null;
     locations: Array<string>;
   };
-  result?: {
+  result: {
     maxMarks: number | null;
     averageMarks: number | null;
     averageCompletionTime: number | null;
+    publishProps: {
+      type: string;
+      publishDate: string | null;
+      isPublished: boolean;
+      publishedBy: {
+        userType: string;
+        id: string;
+        name: string;
+      };
+    };
     students: Array<{
       name: string;
       id: string;
@@ -81,7 +96,7 @@ export interface ITest extends ITestTable {
 }
 
 export interface IPattern {
-  id: string; // PT_JEE_MAINS
+  _id: string; // PT_JEE_MAINS
   name: string;
   durationInMinutes: number;
   sections: Array<ISection>;

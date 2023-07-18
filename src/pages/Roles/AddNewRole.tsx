@@ -1,14 +1,27 @@
 import { useCallback, useContext, useRef, useState } from "react";
-import { InputField, Modal, Button, Sidebar } from "../../components";
+import { InputField, Modal, Sidebar } from "../../components";
 import styles from "./AddNewRole.module.scss";
 import { APIS, PERMISSIONS } from "../../utils/constants";
 import { Permission } from "./EditRole/EditRole";
 import axios from "axios";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_USERS } from "../../utils/api/config";
-import { message } from "antd";
 import { useNavigate } from "react-router";
 import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
+import MainLayout from "../../layouts/MainLayout";
+import {
+  Button,
+  Col,
+  DatePicker,
+  Divider,
+  Drawer,
+  Form,
+  Input,
+  Row,
+  Select,
+  Space,
+  message,
+} from "antd";
 
 export const flattendPermissions = () => {
   let final: any = [];
@@ -71,20 +84,20 @@ const AddNewRole: React.FC<{
                 new Event("submit", { cancelable: true, bubbles: true })
               );
           }}
-        >
+          type="primary"
+          >
           Submit
         </Button>
       }
     >
       <form className={styles.container} ref={formRef} onSubmit={handleSubmit}>
-        <InputField
+        <Input
           required
-          ref={inputRef}
-          type="text"
-          id="name"
-          value={name}
-          onChange={(e: any) => setName(e.target.value)}
-          label="Name"
+          size="large"
+          // value={name}
+          onChange={(e)=>{setName(e.target.value)}}
+          placeholder="Role Name"
+          // variant="outlined"
         />
       </form>
     </Sidebar>

@@ -9,6 +9,7 @@ interface IInputProps {
   placehodler?: string;
   inputProps?: any;
   id?: string;
+  error?: string;
 }
 
 const CustomInputSection: React.FC<IInputProps> = ({
@@ -19,11 +20,15 @@ const CustomInputSection: React.FC<IInputProps> = ({
   value,
   onChange,
   inputProps,
+  error,
 }) => {
   return (
     <div className={styles.customInput}>
       <label htmlFor={id}>{label}</label>
       <input
+        style={{
+          border: error?.length && error?.length > 0 ? "1px solid red" : "",
+        }}
         title={label}
         onChange={onChange}
         type={type}

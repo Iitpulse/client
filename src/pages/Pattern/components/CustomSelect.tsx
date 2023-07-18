@@ -10,6 +10,7 @@ interface ICustomSelectProps {
     label: string;
   }>;
   inputProps?: any;
+  error?: string;
 }
 
 const CustomSelect: React.FC<ICustomSelectProps> = ({
@@ -19,11 +20,19 @@ const CustomSelect: React.FC<ICustomSelectProps> = ({
   onChange,
   options,
   inputProps,
+  error,
 }) => {
   return (
     <div className={styles.customInput}>
       <label htmlFor={id}>{label}</label>
-      <select value={value} title={label} onChange={onChange}>
+      <select
+        style={{
+          border: error?.length && error?.length > 0 ? "1px solid red" : "",
+        }}
+        value={value}
+        title={label}
+        onChange={onChange}
+      >
         {options.map((option) => (
           <option key={option.label} value={option.value}>
             {option.label}

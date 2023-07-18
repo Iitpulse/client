@@ -1,26 +1,13 @@
 import styles from "./CreateTest.module.scss";
-import { Button, CreatableSelect, InputField, Sidebar } from "../../components";
+import { InputField } from "../../components";
 import { useContext, useEffect, useState } from "react";
-import {
-  ITest,
-  IPattern,
-  ISection,
-  ISubSection,
-  ITestQuestionObjective,
-} from "../../utils/interfaces";
+import { IPattern, ITestQuestionObjective } from "../../utils/interfaces";
 import {
   QUESTION_COLS_ALL,
   SAMPLE_TEST,
   TEST_GENERAL,
 } from "../../utils/constants";
-import { StyledMUITextField } from "../Users/components";
 import { IconButton } from "@mui/material";
-import {
-  CustomAccordion,
-  CustomAccordionDetails,
-  CustomAccordionSummary,
-} from "../Pattern/components/CustomAccordion";
-import MUISimpleAutocomplete from "./components/MUISimpleAutocomplete";
 import InsertQuestionModal from "./components/InsertQuestionModal";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
@@ -28,44 +15,60 @@ import { API_QUESTIONS, API_TESTS, API_USERS } from "../../utils/api/config";
 import CustomTable from "../../components/CustomTable/CustomTable";
 import { Delete, Visibility } from "@mui/icons-material";
 import { PreviewHTMLModal } from "../Questions/components";
-import { message, Popconfirm } from "antd";
-import { TestContext, useTestContext } from "../../utils/contexts/TestContext";
+import {
+  Button,
+  Collapse,
+  Form,
+  Input,
+  InputNumber,
+  message,
+  Popconfirm,
+  Select,
+} from "antd";
+import { useTestContext } from "../../utils/contexts/TestContext";
 import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
 import MainLayout from "../../layouts/MainLayout";
-import { ZodError, z } from "zod";
 import { getPublishDate, isTestFormFilled } from "./utils/functions";
-import { TestFormSchemaType } from "./utils/types";
+import {
+  TSectionSchema,
+  TSubSectionSchema,
+  TTestSchema,
+  TestFormSchemaType,
+} from "./utils/types";
 import { useLocation, useParams } from "react-router";
 import { MessageType } from "antd/es/message/interface";
 import dayjs from "dayjs";
+import { ThunderboltOutlined } from "@ant-design/icons";
 
 const statusOptions = [
   {
     name: "Ongoing",
-    value: "ongoing",
+    value: "Ongoing",
   },
   {
     name: "Active",
-    value: "active",
+    value: "Active",
   },
   {
     name: "Inactive",
-    value: "inactive",
+    value: "Inactive",
   },
 ];
 
 const defaultState: any = {
   nam: "",
   desc: "",
-  exam: "",
   batches: "",
   date: "",
   status: "",
-  pattern: "",
+  pattern: {
+    id: "",
+    name: "",
+  },
 };
 
 const CreateTest = () => {
-  const [test, setTest] = useState<ITest>(SAMPLE_TEST);
+  const [test, setTest] = useState<TTestSchema>(SAMPLE_TEST);
   const { id, name, description, exam, validity, sections } = test;
   const [pattern, setPattern] = useState<IPattern | null>(null);
   const [patternOptions, setPatternOptions] = useState<Array<IPattern>>([]);
@@ -84,7 +87,7 @@ const CreateTest = () => {
   const [testDateRange, setTestDateRange] = useState<Array<any>>([]);
   const [daysAfter, setDaysAfter] = useState(1);
 
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, userExists } = useContext(AuthContext);
   const { exams, fetchTestByID } = useTestContext();
   const { pathname } = useLocation();
   const { testId } = useParams();
@@ -95,11 +98,14 @@ const CreateTest = () => {
     setEditMode(pathname?.includes("edit"));
   }, [pathname]);
 
+  // console.log({ pattern, sections });
+
   useEffect(() => {
     async function fetchFullTest() {
       try {
         const res = await fetchTestByID(testId as string);
         const { data } = res;
+        console.log({ data });
         const {
           name,
           description,
@@ -110,7 +116,7 @@ const CreateTest = () => {
           publishType,
           status,
           daysAfter,
-          patternId,
+          pattern,
           ...rest
         } = data;
         setTest((prev) => ({
@@ -120,13 +126,17 @@ const CreateTest = () => {
           exam,
           validity,
           sections,
-          batches,
+          batches: batches?.map((batch: any) => ({
+            ...batch,
+            value: batch.name,
+          })),
           publishType,
           status,
           daysAfter,
-          patternId,
+          pattern,
           ...rest,
         }));
+        console.log({ batches });
         if (validity?.from && validity?.to) {
           setTestDateRange([dayjs(validity?.from), dayjs(validity?.to)]);
         }
@@ -147,18 +157,13 @@ const CreateTest = () => {
         if (batches?.length) {
           setBatches(batches);
         }
-        if (patternId) {
-          let patternObj = patternOptions.find((pt) => pt.id === patternId);
+        console.log({ pattern, patternOptions });
+        if (pattern) {
+          let patternObj = patternOptions.find((pt) => pt?._id === pattern.id);
+          console.log({ patternObj });
           if (patternObj?.name) {
             // TODO: Resolve TS Issue, should not be any
-            setPattern((prev: any) => {
-              if (prev) {
-                return {
-                  ...prev,
-                  name: patternObj?.name,
-                };
-              }
-            });
+            setPattern(patternObj);
           }
         }
         if (sections) {
@@ -170,7 +175,7 @@ const CreateTest = () => {
     if (editMode && testId?.length) {
       fetchFullTest();
     }
-  }, [editMode, testId]);
+  }, [editMode, testId, patternOptions]);
 
   useEffect(() => {
     async function fetchBatch() {
@@ -219,8 +224,8 @@ const CreateTest = () => {
 
   const allQuestionsFilled = () => {
     let allFilled = true;
-    test.sections.forEach((section: ISection) => {
-      section.subSections.forEach((subSection: ISubSection) => {
+    test.sections.forEach((section) => {
+      section.subSections.forEach((subSection) => {
         if (!subSection?.questions) {
           allFilled = false;
         }
@@ -242,85 +247,87 @@ const CreateTest = () => {
   }
 
   async function handleClickSubmit() {
+    const creatingTest = message.loading(
+      `${editMode ? "Updating" : "Creating"} Test...`,
+      0
+    );
+    if (!userExists()) {
+      creatingTest();
+      return message.error("Please login to continue");
+    }
+
+    // console.log({ testDateRange });
+
+    let finalTest: TTestSchema = {
+      ...test,
+      exam: {
+        id: test.exam.id,
+        name: test.exam.name,
+      },
+      createdBy: {
+        id: currentUser?.id as string,
+        userType: currentUser?.userType as string,
+      },
+      validity: {
+        from: testDateRange[0] ? dayjs(testDateRange[0]).toISOString() : "",
+        to: testDateRange[1] ? dayjs(testDateRange[1]).toISOString() : "",
+      },
+      result: {
+        maxMarks: null,
+        averageMarks: null,
+        averageCompletionTime: null,
+        publishProps: {
+          type: publishType.value,
+          publishDate: getPublishDate(
+            publishType.value,
+            daysAfter,
+            testDateRange
+          ),
+          isPublished: false,
+        },
+        students: [],
+      },
+      pattern: {
+        name: pattern?.name ?? "",
+        id: pattern?._id ?? "",
+      },
+      createdAt: new Date().toISOString(),
+      modifiedAt: new Date().toISOString(),
+      durationInMinutes: editMode
+        ? test.durationInMinutes
+        : (pattern?.durationInMinutes as number),
+      batches: test.batches.map((batch) => ({
+        id: batch.id,
+        name: batch.name,
+      })),
+    };
+    if (editMode) {
+      finalTest.createdAt = test.createdAt;
+    }
+    console.log({ finalTest, editMode });
     if (
-      !isTestFormFilled(setHelperTexts, defaultState, {
-        test,
-        status,
-        testDateRange,
-        batches,
-        pattern,
-      }) &&
+      !isTestFormFilled(setHelperTexts, defaultState, finalTest) ||
       !allQuestionsFilled()
     ) {
+      creatingTest();
+      console.log({ helperTexts });
       return message.error("Please fill all the fields");
     }
-    if (currentUser) {
-      const creatingTest = message.loading("Updating Test", 0);
-      try {
-        let finalTest = {
-          ...test,
-          status: status.name,
-          createdBy: {
-            id: currentUser.id,
-            userType: currentUser.userType,
-          },
-          validity: {
-            from: dayjs(testDateRange[0]).toISOString(),
-            to: dayjs(testDateRange[1]).toISOString(),
-          },
-          result: {
-            publishProps: {
-              type: publishType.value,
-              publishDate: getPublishDate(
-                publishType.value,
-                daysAfter,
-                testDateRange
-              ),
-              isPublished: false,
-            },
-          },
-          createdAt: editMode ? test.createdAt : new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
-          durationInMinutes: editMode
-            ? test.durationInMinutes
-            : pattern?.durationInMinutes,
-          patternId: pattern?.id,
-          batches,
-        };
-
-        if (editMode) {
-          updateTest(finalTest, creatingTest);
-          return;
-        }
-
-        let response = await API_TESTS().post(`/test/create`, finalTest);
-        creatingTest();
-        message.success("Test Created Successfully");
-      } catch (error: any) {
-        creatingTest();
-        message.error("Error: " + error?.response?.data?.message);
+    try {
+      if (editMode) {
+        updateTest(finalTest, creatingTest);
+        return;
       }
-      // const id = ``
-    }
-  }
 
-  // function handleAddQuestion(
-  //   sectionId: string,
-  //   subSectionId: string,
-  //   question: any
-  // ) {
-  //   let newTest = { ...test };
-  //   newTest.sections.forEach((section: ISection) => {
-  //     if (section.id === sectionId) {
-  //       section.subSections.forEach((subSection: ISubSection) => {
-  //         if (subSection.id === subSectionId) {
-  //           subSection.questions[question.id] = question;
-  //         }
-  //       });
-  //     }
-  //   });
-  //   setTest(newTest);
-  // }
+      let response = await API_TESTS().post(`/test/create`, finalTest);
+      creatingTest();
+      message.success("Test Created Successfully");
+    } catch (error: any) {
+      creatingTest();
+      message.error("Error: " + error?.response?.data?.message);
+    }
+    // const id = ``
+  }
 
   function handleUpdateSection(sectionId: string, data: any) {
     setTest((prev) => ({
@@ -334,118 +341,211 @@ const CreateTest = () => {
     }));
   }
 
+  function getInputStatus(field: string | string[]) {
+    if (Array.isArray(field)) {
+      for (let i = 0; i < field.length; i++) {
+        if (helperTexts[field[i]]) {
+          return "error";
+        }
+      }
+      return "validating";
+    }
+    if (helperTexts[field]) {
+      return "error";
+    }
+    return "validating";
+  }
+
   return (
-    <MainLayout name="Create Test">
+    <MainLayout
+      name="Create Test"
+      menuActions={
+        <div className={styles.submitBtn}>
+          <Button onClick={handleClickSubmit} type="primary">
+            {editMode ? "Update Test" : "Create Test"}
+          </Button>
+        </div>
+      }
+    >
       <div className={styles.container}>
         <div className={styles.inputFields}>
-          {/* <StyledMUITextField
-            id="id"
-            label="Id"
-            value={id}
-            variant="outlined"
-            onChange={onChangeInput}
-          /> */}
-          <StyledMUITextField
-            id="name"
-            label="Name"
-            value={name}
-            variant="outlined"
-            helperText={helperTexts.nam}
-            onChange={onChangeInput}
-          />
-          <StyledMUITextField
-            id="description"
-            label="Description"
-            value={description}
-            variant="outlined"
-            helperText={helperTexts.desc}
-            onChange={onChangeInput}
-          />
-          <MUISimpleAutocomplete
-            label="Exam"
-            disabled={editMode}
-            onChange={(val: any) => {
-              console.log({ val });
-              onChangeInput({ target: { id: "exam", value: val } });
-            }}
-            options={exams?.map((exam) => ({
-              id: exam._id,
-              name: exam.name,
-              value: exam.name,
-            }))}
-            value={{ name: test.exam?.name, value: test.exam?.name }}
-          />
-          <CreatableSelect
-            multiple
-            onAddModalSubmit={() => {}}
-            options={batchesOptions}
-            setValue={setBatches}
-            value={batches}
-            label={"Batche(s)"}
-            id="batches"
-          />
-          <div className={styles.dateSelector}>
-            <CustomDateRangePicker
-              showTime={true}
-              onChange={(props: any) => setTestDateRange(props)}
-              value={testDateRange}
-            />
-          </div>
-          <MUISimpleAutocomplete
-            label="Status"
-            onChange={(val: any) => {
-              console.log({ val });
-              setStatus(val);
-            }}
-            options={statusOptions}
-            disabled={!Boolean(statusOptions.length)}
-            value={{
-              name: status?.name || "",
-              value: status?.value || "",
-            }}
-          />
-          <MUISimpleAutocomplete
-            label="Pattern"
-            onChange={(val: any) => setPattern(val)}
-            options={patternOptions?.map((pt) => ({
-              name: pt.name,
-              value: pt.name,
-            }))}
-            disabled={!Boolean(patternOptions.length) || editMode}
-            value={{
-              name: pattern?.name || "",
-              value: pattern?.name || "",
-            }}
-          />
-          <MUISimpleAutocomplete
-            label="Result Publish Type"
-            onChange={(val: any) => setPublishType(val)}
-            options={publishTypeOptions}
-            value={publishType}
-          />
-          {publishType.value === "autoAfterXDays" && (
-            <StyledMUITextField
-              id="daysAfter"
-              label="Publish after - Day(s)"
-              type="number"
-              value={daysAfter}
-              variant="outlined"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setDaysAfter(parseInt(e.target.value))
+          <Form layout="vertical" className={styles.form}>
+            <Form.Item
+              label="Name"
+              help={helperTexts.name}
+              validateStatus={getInputStatus("name")}
+            >
+              <Input
+                id="name"
+                onChange={onChangeInput}
+                value={test.name}
+                placeholder="Title for test"
+              />
+            </Form.Item>
+            <Form.Item
+              label="Description"
+              help={helperTexts.desc}
+              validateStatus={getInputStatus("desc")}
+            >
+              <Input
+                id="description"
+                placeholder="Small description for test"
+                onChange={onChangeInput}
+                value={test.description}
+              />
+            </Form.Item>
+            <Form.Item
+              label="Exam"
+              help={helperTexts?.["exam.name"] || helperTexts?.["exam.id"]}
+              validateStatus={getInputStatus(["exam.name", "exam.id"])}
+            >
+              <Select
+                allowClear
+                placeholder="Select Exam"
+                onChange={(val, option) => {
+                  console.log({ val, option });
+                  onChangeInput({ target: { id: "exam", value: option } });
+                }}
+                options={exams?.map((exam) => ({
+                  ...exam,
+                  id: exam._id,
+                  name: exam.name,
+                  value: exam.name,
+                }))}
+                disabled={editMode}
+                showSearch
+                value={test.exam?.name || null}
+                maxTagCount="responsive"
+                showArrow
+              />
+            </Form.Item>
+            <Form.Item
+              label="Batches"
+              help={helperTexts.batches}
+              validateStatus={getInputStatus("batches")}
+            >
+              <Select
+                mode="multiple"
+                allowClear
+                placeholder="Select Batches"
+                onChange={(vals, options) => {
+                  console.log({ vals, options });
+                  onChangeInput({ target: { id: "batches", value: options } });
+                }}
+                options={batchesOptions?.map((batch: any) => ({
+                  id: batch._id,
+                  name: batch.name,
+                  value: batch.name,
+                }))}
+                value={test.batches}
+                maxTagCount="responsive"
+                showArrow
+              />
+            </Form.Item>
+            <Form.Item
+              label="Validity"
+              help={
+                helperTexts?.["validity.from"] || helperTexts?.["validity.to"]
               }
-              inputProps={{ min: 1 }}
-            />
-          )}
+              validateStatus={getInputStatus(["validity.from", "validity.to"])}
+            >
+              <CustomDateRangePicker
+                showTime={true}
+                onChange={(props: any) => setTestDateRange(props)}
+                value={testDateRange}
+                disablePrevDates={true}
+              />
+            </Form.Item>
+            <Form.Item
+              label="Status"
+              help={helperTexts.status}
+              validateStatus={getInputStatus("status")}
+            >
+              <Select
+                placeholder="Select Status"
+                showSearch
+                onChange={(val) => {
+                  console.log({ val });
+                  onChangeInput({ target: { id: "status", value: val } });
+                }}
+                options={statusOptions}
+                value={test.status || null}
+              />
+            </Form.Item>
+            <Form.Item
+              label="Pattern"
+              help={
+                helperTexts?.["pattern.id"] || helperTexts?.["pattern.name"]
+              }
+              validateStatus={getInputStatus(["pattern.id", "pattern.name"])}
+            >
+              <Select
+                showSearch
+                placeholder="Select Pattern"
+                onChange={(_, val) => {
+                  console.log({ val });
+                  const option = val as { id: string; name: string };
+                  setPattern(
+                    patternOptions?.find((pt) => pt.name === option.name) ||
+                      null
+                  );
+                  setTest((prev) => ({
+                    ...prev,
+                    sections:
+                      patternOptions?.find((pt) => pt.name === option.name)
+                        ?.sections || [],
+                  }));
+                }}
+                disabled={!Boolean(patternOptions.length) || editMode}
+                options={patternOptions?.map((pt) => ({
+                  id: pt._id,
+                  name: pt.name,
+                  value: pt.name,
+                }))}
+                value={pattern?.name}
+              />
+            </Form.Item>
+            <Form.Item label="Result Publish Type">
+              <Select
+                showSearch
+                options={publishTypeOptions}
+                onChange={(val, option) => {
+                  const op = option as { name: string; value: string };
+                  setTest((prev) => ({
+                    ...prev,
+                    result: {
+                      ...prev.result,
+                      publishProps: {
+                        ...prev.result?.publishProps,
+                        type: val,
+                      },
+                    },
+                  }));
+                  setPublishType({ value: val, name: op.name });
+                }}
+                value={test.result?.publishProps?.type || null}
+              />
+            </Form.Item>
+            {publishType.value === "autoAfterXDays" && (
+              <Form.Item label="Publish after - Day(s)">
+                <InputNumber
+                  id="daysAfter"
+                  value={daysAfter}
+                  onChange={(val) => setDaysAfter(val as number)}
+                  min={1}
+                />
+              </Form.Item>
+            )}
+          </Form>
         </div>
         {sections && (editMode || pattern) && (
           <section className={styles.sections}>
-            {sections.map((section) => (
-              <Section
-                section={section}
-                key={section.id}
-                handleUpdateSection={handleUpdateSection}
-              />
-            ))}
+            {/* {sections.map((section) => ( */}
+            <Sections
+              sections={sections}
+              handleUpdateSection={handleUpdateSection}
+            />
+            {/* ))} */}
           </section>
         )}
         {!sections.length && (
@@ -453,11 +553,6 @@ const CreateTest = () => {
             Please select a pattern to create Test
           </p>
         )}
-        <div className={styles.submitBtn}>
-          <Button onClick={handleClickSubmit}>
-            {editMode ? "Update Test" : "Create Test"}
-          </Button>
-        </div>
       </div>
       {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
     </MainLayout>
@@ -466,64 +561,90 @@ const CreateTest = () => {
 
 export default CreateTest;
 
-const Section: React.FC<{
-  section: ISection;
+const Sections: React.FC<{
+  sections: TSectionSchema[];
   handleUpdateSection: (sectionId: string, data: any) => void;
-}> = ({ section, handleUpdateSection }) => {
-  const { name, subject, totalQuestions, toBeAttempted, subSections } = section;
+}> = ({ sections, handleUpdateSection }) => {
+  const [accordionItems, setAccordionItems] = useState<
+    Array<{
+      label: string;
+      key: string;
+      children: React.ReactNode;
+    }>
+  >([]);
 
-  console.log({ subject });
-
-  function handleUpdateSubSection(subSectionId: string, data: any) {
-    handleUpdateSection(section.id, {
-      subSections: section.subSections.map((subSection) => {
-        if (subSection.id === subSectionId) {
-          return { ...subSection, ...data };
-        }
-        return subSection;
-      }),
-    });
+  function handleUpdateSubSection(section: TSectionSchema) {
+    return (subSectionId: string, data: any) =>
+      handleUpdateSection(section.id, {
+        subSections: section.subSections.map((subSection) => {
+          if (subSection.id === subSectionId) {
+            return { ...subSection, ...data };
+          }
+          return subSection;
+        }),
+      });
   }
 
-  return (
-    <CustomAccordion className={styles.section}>
-      <CustomAccordionSummary>{name}</CustomAccordionSummary>
-      <CustomAccordionDetails>
-        <div className={styles.header}>
-          <div>
-            <span>Name</span>
-            <p>{name}</p>
-          </div>
-          <div>
-            <span>Subject</span>
-            <p>{subject}</p>
-          </div>
-          <div>
-            <span>Total Questions</span>
-            <p>{totalQuestions}</p>
-          </div>
-          <div>
-            <span>To Be Attempted</span>
-            <p>{toBeAttempted}</p>
-          </div>
-        </div>
-        <div className={styles.subSections}>
-          {subSections?.map((subSection: ISubSection) => (
-            <SubSection
-              key={subSection.id}
-              subSection={subSection}
-              handleUpdateSubSection={handleUpdateSubSection}
-              subject={subject}
-            />
-          ))}
-        </div>
-      </CustomAccordionDetails>
-    </CustomAccordion>
+  const HeaderEl: React.FC<{
+    name: string;
+    subject: string;
+    totalQuestions: number | null;
+    toBeAttempted: number | null;
+  }> = ({ name, subject, totalQuestions, toBeAttempted }) => (
+    <div className={styles.header}>
+      <div>
+        <span>Name</span>
+        <p>{name}</p>
+      </div>
+      <div>
+        <span>Subject</span>
+        <p>{subject}</p>
+      </div>
+      <div>
+        <span>Total Questions</span>
+        <p>{totalQuestions}</p>
+      </div>
+      <div>
+        <span>To Be Attempted</span>
+        <p>{toBeAttempted}</p>
+      </div>
+    </div>
   );
+
+  useEffect(() => {
+    setAccordionItems(
+      sections?.map((section, i) => ({
+        label: section.name,
+        key: i.toString(),
+        children: (
+          <>
+            <HeaderEl
+              name={section.name}
+              toBeAttempted={section.toBeAttempted}
+              totalQuestions={section.totalQuestions}
+              subject={section.subject}
+            />
+            <div className={styles.subSections}>
+              {section?.subSections?.map((subSection) => (
+                <SubSection
+                  key={subSection.id}
+                  subSection={subSection}
+                  handleUpdateSubSection={handleUpdateSubSection(section)}
+                  subject={section.subject}
+                />
+              ))}
+            </div>
+          </>
+        ),
+      }))
+    );
+  }, [sections]);
+
+  return <Collapse items={accordionItems} />;
 };
 
 const SubSection: React.FC<{
-  subSection: ISubSection;
+  subSection: TSubSectionSchema;
   handleUpdateSubSection: (subSectionId: string, data: any) => void;
   subject: string;
 }> = ({ subSection, handleUpdateSubSection, subject }) => {
@@ -572,13 +693,29 @@ const SubSection: React.FC<{
   });
 
   async function generateQuestions(type: string) {
-    setLoading(true);
+    // setLoading(true);
+    let areErrors = false;
     try {
       const rejectedQuestions = JSON.parse(
         localStorage.getItem(TEST_GENERAL.REJECTED_QUESTIONS) || "[]"
       );
       let res: any = null;
       if (type === "single" || type === "multiple") {
+        //Repeat the part below where it is applicable for a certain type
+        if (
+          parseInt(easy) + parseInt(medium) + parseInt(hard) !==
+          parseInt(totalQuestions?.toString() || "0")
+        ) {
+          areErrors = true;
+          message.error(
+            "Total Questions should be equal to sum of easy, medium and hard"
+          );
+        }
+        if (areErrors) {
+          return;
+        }
+        setLoading(true);
+        //Till here
         res = await API_QUESTIONS().get(`/mcq/autogenerate`, {
           params: {
             type,
@@ -610,6 +747,21 @@ const SubSection: React.FC<{
           questions: withAttemptedByForOptions,
         });
       } else if (type === "integer") {
+        //Repeat the part below where it is applicable for a certain type
+        if (
+          parseInt(easy) + parseInt(medium) + parseInt(hard) !==
+          parseInt(totalQuestions?.toString() || "0")
+        ) {
+          areErrors = true;
+          message.error(
+            "Total Questions should be equal to sum of easy, medium and hard"
+          );
+        }
+        if (areErrors) {
+          return;
+        }
+        setLoading(true);
+        //Till here
         res = await API_QUESTIONS().get(`/numerical/autogenerate`, {
           params: {
             type,
@@ -670,6 +822,17 @@ const SubSection: React.FC<{
     setQuestionModal(false);
   }
 
+  function getMaxAllowedCount(type: "easy" | "medium" | "hard") {
+    if (!totalQuestions) return 0;
+    if (type === "easy") {
+      return totalQuestions - parseInt(medium) - parseInt(hard);
+    } else if (type === "medium") {
+      return totalQuestions - parseInt(easy) - parseInt(hard);
+    } else if (type === "hard") {
+      return totalQuestions - parseInt(easy) - parseInt(medium);
+    }
+  }
+
   return (
     <div className={styles.subSection}>
       <div className={styles.header}>
@@ -697,48 +860,61 @@ const SubSection: React.FC<{
             onChange={() => {}}
             options={[]}
           /> */}
-          <div
+          <Button
             className={styles.addQuestion}
             onClick={() => setQuestionModal(true)}
+            type="dashed"
           >
-            + Add Question
-          </div>
-          <Button onClick={() => handleClickAutoGenerate(type)}>
+            + Click to Add Question
+          </Button>
+          <Button
+            onClick={() => handleClickAutoGenerate(type)}
+            type="primary"
+            icon={<ThunderboltOutlined />}
+          >
             Auto Generate
           </Button>
         </div>
-        <div className={styles.inputSection}>
-          <InputField
-            id="amt-easy"
-            type="number"
-            label="Easy"
-            required={true}
-            value={easy}
-            onChange={(e: any) => {
-              setEasy(e.target.value);
-            }}
-          />
-          <InputField
-            id="amt-medium"
-            type="number"
-            label="Medium"
-            required={true}
-            value={medium}
-            onChange={(e: any) => {
-              setMedium(e.target.value);
-            }}
-          />
-          <InputField
-            id="amt-hard"
-            type="number"
-            label="Hard"
-            required={true}
-            value={hard}
-            onChange={(e: any) => {
-              setHard(e.target.value);
-            }}
-          />
-        </div>
+        <Form layout="vertical" className={styles.inputSection}>
+          <Form.Item label="Easy" required>
+            <InputNumber
+              className={styles.inputNumber}
+              min={"0"}
+              max={getMaxAllowedCount("easy")?.toString()}
+              id="amt-easy"
+              value={easy}
+              onChange={(val) => {
+                setEasy(val ?? "");
+              }}
+            />
+          </Form.Item>
+          <Form.Item label="Medium" required>
+            <InputNumber
+              className={styles.inputNumber}
+              min={"0"}
+              max={getMaxAllowedCount("medium")?.toString()}
+              id="amt-medium"
+              required={true}
+              value={medium}
+              onChange={(val) => {
+                setMedium(val ?? "");
+              }}
+            />
+          </Form.Item>
+          <Form.Item label="Hard" required>
+            <InputNumber
+              className={styles.inputNumber}
+              min={"0"}
+              max={getMaxAllowedCount("hard")?.toString()}
+              id="amt-hard"
+              required={true}
+              value={hard}
+              onChange={(val) => {
+                setHard(val ?? "");
+              }}
+            />
+          </Form.Item>
+        </Form>
         <div className={styles.questionsList}>
           <CustomTable
             columns={
