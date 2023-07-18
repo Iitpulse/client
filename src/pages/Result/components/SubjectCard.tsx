@@ -39,13 +39,9 @@ const SubjectCard: React.FC<ISubjectCard> = ({
     datasets: [
       {
         label: "# of Votes",
-        data: [correct, incorrect, totalQuestions/3 - (correct+incorrect)],
+        data: [correct, incorrect, totalQuestions / 3 - (correct + incorrect)],
         backgroundColor: ["#54B435", "red", "#FBDF07"], //green, red, yellow
-        borderColor: [
-          "#54B435",
-          "red",
-          "#FBDF07",
-        ],
+        borderColor: ["#54B435", "red", "#FBDF07"],
         borderWidth: 1,
       },
     ],
@@ -88,7 +84,8 @@ const SubjectCard: React.FC<ISubjectCard> = ({
             Visited :<span className={styles.highlight}>{attempted}</span>{" "}
           </p>
           <p>
-            Attempted :<span className={styles.highlight}>{correct+incorrect}</span>{" "}
+            Attempted :
+            <span className={styles.highlight}>{correct + incorrect}</span>{" "}
           </p>
           <p>
             Correct :<span className={styles.highlight}>{correct}</span>{" "}
