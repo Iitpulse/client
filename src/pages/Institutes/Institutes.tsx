@@ -58,7 +58,7 @@ const Institutes = () => {
     async function fetchInstitutes() {
       setLoading(true);
       try {
-        const res = await API_TESTS().get(`/institute/all`);
+        const res = await API_USERS().get(`/institute/get`);
         console.log({ res });
         setData(res?.data);
       } catch (error) {
@@ -76,7 +76,11 @@ const Institutes = () => {
   const handleDeleteInstitutes = async (id: string) => {
     setLoading(true);
     try {
-      const res = await API_TESTS().delete(`/institute/delete/` + id);
+      const res = await API_USERS().delete(`/institute/delete/`, {
+        params: {
+          _id: id,
+        },
+      });
       if (res?.status === 200) {
         message.success("Successfully deleted Institute");
         setData((data) => data.filter((values: any) => values._id !== id));
@@ -103,7 +107,7 @@ const Institutes = () => {
       dataIndex: "modifiedAt",
       render: (text: any, record: any) => {
         console.log({ text, record });
-        return <p>{dayjs(text).format("DD-MM-YYYY")}</p>;
+        return <p>{text}</p>;
       },
     },
     {
@@ -111,9 +115,31 @@ const Institutes = () => {
       dataIndex: "createdAt",
       render: (text: any, record: any) => {
         console.log({ text, record });
-        return <p>{dayjs(text).format("DD-MM-YYYY")}</p>;
+        return <p>{text}</p>;
       },
     },
+    {
+      title: "Address",
+      dataIndex: "address",
+    },
+    {
+      title: "Person of Contact",
+      children: [
+        {
+          title: "Name",
+          render: (_: any, record: any) => <p>{record?.poc?.name}</p>,
+        },
+        {
+          title: "Email",
+          render: (text: any, record: any) => <p>{record?.poc?.email}</p>,
+        },
+        {
+          title: "Phone",
+          render: (text: any, record: any) => <p>{record?.poc?.phone}</p>,
+        },
+      ],
+    },
+
     {
       title: "Edit",
       key: "edit",
@@ -159,7 +185,7 @@ const Institutes = () => {
             alignItems: "center",
             justifyContent: "center",
           }}
-          onClick={() => setToggleSideBar(false)}
+          onClick={() => setToggleSideBar(true)}
           icon={<AddIcon />}
         >
           Create New
