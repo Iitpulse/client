@@ -7,23 +7,12 @@ import {
   HTMLAttributes,
 } from "react";
 import styles from "./Questions.module.scss";
-import {
-  Sidebar,
-  Button,
-  Card,
-  InputField,
-  CustomTable,
-} from "../../components";
+import { Sidebar, Card, CustomTable } from "../../components";
 import "react-quill/dist/quill.snow.css";
-import Objective from "./Objective/Objective";
-import Integer from "./Integer/Integer";
-import Paragraph from "./Paragraph/Paragraph";
-import { PreviewHTMLModal, QuestionsTable } from "./components";
-import MatrixMatch from "./MatrixMatch/MatrixMatch";
-import { IQuestionObjective, IQuestionInteger } from "../../utils/interfaces";
+import { PreviewHTMLModal } from "./components";
 import { AuthContext } from "../../utils/auth/AuthContext";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
-import { PERMISSIONS, QUESTION_COLS_ALL } from "../../utils/constants";
+import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "..";
 import { CSVLink } from "react-csv";
 import { useReactToPrint } from "react-to-print";
@@ -31,61 +20,40 @@ import { useNavigate } from "react-router-dom";
 import { Grid, IconButton } from "@mui/material";
 import logo from "../../assets/images/logo.svg";
 import { saveAs } from "file-saver";
-import {
-  CheckCircle,
-  DeleteOutline,
-  Visibility,
-  Warning,
-} from "@mui/icons-material";
 import RenderWithLatex from "../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../utils/api/config";
 import PrintIcon from "@mui/icons-material/Print";
-import sheetIcon from "../../assets/icons/sheets.svg";
 import MainLayout from "../../layouts/MainLayout";
-import { Badge, Divider, message, Select, Tag } from "antd";
+import { Divider, message, Select, Tag } from "antd";
 import { ToggleButton } from "../../components";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
-import Edit from "@mui/icons-material/Edit";
-import AddIcon from "@mui/icons-material/Add";
 import { getTopics } from "../../utils/constants";
 import { TestContext } from "../../utils/contexts/TestContext";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
-import { Input } from "antd";
-import CheckBox from "@mui/icons-material/CheckBox";
-import clsx from "clsx";
+import { Input, Button } from "antd";
 import RenderQuestion from "./components/DisplayQuestion/RenderQuestion";
+import {
+  CheckCircleFilled,
+  DeleteOutlined,
+  EditFilled,
+  EditOutlined,
+  FileExcelOutlined,
+  PlusOutlined,
+  WarningFilled,
+} from "@ant-design/icons";
 const { Search } = Input;
 
 export const questionTypes = [
   { name: "Objective", value: "objective" },
-  // { name: "Multiple Correct", value: "multiple" },
   { name: "Integer Type", value: "integer" },
   { name: "Paragraph", value: "paragraph" },
   { name: "Matrix Match", value: "matrix" },
 ];
 
-// export const topicOptions = [
-//   { name: `Coulomb's law`, value: "coulombsLaw" },
-//   { name: "Organic", value: "organic" },
-//   { name: "Hydrocarbons", value: "hydrocarbons" },
-//   { name: "Probability", value: "probability" },
-//   { name: "Tangets", value: "tangets" },
-//   { name: "Ideal Gas Equation", value: "idealGasEquation" },
-//   { name: "Dual Nature", value: "dualNature" },
-//   { name: "Normals", value: "normals" },
-//   { name: `Newton's Law of Motion`, value: "newtonsLawofMotion" },
-// ];
-
 export const difficultyLevels = [
   { name: "Easy", value: "Easy" },
   { name: "Medium", value: "Medium" },
   { name: "Hard", value: "Hard" },
-];
-
-export const sources = [
-  { name: "Bansal Classes", value: "bansalClasses" },
-  { name: "Allen", value: "allen" },
-  { name: "Catalyser", value: "catalyser" },
 ];
 
 export const examList = [
@@ -548,41 +516,29 @@ const Questions = () => {
                           <PrintIcon />
                         </IconButton> */}
 
-                        <IconButton>
-                          <CSVLink filename={"Questions.csv"} data={questions}>
-                            <img
-                              src={sheetIcon}
-                              width="21px"
-                              alt="Sheet"
-                              height="21px"
-                            />
-                          </CSVLink>
-                        </IconButton>
+                        <CSVLink filename={"Questions.csv"} data={questions}>
+                          <Button
+                            shape="circle"
+                            icon={<FileExcelOutlined />}
+                          ></Button>
+                        </CSVLink>
                       </div>
                       <Button
-                        variant="outlined"
+                        type="default"
                         onClick={() => navigate("/questions/new-bulk-word")}
                       >
                         Bulk Word
                       </Button>
                       &nbsp;
                       <Button
+                        type="primary"
                         onClick={() => navigate("/questions/new")}
-                        icon={<AddIcon />}
+                        icon={<PlusOutlined />}
                       >
                         Add New
                       </Button>
                     </div>
                   </div>
-                  {/* <InputField
-                    ref={globalSearchRef}
-                    id="globalSearch"
-                    label=""
-                    placeholder="Search Question"
-                    value={globalSearch}
-                    onChange={(e: any) => setGlobalSearch(e.target.value)}
-                    type="text"
-                  /> */}
 
                   <div className={styles.filters}>
                     <Select
@@ -690,15 +646,15 @@ const Questions = () => {
               }}
               width={"40%"}
               extra={
-                <IconButton
+                <Button
                   onClick={() =>
                     navigate(`/questions/edit/${previewData?.id}`, {
                       state: { type: previewData?.type },
                     })
                   }
-                >
-                  <Edit />
-                </IconButton>
+                  shape="circle"
+                  icon={<EditFilled />}
+                />
               }
             >
               {sidebarContent}
@@ -876,15 +832,14 @@ export const PreviewFullQuestion: React.FC<{
             cancelText="No"
             onConfirm={handleDeleteQuestion}
           >
-            <IconButton>
-              <DeleteOutline />
-            </IconButton>
+            <Button icon={<DeleteOutlined />} shape="circle" type="text" />
           </CustomPopConfirm>
         </div>
       )}
     </>
   );
 };
+
 const PrintTest: React.FC<{
   subject: string;
   chapter: string;
@@ -1172,21 +1127,22 @@ export const AllQuestionsTable: React.FC<{
                       <p>Proof Read</p>
                       <span>
                         {question.isProofRead ? (
-                          <CheckCircle color="success" />
+                          <CheckCircleFilled style={{ color: "green" }} />
                         ) : (
-                          <Warning color="error" />
+                          <WarningFilled style={{ color: "#ed9d1c" }} />
                         )}
                       </span>
                     </div>
-                    <IconButton
+                    <Button
                       onClick={() =>
                         navigate(`/questions/edit/${question?.id}`, {
                           state: { type: question?.type },
                         })
                       }
-                    >
-                      <Edit />
-                    </IconButton>
+                      shape="circle"
+                      type="text"
+                      icon={<EditOutlined />}
+                    />
                   </>
                 )}
                 <CustomPopConfirm
@@ -1195,9 +1151,11 @@ export const AllQuestionsTable: React.FC<{
                   cancelText="No"
                   onConfirm={() => handleDeleteQuestion(question)}
                 >
-                  <IconButton>
-                    <DeleteOutline />
-                  </IconButton>
+                  <Button
+                    icon={<DeleteOutlined />}
+                    shape="circle"
+                    type="text"
+                  />
                 </CustomPopConfirm>
               </div>
             </div>
