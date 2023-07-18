@@ -29,7 +29,7 @@ const Login = () => {
     let loading = message.loading({ content: "Logging in", key: "loader" });
     try {
       const response = await API_USERS().post(`/auth/login/`, {
-        email:resEmail,
+        email,
         password,
       });
 
