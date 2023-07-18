@@ -73,11 +73,7 @@ const Test = () => {
       title: "End Time",
       render: (row: any) => new Date(row.validity.to).toLocaleString(),
     },
-    {
-      title: "Created",
-      dataIndex: "createdAt",
-      render: (date: string) => new Date(date).toLocaleString(),
-    },
+
     {
       title: "Status",
       dataIndex: "status",

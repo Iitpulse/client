@@ -172,7 +172,7 @@ const Home = () => {
         }))
       );
     });
-  }, []);
+  }, [currentUser]);
   useEffect(() => {
     const fetchInstituteDetails = async () => {
       try {

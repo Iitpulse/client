@@ -90,9 +90,8 @@ const Test = () => {
       render: (exam: any) => exam.name,
     },
     {
-      title: "Created",
-      dataIndex: "createdAt",
-      render: (date: string) => new Date(date).toLocaleString(),
+      title: "Duration(in Mins)",
+      dataIndex: "durationInMinutes",
     },
     {
       title: "Status",
