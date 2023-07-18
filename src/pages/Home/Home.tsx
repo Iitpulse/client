@@ -1,11 +1,4 @@
-import {
-  Button,
-  InputField,
-  Card,
-  NotificationCard,
-  Sidebar,
-  StyledMUISelect,
-} from "../../components";
+import { Card } from "../../components";
 import styles from "./Home.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { Box, Grid, Skeleton } from "@mui/material";
@@ -13,10 +6,8 @@ import yellowFlag from "../../assets/icons/yellowFlag.svg";
 import blueUsers from "../../assets/icons/blueUsers.svg";
 import redWarning from "../../assets/icons/redWarning.svg";
 import greenCrown from "../../assets/icons/greenCrown.svg";
-import Users from "../../assets/icons/users.svg";
 import monitor from "../../assets/icons/monitor.svg";
 import edit from "../../assets/icons/edit.svg";
-import calendarImage from "../../assets/images/calendar.svg";
 import CustomModal from "../../components/CustomModal/CustomModal";
 import React from "react";
 import { TestContext } from "../../utils/contexts/TestContext";
@@ -27,6 +18,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import MainLayout from "../../layouts/MainLayout";
 import ScheduleCalendar from "./ScheduleCalendar/ScheduleCalendar";
 import { ITest } from "../../utils/interfaces";
+import { Select } from "antd";
 
 interface SubCardProps {
   title: string;
@@ -245,12 +237,13 @@ const Home = () => {
             <Grid item xl={12} lg={12} md={12} sm={12} xs={12}>
               <Card
                 actionBtn={
-                  <StyledMUISelect
-                    label={"Recent Tests"}
+                  <Select
                     options={recentTest.map((test) => ({
                       name: test.name,
                       value: test.name,
                     }))}
+                    placeholder="Recent Tests"
+                    style={{ width: "200px" }}
                     value={recentTestValue}
                     onChange={(e) => {
                       setrecentTestValue(e);
@@ -306,12 +299,13 @@ const Home = () => {
             <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
               <Card
                 actionBtn={
-                  <StyledMUISelect
-                    label={"Recent Tests"}
+                  <Select
                     options={recentTest.map((test) => ({
                       name: test.name,
                       value: test.name,
                     }))}
+                    placeholder="Recent Tests"
+                    style={{ width: "200px" }}
                     value={recentTestValue}
                     onChange={(e) => {
                       setrecentTestValue(e);
