@@ -24,8 +24,8 @@ import { API_USERS } from "../../../utils/api/config";
 const AccountDetailsSchema = z.object({
   email: z.string().email(),
   emailotp: z.string().length(6),
-  password: z.string().min(8).max(50),
-  confirmPassword: z.string().min(8).max(50),
+  password: z.string().min(6).max(50),
+  confirmPassword: z.string().min(6).max(50),
   joiningCode: z.string().length(6),
 });
 export type AccountDetailsValues = z.infer<typeof AccountDetailsSchema>;
@@ -129,6 +129,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   const handleGenerate = async (e: any) => {
     e.preventDefault();
+    message.loading({content: "Generating OTP", key:"generate_otp"});
     if (values.email.length === 0) return;
     const resEmail = values.email.toLowerCase();
     setValues((prevState) => ({ ...prevState, email: resEmail }));
@@ -136,9 +137,13 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       const response = await API_USERS().post(`/emailotp/generate`, {
         email: resEmail,
       });
-      message.loading({ content: response.data.message, key: "otp" });
+      message.destroy("generate_otp")
+      message.success({ content: response.data.message, key: "otp" });
     } catch (error) {
-      console.log({ error });
+      message.destroy("generate_otp")
+      // message.error({content: error?.response?.data?.message})
+      console.log({error});
+      return;
     }
 
     setTimeout(() => {
@@ -150,8 +155,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   const handleVerify = async (e: any) => {
     e.preventDefault();
     const resEmail = values.email.toLowerCase();
-    setValues((prevState) => ({ ...prevState, email: resEmail }));
-    try {
+    setValues((prevState)=>({...prevState, email:resEmail}));
+    try{
       const response = await API_USERS().post(`/emailotp/verify`, {
         email: resEmail,
         emailotp: values.emailotp,
@@ -163,8 +168,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         setVerified(true);
         setButtonText("Verified");
       }
-    } catch (error) {
-      console.log({ error });
+    } catch(error) {
+      console.log({error});
     }
 
     setTimeout(() => {
