@@ -24,8 +24,8 @@ import { API_USERS } from "../../../utils/api/config";
 const AccountDetailsSchema = z.object({
   email: z.string().email(),
   emailotp: z.string().length(6),
-  password: z.string().min(8).max(50),
-  confirmPassword: z.string().min(8).max(50),
+  password: z.string().min(6).max(50),
+  confirmPassword: z.string().min(6).max(50),
   joiningCode: z.string().length(6),
 });
 export type AccountDetailsValues = z.infer<typeof AccountDetailsSchema>;
@@ -135,7 +135,9 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
       });
       message.loading({ content: response.data.message, key: "otp" });
     } catch (error) {
+      message.error({content: error?.response?.data?.message})
       console.log({error});
+      return;
     }
 
     setTimeout(() => {
@@ -150,7 +152,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
     e.preventDefault();
     const resEmail = values.email.toLowerCase();
     setValues((prevState)=>({...prevState, email:resEmail}));
-    try {
+    try{
       const response = await API_USERS().post(`/emailotp/verify`, {
         email: resEmail,
         emailotp: values.emailotp,
@@ -162,7 +164,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
         setVerified(true);
         setButtonText("Verified");
       }
-    } catch (error) {
+    } catch(error) {
       console.log({error});
     }
 
