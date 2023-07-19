@@ -141,7 +141,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       message.success({ content: response.data.message, key: "otp" });
     } catch (error) {
       message.destroy("generate_otp")
-      message.error({content: error?.response?.data?.message})
+      // message.error({content: error?.response?.data?.message})
       console.log({error});
       return;
     }
