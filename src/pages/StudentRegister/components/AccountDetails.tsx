@@ -129,6 +129,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   const handleGenerate = async (e: any) => {
     e.preventDefault();
+    message.loading({content: "Generating OTP", key:"generate_otp"});
     if (values.email.length === 0) return;
     const resEmail = values.email.toLowerCase();
     setValues((prevState) => ({ ...prevState, email: resEmail }));
@@ -136,8 +137,10 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       const response = await API_USERS().post(`/emailotp/generate`, {
         email: resEmail,
       });
-      message.loading({ content: response.data.message, key: "otp" });
+      message.destroy("generate_otp")
+      message.success({ content: response.data.message, key: "otp" });
     } catch (error) {
+      message.destroy("generate_otp")
       message.error({content: error?.response?.data?.message})
       console.log({error});
       return;
