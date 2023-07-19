@@ -39,13 +39,13 @@ const defaultState: AccountDetailsValues = {
 };
 
 const validateMessages = {
-  required: '${label} is required!',
+  required: "${label} is required!",
   types: {
-    email: '${label} is not a valid email!',
-    number: '${label} is not a valid number!',
+    email: "${label} is not a valid email!",
+    number: "${label} is not a valid number!",
   },
   number: {
-    range: '${label} must be between ${min} and ${max}',
+    range: "${label} must be between ${min} and ${max}",
   },
 };
 
@@ -61,7 +61,7 @@ interface Props {
   handleSubmit: (values: AccountDetailsValues) => void;
 }
 
-const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
+const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [values, setValues] = useState<AccountDetailsValues>(defaultState);
   const [errors, setErrors] = useState({
     ...getErrorDefaultState(defaultState),
@@ -80,7 +80,12 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     message.loading({ content: "Logging in", key: "loader" });
-    if(values.password.length == 0 || values.confirmPassword.length == 0 || values.joiningCode.length == 0 ) return;
+    if (
+      values.password.length == 0 ||
+      values.confirmPassword.length == 0 ||
+      values.joiningCode.length == 0
+    )
+      return;
     setErrors(getErrorDefaultState(defaultState));
     setHelperTexts(defaultState);
     const isValid = AccountDetailsSchema.safeParse(values);
@@ -122,13 +127,11 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
   const [buttonText, setButtonText] = useState("Verify Email");
   const [Verified, setVerified] = useState(false);
 
-  const handleGenerate = async (
-    e: any
-  ) => {
+  const handleGenerate = async (e: any) => {
     e.preventDefault();
-    if(values.email.length === 0) return;
+    if (values.email.length === 0) return;
     const resEmail = values.email.toLowerCase();
-    setValues((prevState)=>({...prevState, email:resEmail}));
+    setValues((prevState) => ({ ...prevState, email: resEmail }));
     try {
       const response = await API_USERS().post(`/emailotp/generate`, {
         email: resEmail,
@@ -146,9 +149,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
     setShowTextField(true);
   };
 
-  const handleVerify = async (
-    e: any
-  ) => {
+  const handleVerify = async (e: any) => {
     e.preventDefault();
     const resEmail = values.email.toLowerCase();
     setValues((prevState)=>({...prevState, email:resEmail}));
@@ -189,103 +190,112 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit}) => {
 
   return (
     <form onSubmit={handleSubmitForm} className={styles.regForm}>
-        <Row>
-          <Col span={24}>
+      <Row>
+        <Col span={24}>
+          <Input
+            size="large"
+            disabled={Verified}
+            // fullWidth
+            required
+            id="email"
+            // type="email"
+            // autoComplete="email"
+            // error={errors.email}
+            value={values.email}
+            // helperText={helperTexts.email}
+            onChange={handleChangeValues}
+            placeholder="Email"
+            // variant="outlined"
+          />
+        </Col>
+      </Row>
+      {/* <Grid item xs={10}> */}
+
+      {!(Verified || showTextField) && (
+        <Button
+          onClick={handleGenerate}
+          htmlType="submit"
+          size="large"
+          type="primary"
+        >
+          {buttonText}
+        </Button>
+      )}
+      {/* </Grid> */}
+      {showTextField && (
+        <Row gutter={10}>
+          <Col span={12}>
             <Input
-              size="large"
-              disabled={Verified}
               // fullWidth
+              size="large"
               required
-              id="email"
-              // type="email"
-              // autoComplete="email"
-              // error={errors.email}
-              value={values.email}
-              // helperText={helperTexts.email}
+              id="emailotp"
+              // type="number"
+              // value={values.emailotp}
+              // helperText=" We have sent an OTP to your Email"
               onChange={handleChangeValues}
-              placeholder="Email"
+              placeholder="Email OTP"
               // variant="outlined"
             />
           </Col>
+
+          <Col span={4}>
+            <Button onClick={handleVerify} size="large" type="primary">
+              Verify
+            </Button>
+          </Col>
         </Row>
-        {/* <Grid item xs={10}> */}
+      )}
 
-        {!(Verified || showTextField) && (
-          <Button onClick={handleGenerate} htmlType="submit" size="large" type="primary">
-            {buttonText}
+      {Verified && (
+        <>
+          <Form.Item>
+            <Input.Password
+              size="large"
+              required
+              id="password"
+              // autoComplete="new-password"
+              // value={values.password}
+              // error={errors.password}
+              // helperText={helperTexts.password}
+              type="password"
+              onChange={handleChangeValues}
+              placeholder="Password"
+            />
+          </Form.Item>
+          <Form.Item>
+            <Input
+              size="large"
+              required
+              id="confirmPassword"
+              autoComplete="new-password"
+              // value={values.confirmPassword}
+              // error={errors.confirmPassword}
+              // helperText={helperTexts.confirmPassword}
+              type="password"
+              onChange={handleChangeValues}
+              placeholder="Confirm Password"
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Input
+              size="large"
+              required
+              id="joiningCode"
+              // value={values.joiningCode}
+              // error={errors.joiningCode}
+              // helperText={helperTexts.joiningCode}
+              type="text"
+              onChange={handleChangeValues}
+              placeholder="Joining Code"
+            />
+          </Form.Item>
+          <Button size="large" type="primary" htmlType="submit">
+            Next
           </Button>
-        )}
-        {/* </Grid> */}
-        {showTextField && (
-          <Row gutter={10}>
-            <Col span={12}>
-              <Input
-                // fullWidth
-                size="large"
-                required
-                id="emailotp"
-                // type="number"
-                // value={values.emailotp}
-                // helperText=" We have sent an OTP to your Email"
-                onChange={handleChangeValues}
-                placeholder="Email OTP"
-                // variant="outlined"
-              />
-            </Col>
-
-            <Col span={4}>
-              <Button onClick={handleVerify} size="large" type="primary">Verify</Button>
-            </Col>
-          </Row>
-        )}
-
-{Verified && 
-          <>
-              <Form.Item>
-              <Input.Password
-                size="large"
-                required
-                id="password"
-                // autoComplete="new-password"
-                // value={values.password}
-                // error={errors.password}
-                // helperText={helperTexts.password}
-                type="password"
-                onChange={handleChangeValues}
-                placeholder="Password"
-                />
-              </Form.Item>
-              <Form.Item>
-                <Input
-                  size="large"
-                  required
-                  id="confirmPassword"
-                  autoComplete="new-password"
-                  // value={values.confirmPassword}
-                  // error={errors.confirmPassword}
-                  // helperText={helperTexts.confirmPassword}
-                  type="password"
-                  onChange={handleChangeValues}
-                  placeholder="Confirm Password"
-                />
-              </Form.Item>
-              
-              <Form.Item>
-                <Input
-                  size="large"
-                  required
-                  id="joiningCode"
-                  // value={values.joiningCode}
-                  // error={errors.joiningCode}
-                  // helperText={helperTexts.joiningCode}
-                  type="text"
-                  onChange={handleChangeValues}
-                  placeholder="Joining Code"
-                  />
-              </Form.Item>
-            <Button size="large" type="primary" htmlType="submit">Next</Button>
-          </>
-        }
+        </>
+      )}
     </form>
   );
 };

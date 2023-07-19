@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./StudentRegister.module.scss";
 import { Stepper, Step, StepButton } from "@mui/material";
-import { Button, message, Steps, theme } from 'antd';
+import { Button, message, Steps, theme } from "antd";
 import AccountDetails, {
   AccountDetailsValues,
 } from "./components/AccountDetails";
@@ -13,11 +13,11 @@ import AcademicDetails, {
 } from "./components/AcademicDetails";
 import { API_USERS } from "../../utils/api/config";
 import logo from "../../assets/images/logo.svg";
-
-
+import { useNavigate } from "react-router";
 
 const StudentRegister: React.FC = () => {
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
   const [values, setValues] = useState({
     accountDetails: {} as AccountDetailsValues,
     personalDetails: {} as PersonalDetailsValues,
@@ -78,14 +78,14 @@ const StudentRegister: React.FC = () => {
 
   async function createStudentAccount(finalVals: any) {
     try {
-      const res = await API_USERS().post(`/student/create`, finalVals);
+      const res = await API_USERS().post(`/student/create-student`, finalVals);
       message.success("Student account created successfully");
+      navigate("/login");
     } catch (error) {
       console.log("ERROR_CREATING_STUDENT_ACCOUNT", error);
       message.error("Error creating student account");
     }
   }
-
 
   const next = () => {
     setCurrent(current + 1);
@@ -97,28 +97,33 @@ const StudentRegister: React.FC = () => {
   const steps = [
     {
       title: "Create Account",
-      content: <AccountDetails handleSubmit={handleSubmitAccountDetails}/>,
+      content: <AccountDetails handleSubmit={handleSubmitAccountDetails} />,
     },
     {
       title: "Personal Details",
-      content: <PersonalDetails handleSubmit={handleSubmitPersonalDetails}/>,
+      content: <PersonalDetails handleSubmit={handleSubmitPersonalDetails} />,
     },
     {
       title: "Academic Details",
-      content: <AcademicDetails handleSubmit={handleSubmitAcademicDetails} setPrev={prev}/>,
+      content: (
+        <AcademicDetails
+          handleSubmit={handleSubmitAcademicDetails}
+          setPrev={prev}
+        />
+      ),
     },
   ];
   const items = steps.map((item) => ({ key: item.title, title: item.title }));
 
   return (
     <>
-    <div className={styles.container}>
-      <nav className={styles.flexRow}>
-        <img src={logo} alt="logo" />
-      </nav>
-      <div className={styles.content}>
-        <h2>Student Registration</h2>
-        {/* <div className={styles.stepsHeader}> */}
+      <div className={styles.container}>
+        <nav className={styles.flexRow}>
+          <img src={logo} alt="logo" />
+        </nav>
+        <div className={styles.content}>
+          <h2>Student Registration</h2>
+          {/* <div className={styles.stepsHeader}> */}
           {/* <Stepper nonLinear activeStep={activeStep}>
             {stepsHeader.map((label, index) => (
               <Step key={label} completed={activeStep > index}>
@@ -134,12 +139,12 @@ const StudentRegister: React.FC = () => {
             ))}
           </Stepper> */}
           {/* <Steps current={current} items={items} /> */}
-        <Steps current={current} items={items}/>
-        {/* </div> */}
-        <div className={styles.stepsContent}>
-        {steps[current].content}
-        <div style={{ marginTop: 24 }}>
-          {/* {current < steps.length - 1 && (
+          <Steps current={current} items={items} />
+          {/* </div> */}
+          <div className={styles.stepsContent}>
+            {steps[current].content}
+            <div style={{ marginTop: 24 }}>
+              {/* {current < steps.length - 1 && (
             <Button type="primary" onClick={() => next()}>
               Next
             </Button>
@@ -148,18 +153,21 @@ const StudentRegister: React.FC = () => {
             <Button type="primary" disabled>
               Next
             </Button>
-          )} */ }
-          {current === steps.length-1 && (
-            <Button size="large" style={{width: "100%" }} onClick={() => prev()}>
-              Previous
-            </Button>
-          )}
-          
-          {/* {current === 0 && (
+          )} */}
+              {current === steps.length - 1 && (
+                <Button
+                  size="large"
+                  style={{ width: "100%" }}
+                  onClick={() => prev()}
+                >
+                  Previous
+                </Button>
+              )}
+
+              {/* {current === 0 && (
             <Button style={{ margin: '0 8px' }} disabled>
               Previous
             </Button>
-          )} */}
         </div> 
           {/* {activeStep === 0 && (
             <AccountDetails handleSubmit={handleSubmitAccountDetails} />
@@ -170,9 +178,10 @@ const StudentRegister: React.FC = () => {
           {activeStep === 2 && (
             <AcademicDetails handleSubmit={handleSubmitAcademicDetails} />
           )} */}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

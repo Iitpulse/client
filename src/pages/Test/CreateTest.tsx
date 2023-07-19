@@ -318,8 +318,15 @@ const CreateTest = () => {
         updateTest(finalTest, creatingTest);
         return;
       }
-
-      let response = await API_TESTS().post(`/test/create`, finalTest);
+      let finalPayLoad = {
+        ...finalTest,
+        batches: finalTest.batches.map((batch) => ({
+          ...batch,
+          _id: batch.id,
+        })),
+      };
+      console.log({ finalPayLoad });
+      let response = await API_TESTS().post(`/test/create`, finalPayLoad);
       creatingTest();
       message.success("Test Created Successfully");
     } catch (error: any) {

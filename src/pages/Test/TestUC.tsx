@@ -62,10 +62,18 @@ const Test = () => {
       render: (exam: any) => exam.name,
     },
     {
-      title: "Created",
-      dataIndex: "createdAt",
-      render: (date: string) => new Date(date).toLocaleString(),
+      title: "Duration(in minutes)",
+      dataIndex: "durationInMinutes",
     },
+    {
+      title: "Start Time",
+      render: (row: any) => new Date(row.validity.from).toLocaleString(),
+    },
+    {
+      title: "End Time",
+      render: (row: any) => new Date(row.validity.to).toLocaleString(),
+    },
+
     {
       title: "Status",
       dataIndex: "status",
@@ -135,8 +143,12 @@ const Test = () => {
     setLoading(true);
     if (fetchTest)
       fetchTest("active", false, (error, result) => {
+        let upcomingTests = result?.filter(
+          (test: any) =>
+            new Date(test.validity.from).getTime() > new Date().getTime()
+        );
         setData(
-          result?.map((test: any) => ({
+          upcomingTests?.map((test: any) => ({
             ...test,
             key: test.id,
             id: test.id,
@@ -149,7 +161,7 @@ const Test = () => {
         setLoading(false);
       });
   }, []);
-
+  console.log({ data });
   return (
     <MainLayout name="Upcoming Test">
       <div className={styles.container}>
