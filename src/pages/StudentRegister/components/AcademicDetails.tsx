@@ -104,6 +104,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
       });
       return;
     }
+    console.log(isValid.data)
     handleSubmit(isValid.data);
     message.destroy("loader");
   }

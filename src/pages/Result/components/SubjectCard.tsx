@@ -19,7 +19,8 @@ interface ISubjectCard {
   maxTime: string;
   timeTakenInSeconds: number;
   totalQuestions: number;
-  totalMarksSection: number;
+  totalMarksPerSection: number;
+  positiveScore: number;
 }
 
 const SubjectCard: React.FC<ISubjectCard> = ({
@@ -31,7 +32,8 @@ const SubjectCard: React.FC<ISubjectCard> = ({
   incorrect,
   timeTakenInSeconds,
   totalQuestions,
-  totalMarksSection,
+  totalMarksPerSection,
+  positiveScore,
 }) => {
   // console.log("marks", totalMarksPerSection);
   const chartData = {
@@ -54,11 +56,11 @@ const SubjectCard: React.FC<ISubjectCard> = ({
     >
       <div className={styles.header}>
         <h3 className={styles.subjectName}>{name?.toUpperCase()}</h3>
+        <h2 className={styles.marks}>
+          {marks}/{totalMarksPerSection}
+        </h2>
         <div className={styles.mid}>
           <div className={styles.left}>
-            <h2 className={styles.marks}>
-              {marks}/{totalMarksSection}
-            </h2>
             <p className={styles.accuracy}>
               Accuracy:
               <span style={{ color: "black" }}>
@@ -74,7 +76,11 @@ const SubjectCard: React.FC<ISubjectCard> = ({
               </span>
             </p>
           </div>
-
+          {/* <div className={styles.right}>
+            <p>
+              Positive Marks :<span style={{ color: "black" }}>{attempted}</span>{" "}
+            </p>
+          </div> */}
           {/* <CircularProgress color={color} progress={(marks / totalMarksSection) * 100} /> */}
         </div>
       </div>
@@ -92,6 +98,9 @@ const SubjectCard: React.FC<ISubjectCard> = ({
           </p>
           <p>
             Incorrect :<span className={styles.highlight}>{incorrect}</span>{" "}
+          </p>
+          <p>
+            Positive Marks :<span className={styles.highlight}>{positiveScore}</span>{" "}
           </p>
         </div>
         <div className={styles.pieContainer}>
