@@ -93,6 +93,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
     pocName: "",
     pocEmail: "",
     pocPhone: "",
+    phone: "",
   });
   const [submitDisabled, setSubmitDisabled] = useState(false);
   const { currentUser } = useContext(AuthContext);
@@ -105,6 +106,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
     pocName: null,
     pocEmail: null,
     pocPhone: null,
+    phone: null,
   };
 
   function getRules(fieldName: any) {
@@ -126,6 +128,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
         pocName: selectedInstitute?.poc?.name,
         pocEmail: selectedInstitute?.poc?.email,
         pocPhone: selectedInstitute?.poc?.phone?.toString(),
+        phone: selectedInstitute?.phone?.toString(),
       });
       form.setFieldsValue({
         name: selectedInstitute?.name,
@@ -134,6 +137,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
         pocName: selectedInstitute?.poc?.name,
         pocEmail: selectedInstitute?.poc?.email,
         pocPhone: selectedInstitute?.poc?.phone?.toString(),
+        phone: selectedInstitute?.phone?.toString(),
       });
     }
   }, [editMode, selectedInstitute]);
@@ -169,6 +173,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
             email: result.pocEmail,
             phone: result.pocPhone,
           },
+          phone: result.phone,
           members: {},
           ...additionalValues,
         });
@@ -185,6 +190,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
               email: result.pocEmail,
               phone: result.pocPhone,
             },
+            phone: result.phone,
             _id: res?.data?.data?._id,
             ...additionalValues,
           },
@@ -204,6 +210,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
             email: result.pocEmail,
             phone: result.pocPhone,
           },
+          phone: result.phone,
           modifiedAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
         });
         setInstitutes((prev: any) => {
@@ -222,6 +229,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
               email: result.pocEmail,
               phone: result.pocPhone,
             },
+            phone: result.phone,
             modifiedAt: dayjs().format("DD-MM-YYYY HH:mm:ss"),
           };
           return temp;
@@ -291,7 +299,7 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
             <Input
               id="address"
               size="large"
-              value={values.email}
+              value={values.address}
               onChange={(e) => {
                 setValues((prev: any) => ({
                   ...prev,
@@ -299,6 +307,21 @@ const CreateNewInstitute: React.FC<CreateNewInstituteProps> = ({
                 }));
               }}
               placeholder="Institute Address"
+              // variant="outlined"
+            />
+          </Form.Item>
+          <Form.Item name="phone" rules={getRules("phone")}>
+            <Input
+              id="phone"
+              size="large"
+              value={values.phone}
+              onChange={(e) => {
+                setValues((prev: any) => ({
+                  ...prev,
+                  ["phone"]: e.target.value,
+                }));
+              }}
+              placeholder="Institute Phone No."
               // variant="outlined"
             />
           </Form.Item>

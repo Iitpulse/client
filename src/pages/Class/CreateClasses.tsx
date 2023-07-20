@@ -31,7 +31,7 @@ import {
   performZodValidation,
   validateField,
 } from "../../utils/schemas";
-import { ClassSchema } from "./utils/classModel";
+import { ClassSchema } from "./utils/ClassModel";
 // import {
 // import { API_QUESTIONS } from './../../utils/api/config';
 // Button,
