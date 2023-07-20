@@ -8,6 +8,8 @@ import AddIcon from "@mui/icons-material/Add";
 import styles from "./SubjectManagement.module.scss";
 import Topics from "../Topics/Topics";
 import Exams from "../Exams/Exams";
+import Sources from "../Sources/Sources";
+import Classes from "../Class/Classes";
 
 const SubjectManagement: React.FC = () => {
   const [toggleSideBar, setToggleSideBar] = useState(0);
@@ -52,6 +54,27 @@ const SubjectManagement: React.FC = () => {
       label: `Exams`,
       children: (
         <Exams
+          toggleSideBar={toggleSideBar}
+          setToggleSideBar={setToggleSideBar}
+        />
+      ),
+    },
+
+    {
+      key: "5",
+      label: `Sources`,
+      children: (
+        <Sources
+          toggleSideBar={toggleSideBar}
+          setToggleSideBar={setToggleSideBar}
+        />
+      ),
+    },
+    {
+      key: "6",
+      label: `Classes`,
+      children: (
+        <Classes
           toggleSideBar={toggleSideBar}
           setToggleSideBar={setToggleSideBar}
         />
