@@ -57,7 +57,9 @@ const StyledMUITextField = styled(TextField)(() => {
 const Topics = ({
   toggleSideBar,
   setToggleSideBar,
+  getColumnSearchProps,
 }: {
+  getColumnSearchProps: any;
   toggleSideBar: number;
   setToggleSideBar: React.Dispatch<React.SetStateAction<number>>;
 }) => {
@@ -112,14 +114,17 @@ const Topics = ({
     {
       title: "Name",
       dataIndex: "topic",
+      ...getColumnSearchProps("topic"),
     },
     {
       title: "Subject",
       dataIndex: "subject",
+      ...getColumnSearchProps("subject"),
     },
     {
       title: "Chapter",
       dataIndex: "chapter",
+      ...getColumnSearchProps("chapter"),
     },
     {
       title: "Edit",

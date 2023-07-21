@@ -1,4 +1,4 @@
-import styles from "./Exams.module.scss";
+import styles from "./Sources.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { message, Popconfirm } from "antd";
 import {
@@ -16,7 +16,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_TESTS, API_USERS } from "../../utils/api/config";
 import deleteIcon from "../../assets/icons/delete.svg";
 
-import CreateNewExam from "./CreateExams";
+import CreateNewSource from "./CreateSources";
 import { API_QUESTIONS } from "../../utils/api/config";
 import EditIcon from "@mui/icons-material/Edit";
 import dayjs from "dayjs";
@@ -43,7 +43,7 @@ const StyledMUITextField = styled(TextField)(() => {
   };
 });
 
-const Exams = ({
+const Sources = ({
   toggleSideBar,
   setToggleSideBar,
   getColumnSearchProps,
@@ -54,35 +54,35 @@ const Exams = ({
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedExam, setSelectedExam] = useState<any>();
+  const [selectedSource, setSelectedSource] = useState<any>();
   const [editMode, setEditMode] = useState(false);
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
-    async function fetchExams() {
+    async function fetchSources() {
       setLoading(true);
       try {
-        const res = await API_TESTS().get(`/exam/all`);
+        const res = await API_QUESTIONS().get(`/source/all`);
         console.log({ res });
         setData(res?.data);
       } catch (error) {
-        console.log("ERROR_FETCH_Exams", error);
-        message.error("Error fetching Exams");
+        console.log("ERROR_FETCH_Sources", error);
+        message.error("Error fetching Sources");
       }
       setLoading(false);
     }
 
     if (currentUser?.id) {
-      fetchExams();
+      fetchSources();
     }
   }, [currentUser]);
 
-  const handleDeleteExams = async (id: string) => {
+  const handleDeleteSources = async (id: string) => {
     setLoading(true);
     try {
-      const res = await API_TESTS().delete(`/exam/delete/` + id);
+      const res = await API_QUESTIONS().delete(`/source/delete/` + id);
       if (res?.status === 200) {
-        message.success("Successfully deleted Exam");
+        message.success("Successfully deleted Source");
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error("Something went wrong");
@@ -97,13 +97,10 @@ const Exams = ({
     {
       title: "Name",
       dataIndex: "name",
+      key: "name",
       ...getColumnSearchProps("name"),
     },
-    {
-      title: "Full Name",
-      dataIndex: "fullName",
-      ...getColumnSearchProps("fullName"),
-    },
+
     {
       title: "Modified At",
       dataIndex: "modifiedAt",
@@ -129,8 +126,8 @@ const Exams = ({
           onClick={() => {
             setEditMode(true);
             console.log(record);
-            setSelectedExam(record);
-            setToggleSideBar(4);
+            setSelectedSource(record);
+            setToggleSideBar(5);
           }}
         />
       ),
@@ -140,10 +137,10 @@ const Exams = ({
       key: "delete",
       render: (_: any, record: any) => (
         <Popconfirm
-          title="Sure to delete this Exam?"
+          title="Sure to delete this Source?"
           onConfirm={() => {
             console.log(record);
-            handleDeleteExams(record?._id);
+            handleDeleteSources(record?._id);
           }}
         >
           <IconButton>
@@ -157,18 +154,18 @@ const Exams = ({
   return (
     <Card classes={[styles.container]}>
       <div className={styles.header}>
-        <CreateNewExam
+        <CreateNewSource
           editMode={editMode}
-          selectedExam={selectedExam}
-          title={editMode ? "Edit an Exam" : "Create New Exam"}
+          selectedSource={selectedSource}
+          title={editMode ? "Edit an Source" : "Create New Source"}
           handleClose={() => {
             setEditMode(false);
-            setSelectedExam(null);
+            setSelectedSource(null);
             setToggleSideBar(0);
           }}
-          toggleSideBar={toggleSideBar === 4}
+          toggleSideBar={toggleSideBar === 5}
           setLoading={setLoading}
-          setExams={setData}
+          setSources={setData}
         />
       </div>
       <div className={styles.data}>
@@ -186,4 +183,4 @@ const Exams = ({
   );
 };
 
-export default Exams;
+export default Sources;

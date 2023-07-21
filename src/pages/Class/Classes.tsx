@@ -1,4 +1,4 @@
-import styles from "./Exams.module.scss";
+import styles from "./Classes.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { message, Popconfirm } from "antd";
 import {
@@ -16,7 +16,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { API_TESTS, API_USERS } from "../../utils/api/config";
 import deleteIcon from "../../assets/icons/delete.svg";
 
-import CreateNewExam from "./CreateExams";
+import CreateNewClass from "./CreateClasses";
 import { API_QUESTIONS } from "../../utils/api/config";
 import EditIcon from "@mui/icons-material/Edit";
 import dayjs from "dayjs";
@@ -43,46 +43,46 @@ const StyledMUITextField = styled(TextField)(() => {
   };
 });
 
-const Exams = ({
+const Classes = ({
   toggleSideBar,
   setToggleSideBar,
   getColumnSearchProps,
 }: {
-  getColumnSearchProps: any;
   toggleSideBar: number;
+  getColumnSearchProps: any;
   setToggleSideBar: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedExam, setSelectedExam] = useState<any>();
+  const [selectedClass, setSelectedClass] = useState<any>();
   const [editMode, setEditMode] = useState(false);
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
-    async function fetchExams() {
+    async function fetchClasses() {
       setLoading(true);
       try {
-        const res = await API_TESTS().get(`/exam/all`);
+        const res = await API_USERS().get(`/class/all`);
         console.log({ res });
         setData(res?.data);
       } catch (error) {
-        console.log("ERROR_FETCH_Exams", error);
-        message.error("Error fetching Exams");
+        console.log("ERROR_FETCH_Classes", error);
+        message.error("Error fetching Classes");
       }
       setLoading(false);
     }
 
     if (currentUser?.id) {
-      fetchExams();
+      fetchClasses();
     }
   }, [currentUser]);
 
-  const handleDeleteExams = async (id: string) => {
+  const handleDeleteClasses = async (id: string) => {
     setLoading(true);
     try {
-      const res = await API_TESTS().delete(`/exam/delete/` + id);
+      const res = await API_USERS().delete(`/class/delete/` + id);
       if (res?.status === 200) {
-        message.success("Successfully deleted Exam");
+        message.success("Successfully deleted Class");
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error("Something went wrong");
@@ -129,8 +129,8 @@ const Exams = ({
           onClick={() => {
             setEditMode(true);
             console.log(record);
-            setSelectedExam(record);
-            setToggleSideBar(4);
+            setSelectedClass(record);
+            setToggleSideBar(6);
           }}
         />
       ),
@@ -140,10 +140,10 @@ const Exams = ({
       key: "delete",
       render: (_: any, record: any) => (
         <Popconfirm
-          title="Sure to delete this Exam?"
+          title="Sure to delete this Class?"
           onConfirm={() => {
             console.log(record);
-            handleDeleteExams(record?._id);
+            handleDeleteClasses(record?._id);
           }}
         >
           <IconButton>
@@ -157,18 +157,18 @@ const Exams = ({
   return (
     <Card classes={[styles.container]}>
       <div className={styles.header}>
-        <CreateNewExam
+        <CreateNewClass
           editMode={editMode}
-          selectedExam={selectedExam}
-          title={editMode ? "Edit an Exam" : "Create New Exam"}
+          selectedClass={selectedClass}
+          title={editMode ? "Edit an Class" : "Create New Class"}
           handleClose={() => {
             setEditMode(false);
-            setSelectedExam(null);
+            setSelectedClass(null);
             setToggleSideBar(0);
           }}
-          toggleSideBar={toggleSideBar === 4}
+          toggleSideBar={toggleSideBar === 6}
           setLoading={setLoading}
-          setExams={setData}
+          setClasses={setData}
         />
       </div>
       <div className={styles.data}>
@@ -186,4 +186,4 @@ const Exams = ({
   );
 };
 
-export default Exams;
+export default Classes;
