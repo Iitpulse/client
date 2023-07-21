@@ -165,7 +165,7 @@ const Topics = ({
   ];
 
   return (
-    <Card classes={[styles.container]}>
+    <Card disablePadding={true} classes={[styles.container]}>
       <div className={styles.header}>
         <CreateNewTopic
           editMode={editMode}
@@ -183,9 +183,7 @@ const Topics = ({
       </div>
       <div className={styles.data}>
         <CustomTable
-          scroll={{
-            x: 1000,
-          }}
+          scroll={{ x: 200, y: "50vh" }}
           loading={loading}
           columns={columns}
           dataSource={data}

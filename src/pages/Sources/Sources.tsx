@@ -152,7 +152,7 @@ const Sources = ({
   ];
 
   return (
-    <Card classes={[styles.container]}>
+    <Card disablePadding={true} classes={[styles.container]}>
       <div className={styles.header}>
         <CreateNewSource
           editMode={editMode}
@@ -170,9 +170,7 @@ const Sources = ({
       </div>
       <div className={styles.data}>
         <CustomTable
-          scroll={{
-            x: 1000,
-          }}
+          scroll={{ x: 200, y: "50vh" }}
           loading={loading}
           columns={columns}
           dataSource={data}

@@ -202,7 +202,7 @@ const CreateTest = () => {
 
   useEffect(() => {
     if (pattern?.sections && !editMode) {
-      setTest((prev) => ({ ...prev, sections: pattern.sections }));
+      setTest((prev: any) => ({ ...prev, sections: pattern.sections }));
     }
   }, [pattern, editMode]);
 
@@ -301,6 +301,20 @@ const CreateTest = () => {
         name: batch.name,
       })),
     };
+    let hasUnfilledQues = false;
+    let messageText = "";
+    finalTest.sections.forEach((section) => {
+      return section.subSections.forEach((subSection) => {
+        if (subSection?.questions?.length != subSection?.totalQuestions) {
+          hasUnfilledQues = true;
+          messageText = `Please fill all the questions in ${subSection.name}`;
+        }
+      });
+    });
+    if (hasUnfilledQues) {
+      creatingTest();
+      return message.error(messageText);
+    }
     if (editMode) {
       finalTest.createdAt = test.createdAt;
     }
@@ -496,7 +510,7 @@ const CreateTest = () => {
                     patternOptions?.find((pt) => pt.name === option.name) ||
                       null
                   );
-                  setTest((prev) => ({
+                  setTest((prev: any) => ({
                     ...prev,
                     sections:
                       patternOptions?.find((pt) => pt.name === option.name)
