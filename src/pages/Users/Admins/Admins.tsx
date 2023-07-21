@@ -31,6 +31,7 @@ import { FilterConfirmProps } from "antd/lib/table/interface";
 import { API_USERS } from "../../../utils/api/config";
 import { Edit, Face } from "@mui/icons-material";
 import AddNewAdmin from "./AddNewAdmin";
+// import { record } from "zod";
 
 const Admins: React.FC<{
   activeTab: number;
@@ -79,10 +80,10 @@ const Admins: React.FC<{
           ref={searchInput}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) =>
+          onChange={(e) => 
             setSelectedKeys(e.target.value ? [e.target.value] : [])
           }
-          onPressEnter={() =>
+          onPressEnter={() => 
             handleSearch(selectedKeys as string[], confirm, dataIndex)
           }
           style={{ marginBottom: 8, display: "block" }}
@@ -123,7 +124,7 @@ const Admins: React.FC<{
     filterIcon: (filtered: boolean) => (
       <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
     ),
-    onFilter: (value: any, record: any) =>
+    onFilter: (value: any, record: any) => 
       record[dataIndex]
         .toString()
         .toLowerCase()
@@ -182,6 +183,18 @@ const Admins: React.FC<{
     {
       title: "Gender",
       dataIndex: "gender",
+      filters: [
+        {
+          text: "Male",
+          value: "male",
+        },
+        {
+          text: "Female",
+          value: "female",
+        },
+      ],
+      onFilter: (value: any, record: any) =>
+        record.gender?.indexOf(value) === 0,
       render: (text: string) => (
         <span style={{ textTransform: "capitalize" }}>{text}</span>
       ),
@@ -190,6 +203,7 @@ const Admins: React.FC<{
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
+      ...getColumnSearchProps("contact")
     },
   ];
 

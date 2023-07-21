@@ -108,6 +108,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         let timeTakenInSeconds = 0;
         let marks = 0;
         let totalMarksPerSection = 0;
+        let positiveScore = 0;
 
         section.subSections?.forEach((subSection: any) => {
           totalMarksPerSection +=
@@ -128,6 +129,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
                 correct += 1;
                 totalCorrect += 1;
                 timeTakenInSeconds += qTimeTakenInSeconds;
+                positiveScore+= question.marks;
               }
             }
             setFinalSections((prev: any) => ({
@@ -141,6 +143,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
                 timeTakenInSeconds,
                 marks,
                 totalQuestions,
+                positiveScore,
               },
             }));
           });
@@ -170,7 +173,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
     <>
       <div className={styles.cards}>
         {Object.values(finalSections)?.map((item: any, index: number) => (
-          <SubjectCard key={item.id} color={colors[index % 4]} {...item} totalMarksSection={finalTest.totalMarks/3}/>
+          <SubjectCard key={item.id} color={colors[index % 4]} {...item} />
         ))}
       </div>
       <div className={styles.detailedBtns}>

@@ -5,9 +5,9 @@ import { useContext, useEffect, useState } from "react";
 import { API_USERS } from "../../utils/api/config";
 import { UserType, studentSchema } from "../../utils/schemas/user";
 import { images } from "../../assets";
-import { Button, DatePicker, Form, Input, Popconfirm, message } from "antd";
+import { Button, DatePicker, Form, Input, Popconfirm, message, Select } from "antd";
 import { performZodValidation, validateField } from "../../utils/schemas";
-
+import { INDIAN_STATES } from "../../utils/constants";
 import dayjs, { Dayjs } from "dayjs";
 import { AuthContext } from "../../utils/auth/AuthContext";
 
@@ -83,14 +83,14 @@ const Profile = () => {
   };
 
   async function onFinish(values: any) {
-    // const res = await API_USERS().post(`/student/create`, { ...values });
+    const res = await API_USERS().post(`/student/create`, { ...values });
     message.success("User updated successfully");
-    // console.log(res);
+    console.log(res);
   }
 
   function onFinishFailed(errorInfo: any) {
     message.error("Student creation failed");
-    console.log("Failed:", errorInfo);
+    console.log("Failed:", {errorInfo});
   }
 
   async function validateForm() {
@@ -107,6 +107,7 @@ const Profile = () => {
         isEmailVerified: false,
         isPhoneVerified: false,
       };
+      console.log(additionalValues)
       const result = performZodValidation(
         form,
         conversionObject,
@@ -225,7 +226,7 @@ const Profile = () => {
           <div className={styles.informationContainer}>
             <Form
               form={form}
-              id="studentUserForm"
+              id="profileUserForm"
               onFinish={validateForm}
               initialValues={
                 user && {
@@ -235,14 +236,19 @@ const Profile = () => {
               }
               // onFinishFailed={handleFinishFailed}
             >
-              <Form.Item name="email" label="Email" rules={getRules("email")}>
+              {/* <Form.Item name="email" label="Email" rules={getRules("email")}>
                 <Input
                   disabled={!isEditMode}
                   placeholder="Please enter an email"
                 />
-              </Form.Item>
+              </Form.Item> */}
 
-              <Form.Item
+              <div className={styles.information}>
+                <p className={styles.key}>Email:</p>
+                <p className={styles.value}>{user.email}</p>
+              </div>
+
+              {/* <Form.Item
                 name="contact"
                 label="Contact"
                 rules={getRules("contact")}
@@ -252,7 +258,14 @@ const Profile = () => {
                   type="number"
                   placeholder="Please enter a contact"
                 />
-              </Form.Item>
+              </Form.Item> */}
+
+              <div className={styles.information}>
+                <p className={styles.key}>Contact:</p>
+                {/* @ts-ignore */}
+                <p className={styles.value}>{user.contact}</p>
+              </div>
+
               <Form.Item name="city" label="City" rules={getRules("city")}>
                 <Input
                   disabled={!isEditMode}
@@ -260,10 +273,17 @@ const Profile = () => {
                 />
               </Form.Item>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Input
+                <Select
+                  style={{width:"30%"}}
                   disabled={!isEditMode}
-                  placeholder="Please enter a state"
-                />
+                  placeholder="Select state"
+                >
+                  {
+                    INDIAN_STATES.map((e)=>(
+                      <Select.Option key={e} value={e}>{e}</Select.Option>
+                    ))
+                  }
+                </Select>
               </Form.Item>
               <Form.Item
                 name="address"
@@ -283,7 +303,7 @@ const Profile = () => {
                 <p className={styles.key}>Date of Birth:</p>
                 <p className={styles.value}>{user.dob}</p>
               </div>
-              <Form.Item
+              {/* <Form.Item
                 name="parentDetails-name"
                 label="Parent Name"
                 rules={getRules("parentDetails-name")}
@@ -292,8 +312,8 @@ const Profile = () => {
                   disabled={!isEditMode}
                   placeholder="Please enter a name"
                 />
-              </Form.Item>
-              <Form.Item
+              </Form.Item> */}
+              {/* <Form.Item
                 name="parentDetails-contact"
                 label="Parent Contact"
                 rules={getRules("parentDetails-contact")}
@@ -303,7 +323,20 @@ const Profile = () => {
                   disabled={!isEditMode}
                   placeholder="Please enter a contact"
                 />
-              </Form.Item>
+              </Form.Item> */}
+
+              <div className={styles.information}>
+                <p className={styles.key}>Parent Name:</p>
+                {/* @ts-ignore */}
+                <p className={styles.value}>{user.parentName}</p>
+              </div>
+
+              <div className={styles.information}>
+                <p className={styles.key}>Parent Contact:</p>
+                {/* @ts-ignore */}
+                <p className={styles.value}>{user.parentContact || "NA"}</p>
+              </div>
+
               <div className={styles.information}>
                 <p className={styles.key}>Batch:</p>
                 {/* @ts-ignore */}
