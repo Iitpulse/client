@@ -314,7 +314,7 @@ const Institutes = () => {
         </Button>
       }
     >
-      <Card classes={[styles.container]}>
+      <Card disablePadding={true} classes={[styles.container]}>
         <div className={styles.header}>
           <CreateNewInstitute
             editMode={editMode}
@@ -332,9 +332,7 @@ const Institutes = () => {
         </div>
         <div className={styles.data}>
           <CustomTable
-            scroll={{
-              x: 1000,
-            }}
+            scroll={{ x: 200, y: "50vh" }}
             loading={loading}
             columns={columns}
             dataSource={data}
