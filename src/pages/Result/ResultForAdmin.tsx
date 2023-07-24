@@ -39,7 +39,6 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
         scheduledFor={finalTest?.scheduledFor || []}
         forStudent={Boolean(hasResultViewPermission && studentId)}
       />
-
       {hasResultViewPermission && studentId ? (
         <StudentResultCore
           finalTest={finalTest}

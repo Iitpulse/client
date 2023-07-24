@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import styles from "./GlobalResult.module.scss";
-import { Button } from "antd";
+import { Button, Input, InputRef, Space } from "antd";
+import { useRef, useState } from "react";
+import { FilterConfirmProps } from "antd/es/table/interface";
+import { SearchOutlined } from "@ant-design/icons";
+import Highlighter from "react-highlight-words";
 
 interface IGlobalResult {
   testName: string;
