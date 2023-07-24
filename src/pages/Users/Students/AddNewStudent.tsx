@@ -199,7 +199,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
     attemptedTests: null,
 
     //Field to be removed later
-    joiningCode: null,
+    promoCode: null,
   };
   const onClose = () => {
     setOpen(false);
@@ -240,12 +240,12 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
         isEmailVerified: null,
         isPhoneVerified: null,
         //Field to be removed later
-        joiningCode: (() => {
+        promoCode: (() => {
           const batch = batchOptions.find(
-            (batch: { value: string; label: string; joiningCode: string }) =>
+            (batch: { value: string; label: string; promoCode: string }) =>
               batch.value === form.getFieldValue("batch")
           );
-          return batch.joiningCode;
+          return batch.promoCode;
         })(),
       };
       console.log({ additionalValues });
@@ -297,13 +297,13 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
       setRoleDetails({ options, actual });
     }
     async function getBatchOption() {
-      const requestedFields = "name,id,joiningCode";
+      const requestedFields = "name,id,promoCode";
       const res = await API_USERS().get(`/batch/all?fields=${requestedFields}`);
       setBatchOptions(
         res.data?.map((item: any) => ({
           label: item.name,
           value: item._id,
-          joiningCode: item.joiningCode,
+          promoCode: item.promoCode,
         }))
       );
     }
@@ -581,7 +581,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
               <Form.Item
                 name="batch"
                 label="Batch"
-                rules={getRules("joiningCode")}
+                rules={getRules("promoCode")}
               >
                 <Select showSearch placeholder="Please choose a batch" filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}>
                   {batchOptions?.map((option: any) => (

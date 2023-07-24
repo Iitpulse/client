@@ -86,17 +86,18 @@ const Subjects = ({
     }
   }, [currentUser]);
 
-  const handleDeleteSubjects = async (id: string) => {
+  const handleDeleteSubjects = async (record: any) => {
     setLoading(true);
     try {
       const res = await API_QUESTIONS().delete(`/subject/subjects`, {
         params: {
-          id,
+          id: record._id,
         },
       });
       if (res?.status === 200) {
-        message.success(res?.data?.message);
-        setData((data) => data.filter((values: any) => values._id !== id));
+        // message.success(res?.data?.message);
+        message.success(`${record.name} deleted`)
+        setData((data) => data.filter((values: any) => values._id !== record._id));
       } else {
         message.error(res?.statusText);
       }
@@ -150,7 +151,7 @@ const Subjects = ({
         <Popconfirm
           title="Sure to delete this Subject?"
           onConfirm={() => {
-            handleDeleteSubjects(record._id);
+            handleDeleteSubjects(record);
           }}
         >
           <IconButton>

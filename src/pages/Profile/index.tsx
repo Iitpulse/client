@@ -79,7 +79,7 @@ const Profile = () => {
     attemptedTests: null,
 
     //Field to be removed later
-    joiningCode: null,
+    promoCode: null,
   };
 
   async function onFinish(values: any) {

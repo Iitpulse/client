@@ -97,7 +97,7 @@ const Batches = () => {
   const columns = [
     {
       title: "Code",
-      dataIndex: "joiningCode",
+      dataIndex: "promoCode",
     },
     {
       title: "Name",

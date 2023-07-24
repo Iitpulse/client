@@ -12,10 +12,6 @@ import Exams from "../Exams/Exams";
 const SubjectManagement: React.FC = () => {
   const [toggleSideBar, setToggleSideBar] = useState(0);
   const [tab, setTab] = useState(1);
-  const onChange = (key: string) => {
-    console.log(key);
-    setTab(parseInt(key));
-  };
   const items: TabsProps["items"] = [
     {
       key: "1",
@@ -58,9 +54,16 @@ const SubjectManagement: React.FC = () => {
       ),
     },
   ];
+  const [nameTab, setNameTab] = useState<any>(items[0].label);
+  const onChange = (key: string) => {
+    console.log(key);
+    setTab(parseInt(key));
+    setNameTab(items[Number(key)-1].label);
+    console.log(nameTab)
+  };
   return (
     <MainLayout
-      name="Subjects Management"
+      name={nameTab}
       menuActions={
         <Button
           type="primary"

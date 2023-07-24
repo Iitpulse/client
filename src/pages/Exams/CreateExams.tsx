@@ -99,6 +99,7 @@ const CreateNewExam: React.FC<CreateNewExamProps> = ({
     name: null,
     subject: null,
     chapter: null,
+
   };
 
   function getRules(fieldName: any) {
@@ -222,6 +223,27 @@ const CreateNewExam: React.FC<CreateNewExamProps> = ({
               placeholder="Exam Full Name"
               // variant="outlined"
             />
+          </Form.Item>
+
+          <Form.Item name="subjects" rules={getRules("subjects")}>
+            <Select
+            size="large"
+              mode="multiple"
+              placeholder="Please choose subject/s"
+              onChange={(e) => {
+                console.log(e);
+                setValues((prev: any) => ({
+                  ...prev,
+                  ["subject"]: e,
+                }));
+              }}
+            >
+              {subjectOptions?.map((option: any) => (
+                <Select.Option key={option.id} value={option.name}>
+                  {option.name}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <div className={styles.buttons}>

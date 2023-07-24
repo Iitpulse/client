@@ -106,7 +106,8 @@ const Chapters = ({
         chapter,
       });
       if (res?.status === 200) {
-        message.success(res?.data?.message);
+        // message.success(res?.data?.message);
+        message.success(`${chapter} deleted`);
         setData((data) =>
           data.filter((values: any) => values.name !== chapter)
         );
