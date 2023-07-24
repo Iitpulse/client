@@ -84,7 +84,8 @@ const Batches = () => {
         },
       });
       if (res?.status === 200) {
-        message.success(res?.data?.message);
+        let batch: any = data.find((values: any) => values._id === id);
+        message.success(`Batch ${batch?.name} deleted successfully`);
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error(res?.statusText);

@@ -108,7 +108,10 @@ const Chapters = ({
         chapter,
       });
       if (res?.status === 200) {
-        message.success(res?.data?.message);
+        // console.log(res, chapter);
+        message.success(
+          `Successfully deleted ${capitalizeFirstLetter(chapter)}`
+        );
         setData((data) =>
           data.filter((values: any) => values.name !== chapter)
         );

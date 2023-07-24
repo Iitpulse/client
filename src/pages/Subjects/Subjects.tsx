@@ -97,7 +97,15 @@ const Subjects = ({
         },
       });
       if (res?.status === 200) {
-        message.success(res?.data?.message);
+        const subjectName: any = data.filter(
+          (values: any) => values._id === id
+        )[0];
+
+        message.success(
+          `Successfully deleted Subject ${capitalizeFirstLetter(
+            subjectName?.name
+          )}`
+        );
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error(res?.statusText);

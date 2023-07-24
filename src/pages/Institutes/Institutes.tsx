@@ -196,7 +196,8 @@ const Institutes = () => {
         },
       });
       if (res?.status === 200) {
-        message.success("Successfully deleted Institute");
+        let institue: any = data.find((values: any) => values._id === id);
+        message.success("Successfully deleted Institute " + institue?.name);
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error("Something went wrong");
