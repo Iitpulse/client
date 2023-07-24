@@ -64,7 +64,7 @@ const Question = (props: QuestionProps) => {
     averageTimeTakenInSeconds,
     timeTakenInSeconds,
     totalAppeared,
-    markingScheme
+    markingScheme,
     // totalStudentAttempted,
   } = props;
   //   console.log({ correctAnswersTest });
@@ -106,6 +106,7 @@ const Question = (props: QuestionProps) => {
       return clsx(styles.widthBar);
     }
   }
+  console.log(en?.solution);
   return (
     <>
       <div className={styles.question}>
@@ -133,8 +134,7 @@ const Question = (props: QuestionProps) => {
                 <span>{String.fromCharCode(65 + index)}.)</span>&nbsp;
                 <RenderWithLatex quillString={item.value} />
               </p>
-            )
-            )}
+            ))}
           </div>
         </div>
         <div className={styles.right}>
@@ -166,9 +166,13 @@ const Question = (props: QuestionProps) => {
           </Menu> */}
           <div className={styles.moreInfo}>
             <div className={styles.leftMI}>
-              <p>Correct marks : +
-                {markingScheme.correct.sort().reverse().map((val:any)=>val).join(", +")}
-              
+              <p>
+                Correct marks : +
+                {markingScheme.correct
+                  .sort()
+                  .reverse()
+                  .map((val: any) => val)
+                  .join(", +")}
               </p>
               <p>Time Taken : {timeTakenInSeconds?.toFixed(2) || 0}s</p>
               <p>

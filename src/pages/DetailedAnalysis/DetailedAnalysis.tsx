@@ -505,7 +505,15 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
           <div style={{ marginLeft: "auto" }}>
             <IconButton
               onClick={() => {
-                if (questionIndex == 0 && subIdx !== 0) {
+                if (questionIndex == 0 && subIdx == 0) {
+                  setTab(tab - 1);
+                  setSubIdx(sections[tab - 1]?.subSections.length - 1);
+                  setQuestionIndex(
+                    sections[tab - 1]?.subSections[
+                      sections[tab - 1]?.subSections.length - 1
+                    ]?.questions.length - 1
+                  );
+                } else if (questionIndex == 0 && subIdx !== 0) {
                   setQuestionIndex(
                     sections[tab]?.subSections[subIdx - 1]?.questions.length - 1
                   );
@@ -514,13 +522,22 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
                   setQuestionIndex(questionIndex - 1);
                 }
               }}
-              disabled={subIdx === 0 && questionIndex === 0}
+              disabled={subIdx === 0 && questionIndex === 0 && tab === 0}
             >
               <LeftCircleOutlined className={styles.stepIcon} />
             </IconButton>
             <IconButton
               onClick={() => {
                 if (
+                  questionIndex + 1 ===
+                    sections[tab]?.subSections[subIdx]?.questions.length &&
+                  subIdx + 1 === sections[tab]?.subSections.length &&
+                  tab + 1 !== sections.length
+                ) {
+                  setQuestionIndex(0);
+                  setSubIdx(0);
+                  setTab(tab + 1);
+                } else if (
                   questionIndex + 1 ===
                     sections[tab]?.subSections[subIdx]?.questions.length &&
                   subIdx + 1 !== sections[tab]?.subSections.length
@@ -534,7 +551,8 @@ export const DetailedAnalysis: React.FC<IDetailedAnalysis> = ({
               disabled={
                 subIdx === sections[tab]?.subSections.length - 1 &&
                 questionIndex ===
-                  sections[tab]?.subSections[subIdx]?.questions.length - 1
+                  sections[tab]?.subSections[subIdx]?.questions.length - 1 &&
+                tab === sections.length - 1
               }
             >
               <RightCircleOutlined className={styles.stepIcon} />
@@ -606,6 +624,10 @@ const QuestionPlate = ({
                     questionIndex === index && subIdx === idx && secIdx === sidx
                       ? "#61b4f1"
                       : "transparent",
+                  color:
+                    questionIndex === index && subIdx === idx && secIdx === sidx
+                      ? "white"
+                      : "black",
                 }}
               >
                 {num}
@@ -672,7 +694,7 @@ const SubSection: React.FC<ISubSection> = ({
   let question = subSection?.questions[questionIndex];
   return (
     <>
-    {console.log(question)}
+      {console.log(question)}
       <Question
         totalAppeared={totalAppeared}
         {...question}
@@ -681,7 +703,7 @@ const SubSection: React.FC<ISubSection> = ({
         setViewSol={setViewSol}
         key={question.id}
         count={questionIndex + 1}
-        markingScheme = {subSection.markingScheme}
+        markingScheme={subSection.markingScheme}
       />
     </>
   );

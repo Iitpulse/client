@@ -8,6 +8,7 @@ import { HeaderDetails } from "../DetailedAnalysis/DetailedAnalysis";
 import GlobalResult from "./components/GlobalResult";
 import styles from "./Result.module.scss";
 import { StudentResultCore } from "./ResultForStudent";
+import { Button } from "antd";
 
 interface Props {
   finalTest: any;
@@ -38,6 +39,7 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
         scheduledFor={finalTest?.scheduledFor || []}
         forStudent={Boolean(hasResultViewPermission && studentId)}
       />
+
       {hasResultViewPermission && studentId ? (
         <StudentResultCore
           finalTest={finalTest}
@@ -46,7 +48,11 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
       ) : (
         <Card classes={[styles.globalResultTable]}>
           <GlobalResult
-            students={finalTest.students || []}
+            students={
+              finalTest.students.sort(
+                (a: any, b: any) => b?.marks - a?.marks
+              ) || []
+            }
             testId={String(testId)}
             testName={String(testName)}
             testExamName={String(testExamName)}
