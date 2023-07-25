@@ -172,10 +172,12 @@ const Test = () => {
   const { ongoingTests } = state;
 
   useEffect(() => {
+    setLoading(true);
     fetchTest("ongoing", false, (error, result) => {
       setData(
         result?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
       );
+      setLoading(false);
     });
   }, []);
 
