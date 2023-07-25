@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import styles from "./Pattern.module.scss";
-import { Button, Card, CustomTable } from "../../components";
+import { Card, CustomTable } from "../../components";
+import { Button } from "antd";
 import { IPattern } from "../../utils/interfaces";
 import { IconButton } from "@mui/material";
 import deleteIcon from "../../assets/icons/delete.svg";
@@ -92,17 +93,31 @@ const Pattern = () => {
   }, []);
 
   return (
-    <MainLayout name="Pattern">
+    <MainLayout
+      name="Pattern"
+      menuActions={
+        isCreatePermitted && (
+          <NavLink to="/pattern/new">
+            <Button
+              type="primary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              icon={<AddIcon />}
+            >
+              Add New
+            </Button>
+          </NavLink>
+        )
+      }
+    >
       {isReadPermitted ? (
         <>
           <Card classes={[styles.container]}>
             <div className={styles.header}>
               <span></span>
-              {isCreatePermitted && (
-                <NavLink to="/pattern/new">
-                  <Button icon={<AddIcon />}>Add New</Button>
-                </NavLink>
-              )}
             </div>
             <div className={styles.data}>
               <CustomTable

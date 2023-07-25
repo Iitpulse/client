@@ -224,7 +224,22 @@ const Users = () => {
   }
 
   return (
-    <MainLayout name="Users">
+    <MainLayout
+      name="Users"
+      menuActions={
+        isCreatePermitted && (
+          <>
+            <AntdButton
+              type="primary"
+              onClick={() => setIsDrawerOpen(true)}
+              icon={<PlusOutlined />}
+            >
+              New account
+            </AntdButton>
+          </>
+        )
+      }
+    >
       <div className={styles.container}>
         <div className={styles.header}>
           <Tabs value={tab} onChange={handleChangeTab}>
@@ -265,23 +280,6 @@ const Users = () => {
             >
               <CachedIcon />
             </IconButton>
-            {isCreatePermitted && (
-              <>
-                {/* <Button
-                  onClick={() => setOpenModal(!openModal)}
-                  icon={<AddIcon />}
-                >
-                  Add New
-                </Button> */}
-                <AntdButton
-                  type="primary"
-                  onClick={() => setIsDrawerOpen(true)}
-                  icon={<PlusOutlined />}
-                >
-                  New account
-                </AntdButton>
-              </>
-            )}
           </div>
         </div>
         <TabPanel value={tab} index={0}>

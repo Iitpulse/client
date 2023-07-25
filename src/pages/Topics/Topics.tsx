@@ -95,9 +95,10 @@ const Topics = ({
   }) => {
     setLoading(true);
     try {
+      console.log(value);
       const res = await API_QUESTIONS().post(`/subject/topic/delete`, value);
       if (res?.status === 200) {
-        message.success(res?.data?.message);
+        message.success("Topic " + value.topic + " Deleted Successfully");
         setData((data) =>
           data.filter((values: any) => values.topic !== value.topic)
         );

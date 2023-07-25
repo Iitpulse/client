@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import styles from "./GlobalResult.module.scss";
+import { Button, Input, InputRef, Space } from "antd";
+import { useRef, useState } from "react";
+import { FilterConfirmProps } from "antd/es/table/interface";
+import { SearchOutlined } from "@ant-design/icons";
+import Highlighter from "react-highlight-words";
 
 interface IGlobalResult {
   testName: string;
@@ -57,9 +62,39 @@ const GlobalResult: React.FC<IGlobalResult> = ({
           : new Date().toDateString(),
     },
   ];
+  const downloadStudentsAsCSV = () => {
+    const csv = [
+      "Rank,Student Name,Marks,Submitted On",
+      ...students
+        ?.sort((a, b) => b.marks - a.marks)
+        ?.map((student, index) => {
+          return `${index + 1},${student.name},${student.marks},${
+            student.submittedOn
+          }`;
+        }),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.setAttribute("hidden", "");
+    a.setAttribute("href", url);
+    a.setAttribute("download", `${testName}.csv`);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   return (
     <div className={styles.container}>
+      <Button
+        style={{
+          float: "right",
+        }}
+        onClick={downloadStudentsAsCSV}
+        type="primary"
+      >
+        Download as CSV
+      </Button>
       <CustomTable
         columns={cols}
         dataSource={students?.map((student: any, i: number) => ({

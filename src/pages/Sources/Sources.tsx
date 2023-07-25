@@ -82,7 +82,8 @@ const Sources = ({
     try {
       const res = await API_QUESTIONS().delete(`/source/delete/` + id);
       if (res?.status === 200) {
-        message.success("Successfully deleted Source");
+        let source: any = data.find((values: any) => values._id === id);
+        message.success("Successfully deleted Source " + source?.name);
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error("Something went wrong");

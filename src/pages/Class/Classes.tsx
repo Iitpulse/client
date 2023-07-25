@@ -82,7 +82,8 @@ const Classes = ({
     try {
       const res = await API_USERS().delete(`/class/delete/` + id);
       if (res?.status === 200) {
-        message.success("Successfully deleted Class");
+        let classs: any = data.find((values: any) => values._id === id);
+        message.success("Successfully deleted Class " + classs?.name);
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error("Something went wrong");

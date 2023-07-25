@@ -2,7 +2,6 @@ import styles from "./Batches.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { message, Popconfirm } from "antd";
 import {
-  Button,
   Card,
   CreatableSelect,
   CustomTable,
@@ -10,6 +9,7 @@ import {
   Sidebar,
   StyledMUISelect,
 } from "../../components";
+import { Button } from "antd";
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
 import { AuthContext } from "../../utils/auth/AuthContext";
@@ -84,7 +84,8 @@ const Batches = () => {
         },
       });
       if (res?.status === 200) {
-        message.success(res?.data?.message);
+        let batch: any = data.find((values: any) => values._id === id);
+        message.success(`Batch ${batch?.name} deleted successfully`);
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error(res?.statusText);
@@ -171,12 +172,25 @@ const Batches = () => {
   ];
 
   return (
-    <MainLayout name="Batches">
+    <MainLayout
+      name="Batches"
+      menuActions={
+        <Button
+          type="primary"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => setToggleSideBar(true)}
+          icon={<AddIcon />}
+        >
+          Create New
+        </Button>
+      }
+    >
       <Card classes={[styles.container]}>
         <div className={styles.header}>
-          <Button onClick={() => setToggleSideBar(true)} icon={<AddIcon />}>
-            Create New
-          </Button>
           <CreateNewBatch
             editMode={editMode}
             selectedBatch={selectedBatch}

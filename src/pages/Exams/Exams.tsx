@@ -82,7 +82,9 @@ const Exams = ({
     try {
       const res = await API_TESTS().delete(`/exam/delete/` + id);
       if (res?.status === 200) {
-        message.success("Successfully deleted Exam");
+        let exam: any = data.filter((values: any) => values._id !== id);
+
+        message.success("Successfully deleted Exam " + exam[0].name);
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error("Something went wrong");

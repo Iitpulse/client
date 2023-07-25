@@ -4,7 +4,7 @@ import {
 } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import { Error } from "../";
-import { Button } from "../../components";
+import { Button } from "antd";
 import styles from "./Roles.module.scss";
 import { Link } from "react-router-dom";
 import member from "../../assets/icons/member.svg";
@@ -43,13 +43,13 @@ const Roles = () => {
       try {
         const res = deleteRole(id);
         // console.log(res);
-        res.then(res =>{
-          message.success("Role deleted successfully");
-
-        }).catch(e =>{
-
-          message.error("Something wrong occured");
-        })
+        res
+          .then((res) => {
+            message.success("Role deleted successfully");
+          })
+          .catch((e) => {
+            message.error("Something wrong occured");
+          });
       } catch (err) {
         message.error("Something wrong occured");
         console.log(err);
@@ -60,19 +60,31 @@ const Roles = () => {
   );
 
   return (
-    <MainLayout name="Roles">
+    <MainLayout
+      name="Roles"
+      menuActions={
+        hasPermission ? (
+          <Button
+            type="primary"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() => setIsOpenAddNewRole(true)}
+            icon={<AddIcon />}
+          >
+            Create New
+          </Button>
+        ) : null
+      }
+    >
       {hasPermission ? (
         <>
           <div className={styles.roles}>
             <div className={styles.tableHeader}>
               <h4>Roles</h4>
               <h4>Members</h4>
-              <Button
-                onClick={() => setIsOpenAddNewRole(true)}
-                icon={<AddIcon />}
-              >
-                Create New
-              </Button>
             </div>
             <div className={styles.tableContent}>
               {allRoles?.map((role: any) => (
