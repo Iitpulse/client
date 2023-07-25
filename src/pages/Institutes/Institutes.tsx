@@ -218,23 +218,9 @@ const Institutes = () => {
       title: "Email",
       dataIndex: "email",
       ...getColumnSearchProps("email"),
+      width: "20%",
     },
-    {
-      title: "Modified At",
-      dataIndex: "modifiedAt",
-      render: (text: any, record: any) => {
-        console.log({ text, record });
-        return <p>{text}</p>;
-      },
-    },
-    {
-      title: "Created At",
-      dataIndex: "createdAt",
-      render: (text: any, record: any) => {
-        console.log({ text, record });
-        return <p>{text}</p>;
-      },
-    },
+
     {
       title: "Address",
       dataIndex: "address",
