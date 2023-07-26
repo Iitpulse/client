@@ -100,6 +100,7 @@ const Batches = () => {
     {
       title: "Code",
       dataIndex: "promoCode",
+      render: (promoCode: any[]) => promoCode?.join(", "),
     },
     {
       title: "Name",
