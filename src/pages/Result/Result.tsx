@@ -8,12 +8,12 @@ import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS } from "../../utils/constants";
 import ResultForStudent from "./ResultForStudent";
 import ResultForAdmin from "./ResultForAdmin";
-import { message } from "antd";
+import { Skeleton, message } from "antd";
 import MainLayout from "../../layouts/MainLayout";
 
 const Result = () => {
   const [finalTest, setFinalTest] = useState<any>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const hasResultViewPermission = usePermission(PERMISSIONS.TEST.VIEW_RESULT);
@@ -65,6 +65,24 @@ const Result = () => {
     getResult();
     console.log({ studentId });
   }, [testId, currentUser, studentId]);
+  if (loading)
+    return (
+      <MainLayout name="Result">
+        <div
+          style={{
+            height: "100vh",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: "3rem",
+          }}
+        >
+          <Skeleton active={true} />
+          <Skeleton active={true} />
+          <Skeleton active={true} />
+        </div>
+      </MainLayout>
+    );
   if (!hasResultViewPermission) {
     return (
       <ResultForStudent
@@ -73,6 +91,7 @@ const Result = () => {
       />
     );
   }
+
   return (
     <MainLayout name="Result">
       <div className={styles.container}>
