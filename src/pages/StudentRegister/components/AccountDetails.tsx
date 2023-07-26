@@ -26,7 +26,7 @@ const AccountDetailsSchema = z.object({
   emailotp: z.string().length(6),
   password: z.string().min(6).max(50),
   confirmPassword: z.string().min(6).max(50),
-  joiningCode: z.string().length(6),
+  promoCode: z.string().length(6),
 });
 export type AccountDetailsValues = z.infer<typeof AccountDetailsSchema>;
 
@@ -35,7 +35,7 @@ const defaultState: AccountDetailsValues = {
   emailotp: "",
   password: "",
   confirmPassword: "",
-  joiningCode: "",
+  promoCode: "",
 };
 
 const validateMessages = {
@@ -83,7 +83,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     if (
       values.password.length == 0 ||
       values.confirmPassword.length == 0 ||
-      values.joiningCode.length == 0
+      values.promoCode.length == 0
     )
       return;
     setErrors(getErrorDefaultState(defaultState));
@@ -286,13 +286,13 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
             <Input
               size="large"
               required
-              id="joiningCode"
-              // value={values.joiningCode}
-              // error={errors.joiningCode}
-              // helperText={helperTexts.joiningCode}
+              id="promoCode"
+              // value={values.promoCode}
+              // error={errors.promoCode}
+              // helperText={helperTexts.promoCode}
               type="text"
               onChange={handleChangeValues}
-              placeholder="Joining Code"
+              placeholder="Promo Code"
             />
           </Form.Item>
           <Button size="large" type="primary" htmlType="submit">

@@ -233,8 +233,6 @@ const CreateNewChapter: React.FC<CreateNewChapterProps> = ({
               }}
               id="subject"
               placeholder="Subject"
-              value={values.subject}
-              defaultValue={values.subject}
               disabled={editMode}
             >
               {/* {console.log(examOptions)} */}

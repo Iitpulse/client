@@ -23,7 +23,7 @@ import { capitalizeFirstLetter } from "../../utils";
 import AddIcon from "@mui/icons-material/Add";
 
 import dayjs from "dayjs";
-import { NavLink } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import CreateNewSubject from "./CreateSubjects";
 import { API_QUESTIONS } from "./../../utils/api/config";
 import EditIcon from "@mui/icons-material/Edit";
@@ -88,17 +88,17 @@ const Subjects = ({
     }
   }, [currentUser]);
 
-  const handleDeleteSubjects = async (id: string) => {
+  const handleDeleteSubjects = async (record: any) => {
     setLoading(true);
     try {
       const res = await API_QUESTIONS().delete(`/subject/subjects`, {
         params: {
-          id,
+          id: record._id,
         },
       });
       if (res?.status === 200) {
         const subjectName: any = data.filter(
-          (values: any) => values._id === id
+          (values: any) => values._id === record._id
         )[0];
 
         message.success(
@@ -106,7 +106,7 @@ const Subjects = ({
             subjectName?.name
           )}`
         );
-        setData((data) => data.filter((values: any) => values._id !== id));
+        setData((data) => data.filter((values: any) => values._id !== record._id));
       } else {
         message.error(res?.statusText);
       }
@@ -162,7 +162,7 @@ const Subjects = ({
         <Popconfirm
           title="Sure to delete this Subject?"
           onConfirm={() => {
-            handleDeleteSubjects(record._id);
+            handleDeleteSubjects(record);
           }}
         >
           <IconButton>

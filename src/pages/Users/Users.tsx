@@ -113,6 +113,7 @@ const Users = () => {
   //For Option Menu
   const [selectedUserType, setSelectedUserType] = useState<string>("");
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [nameTab, setNameTab] = useState<any>("Students");
 
   // function submitHandler(e: React.FormEvent<HTMLFormElement>) {
   //   e.preventDefault();
@@ -150,8 +151,11 @@ const Users = () => {
   }, [tab, permissions]);
 
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    console.log(event,newValue);
     setIsDrawerOpen(false);
     setTab(newValue);
+    // @ts-ignore
+    setNameTab(event?.target?.innerText.toLowerCase())
   };
 
   function handleCloseModal() {
@@ -225,7 +229,7 @@ const Users = () => {
 
   return (
     <MainLayout
-      name="Users"
+      name={nameTab}
       menuActions={
         isCreatePermitted && (
           <>

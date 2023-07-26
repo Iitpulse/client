@@ -103,7 +103,7 @@ export const studentSchema = userSchema.extend({
   attemptedTests: z.array(z.string()),
 
   //Field to be removed later
-  joiningCode: z.string().min(3).max(255),
+  promoCode: z.string().min(3).max(255),
   roles: z
     .union([
       z.array(roleSchema.pick({ id: true, from: true, to: true }).strict()),

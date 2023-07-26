@@ -99,7 +99,8 @@ const Batches = () => {
   const columns = [
     {
       title: "Code",
-      dataIndex: "joiningCode",
+      dataIndex: "promoCode",
+      render: (promoCode: any[]) => promoCode?.join(", "),
     },
     {
       title: "Name",

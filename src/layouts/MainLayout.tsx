@@ -30,7 +30,7 @@ const MainLayout: React.FC<Props> = ({
         <nav>
           <CustomBreadCrumb
             location={location.pathname}
-            name={location.pathname === "/" ? "Home" : ""}
+            name={name}
           />
 
           <div className={styles.actions}>

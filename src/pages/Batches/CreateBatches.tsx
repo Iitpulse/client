@@ -106,7 +106,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   useEffect(() => {
     if (editMode) {
       console.log({ selectedBatch });
-      const { name, exams, medium, validity, classes, roles } = selectedBatch;
+      const { name, exams, medium, validity, classes, roles, promoCode } = selectedBatch;
       setValues({
         name,
         exams,
@@ -114,6 +114,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         validity,
         classes,
         roles,
+        promoCode,
       });
       setValidity({
         from: dayjs(validity.from),
@@ -126,7 +127,13 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         validity: [dayjs(validity.from), dayjs(validity.to)],
         classes,
         roles,
+        promoCode,
       });
+    } else{
+      setValues({});
+      setClasses([]);
+      setRoles([]);
+      form.resetFields();
     }
   }, [editMode]);
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
@@ -159,6 +166,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
     createdAt: null,
     modifiedAt: null,
     roles: null,
+    promoCode: null,
   };
 
   function getRules(fieldName: any) {
@@ -231,6 +239,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         message.success(res?.data?.message);
       } else {
         result.id = selectedBatch._id;
+        console.log(result);
         const res = await API_USERS().put(`/batch/update/`, result);
         setBatches((prev: any) => {
           const index = prev.findIndex(
@@ -249,7 +258,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
       handleClose();
     } catch (error: any) {
       console.log("ERROR_CREATE_BATCH", { error });
-      form.resetFields();
+      // form.resetFields();
       message.error(error.response.data.error);
     }
     setLoading(false);
@@ -406,7 +415,19 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
                 id="Classes"
                 onAddModalSubmit={function (value: any): void {}}
             /> */}
-
+        <Form.Item name="promoCode" rules={getRules("promoCode")}>
+          <Select
+            size="large"
+            onChange={(e) => {
+              console.log(values);
+              setValues({ ...values, ["promoCode"]: e });
+            }}
+            id="promoCode"
+            mode="tags"
+            placeholder="Promo Codes(s)"
+            // options={options}
+          />
+        </Form.Item>
         <Form.Item name="roles" rules={getRules("roles")}>
           <Select
             size="large"

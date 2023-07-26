@@ -714,7 +714,7 @@ export const Student: React.FC<{
         newValues.standard = parseInt(values?.standard?.value);
         newValues.batch = values?.batch?.name;
         console.log({ jc: values?.batch });
-        newValues.joiningCode = values?.batch?.joiningCode;
+        newValues.promoCode = values?.batch?.promoCode;
         newValues.roles = roles
           ?.filter((role: any) =>
             rolesInfo?.actual?.find((roleInfo: any) => {
