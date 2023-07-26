@@ -1,4 +1,4 @@
-import styles from "./Subjects.module.scss";
+import styles from "./Sources.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { message, Popconfirm } from "antd";
 import {
@@ -13,24 +13,13 @@ import {
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import { API_USERS } from "../../utils/api/config";
-import MainLayout from "../../layouts/MainLayout";
-import CustomDateRangePicker from "../../components/CustomDateRangePicker/CustomDateRangePicker";
+import { API_TESTS, API_USERS } from "../../utils/api/config";
 import deleteIcon from "../../assets/icons/delete.svg";
-import { PermissionsContext } from "../../utils/contexts/PermissionsContext";
-import { TestContext } from "../../utils/contexts/TestContext";
-import { capitalizeFirstLetter } from "../../utils";
-import AddIcon from "@mui/icons-material/Add";
 
-import dayjs from "dayjs";
-import { NavLink, useParams } from "react-router-dom";
-import CreateNewSubject from "./CreateSubjects";
-import { API_QUESTIONS } from "./../../utils/api/config";
+import CreateNewSource from "./CreateSources";
+import { API_QUESTIONS } from "../../utils/api/config";
 import EditIcon from "@mui/icons-material/Edit";
-import { Edit } from "@mui/icons-material";
-
-import { Tag } from "antd";
-import { set } from "zod";
+import dayjs from "dayjs";
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -54,10 +43,10 @@ const StyledMUITextField = styled(TextField)(() => {
   };
 });
 
-const Subjects = ({
-  getColumnSearchProps,
+const Sources = ({
   toggleSideBar,
   setToggleSideBar,
+  getColumnSearchProps,
 }: {
   getColumnSearchProps: any;
   toggleSideBar: number;
@@ -65,50 +54,39 @@ const Subjects = ({
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<any>();
+  const [selectedSource, setSelectedSource] = useState<any>();
   const [editMode, setEditMode] = useState(false);
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
-    async function fetchSubjects() {
+    async function fetchSources() {
       setLoading(true);
       try {
-        const res = await API_QUESTIONS().get(`/subject/Subjects`);
+        const res = await API_QUESTIONS().get(`/source/all`);
         console.log({ res });
         setData(res?.data);
       } catch (error) {
-        console.log("ERROR_FETCH_Subjects", error);
-        message.error("Error fetching Subjects");
+        console.log("ERROR_FETCH_Sources", error);
+        message.error("Error fetching Sources");
       }
       setLoading(false);
     }
 
     if (currentUser?.id) {
-      fetchSubjects();
+      fetchSources();
     }
   }, [currentUser]);
 
-  const handleDeleteSubjects = async (record: any) => {
+  const handleDeleteSources = async (id: string) => {
     setLoading(true);
     try {
-      const res = await API_QUESTIONS().delete(`/subject/subjects`, {
-        params: {
-          id: record._id,
-        },
-      });
+      const res = await API_QUESTIONS().delete(`/source/delete/` + id);
       if (res?.status === 200) {
-        const subjectName: any = data.filter(
-          (values: any) => values._id === record._id
-        )[0];
-
-        message.success(
-          `Successfully deleted Subject ${capitalizeFirstLetter(
-            subjectName?.name
-          )}`
-        );
-        setData((data) => data.filter((values: any) => values._id !== record._id));
+        let source: any = data.find((values: any) => values._id === id);
+        message.success("Successfully deleted Source " + source?.name);
+        setData((data) => data.filter((values: any) => values._id !== id));
       } else {
-        message.error(res?.statusText);
+        message.error("Something went wrong");
       }
     } catch (err) {
       console.log(err);
@@ -123,23 +101,23 @@ const Subjects = ({
       key: "name",
       ...getColumnSearchProps("name"),
     },
+
     {
-      title: "chapters",
-      dataIndex: "chapters",
-      render: (chapters: any) => {
-        return chapters?.map((chapter: any) => (
-          <Tag
-            style={{
-              margin: "0.2rem",
-            }}
-          >
-            {" "}
-            {chapter.name}
-          </Tag>
-        ));
+      title: "Modified At",
+      dataIndex: "modifiedAt",
+      render: (text: any, record: any) => {
+        console.log({ text, record });
+        return <p>{dayjs(text).format("DD-MM-YYYY")}</p>;
       },
     },
-
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      render: (text: any, record: any) => {
+        console.log({ text, record });
+        return <p>{dayjs(text).format("DD-MM-YYYY")}</p>;
+      },
+    },
     {
       title: "Edit",
       key: "edit",
@@ -149,8 +127,8 @@ const Subjects = ({
           onClick={() => {
             setEditMode(true);
             console.log(record);
-            setSelectedSubject(record);
-            setToggleSideBar(1);
+            setSelectedSource(record);
+            setToggleSideBar(5);
           }}
         />
       ),
@@ -160,9 +138,10 @@ const Subjects = ({
       key: "delete",
       render: (_: any, record: any) => (
         <Popconfirm
-          title="Sure to delete this Subject?"
+          title="Sure to delete this Source?"
           onConfirm={() => {
-            handleDeleteSubjects(record);
+            console.log(record);
+            handleDeleteSources(record?._id);
           }}
         >
           <IconButton>
@@ -176,18 +155,18 @@ const Subjects = ({
   return (
     <Card disablePadding={true} classes={[styles.container]}>
       <div className={styles.header}>
-        <CreateNewSubject
+        <CreateNewSource
           editMode={editMode}
-          selectedSubject={selectedSubject}
-          title={"Create New Subject"}
+          selectedSource={selectedSource}
+          title={editMode ? "Edit an Source" : "Create New Source"}
           handleClose={() => {
             setEditMode(false);
-            setSelectedSubject(null);
+            setSelectedSource(null);
             setToggleSideBar(0);
           }}
-          toggleSideBar={toggleSideBar === 1}
+          toggleSideBar={toggleSideBar === 5}
           setLoading={setLoading}
-          setSubjects={setData}
+          setSources={setData}
         />
       </div>
       <div className={styles.data}>
@@ -203,4 +182,4 @@ const Subjects = ({
   );
 };
 
-export default Subjects;
+export default Sources;

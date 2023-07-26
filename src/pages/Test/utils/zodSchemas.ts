@@ -11,7 +11,7 @@ export const subSectionSchema = z.object({
     correct: z.array(z.number()).min(1, "Please fill in Marking Scheme"),
     incorrect: z.number(),
   }),
-  questions: z.unknown(), // Replace with the actual schema when you have it
+  questions: z.array(z.unknown()), // Replace with the actual schema when you have it
 });
 
 export const sectionSchema = z.object({

@@ -91,7 +91,7 @@ const Teachers: React.FC<{
           ref={searchInput}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => 
+          onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
           }
           onPressEnter={() =>
@@ -309,7 +309,7 @@ const Teachers: React.FC<{
             setEdit(false);
           }}
           teacher={teacher}
-          title="Add a Teacher"
+          title="Edit a Teacher"
           handleCloseModal={handleCloseModal}
         />
       )}

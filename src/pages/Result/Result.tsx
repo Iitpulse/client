@@ -20,7 +20,7 @@ const Result = () => {
   console.log("hasResultViewPermission", hasResultViewPermission);
   const { testId, studentId } = useParams();
   const { currentUser } = useContext(AuthContext);
-
+  console.log({ finalTest });
   useEffect(() => {
     async function getResult() {
       setError("");

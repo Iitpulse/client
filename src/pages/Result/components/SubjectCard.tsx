@@ -42,8 +42,8 @@ const SubjectCard: React.FC<ISubjectCard> = ({
       {
         label: "# of Votes",
         data: [correct, incorrect, totalQuestions / 3 - (correct + incorrect)],
-        backgroundColor: ["#54B435", "red", "#FBDF07"], //green, red, yellow
-        borderColor: ["#54B435", "red", "#FBDF07"],
+        backgroundColor: ["#54B435", "red", "#bebe00"], //green, red, yellow
+        borderColor: ["#54B435", "red", "#bebe00"],
         borderWidth: 1,
       },
     ],
@@ -100,7 +100,8 @@ const SubjectCard: React.FC<ISubjectCard> = ({
             Incorrect :<span className={styles.highlight}>{incorrect}</span>{" "}
           </p>
           <p>
-            Positive Marks :<span className={styles.highlight}>{positiveScore}</span>{" "}
+            Positive Marks :
+            <span className={styles.highlight}>{positiveScore}</span>{" "}
           </p>
         </div>
         <div className={styles.pieContainer}>

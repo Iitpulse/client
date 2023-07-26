@@ -46,7 +46,9 @@ const StyledMUITextField = styled(TextField)(() => {
 const Exams = ({
   toggleSideBar,
   setToggleSideBar,
+  getColumnSearchProps,
 }: {
+  getColumnSearchProps: any;
   toggleSideBar: number;
   setToggleSideBar: React.Dispatch<React.SetStateAction<number>>;
 }) => {
@@ -80,7 +82,9 @@ const Exams = ({
     try {
       const res = await API_TESTS().delete(`/exam/delete/` + id);
       if (res?.status === 200) {
-        message.success("Successfully deleted Exam");
+        let exam: any = data.filter((values: any) => values._id !== id);
+
+        message.success("Successfully deleted Exam " + exam[0].name);
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error("Something went wrong");
@@ -95,10 +99,12 @@ const Exams = ({
     {
       title: "Name",
       dataIndex: "name",
+      ...getColumnSearchProps("name"),
     },
     {
       title: "Full Name",
       dataIndex: "fullName",
+      ...getColumnSearchProps("fullName"),
     },
     {
       title: "Modified At",
@@ -151,7 +157,7 @@ const Exams = ({
   ];
 
   return (
-    <Card classes={[styles.container]}>
+    <Card disablePadding={true} classes={[styles.container]}>
       <div className={styles.header}>
         <CreateNewExam
           editMode={editMode}
@@ -169,9 +175,7 @@ const Exams = ({
       </div>
       <div className={styles.data}>
         <CustomTable
-          scroll={{
-            x: 1000,
-          }}
+          scroll={{ x: 200, y: "50vh" }}
           loading={loading}
           columns={columns}
           dataSource={data}

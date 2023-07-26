@@ -69,12 +69,16 @@ interface CreateNewBatchProps {
   toggleSideBar: boolean;
   setLoading: (loading: boolean) => void;
   setBatches: any;
+  editMode: boolean;
+  selectedBatch: any;
 }
 
 const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
   handleClose,
   toggleSideBar,
   setLoading,
+  editMode,
+  selectedBatch,
   setBatches,
 }) => {
   const [form] = Form.useForm();
@@ -99,7 +103,32 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
       setRoleOptions(options);
     }
   }, [allRoles]);
-
+  useEffect(() => {
+    if (editMode) {
+      console.log({ selectedBatch });
+      const { name, exams, medium, validity, classes, roles } = selectedBatch;
+      setValues({
+        name,
+        exams,
+        medium,
+        validity,
+        classes,
+        roles,
+      });
+      setValidity({
+        from: dayjs(validity.from),
+        to: dayjs(validity.to),
+      });
+      form.setFieldsValue({
+        name,
+        exams,
+        medium,
+        validity: [dayjs(validity.from), dayjs(validity.to)],
+        classes,
+        roles,
+      });
+    }
+  }, [editMode]);
   function handleChangeValues(e: React.ChangeEvent<HTMLInputElement>) {
     // console.log(e.target)
     const { id, value } = e.target;
@@ -192,14 +221,32 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
       );
       console.log("Final Data ->", { result });
       // console.log({ finalData });
-      const res = await API_USERS().post(`/batch/create`, result);
-      setBatches((prev: any) => [...prev, res?.data?.data]);
-      setValues({});
-      setClasses([]);
-      setRoles([]);
-      form.resetFields();
+      if (!editMode) {
+        const res = await API_USERS().post(`/batch/create`, result);
+        setBatches((prev: any) => [...prev, res?.data?.data]);
+        setValues({});
+        setClasses([]);
+        setRoles([]);
+        form.resetFields();
+        message.success(res?.data?.message);
+      } else {
+        result.id = selectedBatch._id;
+        const res = await API_USERS().put(`/batch/update/`, result);
+        setBatches((prev: any) => {
+          const index = prev.findIndex(
+            (batch: any) => batch._id === selectedBatch._id
+          );
+          const updatedBatch = { ...prev[index], ...result };
+          prev[index] = updatedBatch;
+          return [...prev];
+        });
+        setValues({});
+        setClasses([]);
+        setRoles([]);
+        form.resetFields();
+        message.success(res?.data?.message);
+      }
       handleClose();
-      message.success(res?.data?.message);
     } catch (error: any) {
       console.log("ERROR_CREATE_BATCH", { error });
       form.resetFields();
@@ -229,56 +276,57 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
       width="30%"
       handleClose={handleClose}
     >
-        <Form 
-          form={form}
-          id="teacherUserForm"
-          layout="vertical"
-          onFinish={handleSubmit}>
-            {/* <div className={styles.inputFields}> */}
-            <Form.Item name="name" rules={getRules("name")}>
-            <Input
-              id="batchName"
-              size="large"
-              value={values.batchName}
-              onChange={handleChangeValues}
-              placeholder="Batch Name"
-              // variant="outlined"
-            />
-          </Form.Item>
-          <Form.Item name="validity" rules={getRules("validity")}>
-            <DatePicker.RangePicker
-              format="DD-MM-YYYY"
-              size="large"
-              style={{ width: "100%" }}
-              // getPopupContainer={(trigger) => trigger.parentElement!}
-              onChange={(e: any) => {
-                setValidity({
-                  from: dayjs(e[0]).toISOString(),
-                  to: dayjs(e[1]).toISOString(),
-                });
-              }}
-            />
-          </Form.Item>
-          <Form.Item name="exams" rules={getRules("exams")}>
-            <Select
-              size="large"
-              onChange={(e) => {
-                setValues({ ...values, ["exams"]: e });
-                // console.log(values);
-              }}
-              id="Exams"
-              mode="tags"
-              placeholder="Exam(s)"
-            >
-              {/* {console.log(examOptions)} */}
-              {examOptions?.map((option: any) => (
-                <Select.Option key={option.id} value={option.name}>
-                  {option.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          {/* <CreatableSelect
+      <Form
+        form={form}
+        id="teacherUserForm"
+        layout="vertical"
+        onFinish={handleSubmit}
+      >
+        {/* <div className={styles.inputFields}> */}
+        <Form.Item name="name" rules={getRules("name")}>
+          <Input
+            id="batchName"
+            size="large"
+            value={values.batchName}
+            onChange={handleChangeValues}
+            placeholder="Batch Name"
+            // variant="outlined"
+          />
+        </Form.Item>
+        <Form.Item name="validity" rules={getRules("validity")}>
+          <DatePicker.RangePicker
+            format="DD-MM-YYYY"
+            size="large"
+            style={{ width: "100%" }}
+            // getPopupContainer={(trigger) => trigger.parentElement!}
+            onChange={(e: any) => {
+              setValidity({
+                from: dayjs(e[0]).toISOString(),
+                to: dayjs(e[1]).toISOString(),
+              });
+            }}
+          />
+        </Form.Item>
+        <Form.Item name="exams" rules={getRules("exams")}>
+          <Select
+            size="large"
+            onChange={(e) => {
+              setValues({ ...values, ["exams"]: e });
+              // console.log(values);
+            }}
+            id="Exams"
+            mode="tags"
+            placeholder="Exam(s)"
+          >
+            {/* {console.log(examOptions)} */}
+            {examOptions?.map((option: any) => (
+              <Select.Option key={option.id} value={option.name}>
+                {option.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+        {/* <CreatableSelect
                 multiple
                 onAddModalSubmit={() => {}}
                 options={examOptions.map((exam: any) => ({
@@ -291,36 +339,34 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
                 label={"Exam(s)"}
                 id="Exams"
             /> */}
-          <Form.Item name="medium" rules={getRules("medium")}>
-            <Select
-              showSearch
-              id="Medium"
-              size="large"
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={[
-                {
-                  value: "hindi",
-                  label: "Hindi",
-                },
-                {
-                  value: "english",
-                  label: "English",
-                },
-              ]}
-              onChange={(val: string) => {
-                console.log(val);
-                setValues({ ...values, ["medium"]: val });
-              }}
-              //   onChange={handleChangeValues}
-              value={values.medium}
-              placeholder="Medium"
-            />
-          </Form.Item>
-          {/* <StyledMUISelect
+        <Form.Item name="medium" rules={getRules("medium")}>
+          <Select
+            showSearch
+            id="Medium"
+            size="large"
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
+            options={[
+              {
+                value: "hindi",
+                label: "Hindi",
+              },
+              {
+                value: "english",
+                label: "English",
+              },
+            ]}
+            onChange={(val: string) => {
+              console.log(val);
+              setValues({ ...values, ["medium"]: val });
+            }}
+            //   onChange={handleChangeValues}
+            value={values.medium}
+            placeholder="Medium"
+          />
+        </Form.Item>
+        {/* <StyledMUISelect
                 options={[
                     { name: "Hindi", value: "hindi" },
                     { name: "English", value: "english" },
@@ -333,25 +379,25 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
                 }}
             /> */}
 
-          <Form.Item name="classes" rules={getRules("classes")}>
-            <Select
-              size="large"
-              id="Classes"
-              onChange={(e) => {
-                setValues({ ...values, ["classes"]: e });
-              }}
-              mode="tags"
-              placeholder="Classes"
-            >
-              {/* {console.log(options)} */}
-              {options?.map((option: any) => (
-                <Select.Option key={option.id} value={option.name}>
-                  {option.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          {/* <CreatableSelect
+        <Form.Item name="classes" rules={getRules("classes")}>
+          <Select
+            size="large"
+            id="Classes"
+            onChange={(e) => {
+              setValues({ ...values, ["classes"]: e });
+            }}
+            mode="tags"
+            placeholder="Classes"
+          >
+            {/* {console.log(options)} */}
+            {options?.map((option: any) => (
+              <Select.Option key={option.id} value={option.name}>
+                {option.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+        {/* <CreatableSelect
                 multiple
                 options={options}
                 setValue={setClasses}
@@ -361,26 +407,26 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
                 onAddModalSubmit={function (value: any): void {}}
             /> */}
 
-          <Form.Item name="roles" rules={getRules("roles")}>
-            <Select
-              size="large"
-              onChange={(e) => {
-                console.log(values);
-                setValues({ ...values, ["roles"]: e });
-              }}
-              id="Roles"
-              mode="tags"
-              placeholder="Roles(s)"
-            >
-              {/* {console.log(roleOptions)} */}
-              {roleOptions?.map((option: any) => (
-                <Select.Option key={option.id} value={option.name}>
-                  {option.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          {/* <MUIChipsAutocomplete
+        <Form.Item name="roles" rules={getRules("roles")}>
+          <Select
+            size="large"
+            onChange={(e) => {
+              console.log(values);
+              setValues({ ...values, ["roles"]: e });
+            }}
+            id="Roles"
+            mode="tags"
+            placeholder="Roles(s)"
+          >
+            {/* {console.log(roleOptions)} */}
+            {roleOptions?.map((option: any) => (
+              <Select.Option key={option.id} value={option.name}>
+                {option.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+        {/* <MUIChipsAutocomplete
                 label="Role(s)"
                 value={roles}
                 options={roleOptions || []}
@@ -388,26 +434,28 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
                 error={false}
                 helperText=""
             /> */}
-            {/* </div> */}
-            {/* <div className={styles.buttons}> */}
-            <Button 
-                onClick={async () => {
-                    // setSubmitDisabled(true);
-                    await document
-                      .getElementById("studentUserForm")
-                      ?.dispatchEvent(
-                        new Event("submit", { cancelable: true, bubbles: true })
-                      );
-                    // setSubmitDisabled(false);
-                  }}
-                  type="primary"
-                  htmlType="submit"
-                //   disabled={submitDisabled}
-            >Submit</Button>
-            {/* </div> */}
-        </Form>
-        </Sidebar>
-    );
+        {/* </div> */}
+        {/* <div className={styles.buttons}> */}
+        <Button
+          onClick={async () => {
+            // setSubmitDisabled(true);
+            await document
+              .getElementById("studentUserForm")
+              ?.dispatchEvent(
+                new Event("submit", { cancelable: true, bubbles: true })
+              );
+            // setSubmitDisabled(false);
+          }}
+          type="primary"
+          htmlType="submit"
+          //   disabled={submitDisabled}
+        >
+          Submit
+        </Button>
+        {/* </div> */}
+      </Form>
+    </Sidebar>
+  );
 };
 
 export default CreateNewBatch;

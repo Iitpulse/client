@@ -1,7 +1,8 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { IconButton, Link as MLink, Tab, Tabs } from "@mui/material";
 import styles from "./Test.module.scss";
-import { Button, CustomTable, Modal, Sidebar } from "../../components";
+import { Button } from "antd";
+import { CustomTable, Modal, Sidebar } from "../../components";
 import { useTestContext } from "../../utils/contexts/TestContext";
 import { Error } from "../";
 import { useNavigate } from "react-router";
@@ -287,7 +288,25 @@ const Test = () => {
   }, []);
 
   return (
-    <MainLayout name="Test">
+    <MainLayout
+      name="Test"
+      menuActions={
+        permissions.find((value: string) => value === "CREATE_TEST") && (
+          <Button
+            type="primary"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() => navigate("/test/new")}
+            icon={<AddIcon />}
+          >
+            Add New
+          </Button>
+        )
+      }
+    >
       {currentUser?.userType != "student" ? (
         <div className={styles.container}>
           <div className={styles.header}>
@@ -297,11 +316,6 @@ const Test = () => {
               <Tab label="Inactive" />
               <Tab label="Expired" />
             </Tabs>
-            {permissions.find((value: string) => value === "CREATE_TEST") && (
-              <Button onClick={() => navigate("/test/new")} icon={<AddIcon />}>
-                Add New
-              </Button>
-            )}
           </div>
           <TabPanel value={tab} index={0}>
             <div className={styles.data}>

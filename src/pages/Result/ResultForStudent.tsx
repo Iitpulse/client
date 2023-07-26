@@ -38,6 +38,7 @@ const ResultForStudent: React.FC<Props> = ({
   hasResultViewPermission,
 }) => {
   const navigate = useNavigate();
+  console.log({ finalTest });
 
   const { testId, testName, testExamName } = useParams();
   return (
@@ -115,7 +116,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
             subSection.toBeAttempted * subSection.markingScheme.correct.at(-1);
           Object.values(subSection?.questions)?.forEach((question: any) => {
             const { timeTakenInSeconds: qTimeTakenInSeconds } = question;
-            console.log({question});
+            console.log({ question });
             // if not null -> Question is attempted
             if (qTimeTakenInSeconds) {
               attempted += 1;
@@ -129,7 +130,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
                 correct += 1;
                 totalCorrect += 1;
                 timeTakenInSeconds += qTimeTakenInSeconds;
-                positiveScore+= question.marks;
+                positiveScore += question.marks;
               }
             }
             setFinalSections((prev: any) => ({
@@ -188,7 +189,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
         <Select
           size="large"
           placeholder="Result Type"
-          style={{width:"20%"}}
+          style={{ width: "20%" }}
           options={[
             {
               label: "Subject Wise",
@@ -199,23 +200,22 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
               value: "Question Wise",
             },
           ]}
-          onChange={(val) =>{
+          onChange={(val) => {
             console.log(`val = ${val}`);
-            setResultType(val)
+            setResultType(val);
           }}
         />
       </div>
-      {
-        (resultType === "Subject Wise" ? (
-          <SubjectWiseAnalysis sections={Object.values(finalSections)} />
-        ) : (
-          <>
-            <DetailedAnalysis
-              totalAppeared={finalTest?.totalAppeared || 0}
-              sections={Object.values(finalSections)}
-            />
-          </>
-        ))}
+      {resultType === "Subject Wise" ? (
+        <SubjectWiseAnalysis sections={Object.values(finalSections)} />
+      ) : (
+        <>
+          <DetailedAnalysis
+            totalAppeared={finalTest?.totalAppeared || 0}
+            sections={Object.values(finalSections)}
+          />
+        </>
+      )}
     </>
   );
 };

@@ -2,7 +2,6 @@ import styles from "./Batches.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { message, Popconfirm } from "antd";
 import {
-  Button,
   Card,
   CreatableSelect,
   CustomTable,
@@ -10,6 +9,7 @@ import {
   Sidebar,
   StyledMUISelect,
 } from "../../components";
+import { Button } from "antd";
 import { styled, Box } from "@mui/system";
 import { IconButton, TextField } from "@mui/material";
 import { AuthContext } from "../../utils/auth/AuthContext";
@@ -24,7 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import dayjs from "dayjs";
 import { NavLink } from "react-router-dom";
 import CreateNewBatch from "./CreateBatches";
-
+import EditIcon from "@mui/icons-material/Edit";
 
 const StyledMUITextField = styled(TextField)(() => {
   return {
@@ -52,7 +52,8 @@ const Batches = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toggleSideBar, setToggleSideBar] = useState(false);
-
+  const [selectedBatch, setSelectedBatch] = useState<any>();
+  const [editMode, setEditMode] = useState(false);
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
@@ -83,7 +84,8 @@ const Batches = () => {
         },
       });
       if (res?.status === 200) {
-        message.success(res?.data?.message);
+        let batch: any = data.find((values: any) => values._id === id);
+        message.success(`Batch ${batch?.name} deleted successfully`);
         setData((data) => data.filter((values: any) => values._id !== id));
       } else {
         message.error(res?.statusText);
@@ -137,6 +139,21 @@ const Batches = () => {
         ).toLocaleDateString()}`,
     },
     {
+      title: "Edit",
+      key: "edit",
+      render: (_: any, record: any) => (
+        <EditIcon
+          style={{ cursor: "pointer" }}
+          onClick={() => {
+            setEditMode(true);
+            console.log(record);
+            setSelectedBatch(record);
+            setToggleSideBar(true);
+          }}
+        />
+      ),
+    },
+    {
       title: "Delete",
       key: "delete",
       render: (_: any, record: any) => (
@@ -155,14 +172,32 @@ const Batches = () => {
   ];
 
   return (
-    <MainLayout name="Batches">
+    <MainLayout
+      name="Batches"
+      menuActions={
+        <Button
+          type="primary"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => setToggleSideBar(true)}
+          icon={<AddIcon />}
+        >
+          Create New
+        </Button>
+      }
+    >
       <Card classes={[styles.container]}>
         <div className={styles.header}>
-            <Button onClick={() => setToggleSideBar(true)} icon={<AddIcon />}>
-              Create New
-            </Button>
           <CreateNewBatch
-            handleClose={() => setToggleSideBar(false)}
+            editMode={editMode}
+            selectedBatch={selectedBatch}
+            handleClose={() => {
+              setToggleSideBar(false);
+              setEditMode(false);
+            }}
             toggleSideBar={toggleSideBar}
             setLoading={setLoading}
             setBatches={setData}
@@ -183,7 +218,5 @@ const Batches = () => {
     </MainLayout>
   );
 };
-
-
 
 export default Batches;

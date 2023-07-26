@@ -57,7 +57,9 @@ const StyledMUITextField = styled(TextField)(() => {
 const Topics = ({
   toggleSideBar,
   setToggleSideBar,
+  getColumnSearchProps,
 }: {
+  getColumnSearchProps: any;
   toggleSideBar: number;
   setToggleSideBar: React.Dispatch<React.SetStateAction<number>>;
 }) => {
@@ -93,9 +95,10 @@ const Topics = ({
   }) => {
     setLoading(true);
     try {
+      console.log(value);
       const res = await API_QUESTIONS().post(`/subject/topic/delete`, value);
       if (res?.status === 200) {
-        message.success(res?.data?.message);
+        message.success("Topic " + value.topic + " Deleted Successfully");
         setData((data) =>
           data.filter((values: any) => values.topic !== value.topic)
         );
@@ -112,14 +115,17 @@ const Topics = ({
     {
       title: "Name",
       dataIndex: "topic",
+      ...getColumnSearchProps("topic"),
     },
     {
       title: "Subject",
       dataIndex: "subject",
+      ...getColumnSearchProps("subject"),
     },
     {
       title: "Chapter",
       dataIndex: "chapter",
+      ...getColumnSearchProps("chapter"),
     },
     {
       title: "Edit",
@@ -160,7 +166,7 @@ const Topics = ({
   ];
 
   return (
-    <Card classes={[styles.container]}>
+    <Card disablePadding={true} classes={[styles.container]}>
       <div className={styles.header}>
         <CreateNewTopic
           editMode={editMode}
@@ -178,9 +184,7 @@ const Topics = ({
       </div>
       <div className={styles.data}>
         <CustomTable
-          scroll={{
-            x: 1000,
-          }}
+          scroll={{ x: 200, y: "50vh" }}
           loading={loading}
           columns={columns}
           dataSource={data}

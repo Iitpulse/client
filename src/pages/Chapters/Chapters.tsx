@@ -57,7 +57,9 @@ const StyledMUITextField = styled(TextField)(() => {
 const Chapters = ({
   toggleSideBar,
   setToggleSideBar,
+  getColumnSearchProps,
 }: {
+  getColumnSearchProps: any;
   toggleSideBar: number;
   setToggleSideBar: React.Dispatch<React.SetStateAction<number>>;
 }) => {
@@ -106,8 +108,10 @@ const Chapters = ({
         chapter,
       });
       if (res?.status === 200) {
-        // message.success(res?.data?.message);
-        message.success(`${chapter} deleted`);
+        // console.log(res, chapter);
+        message.success(
+          `Successfully deleted ${capitalizeFirstLetter(chapter)}`
+        );
         setData((data) =>
           data.filter((values: any) => values.name !== chapter)
         );
@@ -124,10 +128,12 @@ const Chapters = ({
     {
       title: "Name",
       dataIndex: "name",
+      ...getColumnSearchProps("name"),
     },
     {
       title: "Subject",
       dataIndex: "subject",
+      ...getColumnSearchProps("subject"),
     },
     {
       title: "Topics",
@@ -187,7 +193,7 @@ const Chapters = ({
   ];
 
   return (
-    <Card classes={[styles.container]}>
+    <Card disablePadding={true} classes={[styles.container]}>
       <div className={styles.header}>
         <CreateNewChapter
           editMode={editMode}
@@ -205,9 +211,7 @@ const Chapters = ({
       </div>
       <div className={styles.data}>
         <CustomTable
-          scroll={{
-            x: 1000,
-          }}
+          scroll={{ x: 200, y: "50vh" }}
           loading={loading}
           columns={columns}
           dataSource={data}

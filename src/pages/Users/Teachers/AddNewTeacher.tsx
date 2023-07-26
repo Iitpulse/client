@@ -51,6 +51,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({
   open,
   edit,
   current,
+  title,
 }) => {
   const [form] = Form.useForm();
   // const [isAddingNewStudent, setIsAddingNewStudent] = useState(true);
@@ -317,7 +318,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({
   return (
     <>
       <Drawer
-        title="Create a new account"
+        title={title}
         width={720}
         onClose={onClose}
         open={open}
@@ -402,7 +403,15 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({
                 label="Gender"
                 rules={getRules("gender")}
               >
-                <Select showSearch placeholder="Please choose a gender" filterOption={(input:any, option:any) => (option?.value?.toLowerCase() ?? '').includes(input.toLowerCase())}>
+                <Select
+                  showSearch
+                  placeholder="Please choose a gender"
+                  filterOption={(input: any, option: any) =>
+                    (option?.value?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
+                >
                   <Option value="male">Male</Option>
                   <Option value="female">Female</Option>
                   <Option value="other">Other</Option>
@@ -444,12 +453,20 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({
             </Col>
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Select showSearch placeholder="Please enter a state" filterOption={(input:any, option:any) => (option?.value?.toLowerCase() ?? '').includes(input.toLowerCase())}>
-                  {
-                    INDIAN_STATES.map((e)=>(
-                      <Select.Option key={e} value={e}>{e}</Select.Option>
-                    ))
+                <Select
+                  showSearch
+                  placeholder="Please enter a state"
+                  filterOption={(input: any, option: any) =>
+                    (option?.value?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
                   }
+                >
+                  {INDIAN_STATES.map((e) => (
+                    <Select.Option key={e} value={e}>
+                      {e}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
@@ -472,9 +489,22 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({
                 label="Subjects"
                 rules={getRules("subjects")}
               >
-                <Select showSearch mode="multiple" placeholder="Please choose a Subject/s" filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}>
+                <Select
+                  showSearch
+                  mode="multiple"
+                  placeholder="Please choose a Subject/s"
+                  filterOption={(input: any, option: any) =>
+                    (option?.label?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
+                >
                   {subjectOptions.options?.map((item: any) => (
-                    <Select.Option key={item.value} value={item.value} label={item.label}>
+                    <Select.Option
+                      key={item.value}
+                      value={item.value}
+                      label={item.label}
+                    >
                       {item.label}
                     </Select.Option>
                   ))}
@@ -507,10 +537,18 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({
                   mode="multiple"
                   placeholder="Please choose a role/s"
                   showSearch
-                  filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}
+                  filterOption={(input: any, option: any) =>
+                    (option?.label?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
                 >
                   {roleDetails.options?.map((option: any) => (
-                    <Select.Option key={option.value} value={option.value} label={option.label}>
+                    <Select.Option
+                      key={option.value}
+                      value={option.value}
+                      label={option.label}
+                    >
                       {option.label}
                     </Select.Option>
                   ))}
