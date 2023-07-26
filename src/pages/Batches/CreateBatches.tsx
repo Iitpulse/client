@@ -258,7 +258,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
       handleClose();
     } catch (error: any) {
       console.log("ERROR_CREATE_BATCH", { error });
-      form.resetFields();
+      // form.resetFields();
       message.error(error.response.data.error);
     }
     setLoading(false);
