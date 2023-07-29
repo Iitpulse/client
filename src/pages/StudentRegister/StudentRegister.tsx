@@ -69,7 +69,7 @@ const StudentRegister: React.FC = () => {
       name: finalvalues.parentName,
       contact: finalvalues.parentContact,
     };
-    finalvalues.email = finalvalues.email.toLowerCase();
+    finalvalues.email = finalvalues?.email?.toLowerCase();
     delete finalvalues.parentName;
     delete finalvalues.parentContact;
     delete finalvalues.confirmPassword;
@@ -82,7 +82,7 @@ const StudentRegister: React.FC = () => {
       message.success("Student account created successfully");
       navigate("/login");
     } catch (error) {
-      console.log("ERROR_CREATING_STUDENT_ACCOUNT", error);
+      console.log("ERROR_CREATING_STUDENT_ACCOUNT", {error});
       message.error("Error creating student account");
     }
   }

@@ -17,7 +17,8 @@ import {
   message,
 } from "antd";
 
-import { validateField } from "../../../utils/schemas";
+import { performZodValidation, validateField, } from "../../../utils/schemas";
+import { AcademicSchema } from "./utils/AcademicModel";
 const { Option } = Select;
 
 const AcademicDetailsSchema = z.object({
@@ -66,17 +67,6 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
     }));
   }
 
-  const validateMessages = {
-    required: "${label} is required!",
-    types: {
-      email: "${label} is not a valid email!",
-      number: "${label} is not a valid number!",
-    },
-    number: {
-      range: "${label} must be between ${min} and ${max}",
-    },
-  };
-
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     // e.preventDefault();
     message.loading({ content: "Loading", key: "loader" });
@@ -89,7 +79,13 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
       stream,
     };
     console.log({ finalValues });
-    const isValid = AcademicDetailsSchema.safeParse(finalValues);
+    const result = performZodValidation(
+      form,
+      conversionObject,
+      AcademicSchema,
+      []
+    );
+    const isValid = AcademicDetailsSchema.safeParse(result);
     if (!isValid.success) {
       console.log(isValid);
       isValid.error.issues.forEach((issue) => {
@@ -109,6 +105,27 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
     message.destroy("loader");
   }
 
+  const conversionObject: any = {
+    school: null,
+    standard: null,
+    medium: null,
+    stream: null,
+  };
+  
+  function getRules(fieldName: any) {
+    try {
+      return [
+        {
+          validateTrigger: "onSubmit",
+          validator: (_: any, value: any) =>
+            validateField(fieldName, value, conversionObject, AcademicSchema),
+        },
+      ];
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   return (
     <>
       <Form
@@ -117,17 +134,16 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
         id="managerUserForm"
         layout="vertical"
         onFinish={handleSubmitForm}
-        validateMessages={validateMessages}
         // onFinishFailed={handleFinishFailed}
       >
-        <Form.Item name="school" rules={[{ required: true }]}>
+        <Form.Item name="school" rules={getRules("school")}>
           <Input
             size="large"
             placeholder="School*"
             onChange={handleChangeValues}
           />
         </Form.Item>
-        <Form.Item name="Gender" rules={[{ required: true }]}>
+        <Form.Item name="standard" rules={getRules("standard")}>
           <Select
             placeholder="Standard"
             size="large"
@@ -140,7 +156,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
             <Option value="dropper">dropper</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="Medium" rules={[{ required: true }]}>
+        <Form.Item name="medium" rules={getRules("medium")}>
           <Select
             placeholder="Medium"
             size="large"
@@ -150,10 +166,9 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
           >
             <Option value="hindi">Hindi</Option>
             <Option value="english">English</Option>
-            <Option value="dropper">dropper</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="Stream" rules={[{ required: true }]}>
+        <Form.Item name="stream" rules={getRules("stream")}>
           <Select
             placeholder="Stream"
             size="large"
