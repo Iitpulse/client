@@ -55,7 +55,7 @@ export const questionObjectiveSchema = coreQuestionSchema.extend({
   }),
   hi: questionSchemaHi.extend({
     options: z
-      .array(optionSchema)
+      .array(optionSchema.extend({ value: z.string().optional().default("") }))
       .min(2, "Fill in Options")
       .optional()
       .default([]),
