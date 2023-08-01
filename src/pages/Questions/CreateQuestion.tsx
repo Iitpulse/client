@@ -445,6 +445,7 @@ const CreateQuestion = () => {
     questionType: "single" | "multiple" | "integer" | "paragraph" | "matrix"
   ) {
     let isDataValid = false;
+    console.log({ finalQuestion });
     switch (questionType) {
       case "single":
       case "multiple":
@@ -470,11 +471,16 @@ const CreateQuestion = () => {
       message.error("Invalid Question Data");
       return;
     }
-
+    let qtype: string = questionType;
+    if (questionType === "single" || questionType === "multiple") {
+      qtype = "mcq";
+    } else if (questionType === "integer") {
+      qtype = "numerical";
+    }
     if (id) {
-      await updateQuestion(`${questionType}/update/${id}`, finalQuestion);
+      await updateQuestion(`${qtype}/update/${id}`, finalQuestion);
     } else {
-      await createQuestion(`${questionType}/new`, finalQuestion);
+      await createQuestion(`${qtype}/new`, finalQuestion);
     }
   }
 
