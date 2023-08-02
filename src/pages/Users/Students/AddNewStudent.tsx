@@ -156,7 +156,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
       revert: (roles: any[]) => roles?.map((role: any) => role.id),
     },
     contact: {
-      convert: (value: any) => parseInt(value),
+      convert: (value: any) => value,
       revert: (value: number) => value.toString(),
     },
     address: null,
@@ -184,7 +184,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
     parentDetails: {
       name: null,
       contact: {
-        convert: (value: any) => parseInt(value),
+        convert: (value: any) => value,
         revert: (value: number) => value.toString(),
       },
     },
@@ -386,7 +386,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-               <Form.Item
+              <Form.Item
                 name="password"
                 label="Password"
                 rules={getRules("password")}
@@ -417,10 +417,20 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
                 label="Gender"
                 rules={getRules("gender")}
               >
-                <Select showSearch placeholder="Please choose a gender" optionLabelProp="label">
-                  <Option value="male" label="Male">Male</Option>
-                  <Option value="female" label="Female">Female</Option>
-                  <Option value="other" label="Other">Other</Option>
+                <Select
+                  showSearch
+                  placeholder="Please choose a gender"
+                  optionLabelProp="label"
+                >
+                  <Option value="male" label="Male">
+                    Male
+                  </Option>
+                  <Option value="female" label="Female">
+                    Female
+                  </Option>
+                  <Option value="other" label="Other">
+                    Other
+                  </Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -459,12 +469,20 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
             </Col>
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Select showSearch placeholder="Please enter a state" filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}>
-                  {
-                    INDIAN_STATES.map((e)=>(
-                      <Select.Option key={e} value={e} label={e}>{e}</Select.Option>
-                    ))
+                <Select
+                  showSearch
+                  placeholder="Please enter a state"
+                  filterOption={(input: any, option: any) =>
+                    (option?.label?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
                   }
+                >
+                  {INDIAN_STATES.map((e) => (
+                    <Select.Option key={e} value={e} label={e}>
+                      {e}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
@@ -505,24 +523,28 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
                 label="Standard"
                 rules={getRules("standard")}
               >
-                <Select 
-                  showSearch 
-                  placeholder="Please choose a standard" 
-                  filterOption={(input, option) => (option?.label.toLowerCase() ?? '').includes(input.toLowerCase())}
+                <Select
+                  showSearch
+                  placeholder="Please choose a standard"
+                  filterOption={(input, option) =>
+                    (option?.label.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
                   options={[
                     {
-                      value: '11',
-                      label: '11 th',
+                      value: "11",
+                      label: "11 th",
                     },
                     {
-                      value: '12',
-                      label: '12 th',
+                      value: "12",
+                      label: "12 th",
                     },
                     {
-                      value: '13',
-                      label: 'Dropper',
+                      value: "13",
+                      label: "Dropper",
                     },
-                  ]}  
+                  ]}
                 />
               </Form.Item>
             </Col>
@@ -543,12 +565,30 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
                 label="Stream"
                 rules={getRules("stream")}
               >
-                <Select showSearch placeholder="Please choose a stream" filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}>
-                  <Option value="PCM" label="PCM">PCM</Option>
-                  <Option value="PCB" label="PCB">PCB</Option>
-                  <Option value="Commerce" label="Commerce">Commerce</Option>
-                  <Option value="other1" label="Other Stream 1">Other Stream 1</Option>
-                  <Option value="other2" label="Other Stream 2">Other Stream 2</Option>
+                <Select
+                  showSearch
+                  placeholder="Please choose a stream"
+                  filterOption={(input: any, option: any) =>
+                    (option?.label?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
+                >
+                  <Option value="PCM" label="PCM">
+                    PCM
+                  </Option>
+                  <Option value="PCB" label="PCB">
+                    PCB
+                  </Option>
+                  <Option value="Commerce" label="Commerce">
+                    Commerce
+                  </Option>
+                  <Option value="other1" label="Other Stream 1">
+                    Other Stream 1
+                  </Option>
+                  <Option value="other2" label="Other Stream 2">
+                    Other Stream 2
+                  </Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -558,10 +598,20 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
                 label="Medium"
                 rules={getRules("medium")}
               >
-                <Select showSearch placeholder="Please choose a medium" optionLabelProp="label">
-                  <Option value="hindi" label="हिंदी">हिंदी</Option>
-                  <Option value="english" label="English">English</Option>
-                  <Option value="other" label="other">other</Option>
+                <Select
+                  showSearch
+                  placeholder="Please choose a medium"
+                  optionLabelProp="label"
+                >
+                  <Option value="hindi" label="हिंदी">
+                    हिंदी
+                  </Option>
+                  <Option value="english" label="English">
+                    English
+                  </Option>
+                  <Option value="other" label="other">
+                    other
+                  </Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -583,9 +633,21 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
                 label="Batch"
                 rules={getRules("promoCode")}
               >
-                <Select showSearch placeholder="Please choose a batch" filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}>
+                <Select
+                  showSearch
+                  placeholder="Please choose a batch"
+                  filterOption={(input: any, option: any) =>
+                    (option?.label?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
+                >
                   {batchOptions?.map((option: any) => (
-                    <Select.Option key={option.value} value={option.value} label={option.label}>
+                    <Select.Option
+                      key={option.value}
+                      value={option.value}
+                      label={option.label}
+                    >
                       {option.label}
                     </Select.Option>
                   ))}
