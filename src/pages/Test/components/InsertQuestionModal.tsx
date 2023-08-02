@@ -7,7 +7,7 @@ import CustomModal from "../../../components/CustomModal/CustomModal";
 import { StyledMUITextField } from "../../Users/components";
 import styles from "../CreateTest.module.scss";
 import MUISimpleAutocomplete from "./MUISimpleAutocomplete";
-import { Table } from "antd";
+import { Table, Tag } from "antd";
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../../utils/api/config";
@@ -134,6 +134,7 @@ const InsertQuestionModal: React.FC<Props> = ({
         </div> */}
         <div className={styles.questionsTable}>
           <CustomTable
+            selectable
             columns={cols as any}
             dataSource={questions?.map((question) => ({
               ...question,
@@ -200,7 +201,13 @@ const cols = [
     key: "chapter",
     width: "100",
     searchable: true,
-    render: (chapters: any) => <p>{chapters?.join(", ")}</p>,
+    render: (chapters: any) => (
+      <p>
+        {chapters?.map((chapter: any) => (
+          <Tag> {chapter.name}</Tag>
+        ))}
+      </p>
+    ),
   },
   {
     title: "Proof Read?",
