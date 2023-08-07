@@ -47,8 +47,8 @@ export function generateQuestionCore(
       };
     }),
     difficulty: difficulty || "unset",
-    exams,
-    sources,
+    exams: exams?.map((exam: any) => exam.name),
+    sources: sources?.map((source: any) => source.name),
     topics,
     createdAt: new Date().toISOString(),
     modifiedAt: new Date().toISOString(),

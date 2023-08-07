@@ -41,7 +41,7 @@ export const coreQuestionSchema = z.object({
 
 export const questionSchemaEn = z.object({
   question: z.string().nonempty("Fill in Question"),
-  solution: z.string().nonempty("Fill in Solution"),
+  solution: z.string().nonempty("Fill in Solution").optional().default(""),
 });
 
 export const questionSchemaHi = z.object({

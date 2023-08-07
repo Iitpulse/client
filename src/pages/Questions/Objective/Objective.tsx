@@ -108,7 +108,7 @@ const Objective: React.FC<Props> = ({
 
   const [tabItems, setTabItems] = useState([
     questionTabItem,
-    ...values[currentLanguage].options.map((_, index) => ({
+    ...values[currentLanguage]?.options?.map((_, index) => ({
       label: (
         <span
           className={
@@ -367,9 +367,9 @@ const Objective: React.FC<Props> = ({
         setValues({
           en: {
             question: data?.en?.question,
-            options: data?.en?.options.map((option: any) => ({
+            options: data?.en?.options?.map((option: any) => ({
               ...option,
-              isCorrectAnswer: data?.correctAnswers.includes(option.id),
+              isCorrectAnswer: data?.correctAnswers?.includes(option.id),
             })),
             solution: data?.en?.solution,
           },
@@ -380,7 +380,7 @@ const Objective: React.FC<Props> = ({
         });
 
         setAnswerType(data.type);
-        setOptionsCount(data.en.options.length);
+        setOptionsCount(data.en?.options?.length);
 
         //@ts-ignore
         setIsInitialValuePassed(true);
@@ -392,7 +392,7 @@ const Objective: React.FC<Props> = ({
       setValues({
         en: {
           question: data?.en?.question,
-          options: data?.en?.options.map((option: any) => ({
+          options: data?.en?.options?.map((option: any) => ({
             ...option,
             // isCorrectAnswer: data?.correctAnswers.includes(option.id),
           })),
@@ -405,7 +405,7 @@ const Objective: React.FC<Props> = ({
       });
 
       setAnswerType(data.type);
-      setOptionsCount(data.en.options.length);
+      setOptionsCount(data.en?.options?.length);
 
       //@ts-ignore
       setIsInitialValuePassed(true);
