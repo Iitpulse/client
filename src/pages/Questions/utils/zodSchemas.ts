@@ -77,7 +77,32 @@ export const questionIntegerSchema = coreQuestionSchema.extend({
 
 export const questionParagraphSchema = coreQuestionSchema.extend({
   questions: z
-    .array(z.union([questionObjectiveSchema, questionIntegerSchema]))
+    .array(
+      z.union([
+        questionObjectiveSchema.omit({
+          uploadedBy: true,
+          createdAt: true,
+          modifiedAt: true,
+          sources: true,
+          exams: true,
+          isProofRead: true,
+          chapters: true,
+          difficulty: true,
+          subject: true,
+        }),
+        questionIntegerSchema.omit({
+          uploadedBy: true,
+          createdAt: true,
+          modifiedAt: true,
+          sources: true,
+          exams: true,
+          isProofRead: true,
+          chapters: true,
+          difficulty: true,
+          subject: true,
+        }),
+      ])
+    )
     .min(1, "Fill in Questions"),
   paragraph: z.string().nonempty("Fill in Paragraph"),
 });

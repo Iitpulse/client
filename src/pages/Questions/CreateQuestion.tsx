@@ -237,12 +237,7 @@ const CreateQuestion = () => {
             value: exam,
           })) ?? []
         );
-        setSources(
-          questionData?.sources?.map((source: string) => ({
-            name: source,
-            value: source,
-          })) ?? []
-        );
+        setSources(questionData?.sources ?? []);
         setType(
           questionData?.type === EQuestionType.Single ||
             questionData?.type === EQuestionType.Multiple
@@ -560,11 +555,15 @@ const CreateQuestion = () => {
         {
           ...data,
           chapters,
-          topics,
+          topics: topics.map((topic: any) => {
+            if (topic?.name) return topic?.name;
+            return topic;
+          }),
           subject: subject?.value,
           difficulty,
           exams,
           sources,
+          isProofRead,
         },
         currentUser
       );

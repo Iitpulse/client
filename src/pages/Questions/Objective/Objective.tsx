@@ -108,7 +108,7 @@ const Objective: React.FC<Props> = ({
 
   const [tabItems, setTabItems] = useState([
     questionTabItem,
-    ...values[currentLanguage]?.options?.map((_, index) => ({
+    ...values[currentLanguage].options.map((_, index) => ({
       label: (
         <span
           className={
@@ -180,8 +180,12 @@ const Objective: React.FC<Props> = ({
 
   useEffect(() => {
     // console.log("hey", data);
-    // console.log("hey", values);
-    setData((prev: any) => ({ ...values, type: answerType }));
+    console.log("hey", values, answerType);
+    setData((prev: any) => ({
+      ...values,
+      type: answerType,
+      id: (Math.random() * 1000).toString(),
+    }));
   }, [values, setData, answerType]);
 
   function handleChangeTab(newValue: string) {
@@ -228,6 +232,7 @@ const Objective: React.FC<Props> = ({
           isCorrectAnswer: false,
         })),
       },
+      type: e.target.value,
     }));
     setAnswerType(e.target.value);
   }
@@ -367,9 +372,9 @@ const Objective: React.FC<Props> = ({
         setValues({
           en: {
             question: data?.en?.question,
-            options: data?.en?.options?.map((option: any) => ({
+            options: data?.en?.options.map((option: any) => ({
               ...option,
-              isCorrectAnswer: data?.correctAnswers?.includes(option.id),
+              isCorrectAnswer: data?.correctAnswers.includes(option.id),
             })),
             solution: data?.en?.solution,
           },
@@ -380,7 +385,7 @@ const Objective: React.FC<Props> = ({
         });
 
         setAnswerType(data.type);
-        setOptionsCount(data.en?.options?.length);
+        setOptionsCount(data.en.options.length);
 
         //@ts-ignore
         setIsInitialValuePassed(true);
@@ -392,7 +397,7 @@ const Objective: React.FC<Props> = ({
       setValues({
         en: {
           question: data?.en?.question,
-          options: data?.en?.options?.map((option: any) => ({
+          options: data?.en?.options.map((option: any) => ({
             ...option,
             // isCorrectAnswer: data?.correctAnswers.includes(option.id),
           })),
@@ -405,7 +410,7 @@ const Objective: React.FC<Props> = ({
       });
 
       setAnswerType(data.type);
-      setOptionsCount(data.en?.options?.length);
+      setOptionsCount(data.en.options.length);
 
       //@ts-ignore
       setIsInitialValuePassed(true);
@@ -544,6 +549,9 @@ const Objective: React.FC<Props> = ({
             </Radio.Group>
           ) : (
             <Checkbox.Group
+              value={values[currentLanguage].options
+                .filter((op) => op.isCorrectAnswer)
+                .map((op) => op.id)}
               options={getCorrectAnswerCheckboxOptions()}
               onChange={(newOptions) => handleChangeCorrectAnswer(newOptions)}
             />
