@@ -27,7 +27,6 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 import { API_USERS } from "../../../utils/api/config";
 
-
 const validateMessages = {
   required: "${label} is required!",
   types: {
@@ -57,8 +56,8 @@ const defaultState = {
   city: "",
   state: "",
   parentName: "",
-  parentContact: 0,
-  contact: 0,
+  parentContact: "",
+  contact: "",
   address: "",
 };
 
