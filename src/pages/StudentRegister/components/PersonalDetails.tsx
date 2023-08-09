@@ -3,6 +3,8 @@ import z, { number } from "zod";
 // import { Button, StyledMUISelect } from "../../../components";
 import { useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
+import { performZodValidation, validateField } from "../../../utils/schemas";
+import dayjs, { Dayjs } from "dayjs";
 import { Grid } from "@mui/material";
 import {
   Button,
@@ -28,7 +30,7 @@ import { API_USERS } from "../../../utils/api/config";
 const validateMessages = {
   required: "${label} is required!",
   types: {
-    email: '${label} is not a valid email!',
+    email: "${label} is not a valid email!",
     // number: 'Not a valid number!',
   },
   number: {
@@ -44,8 +46,8 @@ const PersonalDetailsSchema = z.object({
   gender: z.string(),
   address: z.string().min(5).max(150),
   parentName: z.string(),
-  parentContact: z.string().length(10),
-  contact: z.string().length(10),
+  parentContact: z.string().min(10).max(10),
+  contact: z.string().min(10).max(10),
 });
 
 const defaultState = {
@@ -57,6 +59,28 @@ const defaultState = {
   parentContact: "",
   contact: "",
   address: "",
+};
+
+const conversionObject = {
+  name: null,
+  dob: {
+    convert: (value: Dayjs) =>
+      value ? dayjs(value).format("DD-MM-YYYY") : undefined,
+    revert: (value: string) =>
+      value ? dayjs(value, "DD-MM-YYYY").toDate() : null,
+  },
+  city: null,
+  state: null,
+  parentName: null,
+  parentContact: {
+    convert: (value: any) => value,
+    revert: (value: number) => value.toString(),
+  },
+  contact: {
+    convert: (value: any) => value,
+    revert: (value: number) => value.toString(),
+  },
+  address: null,
 };
 
 function getErrorDefaultState(valuesObj: typeof defaultState) {
@@ -105,7 +129,13 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
       gender,
       dob: new Date(values.dob).toISOString(),
     };
-    const isValid = PersonalDetailsSchema.safeParse(finalValues);
+    const result = performZodValidation(
+      form,
+      conversionObject,
+      PersonalDetailsSchema,
+      []
+    );
+    const isValid = PersonalDetailsSchema.safeParse(result);
     if (!isValid.success) {
       console.log(isValid);
       isValid.error.issues.forEach((issue) => {
@@ -127,6 +157,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [showTextField, setShowTextField] = useState(false);
   const [buttonText, setButtonText] = useState("Verify Contact");
   const [Verified, setVerified] = useState(false);
+  const [form] = Form.useForm();
 
   const handleGenerate = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -186,14 +217,34 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
     },
   });
 
+  function getRules(fieldName: any) {
+    try {
+      return [
+        {
+          validateTrigger: "onSubmit",
+          validator: (_: any, value: any) =>
+            validateField(
+              fieldName,
+              value,
+              conversionObject,
+              PersonalDetailsSchema
+            ),
+        },
+      ];
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   return (
     <Form
+      form={form}
       onFinish={handleSubmitForm}
       className={styles.regForm}
       validateMessages={validateMessages}
     >
       <div className={styles.regFormGrid}>
-        <Form.Item name="Name" rules={[{ required: true }]}>
+        <Form.Item name="name" rules={getRules("name")}>
           <Input
             size="large"
             id="name"
@@ -205,7 +256,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Form.Item>
 
-        <Form.Item name="Gender" rules={[{ required: true }]}>
+        <Form.Item name="gender" rules={getRules("gender")}>
           <Select size="large" placeholder="Gender" onChange={setGender}>
             <Option value="male">Male</Option>
             <Option value="female">Female</Option>
@@ -228,12 +279,19 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           label="Date of Birth"
           variant="outlined"
         /> */}
-        <Form.Item name="Date of Birth" rules={[{required:true}]}>
-          <DatePicker style={{ width: '100%' }} id="dob" size="large" placeholder="Date of Birth" onChange={onChangee} disabledDate={(current) => {
-                    return current && current.valueOf() > Date.now();
-                  }}/>
+        <Form.Item name="dob" rules={getRules("dob")}>
+          <DatePicker
+            style={{ width: "100%" }}
+            id="dob"
+            size="large"
+            placeholder="Date of Birth"
+            onChange={onChangee}
+            disabledDate={(current) => {
+              return current && current.valueOf() > Date.now();
+            }}
+          />
         </Form.Item>
-        <Form.Item name="City" rules={[{ required: true }]}>
+        <Form.Item name="city" rules={getRules("city")}>
           <Input
             size="large"
             id="city"
@@ -255,17 +313,25 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
 
-        <Form.Item name="State" rules={[{required:true}]}>
-          <Select showSearch size="large" id="state" placeholder="State" onChange={(e)=>{setValues((prevState)=>({...prevState, ["state"]:e}))}}>
-            {
-              INDIAN_STATES.map((e)=>(
-                <Select.Option key={e} value={e}>{e}</Select.Option>
-              ))
-            }
-          </Select>  
+        <Form.Item name="state" rules={getRules("state")}>
+          <Select
+            showSearch
+            size="large"
+            id="state"
+            placeholder="State"
+            onChange={(e) => {
+              setValues((prevState) => ({ ...prevState, ["state"]: e }));
+            }}
+          >
+            {INDIAN_STATES.map((e) => (
+              <Select.Option key={e} value={e}>
+                {e}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
-        <Form.Item name="Parent Name" rules={[{ required: true }]}>
+        <Form.Item name="parentName" rules={getRules("parentName")}>
           <Input
             size="large"
             id="parentName"
@@ -279,7 +345,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Form.Item>
 
-        <Form.Item name="Parent Contact" rules={[{required:true}]}>
+        <Form.Item name="parentContact" rules={getRules("parentContact")}>
           <Input
             size="large"
             id="parentContact"
@@ -293,7 +359,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Form.Item>
 
-        <Form.Item name="Contact" rules={[{required:true}]}>
+        <Form.Item name="contact" rules={getRules("contact")}>
           <Input
             size="large"
             id="contact"
@@ -329,7 +395,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         )} */}
       </div>
       <div className={styles.regForm} style={{ marginTop: "0px" }}>
-        <Form.Item name="Address" rules={[{ required: true }]}>
+        <Form.Item name="address" rules={getRules("address")}>
           <Input
             size="large"
             id="address"
