@@ -121,7 +121,7 @@ const Paragraph: React.FC<Props> = ({
   });
 
   function handleChangeData(values: any, idx: number) {
-    // console.log({ values, idx });
+    console.log({ values, idx });
     setQuestions((prev) =>
       prev.map((question, i) => (i === idx ? values : question))
     );
@@ -271,100 +271,117 @@ const Question: React.FC<{
       ? "objective"
       : data.type) || "objective"
   );
-  const [localData, setLocalData] = useState(data);
+  const [localData, setLocalData] = useState({
+    en: {
+      question: "",
+      options: [],
+      solution: "",
+    },
+    hi: {
+      question: "",
+      options: [],
+      solution: "",
+    },
+    isProofRead: false,
+    id: "",
+    type: "objective",
+  });
   const [isInitialValuePassedLocal, setIsInitialValuePassedLocal] =
     useState(false);
   const [error, setError] = useState({
     type: false,
   });
 
-  useEffect(() => {
-    if (isSubmitting) {
-      if (type === "") {
-        setError({ type: true });
-      }
-      console.log("isSubmitting", { type, localData });
-      setData({ ...localData, type }, idx);
-    }
-  }, [isSubmitting]);
+  // useEffect(() => {
+  //   if (isSubmitting) {
+  //     if (type === "") {
+  //       setError({ type: true });
+  //     }
+  //     console.log("isSubmitting", { type, localData }); //yaha tk sahi hai
+  //     setData({ ...localData }, idx);
+  //   }
+  // }, [isSubmitting]);
 
   useEffect(() => {
-    if (isInitialValuePassed) {
-      setData(localData, idx);
-      setType(
-        (data.type === "single" || data.type === "multiple"
-          ? "objective"
-          : data.type) || "objective"
-      );
-      setIsInitialValuePassedLocal(true);
-    } else {
-      setData(data, idx);
-      // console.log({ testingtheType: data.type });
-      setIsInitialValuePassedLocal(true);
-    }
+    // setData(localData, idx);
+    console.log(localData, data);
+    // if (isInitialValuePassed) {
+    //   console.log({ localData, isInitialValuePassed });
+    //   setType(
+    //     (data.type === "single" || data.type === "multiple"
+    //       ? "objective"
+    //       : data.type) || "objective"
+    //   );
+    //   // setIsInitialValuePassedLocal(true);
+    // } else {
+    //   console.log({ localData, isInitialValuePassed, data });
+    //   setData(data, idx);
+    //   // console.log({ testingtheType: data.type });
+    //   // setIsInitialValuePassedLocal(true);
+    // }
   }, [localData]);
 
-  useEffect(() => {
-    console.log({
-      localData,
-      type,
-      test:
-        data.type === "objective" ||
-        data.type === "multiple" ||
-        data.type === "single"
-          ? true
-          : false,
-    });
-  });
+  // useEffect(() => {
+  //   console.log({
+  //     localData,
+  //     type,
+  //     test:
+  //       data.type === "objective" ||
+  //       data.type === "multiple" ||
+  //       data.type === "single"
+  //         ? true
+  //         : false,
+  //   });
+  // });
 
-  useEffect(() => {
-    if (type === "objective" && isInitialValuePassedLocal) {
-      //paas objective template in set data along with idx
-      // console.log("To Objective");
-      let tempOptions = generateOptions("single", 4);
-      setData(
-        {
-          en: {
-            question: "",
-            options: tempOptions,
-            solution: "",
-          },
-          hi: {
-            question: "",
-            options: tempOptions,
-            solution: "",
-          },
-          isProofRead: false,
-          id: "",
-          type: "objective",
-        },
-        idx
-      );
-    } else if (type === "integer" && isInitialValuePassedLocal) {
-      //pass integer template in set data along with idx
-      // console.log("To Integer");
-      setData(
-        {
-          en: {
-            question: "",
-            solution: "",
-          },
-          hi: {
-            question: "",
-            solution: "",
-          },
-          isProofRead: false,
-          id: "",
-          type: "integer",
-          correctAnswer: {
-            from: "",
-            to: "",
-          },
-        },
-        idx
-      );
-    }
-  }, [type]);
+  // useEffect(() => {
+  //   if (type === "objective" && isInitialValuePassedLocal) {
+  //     //paas objective template in set data along with idx
+  //     // console.log("To Objective");
+  //     let tempOptions = generateOptions("single", 4);
+  //     setData(
+  // {
+  //   en: {
+  //     question: "",
+  //     options: tempOptions,
+  //     solution: "",
+  //   },
+  //   hi: {
+  //     question: "",
+  //     options: tempOptions,
+  //     solution: "",
+  //   },
+  //   isProofRead: false,
+  //   id: "",
+  //   type: "objective",
+  // },
+  //       idx
+  //     );
+  //   } else if (type === "integer" && isInitialValuePassedLocal) {
+  //     //pass integer template in set data along with idx
+  //     // console.log("To Integer");
+  //     setData(
+  //       {
+  //         en: {
+  //           question: "",
+  //           solution: "",
+  //         },
+  //         hi: {
+  //           question: "",
+  //           solution: "",
+  //         },
+  //         isProofRead: false,
+  //         id: "",
+  //         type: "integer",
+  //         correctAnswer: {
+  //           from: "",
+  //           to: "",
+  //         },
+  //       },
+  //       idx
+  //     );
+  //   }
+  // }, [type]);
 
   return (
     <div className={styles.question}>

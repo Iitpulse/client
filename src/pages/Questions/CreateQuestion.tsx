@@ -190,7 +190,7 @@ const CreateQuestion = () => {
 
       try {
         const questionData = await fetchData(questionType, id);
-
+        console.log({ questionData });
         const subject = subjectOptions?.find((sub: any) => {
           return (
             sub?.name?.toLowerCase() === questionData?.subject?.toLowerCase()
@@ -204,28 +204,40 @@ const CreateQuestion = () => {
             ) !== -1
         );
         let topics: any = [];
-        chapters.forEach((chap: any) => {
+        questionData?.chapters?.forEach((chap: any) => {
           topics.push(...chap.topics);
         });
         topics = topics.map((topic: string) => ({ name: topic }));
-
+        console.log({ questionData, subject, chapters, topics });
         setData(questionData);
-        setSubject(subject || {});
-        setChapters(chapters || []);
+        setSubject(
+          { name: subject.name, value: subject.name, ...subject } || {}
+        );
+        setChapters(
+          chapters.map((c: any) => ({
+            ...c,
+            name: c.name,
+            value: c.name,
+          })) || []
+        );
         setTopics(() => {
-          return topics || [];
+          return (
+            topics.map((t: any) => ({
+              ...t,
+              name: t.name,
+              value: t.name,
+            })) || []
+          );
         });
         setIsProofRead(questionData.isProofRead);
         setDifficulty(questionData.difficulty);
         setExams(
-          questionData?.exams?.map((exam: string) => ({ name: exam })) ?? []
-        );
-        setSources(
-          questionData?.sources?.map((source: string) => ({
-            name: source,
-            value: source,
+          questionData?.exams?.map((exam: string) => ({
+            name: exam,
+            value: exam,
           })) ?? []
         );
+        setSources(questionData?.sources ?? []);
         setType(
           questionData?.type === EQuestionType.Single ||
             questionData?.type === EQuestionType.Multiple
@@ -279,7 +291,7 @@ const CreateQuestion = () => {
 
   async function handleAddSubject(sub: any) {
     const res = await API_QUESTIONS().post("/subject/create", {
-      subject: sub,
+      name: sub,
       chapters: [],
     });
     setSubject(res.data.data);
@@ -297,12 +309,10 @@ const CreateQuestion = () => {
   async function handleAddChapter(chapter: string) {
     let chapterAddLoading = message.loading("Adding Chapter", 0);
     try {
+      console.log({ subject });
       const res = await API_QUESTIONS().post("/subject/create-chapter", {
         subjectId: subject._id,
-        chapter: {
-          name: chapter,
-          topics: [],
-        },
+        name: chapter,
       });
       const newSubjectData = res.data.data;
       setSubjectOptions((prev: any) => {
@@ -353,9 +363,9 @@ const CreateQuestion = () => {
 
     try {
       const res = await API_QUESTIONS().post("/subject/create-topic", {
-        subjectId: subject._id,
+        subject: subject._id,
         chapter: chapterName,
-        topic: topicName,
+        name: topicName,
       });
 
       setTopicOptions(addTopicToExisting(topicOptions, topicName));
@@ -394,7 +404,7 @@ const CreateQuestion = () => {
     const addSourceLoading = message.loading("Adding Source...", 0);
     try {
       const res = await API_QUESTIONS().post("/source/create", {
-        source,
+        name: source,
       });
       setSourceOptions([...sourceOptions, res.data]);
       addSourceLoading();
@@ -446,6 +456,7 @@ const CreateQuestion = () => {
   ) {
     let isDataValid = false;
     console.log({ finalQuestion });
+
     switch (questionType) {
       case "single":
       case "multiple":
@@ -544,11 +555,15 @@ const CreateQuestion = () => {
         {
           ...data,
           chapters,
-          topics,
+          topics: topics.map((topic: any) => {
+            if (topic?.name) return topic?.name;
+            return topic;
+          }),
           subject: subject?.value,
           difficulty,
           exams,
           sources,
+          isProofRead,
         },
         currentUser
       );
@@ -582,8 +597,9 @@ const CreateQuestion = () => {
         default:
           return;
       }
-
-      resetQuestionForm();
+      if (!id) {
+        resetQuestionForm();
+      }
     } catch (error) {
       console.log("ERROR_CREATE_QUESTION ", error);
       if (error instanceof ZodError) {
@@ -615,6 +631,40 @@ const CreateQuestion = () => {
     }
   }, [isSubmitClicked, data]);
 
+  useEffect(() => {
+    console.log({ chapters, subject, topics });
+    if (chapters.length !== 0)
+      setChapters((prev) => {
+        return prev
+          .filter((ch: any) =>
+            subject?.chapters?.find((c: any) => c.id == ch.id)
+          )
+          .map((chap: any) => ({
+            ...chap,
+            label: chap.name,
+            value: chap.name,
+          }));
+      });
+    // setTopics([]);
+  }, [subject]);
+  useEffect(() => {
+    console.log({ chapters, subject, topics });
+    if (topics.length !== 0 && chapters.length !== 0)
+      setTopics((prev) => {
+        return prev.filter((topic: any) => {
+          return (
+            chapters?.find((chapter: any) => {
+              return (
+                chapter?.topics?.find(
+                  (chapTopic: any) => chapTopic === topic.name
+                ) ?? false
+              );
+            }) ?? false
+          );
+        });
+      });
+    // setTopics([]);
+  }, [chapters]);
   function getErrorStatus(field: string) {
     return formErrors[field] ? "error" : "";
   }
@@ -864,6 +914,7 @@ function getQuestionFromType(
   isStable: boolean,
   setIsStable: (data: any) => void
 ) {
+  console.log({ type });
   switch (type.toLowerCase()) {
     case "objective":
       return (

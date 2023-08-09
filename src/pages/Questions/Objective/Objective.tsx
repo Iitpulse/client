@@ -180,8 +180,12 @@ const Objective: React.FC<Props> = ({
 
   useEffect(() => {
     // console.log("hey", data);
-    // console.log("hey", values);
-    setData((prev: any) => ({ ...values, type: answerType }));
+    console.log("hey", values, answerType);
+    setData((prev: any) => ({
+      ...values,
+      type: answerType,
+      id: (Math.random() * 1000).toString(),
+    }));
   }, [values, setData, answerType]);
 
   function handleChangeTab(newValue: string) {
@@ -228,6 +232,7 @@ const Objective: React.FC<Props> = ({
           isCorrectAnswer: false,
         })),
       },
+      type: e.target.value,
     }));
     setAnswerType(e.target.value);
   }
@@ -544,6 +549,9 @@ const Objective: React.FC<Props> = ({
             </Radio.Group>
           ) : (
             <Checkbox.Group
+              value={values[currentLanguage].options
+                .filter((op) => op.isCorrectAnswer)
+                .map((op) => op.id)}
               options={getCorrectAnswerCheckboxOptions()}
               onChange={(newOptions) => handleChangeCorrectAnswer(newOptions)}
             />

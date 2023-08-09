@@ -41,7 +41,7 @@ export const coreQuestionSchema = z.object({
 
 export const questionSchemaEn = z.object({
   question: z.string().nonempty("Fill in Question"),
-  solution: z.string().nonempty("Fill in Solution"),
+  solution: z.string().nonempty("Fill in Solution").optional().default(""),
 });
 
 export const questionSchemaHi = z.object({
@@ -77,7 +77,32 @@ export const questionIntegerSchema = coreQuestionSchema.extend({
 
 export const questionParagraphSchema = coreQuestionSchema.extend({
   questions: z
-    .array(z.union([questionObjectiveSchema, questionIntegerSchema]))
+    .array(
+      z.union([
+        questionObjectiveSchema.omit({
+          uploadedBy: true,
+          createdAt: true,
+          modifiedAt: true,
+          sources: true,
+          exams: true,
+          isProofRead: true,
+          chapters: true,
+          difficulty: true,
+          subject: true,
+        }),
+        questionIntegerSchema.omit({
+          uploadedBy: true,
+          createdAt: true,
+          modifiedAt: true,
+          sources: true,
+          exams: true,
+          isProofRead: true,
+          chapters: true,
+          difficulty: true,
+          subject: true,
+        }),
+      ])
+    )
     .min(1, "Fill in Questions"),
   paragraph: z.string().nonempty("Fill in Paragraph"),
 });

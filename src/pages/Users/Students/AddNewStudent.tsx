@@ -386,7 +386,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item
+               <Form.Item
                 name="password"
                 label="Password"
                 rules={getRules("password")}

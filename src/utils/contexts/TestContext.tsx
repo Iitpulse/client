@@ -159,7 +159,7 @@ const TestsContextProvider: React.FC<ProviderProps> = ({ children }) => {
       }
     }
     async function fetchTopics() {
-      const res = await API_QUESTIONS().get(`/subject/topic`);
+      const res = await API_QUESTIONS().get(`/subject/topic/all`);
       // console.log({ res });
       if (res.data?.length > 0) {
         // console.log({ res });
