@@ -3,7 +3,7 @@ import z, { number } from "zod";
 // import { Button, StyledMUISelect } from "../../../components";
 import { useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
-import { performZodValidation, validateField, } from "../../../utils/schemas";
+import { performZodValidation, validateField } from "../../../utils/schemas";
 import dayjs, { Dayjs } from "dayjs";
 import { Grid } from "@mui/material";
 import {
@@ -31,7 +31,7 @@ import { API_USERS } from "../../../utils/api/config";
 const validateMessages = {
   required: "${label} is required!",
   types: {
-    email: '${label} is not a valid email!',
+    email: "${label} is not a valid email!",
     // number: 'Not a valid number!',
   },
   number: {
@@ -47,26 +47,8 @@ const PersonalDetailsSchema = z.object({
   gender: z.string(),
   address: z.string().min(5).max(150),
   parentName: z.string(),
-  parentContact: z
-    .number({
-      invalid_type_error: "Please enter a valid contact number",
-    })
-    .min(1000000000, {
-      message: "Contact number must be 10 digits long",
-    })
-    .max(9999999999, {
-      message: "Contact number must be 10 digits long",
-    }),
-  contact:z
-    .number({
-      invalid_type_error: "Please enter a valid contact number",
-    })
-    .min(1000000000, {
-      message: "Contact number must be 10 digits long",
-    })
-    .max(9999999999, {
-      message: "Contact number must be 10 digits long",
-    }),
+  parentContact: z.string().min(10).max(10),
+  contact: z.string().min(10).max(10),
 });
 
 const defaultState = {
@@ -92,15 +74,15 @@ const conversionObject = {
   state: null,
   parentName: null,
   parentContact: {
-    convert: (value: any) => parseInt(value),
+    convert: (value: any) => value,
     revert: (value: number) => value.toString(),
   },
-  contact:{
-    convert: (value: any) => parseInt(value),
+  contact: {
+    convert: (value: any) => value,
     revert: (value: number) => value.toString(),
   },
   address: null,
-}
+};
 
 function getErrorDefaultState(valuesObj: typeof defaultState) {
   const errorObj: any = {};
@@ -236,14 +218,18 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
     },
   });
 
-  
   function getRules(fieldName: any) {
     try {
       return [
         {
           validateTrigger: "onSubmit",
           validator: (_: any, value: any) =>
-            validateField(fieldName, value, conversionObject, PersonalDetailsSchema),
+            validateField(
+              fieldName,
+              value,
+              conversionObject,
+              PersonalDetailsSchema
+            ),
         },
       ];
     } catch (e) {
@@ -253,7 +239,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   return (
     <Form
-      form = {form}
+      form={form}
       onFinish={handleSubmitForm}
       className={styles.regForm}
       validateMessages={validateMessages}
@@ -295,9 +281,16 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           variant="outlined"
         /> */}
         <Form.Item name="dob" rules={getRules("dob")}>
-          <DatePicker style={{ width: '100%' }} id="dob" size="large" placeholder="Date of Birth" onChange={onChangee} disabledDate={(current) => {
-                    return current && current.valueOf() > Date.now();
-                  }}/>
+          <DatePicker
+            style={{ width: "100%" }}
+            id="dob"
+            size="large"
+            placeholder="Date of Birth"
+            onChange={onChangee}
+            disabledDate={(current) => {
+              return current && current.valueOf() > Date.now();
+            }}
+          />
         </Form.Item>
         <Form.Item name="city" rules={getRules("city")}>
           <Input
@@ -322,13 +315,21 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
         /> */}
 
         <Form.Item name="state" rules={getRules("state")}>
-          <Select showSearch size="large" id="state" placeholder="State" onChange={(e)=>{setValues((prevState)=>({...prevState, ["state"]:e}))}}>
-            {
-              INDIAN_STATES.map((e)=>(
-                <Select.Option key={e} value={e}>{e}</Select.Option>
-              ))
-            }
-          </Select>  
+          <Select
+            showSearch
+            size="large"
+            id="state"
+            placeholder="State"
+            onChange={(e) => {
+              setValues((prevState) => ({ ...prevState, ["state"]: e }));
+            }}
+          >
+            {INDIAN_STATES.map((e) => (
+              <Select.Option key={e} value={e}>
+                {e}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item name="parentName" rules={getRules("parentName")}>
