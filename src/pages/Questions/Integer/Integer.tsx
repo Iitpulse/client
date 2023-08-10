@@ -41,39 +41,48 @@ const Integer: React.FC<Props> = ({
   // const [optionsCount, setOptionsCount] = useState(4);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
   const [answerType, setAnswerType] = useState<string>("integer");
-  const [from, setFrom] = useState<string>("");
-  const [to, setTo] = useState<string>("");
-  const [values, setValues] = useState({
-    en: {
-      question: "",
-      // options: [
-      //   ...Array(optionsCount).fill({
-      //     id: Date.now().toString(),
-      //     value: "",
-      //     isCorrectAnswer: false,
-      //   }),
-      // ],
-      solution: "",
-    },
-    hi: {
-      question: "",
-      // options: [
-      //   ...Array(optionsCount).fill({
-      //     id: Date.now().toString(),
-      //     value: "",
-      //     isCorrectAnswer: false,
-      //   }),
-      // ],
-      solution: "",
-    },
-    isProofRead: false,
-    id: "",
-    type: "",
-  });
+  const [from, setFrom] = useState<string>(
+    isInitialValuePassed ? data?.correctAnswer?.from : ""
+  );
+  const [to, setTo] = useState<string>(
+    isInitialValuePassed ? data?.correctAnswer?.to : ""
+  );
+  const [values, setValues] = useState(
+    isInitialValuePassed
+      ? data
+      : {
+          en: {
+            question: "",
+            // options: [
+            //   ...Array(optionsCount).fill({
+            //     id: Date.now().toString(),
+            //     value: "",
+            //     isCorrectAnswer: false,
+            //   }),
+            // ],
+            solution: "",
+          },
+          hi: {
+            question: "",
+            // options: [
+            //   ...Array(optionsCount).fill({
+            //     id: Date.now().toString(),
+            //     value: "",
+            //     isCorrectAnswer: false,
+            //   }),
+            // ],
+            solution: "",
+          },
+          isProofRead: false,
+          id: "",
+          type: "",
+        }
+  );
 
   useEffect(() => {
     setData({
       ...values,
+      id: data?.id || (Math.random() * 10000).toString(),
       type: answerType,
       correctAnswer: {
         from,
@@ -82,52 +91,52 @@ const Integer: React.FC<Props> = ({
     });
   }, [values, setData, answerType, from, to]);
 
-  useEffect(() => {
-    if (!isInitialValuePassed) {
-      if (data?._id) {
-        // console.log("YOHO", { data });
-        setValues({
-          en: {
-            question: data?.en?.question,
-            solution: data?.en?.solution,
-          },
-          hi: data.hi,
-          isProofRead: data.isProofRead,
-          id: data._id ?? "",
-          type: data.type,
-        });
+  // useEffect(() => {
+  //   if (!isInitialValuePassed) {
+  //     if (data?._id) {
+  //       // console.log("YOHO", { data });
+  //       setValues({
+  //         en: {
+  //           question: data?.en?.question,
+  //           solution: data?.en?.solution,
+  //         },
+  //         hi: data.hi,
+  //         isProofRead: data.isProofRead,
+  //         id: data._id ?? "",
+  //         type: data.type,
+  //       });
 
-        setAnswerType(data.type);
-        setTo(data?.correctAnswer?.to);
-        setFrom(data?.correctAnswer?.from);
-        // console.log({ test: data });
-        //@ts-ignore
-        setIsInitialValuePassed(true);
-      }
-    }
-    if (isComingFromParagraph && !isInitialValuePassed) {
-      // if (data?._id) {
+  //       setAnswerType(data.type);
+  //       setTo(data?.correctAnswer?.to);
+  //       setFrom(data?.correctAnswer?.from);
+  //       // console.log({ test: data });
+  //       //@ts-ignore
+  //       setIsInitialValuePassed(true);
+  //     }
+  //   }
+  //   if (isComingFromParagraph && !isInitialValuePassed) {
+  //     // if (data?._id) {
 
-      setValues({
-        en: {
-          question: data?.en?.question,
-          solution: data?.en?.solution,
-        },
-        hi: data.hi,
-        isProofRead: data.isProofRead,
-        id: data._id ?? "",
-        type: data.type,
-      });
-      setTo(data?.correctAnswer?.to);
-      setFrom(data?.correctAnswer?.from);
+  //     setValues({
+  //       en: {
+  //         question: data?.en?.question,
+  //         solution: data?.en?.solution,
+  //       },
+  //       hi: data.hi,
+  //       isProofRead: data.isProofRead,
+  //       id: data._id ?? "",
+  //       type: data.type,
+  //     });
+  //     setTo(data?.correctAnswer?.to);
+  //     setFrom(data?.correctAnswer?.from);
 
-      setAnswerType(data.type);
+  //     setAnswerType(data.type);
 
-      //@ts-ignore
-      setIsInitialValuePassed(true);
-      // console.log("Ye kya hai phir");
-    }
-  }, [data, isInitialValuePassed]);
+  //     //@ts-ignore
+  //     setIsInitialValuePassed(true);
+  //     // console.log("Ye kya hai phir");
+  //   }
+  // }, [data, isInitialValuePassed]);
 
   // useEffect(() => {
   //   console.log({ isInitialValuePassed });
