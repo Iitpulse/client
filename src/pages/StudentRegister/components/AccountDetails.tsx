@@ -22,8 +22,8 @@ import {
 import { API_USERS } from "../../../utils/api/config";
 
 const AccountDetailsSchema = z.object({
-  email: z.string().email(),
-  emailotp: z.string().length(6),
+  contact: z.string().length(10),
+  phoneotp: z.string().length(6),
   password: z.string().min(6).max(50),
   confirmPassword: z.string().min(6).max(50),
   promoCode: z.string().length(6),
@@ -31,13 +31,12 @@ const AccountDetailsSchema = z.object({
 export type AccountDetailsValues = z.infer<typeof AccountDetailsSchema>;
 
 const defaultState: AccountDetailsValues = {
-  email: "",
-  emailotp: "",
+  contact: "",
+  phoneotp: "",
   password: "",
   confirmPassword: "",
   promoCode: "",
 };
-
 
 function getErrorDefaultState(valuesObj: typeof defaultState) {
   const errorObj: any = {};
@@ -114,26 +113,26 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   }
 
   const [showTextField, setShowTextField] = useState(false);
-  const [buttonText, setButtonText] = useState("Verify Email");
+  const [buttonText, setButtonText] = useState("Verify Phone");
   const [Verified, setVerified] = useState(false);
 
   const handleGenerate = async (e: any) => {
     e.preventDefault();
-    message.loading({content: "Generating OTP", key:"generate_otp"});
-    if (values.email.length === 0) return;
-    const resEmail = values.email.toLowerCase();
-    setValues((prevState) => ({ ...prevState, email: resEmail }));
+    message.loading({ content: "Generating OTP", key: "generate_otp" });
+    if (values.contact.length === 0) return;
+    const resPhone = values.contact.toLowerCase();
+    setValues((prevState) => ({ ...prevState, contact: resPhone }));
     try {
-      const response = await API_USERS().post(`/emailotp/generate`, {
-        email: resEmail,
+      const response = await API_USERS().post(`/otp/generate`, {
+        number: resPhone,
       });
-      message.destroy("generate_otp")
+      message.destroy("generate_otp");
       message.success({ content: response.data.message, key: "otp" });
-    } catch (error:any){
-      message.destroy("generate_otp")
+    } catch (error: any) {
+      message.destroy("generate_otp");
       // message.error({content: error})
-      message.error({content: error?.response?.data?.message})
-      console.log({error});
+      message.error({ content: error?.response?.data?.message });
+      console.log({ error });
       return;
     }
 
@@ -145,12 +144,12 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   const handleVerify = async (e: any) => {
     e.preventDefault();
-    const resEmail = values.email.toLowerCase();
-    setValues((prevState)=>({...prevState, email:resEmail}));
-    try{
-      const response = await API_USERS().post(`/emailotp/verify`, {
-        email: resEmail,
-        emailotp: values.emailotp,
+    const resPhone = values.contact;
+    setValues((prevState) => ({ ...prevState, contact: resPhone }));
+    try {
+      const response = await API_USERS().post(`/otp/verify`, {
+        number: resPhone,
+        otp: values.phoneotp,
       });
       message.loading({ content: response.data.message, key: "verify" });
       console.log(response.data.message);
@@ -159,8 +158,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         setVerified(true);
         setButtonText("Verified");
       }
-    } catch(error) {
-      console.log({error});
+    } catch (error) {
+      console.log({ error });
     }
 
     setTimeout(() => {
@@ -189,17 +188,11 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
           <Input
             size="large"
             disabled={Verified}
-            // fullWidth
             required
-            id="email"
-            // type="email"
-            // autoComplete="email"
-            // error={errors.email}
-            value={values.email}
-            // helperText={helperTexts.email}
+            id="contact"
+            value={values.contact}
             onChange={handleChangeValues}
-            placeholder="Email"
-            // variant="outlined"
+            placeholder="Contact number"
           />
         </Col>
       </Row>
@@ -223,12 +216,12 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
               // fullWidth
               size="large"
               required
-              id="emailotp"
+              id="phoneotp"
               // type="number"
-              // value={values.emailotp}
-              // helperText=" We have sent an OTP to your Email"
+              // value={values.phoneotp}
+              // helperText=" We have sent an OTP to your Phone"
               onChange={handleChangeValues}
-              placeholder="Email OTP"
+              placeholder="Phone OTP"
               // variant="outlined"
             />
           </Col>
