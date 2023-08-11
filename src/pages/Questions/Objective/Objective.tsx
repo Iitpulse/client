@@ -18,7 +18,22 @@ import { CheckboxValueType } from "antd/es/checkbox/Group";
 
 interface Props {
   setData: React.Dispatch<React.SetStateAction<any>>;
-  data?: any;
+  data: {
+    en: {
+      question: string;
+      options: Array<any>;
+      solution: string;
+    };
+    hi: {
+      question: string;
+      options: Array<any>;
+      solution: string;
+    };
+    isProofRead: false;
+    id: string;
+    type: string;
+    correctAnswers: Array<string>;
+  };
   isInitialValuePassed?: boolean;
   setIsInitialValuePassed?: (value: boolean) => void;
   subject: string;
@@ -46,31 +61,39 @@ const Objective: React.FC<Props> = ({
   const [tab, setTab] = useState(0);
   const [optionsCount, setOptionsCount] = useState(4);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
-  const [answerType, setAnswerType] = useState<"single" | "multiple">("single");
+  const [answerType, setAnswerType] = useState<string>(
+    isInitialValuePassed ? data.type : "single"
+  );
   const [previewHTML, setPreviewHTML] = useState("");
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [fullPreviewModalOpen, setFullPreviewModalOpen] = useState(false);
   const [parseInputOpen, setParseInputOpen] = useState(false);
   const [rawInputToBeParsed, setRawInputToBeParsed] = useState("");
 
-  const [values, setValues] = useState(() => {
-    let tempOptions = generateOptions(answerType, 4);
-    return {
-      en: {
-        question: "",
-        options: tempOptions,
-        solution: "",
-      },
-      hi: {
-        question: "",
-        options: tempOptions,
-        solution: "",
-      },
-      isProofRead: false,
-      id: "",
-      type: "",
-    };
-  });
+  const [values, setValues] = useState(
+    isInitialValuePassed
+      ? data
+      : () => {
+          let tempOptions = generateOptions(answerType, 4);
+          return {
+            correctAnswers: [""],
+            en: {
+              question: "",
+              options: tempOptions,
+              solution: "",
+            },
+            hi: {
+              question: "",
+              options: tempOptions,
+              solution: "",
+            },
+            isProofRead: false,
+            id: "",
+            type: "",
+          };
+        }
+  );
+  console.log({ data, values, isInitialValuePassed });
 
   const questionTabItem = {
     label: "Question",
@@ -179,9 +202,13 @@ const Objective: React.FC<Props> = ({
   }, [values]);
 
   useEffect(() => {
-    // console.log("hey", data);
-    // console.log("hey", values);
-    setData((prev: any) => ({ ...values, type: answerType }));
+    console.log("Objective", data);
+    console.log("hey", values, answerType);
+    setData((prev: any) => ({
+      ...values,
+      type: answerType,
+      id: (Math.random() * 1000).toString(),
+    }));
   }, [values, setData, answerType]);
 
   function handleChangeTab(newValue: string) {
@@ -228,6 +255,7 @@ const Objective: React.FC<Props> = ({
           isCorrectAnswer: false,
         })),
       },
+      type: e.target.value,
     }));
     setAnswerType(e.target.value);
   }
@@ -356,61 +384,57 @@ const Objective: React.FC<Props> = ({
     );
   }
 
-  useEffect(() => {
-    // console.log({ values });
-  });
+  // useEffect(() => {
+  //   if (!isInitialValuePassed) {
+  //     if (data?._id) {
+  //       // console.log("YOHO", { data });
+  //       setValues({
+  //         en: {
+  //           question: data?.en?.question,
+  //           options: data?.en?.options.map((option: any) => ({
+  //             ...option,
+  //             isCorrectAnswer: data?.correctAnswers.includes(option.id),
+  //           })),
+  //           solution: data?.en?.solution,
+  //         },
+  //         hi: data.hi,
+  //         isProofRead: data.isProofRead,
+  //         id: data._id ?? "",
+  //         type: data.type,
+  //       });
 
-  useEffect(() => {
-    if (!isInitialValuePassed) {
-      if (data?._id) {
-        // console.log("YOHO", { data });
-        setValues({
-          en: {
-            question: data?.en?.question,
-            options: data?.en?.options.map((option: any) => ({
-              ...option,
-              isCorrectAnswer: data?.correctAnswers.includes(option.id),
-            })),
-            solution: data?.en?.solution,
-          },
-          hi: data.hi,
-          isProofRead: data.isProofRead,
-          id: data._id ?? "",
-          type: data.type,
-        });
+  //       setAnswerType(data.type);
+  //       setOptionsCount(data.en.options.length);
 
-        setAnswerType(data.type);
-        setOptionsCount(data.en.options.length);
+  //       //@ts-ignore
+  //       setIsInitialValuePassed(true);
+  //     }
+  //   }
+  //   if (isComingFromParagraph && !isInitialValuePassed) {
+  //     // if (data?._id) {
+  //     // console.log("FUCK OFF I WANT TO TEST THIS", { data });
+  //     setValues({
+  //       en: {
+  //         question: data?.en?.question,
+  //         options: data?.en?.options.map((option: any) => ({
+  //           ...option,
+  //           // isCorrectAnswer: data?.correctAnswers.includes(option.id),
+  //         })),
+  //         solution: data?.en?.solution,
+  //       },
+  //       hi: data.hi,
+  //       isProofRead: data.isProofRead,
+  //       id: data._id ?? "",
+  //       type: data.type,
+  //     });
 
-        //@ts-ignore
-        setIsInitialValuePassed(true);
-      }
-    }
-    if (isComingFromParagraph && !isInitialValuePassed) {
-      // if (data?._id) {
-      // console.log("FUCK OFF I WANT TO TEST THIS", { data });
-      setValues({
-        en: {
-          question: data?.en?.question,
-          options: data?.en?.options.map((option: any) => ({
-            ...option,
-            // isCorrectAnswer: data?.correctAnswers.includes(option.id),
-          })),
-          solution: data?.en?.solution,
-        },
-        hi: data.hi,
-        isProofRead: data.isProofRead,
-        id: data._id ?? "",
-        type: data.type,
-      });
+  //     setAnswerType(data.type);
+  //     setOptionsCount(data.en.options.length);
 
-      setAnswerType(data.type);
-      setOptionsCount(data.en.options.length);
-
-      //@ts-ignore
-      setIsInitialValuePassed(true);
-    }
-  }, [data, isInitialValuePassed]);
+  //     //@ts-ignore
+  //     setIsInitialValuePassed(true);
+  //   }
+  // }, [data, isInitialValuePassed]);
 
   function handleParseOptions(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -534,16 +558,38 @@ const Objective: React.FC<Props> = ({
           </FormGroup> */}
           {answerType === "single" ? (
             <Radio.Group
+              value={
+                values?.correctAnswers?.length > 0
+                  ? values?.correctAnswers[0]
+                  : values[currentLanguage].options.find(
+                      (op) => op.isCorrectAnswer
+                    )?.id
+              }
+              defaultValue={
+                values[currentLanguage].options.find((op) => op.isCorrectAnswer)
+                  ?.id
+              }
               onChange={(e) => handleChangeCorrectAnswer(e.target.value)}
             >
-              {values[currentLanguage].options.map((option, i) => (
-                <Radio value={option.id} key={i}>
-                  {String.fromCharCode(65 + i)}
-                </Radio>
-              ))}
+              {values[currentLanguage].options.map((option, i) => {
+                console.log({ option });
+                return (
+                  <Radio
+                    value={option.id}
+                    key={i}
+                    checked={option.isCorrectAnswer}
+                    defaultChecked={option.isCorrectAnswer}
+                  >
+                    {String.fromCharCode(65 + i)}
+                  </Radio>
+                );
+              })}
             </Radio.Group>
           ) : (
             <Checkbox.Group
+              value={values[currentLanguage].options
+                .filter((op) => op.isCorrectAnswer)
+                .map((op) => op.id)}
               options={getCorrectAnswerCheckboxOptions()}
               onChange={(newOptions) => handleChangeCorrectAnswer(newOptions)}
             />

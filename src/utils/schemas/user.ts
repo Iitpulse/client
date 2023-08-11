@@ -26,16 +26,7 @@ export const userSchema = z.object({
     ),
   gender: z.enum(["male", "female", "other"]),
 
-  contact: z
-    .number({
-      invalid_type_error: "Please enter a valid contact number",
-    })
-    .min(1000000000, {
-      message: "Contact number must be 10 digits long",
-    })
-    .max(9999999999, {
-      message: "Contact number must be 10 digits long",
-    }),
+  contact: z.string().min(10).max(10),
   city: z.string().min(3).max(255),
   state: z.string().min(3).max(255),
   address: z.string().min(3).max(255), //Same to update on backend
@@ -81,16 +72,7 @@ export const studentSchema = userSchema.extend({
   parentDetails: z
     .object({
       name: z.string().min(3).max(255),
-      contact: z
-        .number({
-          invalid_type_error: "Please enter a valid contact number",
-        })
-        .min(1000000000, {
-          message: "Contact number must be 10 digits long",
-        })
-        .max(9999999999, {
-          message: "Contact number must be 10 digits long",
-        }),
+      contact: z.string().min(10).max(10),
     })
     .strict(),
   batch: z.string().min(3).max(255).optional(), //Just for now

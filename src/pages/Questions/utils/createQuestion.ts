@@ -47,7 +47,10 @@ export function generateQuestionCore(
       };
     }),
     difficulty: difficulty || "unset",
-    exams,
+    exams: exams?.map((exam: any) => {
+      if (exam?.name) return exam?.name;
+      return exam;
+    }),
     sources,
     topics,
     createdAt: new Date().toISOString(),

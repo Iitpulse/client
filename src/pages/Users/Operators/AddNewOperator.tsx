@@ -115,7 +115,7 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
     email: null,
     password: null,
     contact: {
-      convert: (value: any) => parseInt(value),
+      convert: (value: any) => value,
       revert: (value: number) => value.toString(),
     },
     dob: {
@@ -371,7 +371,15 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
                 label="Gender"
                 rules={getRules("gender")}
               >
-                <Select showSearch placeholder="Please choose a gender" filterOption={(input:any, option:any) => (option?.value?.toLowerCase() ?? '').includes(input.toLowerCase())}>
+                <Select
+                  showSearch
+                  placeholder="Please choose a gender"
+                  filterOption={(input: any, option: any) =>
+                    (option?.value?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
+                >
                   <Option value="male">Male</Option>
                   <Option value="female">Female</Option>
                   <Option value="other">Other</Option>
@@ -413,12 +421,20 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
             </Col>
             <Col span={12}>
               <Form.Item name="state" label="State" rules={getRules("state")}>
-                <Select showSearch placeholder="Please enter a state" filterOption={(input:any, option:any) => (option?.value?.toLowerCase() ?? '').includes(input.toLowerCase())}>
-                  {
-                    INDIAN_STATES.map((e)=>(
-                      <Select.Option key={e} value={e}>{e}</Select.Option>
-                    ))
+                <Select
+                  showSearch
+                  placeholder="Please enter a state"
+                  filterOption={(input: any, option: any) =>
+                    (option?.value?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
                   }
+                >
+                  {INDIAN_STATES.map((e) => (
+                    <Select.Option key={e} value={e}>
+                      {e}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
@@ -460,11 +476,19 @@ const AddNewOperator: React.FC<IAddNewOperator> = ({
                   }}
                   mode="multiple"
                   showSearch
-                  filterOption={(input:any, option:any) => (option?.label?.toLowerCase() ?? '').includes(input.toLowerCase())}
+                  filterOption={(input: any, option: any) =>
+                    (option?.label?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
                   placeholder="Please choose a role/s"
                 >
                   {roleDetails.options?.map((option: any) => (
-                    <Select.Option key={option.value} value={option.value} label={option.label}>
+                    <Select.Option
+                      key={option.value}
+                      value={option.value}
+                      label={option.label}
+                    >
                       {option.label}
                     </Select.Option>
                   ))}

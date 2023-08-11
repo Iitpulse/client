@@ -118,7 +118,7 @@ const AddNewTeacher: React.FC<IAddNewTeacher> = ({
     email: null,
     password: null,
     contact: {
-      convert: (value: any) => parseInt(value),
+      convert: (value: any) => value,
       revert: (value: number) => value.toString(),
     },
     dob: {
