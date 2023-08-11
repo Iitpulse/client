@@ -25,7 +25,7 @@ import { Segmented } from "antd";
 interface Props {
   setData: (data: any) => void;
   data?: any;
-  isInitialValuePassed?: boolean;
+  isInitialValuePassed: boolean;
   setIsInitialValuePassed?: (value: boolean) => void;
   subject: string;
   chapters: Array<any>;
@@ -56,28 +56,13 @@ const Paragraph: React.FC<Props> = ({
   const [assertionEnglish, setAssertionEnglish] = useState(false);
   const [assertionHindi, setAssertionHindi] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<"en" | "hi">("en");
-  const [paragraph, setParagraph] = useState("");
-
-  const [questions, setQuestions] = useState<Array<any>>(() => {
-    let tempOptions = generateOptions("single", 4);
-    return [
-      {
-        en: {
-          question: "",
-          options: tempOptions,
-          solution: "",
-        },
-        hi: {
-          question: "",
-          options: tempOptions,
-          solution: "",
-        },
-        isProofRead: false,
-        id: "",
-        type: "",
-      },
-    ];
-  });
+  const [paragraph, setParagraph] = useState(
+    isInitialValuePassed ? data?.paragraph : ""
+  );
+  const [questions, setQuestions] = useState<Array<any>>(
+    isInitialValuePassed ? data?.questions : []
+  );
+  console.log(isInitialValuePassed, { data }, data?.questions, questions);
 
   function handlChangeQuestionsCount(type: "increment" | "decrement") {
     if (type === "increment") {
@@ -116,9 +101,9 @@ const Paragraph: React.FC<Props> = ({
   //   };
   // });
 
-  useEffect(() => {
-    console.log({ isStable });
-  });
+  // useEffect(() => {
+  //   console.log({ isStable });
+  // });
 
   function handleChangeData(values: any, idx: number) {
     console.log({ values, idx });
@@ -128,37 +113,35 @@ const Paragraph: React.FC<Props> = ({
   }
 
   useEffect(() => {
-    if (isInitialValuePassed) {
-      setData((prev: any) => {
-        console.log(prev);
-        return { ...prev, paragraph, questions, type: "paragraph" };
-      });
-      // console.log({ yohohoyohoho: "sdfs", questions });
-    }
+    setData((prev: any) => {
+      console.log(prev);
+      return { ...prev, paragraph, questions, type: "paragraph" };
+    });
+    // console.log({ yohohoyohoho: "sdfs", questions });
   }, [questions]);
 
-  useEffect(() => {
-    if (!isInitialValuePassed) {
-      if (data?._id) {
-        // console.log("YOHO", { data });
-        setData({
-          paragraph: data?.paragraph,
-          questions: data?.questions,
-          type: "paragraph",
-        });
-        setQuestions(data?.questions);
-        // console.log({ questionsHola: data?.questions });
-        setParagraph(data?.paragraph);
-        //@ts-ignore
-        setIsInitialValuePassed(true);
-      }
-    }
-  }, [data, isInitialValuePassed]);
+  // useEffect(() => {
+  //   if (!isInitialValuePassed) {
+  //     if (data?._id) {
+  //       // console.log("YOHO", { data });
+  //       setData({
+  //         paragraph: data?.paragraph,
+  //         questions: data?.questions,
+  //         type: "paragraph",
+  //       });
+  //       setQuestions(data?.questions);
+  //       // console.log({ questionsHola: data?.questions });
+  //       setParagraph(data?.paragraph);
+  //       //@ts-ignore
+  //       setIsInitialValuePassed(true);
+  //     }
+  //   }
+  // }, [data, isInitialValuePassed]);
 
   useEffect(() => {
     console.log({ questions });
   }, [questions]);
-
+  console.log({ questions });
   return (
     <section className={styles.container}>
       <div className={styles.header}>
@@ -229,7 +212,7 @@ const Paragraph: React.FC<Props> = ({
               data={questions[i]}
               setData={handleChangeData}
               setIsInitialValuePassed={setIsInitialValuePassed}
-              isInitialValuePassed={false}
+              isInitialValuePassed={isInitialValuePassed}
               isSubmitting={isSubmitting}
             />
           ))}
@@ -271,27 +254,32 @@ const Question: React.FC<{
       ? "objective"
       : data.type) || "objective"
   );
-  const [localData, setLocalData] = useState({
-    en: {
-      question: "",
-      options: [],
-      solution: "",
-    },
-    hi: {
-      question: "",
-      options: [],
-      solution: "",
-    },
-    isProofRead: false,
-    id: "",
-    type: "objective",
-  });
+  console.log({ data });
+  const [localData, setLocalData] = useState(
+    isInitialValuePassed
+      ? data
+      : {
+          en: {
+            question: "",
+            options: [],
+            solution: "",
+          },
+          hi: {
+            question: "",
+            options: [],
+            solution: "",
+          },
+          isProofRead: false,
+          id: "",
+          type: "objective",
+        }
+  );
   const [isInitialValuePassedLocal, setIsInitialValuePassedLocal] =
     useState(false);
   const [error, setError] = useState({
     type: false,
   });
-
+  console.log({ data });
   // useEffect(() => {
   //   if (isSubmitting) {
   //     if (type === "") {
@@ -303,7 +291,7 @@ const Question: React.FC<{
   // }, [isSubmitting]);
 
   useEffect(() => {
-    // setData(localData, idx);
+    setData(localData, idx);
     console.log(localData, data);
     // if (isInitialValuePassed) {
     //   console.log({ localData, isInitialValuePassed });

@@ -118,7 +118,7 @@ const CreateQuestion = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    if (!id) setIsInitialValuePassed(true);
+    if (id) setIsInitialValuePassed(true);
   }, [id]);
 
   useEffect(() => {
@@ -425,9 +425,9 @@ const CreateQuestion = () => {
       | TQuestionParagraph
       | TQuestionMatrix
   ) {
-    const loading = message.loading("Creating Question...");
+    const loading = message.loading("Creating Question...", 1);
     await API_QUESTIONS().post(endpoint, question);
-    loading();
+    message.destroy(1);
     message.success("Question created successfully");
     setData({});
   }
@@ -914,7 +914,8 @@ function getQuestionFromType(
   isStable: boolean,
   setIsStable: (data: any) => void
 ) {
-  console.log({ type });
+  console.log({ data });
+
   switch (type.toLowerCase()) {
     case "objective":
       return (
