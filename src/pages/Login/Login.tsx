@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import styles from "./Login.module.scss";
 import { decodeToken } from "react-jwt";
 import { AuthContext } from "../../utils/auth/AuthContext";
@@ -10,6 +10,7 @@ import { Button, Form, Input, message } from "antd";
 
 const Login = () => {
   const { currentUser, setCurrentUser } = useContext(AuthContext);
+  const [isClicked, setIsClicked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ const Login = () => {
     email: string;
     password: string;
   }) {
+    setIsClicked(true);
     let loading = message.loading({ content: "Logging in", key: "loader" });
     try {
       const response = await API_USERS().post(`/auth/login/`, {
@@ -65,6 +67,7 @@ const Login = () => {
         message.error("Network Error");
       }
     }
+    setIsClicked(false);
   }
 
   function handleClickSignup() {
@@ -109,6 +112,7 @@ const Login = () => {
               <Button
                 type="primary"
                 htmlType="submit"
+                disabled={isClicked}
                 className={styles.submitBtn}
               >
                 Submit
