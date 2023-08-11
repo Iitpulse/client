@@ -136,14 +136,19 @@ const Home = () => {
   const [recentTestValue, setrecentTestValue] = useState<any>(
     recentTest?.at(0)?.name
   );
+  const [loadingUpcoming, setLoadingUpcoming] = useState<boolean>(false);
+  const [loadingOngoing, setLoadingOngoing] = useState<boolean>(false);
   const { currentUser } = useContext(AuthContext);
   console.log({ currentUser });
   const { activeTests } = state;
 
   useEffect(() => {
-    if (fetchTest)
+    if (fetchTest) {
+      setLoadingUpcoming(true);
+      setLoadingOngoing(true);
       fetchTest("ongoing", false, (error, result) => {
         console.log({ error, result });
+        setLoadingOngoing(false);
         setOngoingTests(
           result
             ?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
@@ -155,23 +160,25 @@ const Home = () => {
             )
         );
       });
-    fetchTest("active", false, (error, result) => {
-      let upcomingTests = result?.filter(
-        (test: any) =>
-          new Date(test.validity.from).getTime() > new Date().getTime()
-      );
-      setUpcomingTests(
-        upcomingTests?.map((test: any) => ({
-          ...test,
-          key: test._id,
-          id: test._id,
-          name: test.name,
-          createdAt: test.createdAt,
-          status: test.status,
-          exam: test.exam,
-        }))
-      );
-    });
+      fetchTest("active", false, (error, result) => {
+        let upcomingTests = result?.filter(
+          (test: any) =>
+            new Date(test.validity.from).getTime() > new Date().getTime()
+        );
+        setLoadingUpcoming(false);
+        setUpcomingTests(
+          upcomingTests?.map((test: any) => ({
+            ...test,
+            key: test._id,
+            id: test._id,
+            name: test.name,
+            createdAt: test.createdAt,
+            status: test.status,
+            exam: test.exam,
+          }))
+        );
+      });
+    }
   }, [currentUser]);
   useEffect(() => {
     const fetchInstituteDetails = async () => {
@@ -236,7 +243,7 @@ const Home = () => {
                       mode="online"
                     />
                   ))}
-                  {!ongoingTests && (
+                  {loadingUpcoming && (
                     <Box sx={{ width: "100%" }}>
                       <Skeleton height={28} />
                       <Skeleton height={28} />
@@ -269,7 +276,7 @@ const Home = () => {
                       mode="online"
                     />
                   ))}
-                  {!ongoingTests && (
+                  {loadingOngoing && (
                     <Box sx={{ width: "100%" }}>
                       <Skeleton height={28} />
                       <Skeleton height={28} />

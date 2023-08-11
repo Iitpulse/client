@@ -10,6 +10,7 @@ import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";
 import { AuthContext } from "./../../utils/auth/AuthContext";
 import { API_TESTS } from "../../utils/api/config";
+import { AUTH_TOKEN } from "../../utils/constants";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -61,6 +62,14 @@ const Test = () => {
   //   }
   //   setLoading(false);
   // }
+  function handleClickTest(id: string) {
+    let a = document.createElement("a");
+    let token = localStorage.getItem(AUTH_TOKEN);
+    const testLink = import.meta.env.VITE_TEST_PORTAL_URI;
+    a.href = `${testLink}/auth/${token}/${id}`;
+    a.target = "_blank";
+    a.click();
+  }
   const columns: any = [
     {
       title: "ID",
@@ -100,7 +109,7 @@ const Test = () => {
     {
       title: "Actions",
       fixed: "right",
-      render: (row: any) => (
+      render: (row: any, test: any) => (
         <>
           {row?.result?.students?.find(
             (user: any) => user._id === userCtx?.currentUser?.id
@@ -121,7 +130,9 @@ const Test = () => {
               <p>Result not published yet</p>
             )
           ) : (
-            <p>Test Not given yet</p>
+            <Button onClick={handleClickTest.bind(null, test?.id)}>
+              Attempt Test
+            </Button>
           )}
         </>
       ),
