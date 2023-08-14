@@ -26,7 +26,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
   const [markingSchemeCorrect, setMarkingSchemeCorrect] =
     useState<Array<number>>(vcorrect);
   const [markingSchemeIncorrect, setMarkingSchemeIncorrect] =
-    useState<number>(vincorrect);
+    useState<number>(vincorrect*-1);
   const handleAddCorrectInput = () => {
     setMarkingSchemeCorrect((data: Array<number>) => [...data, 1]);
   };
@@ -57,11 +57,12 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
           console.log(vcorrect);
           setSubSection(subSectionId, {
             markingScheme: {
-              incorrect: parseInt(e.target.value),
+              incorrect: (-1*parseInt(e.target.value)),
               correct: markingSchemeCorrect,
             },
           });
           setMarkingSchemeIncorrect(parseInt(e.target.value));
+          console.log(markingSchemeIncorrect);
         }}
       />
       {markingSchemeCorrect.map((correctMark: number, idx: number) => {
@@ -78,7 +79,7 @@ const MarkingScheme: React.FC<IMarkingSchemeProps> = ({
               setSubSection(subSectionId, {
                 markingScheme: {
                   correct,
-                  incorrect: markingSchemeIncorrect,
+                  incorrect: (-1*markingSchemeIncorrect),
                 },
               });
               setMarkingSchemeCorrect(correct);

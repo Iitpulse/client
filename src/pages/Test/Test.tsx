@@ -55,12 +55,14 @@ const Test = () => {
   }
 
   async function handleDeleteTest(testId: string) {
+    console.log(testId);
     try {
-      const load = message.loading("Deleting Test", 0);
-      const res = await API_TESTS().delete("/test/" + testId);
-      load();
+      message.loading("Deleting Test", 1);
+      const res = await API_TESTS().delete("test/delete/" + testId);
+      message.destroy(1);
       message.success("Deleted Successfully");
     } catch (error) {
+      message.destroy(1);
       message.error("Some Error Occured");
     }
   }

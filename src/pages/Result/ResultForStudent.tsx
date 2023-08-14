@@ -95,6 +95,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
     Listen to all the changes finalTest obj
   */
   useEffect(() => {
+    console.log({finalTest});
     if (finalTest?.id || finalTest?._id) {
       const { totalMarks, totalTimeTakenInSeconds } = finalTest;
       let totalCorrect = 0;
