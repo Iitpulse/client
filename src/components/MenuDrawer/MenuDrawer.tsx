@@ -23,7 +23,7 @@ import { ReactComponent as TestsIcon } from "../../assets/icons/test.svg";
 import { ReactComponent as BatchesIcon } from "../../assets/icons/batch.svg";
 import { ReactComponent as RolesIcon } from "../../assets/icons/roles.svg";
 import MenuIcon from "@mui/icons-material/Menu";
-import { BookOutlined } from "@ant-design/icons";
+import { BookOutlined, SettingOutlined } from "@ant-design/icons";
 
 interface MenuDrawerProps {
   [x: string]: any;
@@ -320,7 +320,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             }
           >
             <div className={styles.iconContainer}>
-              <BookOutlined
+              <SettingOutlined
                 style={{
                   fontSize: "1.2rem",
                 }}
