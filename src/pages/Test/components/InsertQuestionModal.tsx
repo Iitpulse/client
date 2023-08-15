@@ -198,7 +198,8 @@ const InsertQuestionModal: React.FC<Props> = ({
     // console.log({ res: res.data, difficulties });
     console.log(res.data);
     if (res.data.data?.length) {
-      setQuestions(res.data.data);
+      const questionData = res.data.data.map((item:any)=> ({key:item.id, ...item}));
+      setQuestions(questionData);
     }
   }
 
