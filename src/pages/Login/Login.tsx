@@ -6,11 +6,12 @@ import { useNavigate } from "react-router";
 import logo from "../../assets/images/logo.svg";
 import { API_USERS } from "../../utils/api/config";
 import { AUTH_TOKEN } from "../../utils/constants";
-import { Button, Form, Input, message } from "antd";
+import { Button, Form, Input, Radio, message } from "antd";
 
 const Login = () => {
   const { currentUser, setCurrentUser } = useContext(AuthContext);
   const [isClicked, setIsClicked] = useState(false);
+  const [loginMode, setLoginMode] = useState<"EMAIL" | "PHONE">("EMAIL"); // 1 for email, 0 for phone
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,9 +24,11 @@ const Login = () => {
   async function handleSubmit({
     email,
     password,
+    phone,
   }: {
     email: string;
     password: string;
+    phone: string;
   }) {
     setIsClicked(true);
     let loading = message.loading({ content: "Logging in", key: "loader" });
@@ -33,6 +36,7 @@ const Login = () => {
       const response = await API_USERS().post(`/auth/login/`, {
         email,
         password,
+        phone,
       });
 
       if (response.status === 200) {
@@ -53,7 +57,10 @@ const Login = () => {
         });
         localStorage.setItem(AUTH_TOKEN, response.data.token);
         loading();
-        message.success("Logged in with " + decoded.email);
+        if (decoded?.email) {
+          message.success("Logged in with " + email);
+        } else [message.success("Logged in with " + phone)];
+        console.log("decoded", decoded);
         navigate("/", { replace: true });
       } else {
       }
@@ -77,12 +84,40 @@ const Login = () => {
   function handleClickForgotPassword() {
     navigate("/reset-password", { replace: true });
   }
-
+  function onChange(e: any) {
+    setLoginMode(e.target.value);
+    console.log(`radio checked:${e.target.value}`);
+  }
+  function getRules(id: string) {
+    return [
+      {
+        required: true,
+        message: `Please input your ${id}!`,
+      },
+    ];
+  }
   return (
     <div className={styles.container}>
       <div className={styles.formContainer}>
         <img src={logo} className={styles.logo} alt="iitpulse" />
         <p>Please enter your email and password</p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Radio.Group
+            style={{
+              marginLeft: "auto",
+            }}
+            onChange={onChange}
+            value={loginMode}
+          >
+            <Radio.Button value={"EMAIL"}>Email</Radio.Button>
+            <Radio.Button value={"PHONE"}>Phone</Radio.Button>
+          </Radio.Group>
+        </div>
         <div>
           <Form
             name="login"
@@ -91,20 +126,25 @@ const Login = () => {
             autoComplete="off"
             className={styles.form}
           >
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[{ required: true, message: "Please input your email!" }]}
-            >
-              <Input />
-            </Form.Item>
+            {loginMode === "EMAIL" && (
+              <Form.Item label="Email" name="email" rules={getRules("email")}>
+                <Input />
+              </Form.Item>
+            )}
+            {loginMode === "PHONE" && (
+              <Form.Item
+                label="Phone Number"
+                name="phone"
+                rules={getRules("phone")}
+              >
+                <Input minLength={10} />
+              </Form.Item>
+            )}
 
             <Form.Item
               label="Password"
               name="password"
-              rules={[
-                { required: true, message: "Please input your password!" },
-              ]}
+              rules={getRules("password")}
             >
               <Input.Password />
             </Form.Item>

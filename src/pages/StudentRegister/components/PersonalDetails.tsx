@@ -47,7 +47,8 @@ const PersonalDetailsSchema = z.object({
   address: z.string().min(5).max(150),
   parentName: z.string(),
   parentContact: z.string().min(10).max(10),
-  contact: z.string().min(10).max(10),
+
+  email: z.string().email(),
 });
 
 const defaultState = {
@@ -57,8 +58,8 @@ const defaultState = {
   state: "",
   parentName: "",
   parentContact: "",
-  contact: "",
   address: "",
+  email: "",
 };
 
 const conversionObject = {
@@ -76,11 +77,9 @@ const conversionObject = {
     convert: (value: any) => value,
     revert: (value: number) => value.toString(),
   },
-  contact: {
-    convert: (value: any) => value,
-    revert: (value: number) => value.toString(),
-  },
+
   address: null,
+  email: null,
 };
 
 function getErrorDefaultState(valuesObj: typeof defaultState) {
@@ -159,49 +158,6 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [Verified, setVerified] = useState(false);
   const [form] = Form.useForm();
 
-  const handleGenerate = async (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    e.preventDefault();
-    try {
-      const response = await API_USERS().post(`/otp/generate`, {
-        number: values.contact,
-      });
-      message.loading({ content: response.data.message, key: "cotp" });
-    } catch (error) {
-      console.log(error);
-    }
-
-    setTimeout(() => {
-      message.destroy("cotp");
-    }, 1000);
-    setShowTextField(true);
-  };
-
-  // const handleVerify = async (
-  //   e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  // ) => {
-  //   e.preventDefault();
-  //   try {
-  //     const response = await API_USERS().post(`/otp/verify`, {
-  //       number: values.contact,
-  //       otp: values.otp,
-  //     });
-  //     message.loading({ content: response.data.message, key: "verify" });
-  //     console.log(response.data.message);
-  //     if (response.status == 200) {
-  //       setShowTextField(false);
-  //       setVerified(true);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  //   setButtonText("Verified");
-
-  //   setTimeout(() => {
-  //     message.destroy("verify");
-  //   }, 1000);
-  // };
   const theme = createTheme({
     components: {
       MuiTextField: {
@@ -359,20 +315,6 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
           />
         </Form.Item>
 
-        <Form.Item name="contact" rules={getRules("contact")}>
-          <Input
-            size="large"
-            id="contact"
-            // value={values.contact}
-            // error={errors.contact}
-            // helperText={helperTexts.contact}
-            onChange={handleChangeValues}
-            // type="number"
-            placeholder="Contact Number"
-            // variant="outlined"
-          />
-        </Form.Item>
-
         {/* <Button onClick={handleGenerate} disabled={Verified || showTextField}>
           {buttonText}
         </Button>
@@ -408,17 +350,17 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
             // variant="outlined"
           />
         </Form.Item>
-        {/* <StyledMUITextField
-          required
-          id="permanentAddress"
-          value={values.permanentAddress}
-          error={errors.permanentAddress}
-          helperText={helperTexts.permanentAddress}
-          type="text"
-          onChange={handleChangeValues}
-          label="Permanent Address"
-          variant="outlined"
-        /> */}
+      </div>
+      <div className={styles.regForm} style={{ marginTop: "0px" }}>
+        <Form.Item name="email" rules={getRules("email")}>
+          <Input
+            size="large"
+            id="email"
+            type="text"
+            onChange={handleChangeValues}
+            placeholder="Email Address"
+          />
+        </Form.Item>
       </div>
       <Button size="large" htmlType="submit" type="primary">
         Next
