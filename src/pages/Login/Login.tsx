@@ -11,7 +11,7 @@ import { Button, Form, Input, Radio, message } from "antd";
 const Login = () => {
   const { currentUser, setCurrentUser } = useContext(AuthContext);
   const [isClicked, setIsClicked] = useState(false);
-  const [emailMode, setEmailMode] = useState(1); // 1 for email, 0 for phone
+  const [loginMode, setLoginMode] = useState<"EMAIL" | "PHONE">("EMAIL"); // 1 for email, 0 for phone
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,8 +85,16 @@ const Login = () => {
     navigate("/reset-password", { replace: true });
   }
   function onChange(e: any) {
-    setEmailMode(e.target.value);
+    setLoginMode(e.target.value);
     console.log(`radio checked:${e.target.value}`);
+  }
+  function getRules(id: string) {
+    return [
+      {
+        required: true,
+        message: `Please input your ${id}!`,
+      },
+    ];
   }
   return (
     <div className={styles.container}>
@@ -104,10 +112,10 @@ const Login = () => {
               marginLeft: "auto",
             }}
             onChange={onChange}
-            value={emailMode}
+            value={loginMode}
           >
-            <Radio.Button value={1}>Email</Radio.Button>
-            <Radio.Button value={0}>Phone</Radio.Button>
+            <Radio.Button value={"EMAIL"}>Email</Radio.Button>
+            <Radio.Button value={"PHONE"}>Phone</Radio.Button>
           </Radio.Group>
         </div>
         <div>
@@ -118,27 +126,16 @@ const Login = () => {
             autoComplete="off"
             className={styles.form}
           >
-            {emailMode === 1 && (
-              <Form.Item
-                label="Email"
-                name="email"
-                rules={[
-                  { required: true, message: "Please input your email!" },
-                ]}
-              >
+            {loginMode === "EMAIL" && (
+              <Form.Item label="Email" name="email" rules={getRules("email")}>
                 <Input />
               </Form.Item>
             )}
-            {emailMode === 0 && (
+            {loginMode === "PHONE" && (
               <Form.Item
                 label="Phone Number"
                 name="phone"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input your Phone Number!",
-                  },
-                ]}
+                rules={getRules("phone")}
               >
                 <Input minLength={10} />
               </Form.Item>
@@ -147,9 +144,7 @@ const Login = () => {
             <Form.Item
               label="Password"
               name="password"
-              rules={[
-                { required: true, message: "Please input your password!" },
-              ]}
+              rules={getRules("password")}
             >
               <Input.Password />
             </Form.Item>

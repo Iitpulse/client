@@ -23,7 +23,7 @@ import { API_USERS } from "../../../utils/api/config";
 
 const AccountDetailsSchema = z.object({
   contact: z.string().length(10),
-  phoneotp: z.string().length(6),
+  phoneOtp: z.string().length(6),
   password: z.string().min(6).max(50),
   confirmPassword: z.string().min(6).max(50),
   promoCode: z.string().length(6),
@@ -32,7 +32,7 @@ export type AccountDetailsValues = z.infer<typeof AccountDetailsSchema>;
 
 const defaultState: AccountDetailsValues = {
   contact: "",
-  phoneotp: "",
+  phoneOtp: "",
   password: "",
   confirmPassword: "",
   promoCode: "",
@@ -118,18 +118,18 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   const handleGenerate = async (e: any) => {
     e.preventDefault();
-    message.loading({ content: "Generating OTP", key: "generate_otp" });
+    message.loading({ content: "Generating OTP", key: "GENERATE_OTP" });
     if (values.contact.length === 0) return;
-    const resPhone = values.contact.toLowerCase();
-    setValues((prevState) => ({ ...prevState, contact: resPhone }));
+    const phoneLowerCase = values.contact.toLowerCase();
+    setValues((prevState) => ({ ...prevState, contact: phoneLowerCase }));
     try {
       const response = await API_USERS().post(`/otp/generate`, {
-        number: resPhone,
+        number: phoneLowerCase,
       });
-      message.destroy("generate_otp");
+      message.destroy("GENERATE_OTP");
       message.success({ content: response.data.message, key: "otp" });
     } catch (error: any) {
-      message.destroy("generate_otp");
+      message.destroy("GENERATE_OTP");
       // message.error({content: error})
       message.error({ content: error?.response?.data?.message });
       console.log({ error });
@@ -144,12 +144,12 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   const handleVerify = async (e: any) => {
     e.preventDefault();
-    const resPhone = values.contact;
-    setValues((prevState) => ({ ...prevState, contact: resPhone }));
+    const phoneLowerCase = values.contact;
+    setValues((prevState) => ({ ...prevState, contact: phoneLowerCase }));
     try {
       const response = await API_USERS().post(`/otp/verify`, {
-        number: resPhone,
-        otp: values.phoneotp,
+        number: phoneLowerCase,
+        otp: values.phoneOtp,
       });
       message.loading({ content: response.data.message, key: "verify" });
       console.log(response.data.message);
@@ -216,9 +216,9 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
               // fullWidth
               size="large"
               required
-              id="phoneotp"
+              id="phoneOtp"
               // type="number"
-              // value={values.phoneotp}
+              // value={values.phoneOtp}
               // helperText=" We have sent an OTP to your Phone"
               onChange={handleChangeValues}
               placeholder="Phone OTP"

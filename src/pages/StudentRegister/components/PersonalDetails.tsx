@@ -158,49 +158,6 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [Verified, setVerified] = useState(false);
   const [form] = Form.useForm();
 
-  // const handleGenerate = async (
-  //   e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  // ) => {
-  //   e.preventDefault();
-  //   try {
-  //     const response = await API_USERS().post(`/otp/generate`, {
-  //       number: values.contact,
-  //     });
-  //     message.loading({ content: response.data.message, key: "cotp" });
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-
-  //   setTimeout(() => {
-  //     message.destroy("cotp");
-  //   }, 1000);
-  //   setShowTextField(true);
-  // };
-
-  // const handleVerify = async (
-  //   e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  // ) => {
-  //   e.preventDefault();
-  //   try {
-  //     const response = await API_USERS().post(`/otp/verify`, {
-  //       number: values.contact,
-  //       otp: values.otp,
-  //     });
-  //     message.loading({ content: response.data.message, key: "verify" });
-  //     console.log(response.data.message);
-  //     if (response.status == 200) {
-  //       setShowTextField(false);
-  //       setVerified(true);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  //   setButtonText("Verified");
-
-  //   setTimeout(() => {
-  //     message.destroy("verify");
-  //   }, 1000);
-  // };
   const theme = createTheme({
     components: {
       MuiTextField: {

@@ -11,6 +11,7 @@ import { Add as AddIcon } from "@mui/icons-material";
 import { AuthContext } from "./../../utils/auth/AuthContext";
 import { API_TESTS } from "../../utils/api/config";
 import { AUTH_TOKEN } from "../../utils/constants";
+import { ITest } from "../../utils/interfaces";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -109,7 +110,7 @@ const Test = () => {
     {
       title: "Actions",
       fixed: "right",
-      render: (row: any, test: any) => (
+      render: (row: any, test: ITest) => (
         <>
           {row?.result?.students?.find(
             (user: any) => user._id === userCtx?.currentUser?.id
