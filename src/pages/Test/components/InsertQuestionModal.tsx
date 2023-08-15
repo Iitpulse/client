@@ -178,7 +178,7 @@ const InsertQuestionModal: React.FC<Props> = ({
           </Button>
         </div>
       ),
-      onFilter: (value:any, record:any) => (record.chapters.map((item:any)=>item.name.toLowerCase())).includes(value.toLowerCase()),
+      onFilter: (value:any, record:any) => (record.chapters.filter((item:any)=>item.name.toLowerCase().includes(value.toLowerCase())).length>0?true:false),
     },
     {
       title: "Proof Read?",
