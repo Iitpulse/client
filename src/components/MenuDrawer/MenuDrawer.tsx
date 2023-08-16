@@ -22,6 +22,7 @@ import { ReactComponent as PatternIcon } from "../../assets/icons/pattern.svg";
 import { ReactComponent as TestsIcon } from "../../assets/icons/test.svg";
 import { ReactComponent as BatchesIcon } from "../../assets/icons/batch.svg";
 import { ReactComponent as RolesIcon } from "../../assets/icons/roles.svg";
+import { ReactComponent as Settings } from "../../assets/icons/settings.svg";
 import MenuIcon from "@mui/icons-material/Menu";
 import { BookOutlined, SettingOutlined } from "@ant-design/icons";
 
@@ -320,12 +321,7 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             }
           >
             <div className={styles.iconContainer}>
-              <SettingOutlined 
-                style={{
-                  fontSize: "1.4rem",
-                  fontWeight: "100"
-                }}
-              />
+              <Settings />
             </div>{" "}
             {isCollapsed || <span>Misc</span>}
           </NavLink>
