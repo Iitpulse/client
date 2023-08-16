@@ -7,7 +7,7 @@ import CustomModal from "../../../components/CustomModal/CustomModal";
 import { StyledMUITextField } from "../../Users/components";
 import styles from "../CreateTest.module.scss";
 import MUISimpleAutocomplete from "./MUISimpleAutocomplete";
-import { Table, Tag } from "antd";
+import { Table, Tag, message } from "antd";
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../../utils/api/config";
@@ -55,6 +55,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [questions, setQuestions] = useState<Array<any>>([]);
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
+  const [loading, setLoading] = useState(false);
 
 
   const difficultyOptions = [
@@ -93,6 +94,7 @@ const InsertQuestionModal: React.FC<Props> = ({
           <RenderWithLatex quillString={en?.question} />
         </div>
       ),
+      filterIcon: (filtered:any) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }:any) => (
         <div style={{ padding: 8 }}>
           <Input
@@ -155,6 +157,7 @@ const InsertQuestionModal: React.FC<Props> = ({
           ))}
         </>
       ),
+      filterIcon: (filtered:any) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }:any) => (
         <div style={{ padding: 8 }}>
           <Input
@@ -191,6 +194,7 @@ const InsertQuestionModal: React.FC<Props> = ({
 
   async function fetchQuestions() {
     // console.log({ subject });
+    setLoading(true);
     const res = await API_QUESTIONS().get(`/mcq/all`, {
       params: { subject, size:Number.MAX_SAFE_INTEGER },
     });
@@ -201,6 +205,7 @@ const InsertQuestionModal: React.FC<Props> = ({
       const questionData = res.data.data.map((item:any)=> ({key:item.id, ...item}));
       setQuestions(questionData);
     }
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -262,16 +267,33 @@ const InsertQuestionModal: React.FC<Props> = ({
         {console.log({questions})}
         <div className={styles.questionsTable}>
           <CustomTable
+            loading={loading}
             selectable
             columns={cols as any}
             dataSource={questions}
             setSelectedRows={setSelectedQuestions}
           />
         </div>
+        {/* <div className={styles.tableContainer}>
+          <AllQuestionsTable
+            questions={questions}
+            handleDeleteQuestion={handleDeleteQuestion}
+            loading={loading}
+            handleToggleProofRead={handleToggleProofread}
+            pagination={{
+              total: totalDocs,
+              onChange: onChangePageOrPageSize,
+              onShowSizeChange: onChangePageOrPageSize,
+            }}
+          />
+        </div> */}
       </div>
     </CustomDialog>
   );
 };
+
+
+
 
 export default InsertQuestionModal;
 

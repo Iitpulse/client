@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SearchOutlined } from "@ant-design/icons";
-import { Button, Input, Space, Table } from "antd";
+import { Button, Input, Space, Table, message } from "antd";
 import type { ColumnsType, ColumnType } from "antd/es/table";
 import type { FilterConfirmProps } from "antd/es/table/interface";
 
@@ -170,7 +170,7 @@ const CustomTable: React.FC<Props> = ({
       expandable={expandable}
       scroll={
         scroll || {
-          y: "40vh",
+          y: "70vh",
           x: "100vw",
         }
       }

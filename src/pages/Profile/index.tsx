@@ -172,7 +172,7 @@ const Profile = () => {
       }
     } catch(error:any) {
       message.error({content: error?.response?.data?.message});
-      console.log(error.response.data.message);
+      console.log(error?.response?.data?.message);
     }
 
     setTimeout(() => {
