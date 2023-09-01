@@ -43,13 +43,33 @@
     }
     font-size: 14px;
   }
+  .information2 {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+    p {
+      color: rgba(0, 0, 0, 0.88);
+    }
+    font-size: 14px;
+  }
   .key {
     font-weight: 400;
     min-width: 200px;
   }
+  .key2 {
+    font-weight: 400;
+    min-width: 200px;
+    color: red !important;
+  }
+  .verifyButton{
+    width: 20vw;
+    margin-left: 0;
+  }
   .value {
     font-weight: 500;
-    width: 100%;
+    width: 50vw;
     color: black;
   }
   .saveAndCancel {

@@ -1062,8 +1062,12 @@ export const AllQuestionsTable: React.FC<{
   loading: boolean;
   questions: any[];
   noEdit?: boolean;
+  noDelete?: boolean;
+  enableSelect?: boolean;
+  setSelectedQuestions?: (questions: any[]) => void;
+  selectedQuestions?: any[];
   handleToggleProofRead?: (checked: boolean, question: any) => void;
-  handleDeleteQuestion: (question: any) => void;
+  handleDeleteQuestion?: (question: any) => void;
   pagination?: {
     total: number;
     onChange: (page: number, pageSize: number) => void;
@@ -1076,6 +1080,10 @@ export const AllQuestionsTable: React.FC<{
   handleDeleteQuestion,
   noEdit,
   pagination,
+  enableSelect,
+  setSelectedQuestions,
+  selectedQuestions,
+  noDelete,
 }) => {
   const [columns, setColumns] = useState<any[]>([]);
 
@@ -1167,16 +1175,20 @@ export const AllQuestionsTable: React.FC<{
                     </IconButton>
                   </>
                 )}
-                <CustomPopConfirm
-                  title="Are you sure?"
-                  okText="Delete"
-                  cancelText="No"
-                  onConfirm={() => handleDeleteQuestion(question)}
-                >
-                  <IconButton>
-                    <DeleteOutline />
-                  </IconButton>
-                </CustomPopConfirm>
+                {!noDelete && (
+                  <CustomPopConfirm
+                    title="Are you sure?"
+                    okText="Delete"
+                    cancelText="No"
+                    onConfirm={() =>
+                      handleDeleteQuestion && handleDeleteQuestion(question)
+                    }
+                  >
+                    <IconButton>
+                      <DeleteOutline />
+                    </IconButton>
+                  </CustomPopConfirm>
+                )}
               </div>
             </div>
           );
@@ -1271,6 +1283,9 @@ export const AllQuestionsTable: React.FC<{
 
   return (
     <CustomTable
+      selectable={enableSelect}
+      setSelectedRows={setSelectedQuestions}
+      selectedRows={selectedQuestions}
       loading={loading}
       dataSource={questions?.map((question: any) => ({
         ...question,

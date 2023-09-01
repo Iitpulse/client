@@ -142,7 +142,7 @@ const Test = () => {
   useEffect(() => {
     setLoading(true);
     if (fetchTest)
-      fetchTest("active", false, (error, result) => {
+      fetchTest("inactive", false, (error, result) => {
         let upcomingTests = result?.filter(
           (test: any) =>
             new Date(test.validity.from).getTime() > new Date().getTime()

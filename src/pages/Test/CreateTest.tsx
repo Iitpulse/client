@@ -39,6 +39,7 @@ import { useLocation, useParams } from "react-router";
 import { MessageType } from "antd/es/message/interface";
 import dayjs from "dayjs";
 import { ThunderboltOutlined } from "@ant-design/icons";
+import { AllQuestionsTable } from "../Questions/Questions";
 
 const statusOptions = [
   {
@@ -80,10 +81,7 @@ const CreateTest = () => {
     value: "immediately",
     name: "Immediately",
   });
-  const [status, setStatus] = useState({
-    value: "",
-    name: "",
-  });
+
   const [testDateRange, setTestDateRange] = useState<Array<any>>([]);
   const [daysAfter, setDaysAfter] = useState(1);
 
@@ -114,7 +112,6 @@ const CreateTest = () => {
           sections,
           batches,
           publishType,
-          status,
           daysAfter,
           pattern,
           ...rest
@@ -131,7 +128,6 @@ const CreateTest = () => {
             value: batch.name,
           })),
           publishType,
-          status,
           daysAfter,
           pattern,
           ...rest,
@@ -143,14 +139,14 @@ const CreateTest = () => {
         if (publishType?.value) {
           setPublishType(publishType);
         }
-        if (status) {
-          let statusObj = statusOptions.find(
-            (item) => item.value?.toLowerCase() === status?.toLowerCase()
-          );
-          if (statusObj) {
-            setStatus(statusObj);
-          }
-        }
+        // if (status) {
+        //   let statusObj = statusOptions.find(
+        //     (item) => item.value?.toLowerCase() === status?.toLowerCase()
+        //   );
+        //   if (statusObj) {
+        //     setStatus(statusObj);
+        //   }
+        // }
         if (daysAfter) {
           setDaysAfter(daysAfter);
         }
@@ -246,6 +242,18 @@ const CreateTest = () => {
     }
   }
 
+  function getStatus(testDateRange: any) {
+    if (testDateRange[0] && testDateRange[1]) {
+      if (dayjs().isBefore(testDateRange[0])) {
+        return "Inactive";
+      }
+      if (dayjs().isAfter(testDateRange[1])) {
+        return "Expired";
+      }
+      return "Ongoing";
+    }
+    return "Inactive";
+  }
   async function handleClickSubmit() {
     const creatingTest = message.loading(
       `${editMode ? "Updating" : "Creating"} Test...`,
@@ -300,6 +308,7 @@ const CreateTest = () => {
         id: batch.id,
         name: batch.name,
       })),
+      status: getStatus(testDateRange),
     };
     let hasUnfilledQues = false;
     let messageText = "";
@@ -477,7 +486,7 @@ const CreateTest = () => {
                 disablePrevDates={true}
               />
             </Form.Item>
-            <Form.Item
+            {/* <Form.Item
               label="Status"
               help={helperTexts.status}
               validateStatus={getInputStatus("status")}
@@ -492,7 +501,7 @@ const CreateTest = () => {
                 options={statusOptions}
                 value={test.status || null}
               />
-            </Form.Item>
+            </Form.Item> */}
             <Form.Item
               label="Pattern"
               help={
@@ -670,7 +679,7 @@ const SubSection: React.FC<{
   subject: string;
 }> = ({ subSection, handleUpdateSubSection, subject }) => {
   const [questionModal, setQuestionModal] = useState<boolean>(false);
-  const [tempQuestions, setTempQuestions] = useState<any>({});
+  const [tempQuestions, setTempQuestions] = useState<any>([{}]);
   // const [questions, setQuestions] = useState([]);
   console.log({ subSection });
   const { name, description, totalQuestions, toBeAttempted, type, questions } =
@@ -937,7 +946,18 @@ const SubSection: React.FC<{
           </Form.Item>
         </Form>
         <div className={styles.questionsList}>
-          <CustomTable
+          <AllQuestionsTable
+            questions={tempQuestions}
+            noEdit={true}
+            loading={loading}
+            handleDeleteQuestion={(e) => {
+              console.log({ e });
+              setTempQuestions((prev: any) => {
+                return Object.values(prev).filter((q: any) => q._id !== e._id);
+              });
+            }}
+          />
+          {/* <CustomTable
             columns={
               [
                 {
@@ -966,7 +986,12 @@ const SubSection: React.FC<{
                     <Popconfirm
                       title="Sure to reject?"
                       onConfirm={() => {
-                        handleClickAutoGenerate(null, record._id);
+                        // handleClickAutoGenerate(null, record._id);
+                        setTempQuestions((prev: any) => {
+                          return Object.values(prev).filter(
+                            (q: any) => q._id !== record._id
+                          );
+                        });
                       }}
                     >
                       <IconButton>
@@ -990,18 +1015,20 @@ const SubSection: React.FC<{
             ))} */}
         </div>
       </div>
-      <InsertQuestionModal
-        open={questionModal}
-        onClose={() => setQuestionModal(false)}
-        // questions={questions ? Object.values(questions) : []}
-        totalQuestions={totalQuestions ?? 0}
-        // setQuestions={(qs: any) =>
-        //   handleUpdateSubSection(subSection.id, { questions: qs })
-        // }
-        type="Single"
-        subject={subject}
-        handleClickSave={handleClickSave}
-      />
+      <div className={styles.questions2}>
+        <InsertQuestionModal
+          open={questionModal}
+          onClose={() => setQuestionModal(false)}
+          // questions={questions ? Object.values(questions) : []}
+          totalQuestions={totalQuestions ?? 0}
+          // setQuestions={(qs: any) =>
+          //   handleUpdateSubSection(subSection.id, { questions: qs })
+          // }
+          type="Single"
+          subject={subject}
+          handleClickSave={handleClickSave}
+        />
+      </div>
       <PreviewHTMLModal
         showFooter={false}
         previewData={previewData}

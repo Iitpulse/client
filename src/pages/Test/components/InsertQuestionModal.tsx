@@ -7,7 +7,7 @@ import CustomModal from "../../../components/CustomModal/CustomModal";
 import { StyledMUITextField } from "../../Users/components";
 import styles from "../CreateTest.module.scss";
 import MUISimpleAutocomplete from "./MUISimpleAutocomplete";
-import { Select, Tag } from "antd";
+import { Button, Select, Tag } from "antd";
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../../utils/api/config";
@@ -16,6 +16,8 @@ import { TestContext } from "../../../utils/contexts/TestContext";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
+import { SearchOutlined } from "@mui/icons-material";
+import { AllQuestionsTable } from "../../Questions/Questions";
 
 const { Search } = Input;
 interface Props {
@@ -81,23 +83,196 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [chaptersOptions, setChaptersOptions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>([]);
   const [questions, setQuestions] = useState<Array<any>>([]);
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // const chaptersOptions = [
   //   { name: "Easy", value: "easy" },
   //   { name: "Medium", value: "medium" },
   //   { name: "Hard", value: "hard" },
   // ];
+  // const difficultyOptions = [
+  //   { name: "Easy", value: "easy" },
+  //   { name: "Medium", value: "medium" },
+  //   { name: "Hard", value: "hard" },
+  // ];
+
+  const handleSearch = (selectedKeys: any, confirm: any) => {
+    confirm();
+  };
+
+  const handleReset = (clearFilters: any) => {
+    clearFilters();
+  };
+
+  const cols: any = [
+    {
+      title: "Question",
+      dataIndex: "en",
+      key: "question",
+      width: "40%",
+      fixed: "left",
+      // searchable: true,
+      render: (en: any) => (
+        <div
+          style={{
+            width: "100%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            // whiteSpace: "nowrap",
+          }}
+        >
+          <RenderWithLatex quillString={en?.question} />
+        </div>
+      ),
+      filterIcon: (filtered: any) => (
+        <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
+      ),
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }: any) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Search Question"
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => handleSearch(selectedKeys, confirm)}
+            style={{ width: 188, marginBottom: 8, display: "block" }}
+          />
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90, marginRight: 8 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+        </div>
+      ),
+      onFilter: (value: any, record: any) =>
+        record.en?.question?.toLowerCase().includes(value.toLowerCase()),
+    },
+    {
+      title: "Difficulty",
+      dataIndex: "difficulty",
+      key: "difficulty",
+      width: "15%",
+      filters: [
+        {
+          text: "Easy",
+          value: "easy",
+        },
+        {
+          text: "Medium",
+          value: "medium",
+        },
+        {
+          text: "Hard",
+          value: "hard",
+        },
+      ],
+      onFilter: (value: any, record: any) =>
+        record.difficulty.toLowerCase().indexOf(value) === 0,
+      sorter: (a: any, b: any) => a.difficulty.length - b.difficulty.length,
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "Chapter(s)",
+      dataIndex: "chapters",
+      key: "chapter",
+      width: "25%",
+      // searchable: true,
+      render: (chapters: any) => (
+        <>
+          {chapters?.map((chapter: any) => (
+            <Tag> {chapter.name}</Tag>
+          ))}
+        </>
+      ),
+      filterIcon: (filtered: any) => (
+        <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
+      ),
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }: any) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Search Chapter"
+            value={selectedKeys[0]}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
+            onPressEnter={() => handleSearch(selectedKeys, confirm)}
+            style={{ width: 188, marginBottom: 8, display: "block" }}
+          />
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90, marginRight: 8 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+        </div>
+      ),
+      onFilter: (value: any, record: any) =>
+        record.chapters.filter((item: any) =>
+          item.name.toLowerCase().includes(value.toLowerCase())
+        ).length > 0
+          ? true
+          : false,
+    },
+    {
+      title: "Proof Read?",
+      dataIndex: "isProofRead",
+      key: "isProofRead",
+      width: "20%",
+      render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
+    },
+  ];
 
   async function fetchQuestions() {
     // console.log({ subject });
+    setLoading(true);
     const res = await API_QUESTIONS().get(`/mcq/all`, {
-      params: { subject },
+      params: { subject, size: Number.MAX_SAFE_INTEGER },
     });
 
     // console.log({ res: res.data, difficulties });
+    console.log(res.data);
     if (res.data.data?.length) {
-      setQuestions(res.data.data);
+      const questionData = res.data.data.map((item: any) => ({
+        key: item.id,
+        ...item,
+      }));
+      setQuestions(questionData);
     }
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -154,7 +329,6 @@ const InsertQuestionModal: React.FC<Props> = ({
 
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
-  const [loading, setLoading] = useState<any>([]);
 
   const { subjects } = useContext(TestContext);
   const { currentUser } = useContext(AuthContext);
@@ -459,15 +633,29 @@ const InsertQuestionModal: React.FC<Props> = ({
         </div>
       </div>
       <div className={styles.insertQuestionModal}>
-        <div className={styles.questionsTable}>
+        {/* <div className={styles.questionsTable}>
           <CustomTable
+            loading={loading}
             selectable
             columns={cols as any}
-            dataSource={questions?.map((question) => ({
-              ...question,
-              key: question.id || question._id,
-            }))}
+            dataSource={questions}
             setSelectedRows={setSelectedQuestions}
+          />
+        </div> */}
+        <div className={styles.tableContainer}>
+          <AllQuestionsTable
+            enableSelect
+            noDelete={true}
+            selectedQuestions={selectedQuestions}
+            setSelectedQuestions={setSelectedQuestions}
+            questions={questions}
+            loading={loading}
+            noEdit={true}
+            pagination={{
+              total: totalDocs,
+              onChange: onChangePageOrPageSize,
+              onShowSizeChange: onChangePageOrPageSize,
+            }}
           />
         </div>
       </div>
@@ -476,71 +664,3 @@ const InsertQuestionModal: React.FC<Props> = ({
 };
 
 export default InsertQuestionModal;
-
-const cols = [
-  {
-    title: "Question",
-    dataIndex: "en",
-    key: "question",
-    width: "300",
-    fixed: "left",
-    searchable: true,
-    render: (en: any) => (
-      <div
-        style={{
-          width: "300px",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        <RenderWithLatex quillString={en?.question} />
-      </div>
-    ),
-  },
-  {
-    title: "Difficulty",
-    dataIndex: "difficulty",
-    key: "difficulty",
-    width: "100",
-    filters: [
-      {
-        text: "Easy",
-        value: "easy",
-      },
-      {
-        text: "Medium",
-        value: "medium",
-      },
-      {
-        text: "Hard",
-        value: "hard",
-      },
-    ],
-    onFilter: (value: any, record: any) =>
-      record.difficulty.indexOf(value) === 0,
-    sorter: (a: any, b: any) => a.difficulty.length - b.difficulty.length,
-    sortDirections: ["descend", "ascend"],
-  },
-  {
-    title: "Chapter(s)",
-    dataIndex: "chapters",
-    key: "chapter",
-    width: "100",
-    searchable: true,
-    render: (chapters: any) => (
-      <p>
-        {chapters?.map((chapter: any) => (
-          <Tag> {chapter.name}</Tag>
-        ))}
-      </p>
-    ),
-  },
-  {
-    title: "Proof Read?",
-    dataIndex: "isProofRead",
-    key: "isProofRead",
-    width: "100",
-    render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
-  },
-];
