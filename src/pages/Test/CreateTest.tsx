@@ -862,7 +862,7 @@ const SubSection: React.FC<{
       return totalQuestions - parseInt(easy) - parseInt(medium);
     }
   }
-
+  console.log({ tempQuestions });
   return (
     <div className={styles.subSection}>
       <div className={styles.header}>
@@ -952,6 +952,7 @@ const SubSection: React.FC<{
             loading={loading}
             handleDeleteQuestion={(e) => {
               console.log({ e });
+
               setTempQuestions((prev: any) => {
                 return Object.values(prev).filter((q: any) => q._id !== e._id);
               });
@@ -1016,18 +1017,21 @@ const SubSection: React.FC<{
         </div>
       </div>
       <div className={styles.questions2}>
-        <InsertQuestionModal
-          open={questionModal}
-          onClose={() => setQuestionModal(false)}
-          // questions={questions ? Object.values(questions) : []}
-          totalQuestions={totalQuestions ?? 0}
-          // setQuestions={(qs: any) =>
-          //   handleUpdateSubSection(subSection.id, { questions: qs })
-          // }
-          type="Single"
-          subject={subject}
-          handleClickSave={handleClickSave}
-        />
+        {questionModal && (
+          <InsertQuestionModal
+            open={questionModal}
+            onClose={() => setQuestionModal(false)}
+            selectedTempQuestions={tempQuestions}
+            // questions={questions ? Object.values(questions) : []}
+            totalQuestions={totalQuestions ?? 0}
+            // setQuestions={(qs: any) =>
+            //   handleUpdateSubSection(subSection.id, { questions: qs })
+            // }
+            type="Single"
+            subject={subject}
+            handleClickSave={handleClickSave}
+          />
+        )}
       </div>
       <PreviewHTMLModal
         showFooter={false}

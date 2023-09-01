@@ -27,6 +27,7 @@ interface Props {
   totalQuestions: number;
   type: string;
   handleClickSave: (rows: Array<any>) => void;
+  selectedTempQuestions: Array<any>;
 }
 
 const rowSelection = {
@@ -75,13 +76,17 @@ const InsertQuestionModal: React.FC<Props> = ({
   totalQuestions,
   subject,
   handleClickSave,
+  selectedTempQuestions,
 }) => {
   const [difficulties, setDifficulties] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [topics, setTopics] = useState([]);
   const [search, setSearch] = useState("");
   const [chaptersOptions, setChaptersOptions] = useState([]);
-  const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>(
+    selectedTempQuestions
+  );
+  console.log({ selectedTempQuestions, selectedQuestions });
   const [questions, setQuestions] = useState<Array<any>>([]);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -97,6 +102,9 @@ const InsertQuestionModal: React.FC<Props> = ({
   //   { name: "Medium", value: "medium" },
   //   { name: "Hard", value: "hard" },
   // ];
+  useEffect(() => {
+    console.log({ selectedQuestions });
+  }, [selectedQuestions]);
 
   const handleSearch = (selectedKeys: any, confirm: any) => {
     confirm();

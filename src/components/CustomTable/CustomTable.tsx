@@ -25,6 +25,7 @@ const CustomTable: React.FC<Props> = ({
   expandable,
   setSelectedRows,
   pagination,
+  selectedRows,
 }) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -159,6 +160,7 @@ const CustomTable: React.FC<Props> = ({
         setSelectedRows(selRows);
       }
     },
+    selectedRowKeys: selectedRows,
   };
 
   return (

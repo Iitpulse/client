@@ -1086,7 +1086,7 @@ export const AllQuestionsTable: React.FC<{
   noDelete,
 }) => {
   const [columns, setColumns] = useState<any[]>([]);
-
+  console.log({ selectedQuestions });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1285,7 +1285,7 @@ export const AllQuestionsTable: React.FC<{
     <CustomTable
       selectable={enableSelect}
       setSelectedRows={setSelectedQuestions}
-      selectedRows={selectedQuestions}
+      selectedRows={selectedQuestions?.map((question: any) => question.key)}
       loading={loading}
       dataSource={questions?.map((question: any) => ({
         ...question,
