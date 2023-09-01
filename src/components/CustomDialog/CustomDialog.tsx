@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { TransitionProps } from "@mui/material/transitions";
+import { Modal } from "antd";
 
 const Transition = forwardRef(function Transition(
   props: TransitionProps & {
@@ -38,11 +39,14 @@ const CustomDialog: React.FC<Props> = ({
   onClickActionBtn,
 }) => {
   return (
-    <Dialog
-      fullScreen
+    <Modal
       open={open}
-      onClose={handleClose}
-      TransitionComponent={Transition}
+      onCancel={handleClose}
+      width={"100%"}
+      style={{
+        top: 10,
+        minHeight: "100vh",
+      }}
     >
       <AppBar sx={{ position: "relative" }}>
         <Toolbar>
@@ -63,7 +67,7 @@ const CustomDialog: React.FC<Props> = ({
         </Toolbar>
       </AppBar>
       {children}
-    </Dialog>
+    </Modal>
   );
 };
 
