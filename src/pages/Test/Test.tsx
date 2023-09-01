@@ -167,8 +167,20 @@ const Test = () => {
           );
         } else {
           return (
-            <div>
+            <div className={styles.flexRow}>
               <p>Result Not Published yet</p>
+              <CustomPopConfirm
+                title="Are you sure to delete Test?"
+                onConfirm={() => {
+                  handleDeleteTest(row._id);
+                }}
+                cancelText="Cancel"
+                okText="Yes, Delete"
+              >
+                <IconButton>
+                  <DeleteForever />
+                </IconButton>
+              </CustomPopConfirm>
             </div>
           );
         }

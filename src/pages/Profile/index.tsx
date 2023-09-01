@@ -121,6 +121,66 @@ const Profile = () => {
     }
   }
 
+  const [showTextField, setShowTextField] = useState(false);
+  const [buttonText, setButtonText] = useState("Verify Email");
+  const [Verified, setVerified] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("")
+
+  const handleGenerate = async (e: any) => {
+    e.preventDefault();
+    message.loading({content: "Generating OTP", key:"generate_otp"});
+    if (user?.email?.length === 0) return;
+    const resEmail = user?.email?.toLowerCase();
+    try {
+      const response = await API_USERS().post(`/emailotp/generate2`, {
+        email: resEmail,
+      });
+      message.destroy("generate_otp")
+      message.success({ content: response.data.message, key: "otp" });
+    } catch (error:any){
+      message.destroy("generate_otp")
+      // message.error({content: error})
+      message.error({content: error?.response?.data?.message})
+      console.log({error});
+      return;
+    }
+
+    setTimeout(() => {
+      message.destroy("otp");
+    }, 1000);
+    setShowTextField(true);
+  };
+
+  const handleVerify = async (e: any) => {
+    e.preventDefault();
+    if(emailOtp.length!=6){
+      message.error("OTP must contain 6 digits", 1);
+      return;
+    }
+    const resEmail = user?.email.toLowerCase();
+    try{
+      const response = await API_USERS().post(`/emailotp/verify`, {
+        email: resEmail,
+        emailotp: emailOtp,
+      });
+      message.loading({ content: response.data.message, key: "verify" });
+      console.log(response.data.message);
+      if (response.status == 200) {
+        setShowTextField(false);
+        setVerified(true);
+        setButtonText("Verified");
+      }
+    } catch(error:any) {
+      message.error({content: error?.response?.data?.message});
+      console.log(error?.response?.data?.message);
+    }
+
+    setTimeout(() => {
+      message.destroy("verify");
+    }, 1000);
+  };
+
+
   function getRules(fieldName: any) {
     return [
       {
@@ -243,11 +303,41 @@ const Profile = () => {
                 />
               </Form.Item> */}
 
-              <div className={styles.information}>
+              <div className={styles.information2}>
                 <p className={styles.key}>Email:</p>
                 <p className={styles.value}>{user.email}</p>
               </div>
-
+              {!user.isEmailVerified &&(
+                <>
+                {
+                  !(Verified || showTextField) &&
+                  (
+                    <div className={styles.information}>
+                      <p className={styles.key2}>*Your Email isn't verified</p>
+                      <Button type="primary" onClick={handleGenerate}>
+                        Verify Email
+                      </Button>
+                    </div>
+                  )
+                }
+                {
+                  showTextField && (
+                    <div className={styles.information}>
+                      <Input
+                        required
+                        id="emailotp"
+                        onChange={(e)=> setEmailOtp(e.target.value)}
+                        placeholder="Email OTP"
+                        style={{margin:"0",marginRight:"2vw",width: "15vw"}}
+                      />
+                      <Button onClick={handleVerify} type="primary">
+                        Verify
+                      </Button>
+                    </div>
+                  )
+                }
+                </>
+              )}
               {/* <Form.Item
                 name="contact"
                 label="Contact"

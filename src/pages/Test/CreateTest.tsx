@@ -998,18 +998,20 @@ const SubSection: React.FC<{
             ))} */}
         </div>
       </div>
-      <InsertQuestionModal
-        open={questionModal}
-        onClose={() => setQuestionModal(false)}
-        // questions={questions ? Object.values(questions) : []}
-        totalQuestions={totalQuestions ?? 0}
-        // setQuestions={(qs: any) =>
-        //   handleUpdateSubSection(subSection.id, { questions: qs })
-        // }
-        type="Single"
-        subject={subject}
-        handleClickSave={handleClickSave}
-      />
+      <div className={styles.questions2}>
+        <InsertQuestionModal
+          open={questionModal}
+          onClose={() => setQuestionModal(false)}
+          // questions={questions ? Object.values(questions) : []}
+          totalQuestions={totalQuestions ?? 0}
+          // setQuestions={(qs: any) =>
+          //   handleUpdateSubSection(subSection.id, { questions: qs })
+          // }
+          type="Single"
+          subject={subject}
+          handleClickSave={handleClickSave}
+        />
+      </div>
       <PreviewHTMLModal
         showFooter={false}
         previewData={previewData}
