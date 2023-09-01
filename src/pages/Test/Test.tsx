@@ -105,8 +105,21 @@ const Test = () => {
     {
       title: "Created",
       dataIndex: "createdAt",
-      width: 150,
+      width: 200,
       render: (date: string) => new Date(date).toDateString(),
+    },
+    {
+      title: "Duration(in minutes)",
+      dataIndex: "durationInMinutes",
+      width: 200,
+    },
+    {
+      title: "Start Time",
+      render: (row: any) => new Date(row.validity.from).toLocaleString(),
+    },
+    {
+      title: "End Time",
+      render: (row: any) => new Date(row.validity.to).toLocaleString(),
     },
     {
       title: "Status",
@@ -219,26 +232,26 @@ const Test = () => {
           );
         });
         break;
+      // case 1:
+      //   setData([]);
+      //   setLoading(true);
+      //   fetchTest("active", false, (error, result: any[]) => {
+      //     if (error) console.log(error);
+      //     setLoading(false);
+      //     setData(
+      //       result?.map((test: any) => ({
+      //         ...test,
+      //         key: test.id,
+      //         id: test.id,
+      //         name: test.name,
+      //         createdAt: test.createdAt,
+      //         status: test.status,
+      //         exam: test.exam,
+      //       }))
+      //     );
+      //   });
+      //   break;
       case 1:
-        setData([]);
-        setLoading(true);
-        fetchTest("active", false, (error, result: any[]) => {
-          if (error) console.log(error);
-          setLoading(false);
-          setData(
-            result?.map((test: any) => ({
-              ...test,
-              key: test.id,
-              id: test.id,
-              name: test.name,
-              createdAt: test.createdAt,
-              status: test.status,
-              exam: test.exam,
-            }))
-          );
-        });
-        break;
-      case 2:
         setData([]);
         setLoading(true);
         fetchTest("inactive", false, (error, result: any[]) => {
@@ -257,7 +270,7 @@ const Test = () => {
           );
         });
         break;
-      case 3:
+      case 2:
         setData([]);
         setLoading(true);
         fetchTest("expired", false, (error, result: any[]) => {
@@ -326,7 +339,7 @@ const Test = () => {
           <div className={styles.header}>
             <Tabs value={tab} onChange={handleChangeTab}>
               <Tab label="Ongoing" />
-              <Tab label="Active" />
+              {/* <Tab label="Active" /> */}
               <Tab label="Inactive" />
               <Tab label="Expired" />
             </Tabs>
@@ -364,7 +377,7 @@ const Test = () => {
               />
             </div>
           </TabPanel>
-          <TabPanel value={tab} index={3}>
+          {/* <TabPanel value={tab} index={3}>
             <div className={styles.data}>
               <CustomTable
                 loading={loading}
@@ -374,7 +387,7 @@ const Test = () => {
                 scroll={{ x: 600, y: 500 }}
               />
             </div>
-          </TabPanel>
+          </TabPanel> */}
           {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
           <Modal
             isOpen={openModal}

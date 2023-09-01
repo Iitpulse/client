@@ -321,7 +321,11 @@ const MenuDrawer = (props: MenuDrawerProps) => {
             }
           >
             <div className={styles.iconContainer}>
-              <Settings />
+              <SettingOutlined
+                style={{
+                  fontSize: "1.2rem",
+                }}
+              />
             </div>{" "}
             {isCollapsed || <span>Misc</span>}
           </NavLink>
