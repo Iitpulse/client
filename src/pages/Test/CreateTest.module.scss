@@ -86,7 +86,7 @@
 .insertQuestionModal {
   width: 90%;
   margin: 0 auto;
-  // height: 80vh;
+  // height: 100% !important;
   padding: 1rem 0;
   .inputFieldsHeader {
     @extend .flexRow;
@@ -141,4 +141,8 @@
     }
   }
   margin-top: 1rem;
+}
+
+.questions2{
+  
 }

@@ -10,6 +10,7 @@ const { RangePicker } = DatePicker;
 const disabledDate: RangePickerProps["disabledDate"] = (current) => {
   // Can not select days before today and today
   return current && current < dayjs().endOf("day");
+  // return current && current.valueOf() < Date.now();
 };
 
 const CustomDateRangePicker: React.FC<{
