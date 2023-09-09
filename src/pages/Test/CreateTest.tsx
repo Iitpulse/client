@@ -80,10 +80,7 @@ const CreateTest = () => {
     value: "immediately",
     name: "Immediately",
   });
-  const [status, setStatus] = useState({
-    value: "",
-    name: "",
-  });
+
   const [testDateRange, setTestDateRange] = useState<Array<any>>([]);
   const [daysAfter, setDaysAfter] = useState(1);
 
@@ -114,7 +111,6 @@ const CreateTest = () => {
           sections,
           batches,
           publishType,
-          status,
           daysAfter,
           pattern,
           ...rest
@@ -131,7 +127,6 @@ const CreateTest = () => {
             value: batch.name,
           })),
           publishType,
-          status,
           daysAfter,
           pattern,
           ...rest,
@@ -143,14 +138,14 @@ const CreateTest = () => {
         if (publishType?.value) {
           setPublishType(publishType);
         }
-        if (status) {
-          let statusObj = statusOptions.find(
-            (item) => item.value?.toLowerCase() === status?.toLowerCase()
-          );
-          if (statusObj) {
-            setStatus(statusObj);
-          }
-        }
+        // if (status) {
+        //   let statusObj = statusOptions.find(
+        //     (item) => item.value?.toLowerCase() === status?.toLowerCase()
+        //   );
+        //   if (statusObj) {
+        //     setStatus(statusObj);
+        //   }
+        // }
         if (daysAfter) {
           setDaysAfter(daysAfter);
         }
@@ -246,6 +241,18 @@ const CreateTest = () => {
     }
   }
 
+  function getStatus(testDateRange: any) {
+    if (testDateRange[0] && testDateRange[1]) {
+      if (dayjs().isBefore(testDateRange[0])) {
+        return "Inactive";
+      }
+      if (dayjs().isAfter(testDateRange[1])) {
+        return "Expired";
+      }
+      return "Ongoing";
+    }
+    return "Inactive";
+  }
   async function handleClickSubmit() {
     const creatingTest = message.loading(
       `${editMode ? "Updating" : "Creating"} Test...`,
@@ -300,6 +307,7 @@ const CreateTest = () => {
         id: batch.id,
         name: batch.name,
       })),
+      status: getStatus(testDateRange),
     };
     let hasUnfilledQues = false;
     let messageText = "";
@@ -477,7 +485,7 @@ const CreateTest = () => {
                 disablePrevDates={true}
               />
             </Form.Item>
-            <Form.Item
+            {/* <Form.Item
               label="Status"
               help={helperTexts.status}
               validateStatus={getInputStatus("status")}
@@ -492,7 +500,7 @@ const CreateTest = () => {
                 options={statusOptions}
                 value={test.status || null}
               />
-            </Form.Item>
+            </Form.Item> */}
             <Form.Item
               label="Pattern"
               help={
@@ -990,18 +998,20 @@ const SubSection: React.FC<{
             ))} */}
         </div>
       </div>
-      <InsertQuestionModal
-        open={questionModal}
-        onClose={() => setQuestionModal(false)}
-        // questions={questions ? Object.values(questions) : []}
-        totalQuestions={totalQuestions ?? 0}
-        // setQuestions={(qs: any) =>
-        //   handleUpdateSubSection(subSection.id, { questions: qs })
-        // }
-        type="Single"
-        subject={subject}
-        handleClickSave={handleClickSave}
-      />
+      <div className={styles.questions2}>
+        <InsertQuestionModal
+          open={questionModal}
+          onClose={() => setQuestionModal(false)}
+          // questions={questions ? Object.values(questions) : []}
+          totalQuestions={totalQuestions ?? 0}
+          // setQuestions={(qs: any) =>
+          //   handleUpdateSubSection(subSection.id, { questions: qs })
+          // }
+          type="Single"
+          subject={subject}
+          handleClickSave={handleClickSave}
+        />
+      </div>
       <PreviewHTMLModal
         showFooter={false}
         previewData={previewData}

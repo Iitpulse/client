@@ -100,20 +100,18 @@ const Login = () => {
     <div className={styles.container}>
       <div className={styles.formContainer}>
         <img src={logo} className={styles.logo} alt="iitpulse" />
-        <p>Please enter your email and password</p>
+        <p>
+          Please enter your {loginMode === "EMAIL" ? "email" : "phone number"}{" "}
+          and password
+        </p>
         <div
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <Radio.Group
-            style={{
-              marginLeft: "auto",
-            }}
-            onChange={onChange}
-            value={loginMode}
-          >
+          <Radio.Group onChange={onChange} value={loginMode}>
             <Radio.Button value={"EMAIL"}>Email</Radio.Button>
             <Radio.Button value={"PHONE"}>Phone</Radio.Button>
           </Radio.Group>

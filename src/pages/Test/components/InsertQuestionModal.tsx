@@ -1,12 +1,14 @@
 import { TextField } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState, useRef, useContext } from "react";
+
 import { MUIChipsAutocomplete } from "../../../components";
 import CustomDialog from "../../../components/CustomDialog/CustomDialog";
 import CustomModal from "../../../components/CustomModal/CustomModal";
 import { StyledMUITextField } from "../../Users/components";
 import styles from "../CreateTest.module.scss";
 import MUISimpleAutocomplete from "./MUISimpleAutocomplete";
+
 import { Select, Tag } from "antd";
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
@@ -16,6 +18,7 @@ import { TestContext } from "../../../utils/contexts/TestContext";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
+
 
 const { Search } = Input;
 interface Props {
@@ -81,23 +84,27 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [chaptersOptions, setChaptersOptions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>([]);
   const [questions, setQuestions] = useState<Array<any>>([]);
+  const [searchText, setSearchText] = useState('');
+  const [searchedColumn, setSearchedColumn] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // const chaptersOptions = [
-  //   { name: "Easy", value: "easy" },
-  //   { name: "Medium", value: "medium" },
-  //   { name: "Hard", value: "hard" },
-  // ];
+
+
 
   async function fetchQuestions() {
     // console.log({ subject });
+    setLoading(true);
     const res = await API_QUESTIONS().get(`/mcq/all`, {
-      params: { subject },
+      params: { subject, size:Number.MAX_SAFE_INTEGER },
     });
 
     // console.log({ res: res.data, difficulties });
+    console.log(res.data);
     if (res.data.data?.length) {
-      setQuestions(res.data.data);
+      const questionData = res.data.data.map((item:any)=> ({key:item.id, ...item}));
+      setQuestions(questionData);
     }
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -459,88 +466,37 @@ const InsertQuestionModal: React.FC<Props> = ({
         </div>
       </div>
       <div className={styles.insertQuestionModal}>
+
         <div className={styles.questionsTable}>
           <CustomTable
+            loading={loading}
             selectable
             columns={cols as any}
-            dataSource={questions?.map((question) => ({
-              ...question,
-              key: question.id || question._id,
-            }))}
+            dataSource={questions}
             setSelectedRows={setSelectedQuestions}
           />
         </div>
+        {/* <div className={styles.tableContainer}>
+          <AllQuestionsTable
+            questions={questions}
+            handleDeleteQuestion={handleDeleteQuestion}
+            loading={loading}
+            handleToggleProofRead={handleToggleProofread}
+            pagination={{
+              total: totalDocs,
+              onChange: onChangePageOrPageSize,
+              onShowSizeChange: onChangePageOrPageSize,
+            }}
+          />
+        </div> */}
       </div>
     </CustomDialog>
   );
 };
 
+
+
+
 export default InsertQuestionModal;
 
-const cols = [
-  {
-    title: "Question",
-    dataIndex: "en",
-    key: "question",
-    width: "300",
-    fixed: "left",
-    searchable: true,
-    render: (en: any) => (
-      <div
-        style={{
-          width: "300px",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        <RenderWithLatex quillString={en?.question} />
-      </div>
-    ),
-  },
-  {
-    title: "Difficulty",
-    dataIndex: "difficulty",
-    key: "difficulty",
-    width: "100",
-    filters: [
-      {
-        text: "Easy",
-        value: "easy",
-      },
-      {
-        text: "Medium",
-        value: "medium",
-      },
-      {
-        text: "Hard",
-        value: "hard",
-      },
-    ],
-    onFilter: (value: any, record: any) =>
-      record.difficulty.indexOf(value) === 0,
-    sorter: (a: any, b: any) => a.difficulty.length - b.difficulty.length,
-    sortDirections: ["descend", "ascend"],
-  },
-  {
-    title: "Chapter(s)",
-    dataIndex: "chapters",
-    key: "chapter",
-    width: "100",
-    searchable: true,
-    render: (chapters: any) => (
-      <p>
-        {chapters?.map((chapter: any) => (
-          <Tag> {chapter.name}</Tag>
-        ))}
-      </p>
-    ),
-  },
-  {
-    title: "Proof Read?",
-    dataIndex: "isProofRead",
-    key: "isProofRead",
-    width: "100",
-    render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
-  },
-];
+
