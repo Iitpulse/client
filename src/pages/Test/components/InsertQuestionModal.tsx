@@ -19,7 +19,6 @@ import { AuthContext } from "../../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 
-
 const { Search } = Input;
 interface Props {
   open: boolean;
@@ -84,24 +83,24 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [chaptersOptions, setChaptersOptions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>([]);
   const [questions, setQuestions] = useState<Array<any>>([]);
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
   const [loading, setLoading] = useState(false);
-
-
-
 
   async function fetchQuestions() {
     // console.log({ subject });
     setLoading(true);
     const res = await API_QUESTIONS().get(`/mcq/all`, {
-      params: { subject, size:Number.MAX_SAFE_INTEGER },
+      params: { subject, size: Number.MAX_SAFE_INTEGER },
     });
 
     // console.log({ res: res.data, difficulties });
     console.log(res.data);
     if (res.data.data?.length) {
-      const questionData = res.data.data.map((item:any)=> ({key:item.id, ...item}));
+      const questionData = res.data.data.map((item: any) => ({
+        key: item.id,
+        ...item,
+      }));
       setQuestions(questionData);
     }
     setLoading(false);
@@ -161,7 +160,7 @@ const InsertQuestionModal: React.FC<Props> = ({
 
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
-  const [loading, setLoading] = useState<any>([]);
+  // const [loading, setLoading] = useState<any>([]);
 
   const { subjects } = useContext(TestContext);
   const { currentUser } = useContext(AuthContext);
@@ -466,12 +465,11 @@ const InsertQuestionModal: React.FC<Props> = ({
         </div>
       </div>
       <div className={styles.insertQuestionModal}>
-
         <div className={styles.questionsTable}>
           <CustomTable
             loading={loading}
             selectable
-            columns={cols as any}
+            columns={questions as any}
             dataSource={questions}
             setSelectedRows={setSelectedQuestions}
           />
@@ -494,9 +492,4 @@ const InsertQuestionModal: React.FC<Props> = ({
   );
 };
 
-
-
-
 export default InsertQuestionModal;
-
-
