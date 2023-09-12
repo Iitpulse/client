@@ -9,7 +9,7 @@ const { RangePicker } = DatePicker;
 // eslint-disable-next-line arrow-body-style
 const disabledDate: RangePickerProps["disabledDate"] = (current) => {
   // Can not select days before today and today
-  return current && current < dayjs().endOf("day");
+  return current && current < dayjs().startOf("day");
   // return current && current.valueOf() < Date.now();
 };
 

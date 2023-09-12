@@ -12,6 +12,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { TransitionProps } from "@mui/material/transitions";
 import { Modal } from "antd";
 
+
 const Transition = forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement;
@@ -43,29 +44,16 @@ const CustomDialog: React.FC<Props> = ({
       open={open}
       onCancel={handleClose}
       width={"100%"}
+
+      onOk={onClickActionBtn}
+      title={title}
+      centered
       style={{
-        top: 10,
-        minHeight: "100vh",
+        top: 5,
+        maxHeight: "100vh",
+
       }}
     >
-      <AppBar sx={{ position: "relative" }}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            onClick={handleClose}
-            aria-label="close"
-          >
-            <CloseIcon />
-          </IconButton>
-          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-            {title}
-          </Typography>
-          <Button autoFocus color="inherit" onClick={onClickActionBtn}>
-            {actionBtnText}
-          </Button>
-        </Toolbar>
-      </AppBar>
       {children}
     </Modal>
   );

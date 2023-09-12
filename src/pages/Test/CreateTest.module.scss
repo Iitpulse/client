@@ -84,8 +84,9 @@
   }
 }
 .insertQuestionModal {
-  width: 90%;
+  width: 100%;
   margin: 0 auto;
+  height: 65vh;
   // height: 100% !important;
   padding: 1rem 0;
   .inputFieldsHeader {
@@ -103,7 +104,9 @@
     }
   }
   .questionsTable {
-    margin-top: 2rem;
+    height: 60vh;
+    margin-top: 1rem;
+    overflow: auto;
   }
 }
 .modalQuestion {
@@ -177,4 +180,7 @@
     }
   }
 
+}
+.tableContainer {
+  width: 100%;
 }

@@ -8,8 +8,8 @@ import CustomModal from "../../../components/CustomModal/CustomModal";
 import { StyledMUITextField } from "../../Users/components";
 import styles from "../CreateTest.module.scss";
 import MUISimpleAutocomplete from "./MUISimpleAutocomplete";
+import { Button, Select, Tag } from "antd";
 
-import { Select, Tag } from "antd";
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../../utils/api/config";
@@ -18,6 +18,9 @@ import { TestContext } from "../../../utils/contexts/TestContext";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import { useNavigate } from "react-router";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
+import { SearchOutlined } from "@mui/icons-material";
+import { AllQuestionsTable } from "../../Questions/Questions";
+
 
 const { Search } = Input;
 interface Props {
@@ -27,6 +30,7 @@ interface Props {
   totalQuestions: number;
   type: string;
   handleClickSave: (rows: Array<any>) => void;
+  selectedTempQuestions: Array<any>;
 }
 
 const rowSelection = {
@@ -75,17 +79,22 @@ const InsertQuestionModal: React.FC<Props> = ({
   totalQuestions,
   subject,
   handleClickSave,
+  selectedTempQuestions,
 }) => {
   const [difficulties, setDifficulties] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [topics, setTopics] = useState([]);
   const [search, setSearch] = useState("");
   const [chaptersOptions, setChaptersOptions] = useState([]);
-  const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>(
+    selectedTempQuestions
+  );
+  console.log({ selectedTempQuestions, selectedQuestions });
   const [questions, setQuestions] = useState<Array<any>>([]);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [loading, setLoading] = useState(false);
+
 
   async function fetchQuestions() {
     // console.log({ subject });
@@ -160,7 +169,7 @@ const InsertQuestionModal: React.FC<Props> = ({
 
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
-  // const [loading, setLoading] = useState<any>([]);
+
 
   const { subjects } = useContext(TestContext);
   const { currentUser } = useContext(AuthContext);
@@ -233,6 +242,7 @@ const InsertQuestionModal: React.FC<Props> = ({
     filterSubjectsReq,
     filterTopicsReq,
   ]);
+
 
   const typeOptions = [
     { label: "Single", value: "single" },
@@ -349,6 +359,7 @@ const InsertQuestionModal: React.FC<Props> = ({
     else setChapterOptions([]);
   }, [filterSubjects]);
 
+
   useEffect(() => {
     function getSelectedChapterTopics(): any[] {
       let topics = new Set();
@@ -418,10 +429,12 @@ const InsertQuestionModal: React.FC<Props> = ({
               borderRadius: "8 px",
               minWidth: 180,
             }}
+
           />
           <Select
             mode="multiple"
             allowClear
+
             placeholder="Subject"
             onChange={handleChangeSubjects}
             options={subjects?.map((item: any) => ({
@@ -429,6 +442,7 @@ const InsertQuestionModal: React.FC<Props> = ({
               value: item.name,
               ...item,
             }))}
+
             maxTagCount="responsive"
             showArrow
             style={{
@@ -442,6 +456,7 @@ const InsertQuestionModal: React.FC<Props> = ({
             placeholder="Chapter(s)"
             onChange={handleChangeChapters}
             options={chapterOptions}
+
             maxTagCount="responsive"
             showArrow
             style={{
@@ -465,7 +480,8 @@ const InsertQuestionModal: React.FC<Props> = ({
         </div>
       </div>
       <div className={styles.insertQuestionModal}>
-        <div className={styles.questionsTable}>
+        {/* <div className={styles.questionsTable}>
+
           <CustomTable
             loading={loading}
             selectable
@@ -473,20 +489,23 @@ const InsertQuestionModal: React.FC<Props> = ({
             dataSource={questions}
             setSelectedRows={setSelectedQuestions}
           />
-        </div>
-        {/* <div className={styles.tableContainer}>
+        </div> */}
+        <div className={styles.tableContainer}>
           <AllQuestionsTable
+            enableSelect
+            noDelete={true}
+            selectedQuestions={selectedQuestions}
+            setSelectedQuestions={setSelectedQuestions}
             questions={questions}
-            handleDeleteQuestion={handleDeleteQuestion}
             loading={loading}
-            handleToggleProofRead={handleToggleProofread}
+            noEdit={true}
             pagination={{
               total: totalDocs,
               onChange: onChangePageOrPageSize,
               onShowSizeChange: onChangePageOrPageSize,
             }}
           />
-        </div> */}
+        </div>
       </div>
     </CustomDialog>
   );
