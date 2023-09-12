@@ -50,10 +50,10 @@ import AddIcon from "@mui/icons-material/Add";
 import { getTopics } from "../../utils/constants";
 import { TestContext } from "../../utils/contexts/TestContext";
 import type { CustomTagProps } from "rc-select/lib/BaseSelect";
-import { Input } from "antd";
 import CheckBox from "@mui/icons-material/CheckBox";
 import clsx from "clsx";
 import RenderQuestion from "./components/DisplayQuestion/RenderQuestion";
+import { Input } from "antd";
 const { Search } = Input;
 
 export const questionTypes = [
@@ -270,18 +270,6 @@ const Questions = () => {
     }
   }
 
-  // async function fetchData() {
-  //   setLoading(true);
-  //   const res = await API_QUESTIONS().get("/mcq/all", {
-  //     params: {
-  //       search: globalSearch,
-  //       page:1,
-  //     },
-  //   });
-  //   setQuestions(res.data.data);
-  //   console.log("TESTING", { data: res.data });
-  //   return res;
-  // }
   useEffect(() => {
     async function debounceGlobalSearch() {
       console.log("HEY I AM GETTING CALLED");
@@ -290,16 +278,6 @@ const Questions = () => {
     }
     debounceGlobalSearch();
   }, [globalSearch]);
-
-  // useEffect(()=>{
-  //   setFilterChapters([]);
-  //   setFilterChaptersReq([]);
-  // },[filterSubjectsReq, filterSubjects])
-
-  // useEffect(()=>{
-  //   setFilterTopics([]);
-  //   setFilterTopicsReq([]);
-  // },[filterChapters, filterChaptersReq])
 
   useEffect(() => {
     onChangePageOrPageSize();
@@ -1084,8 +1062,12 @@ export const AllQuestionsTable: React.FC<{
   loading: boolean;
   questions: any[];
   noEdit?: boolean;
+  noDelete?: boolean;
+  enableSelect?: boolean;
+  setSelectedQuestions?: (questions: any[]) => void;
+  selectedQuestions?: any[];
   handleToggleProofRead?: (checked: boolean, question: any) => void;
-  handleDeleteQuestion: (question: any) => void;
+  handleDeleteQuestion?: (question: any) => void;
   pagination?: {
     total: number;
     onChange: (page: number, pageSize: number) => void;
@@ -1098,9 +1080,13 @@ export const AllQuestionsTable: React.FC<{
   handleDeleteQuestion,
   noEdit,
   pagination,
+  enableSelect,
+  setSelectedQuestions,
+  selectedQuestions,
+  noDelete,
 }) => {
   const [columns, setColumns] = useState<any[]>([]);
-
+  console.log({ selectedQuestions });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1189,16 +1175,20 @@ export const AllQuestionsTable: React.FC<{
                     </IconButton>
                   </>
                 )}
-                <CustomPopConfirm
-                  title="Are you sure?"
-                  okText="Delete"
-                  cancelText="No"
-                  onConfirm={() => handleDeleteQuestion(question)}
-                >
-                  <IconButton>
-                    <DeleteOutline />
-                  </IconButton>
-                </CustomPopConfirm>
+                {!noDelete && (
+                  <CustomPopConfirm
+                    title="Are you sure?"
+                    okText="Delete"
+                    cancelText="No"
+                    onConfirm={() =>
+                      handleDeleteQuestion && handleDeleteQuestion(question)
+                    }
+                  >
+                    <IconButton>
+                      <DeleteOutline />
+                    </IconButton>
+                  </CustomPopConfirm>
+                )}
               </div>
             </div>
           );
@@ -1293,6 +1283,9 @@ export const AllQuestionsTable: React.FC<{
 
   return (
     <CustomTable
+      selectable={enableSelect}
+      setSelectedRows={setSelectedQuestions}
+      selectedRows={selectedQuestions?.map((question: any) => question.key)}
       loading={loading}
       dataSource={questions?.map((question: any) => ({
         ...question,

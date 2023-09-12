@@ -1,19 +1,28 @@
 import { TextField } from "@mui/material";
 import axios from "axios";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
+
 import { MUIChipsAutocomplete } from "../../../components";
 import CustomDialog from "../../../components/CustomDialog/CustomDialog";
 import CustomModal from "../../../components/CustomModal/CustomModal";
 import { StyledMUITextField } from "../../Users/components";
 import styles from "../CreateTest.module.scss";
 import MUISimpleAutocomplete from "./MUISimpleAutocomplete";
-import { Table, Tag, message } from "antd";
+import { Button, Select, Tag } from "antd";
+
 import CustomTable from "../../../components/CustomTable/CustomTable";
 import RenderWithLatex from "../../../components/RenderWithLatex/RenderWithLatex";
 import { API_QUESTIONS } from "../../../utils/api/config";
-import { Input, Button, Space } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Input } from "antd";
+import { TestContext } from "../../../utils/contexts/TestContext";
+import { AuthContext } from "../../../utils/auth/AuthContext";
+import { useNavigate } from "react-router";
+import type { CustomTagProps } from "rc-select/lib/BaseSelect";
+import { SearchOutlined } from "@mui/icons-material";
+import { AllQuestionsTable } from "../../Questions/Questions";
 
+
+const { Search } = Input;
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -21,6 +30,7 @@ interface Props {
   totalQuestions: number;
   type: string;
   handleClickSave: (rows: Array<any>) => void;
+  selectedTempQuestions: Array<any>;
 }
 
 const rowSelection = {
@@ -39,170 +49,67 @@ const rowSelection = {
   },
 };
 
+interface IOptionType {
+  name: string;
+  inputValue?: string;
+  value?: string | number;
+}
+
+const arrsub = [
+  "Physics",
+  "Chemistry",
+  "Mathematics",
+  "Biology",
+  "Computer",
+  "Commerce",
+  "test",
+  "another test",
+  "testing again",
+  "Test Subject",
+  "Test Subject 2",
+  "Test Subject 3",
+  "Test Subject 4",
+  "Test Subject 5",
+  "Test Subject 6",
+  "Test Subject 7",
+];
 const InsertQuestionModal: React.FC<Props> = ({
   open,
   onClose,
   totalQuestions,
   subject,
   handleClickSave,
+  selectedTempQuestions,
 }) => {
   const [difficulties, setDifficulties] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [topics, setTopics] = useState([]);
   const [search, setSearch] = useState("");
   const [chaptersOptions, setChaptersOptions] = useState([]);
-  const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>(
+    selectedTempQuestions
+  );
+  console.log({ selectedTempQuestions, selectedQuestions });
   const [questions, setQuestions] = useState<Array<any>>([]);
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
   const [loading, setLoading] = useState(false);
 
-
-  const difficultyOptions = [
-    { name: "Easy", value: "easy" },
-    { name: "Medium", value: "medium" },
-    { name: "Hard", value: "hard" },
-  ];
-
-  const handleSearch = (selectedKeys:any, confirm:any) => {
-    confirm();
-  };
-  
-  const handleReset = (clearFilters:any) => {
-    clearFilters();
-  };
-  
-
-
-  const cols:any = [
-    {
-      title: "Question",
-      dataIndex: "en",
-      key: "question",
-      width: "40%",
-      fixed: "left",
-      // searchable: true,
-      render: (en: any) => (
-        <div
-          style={{
-            width: "100%",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            // whiteSpace: "nowrap",
-          }}
-        >
-          <RenderWithLatex quillString={en?.question} />
-        </div>
-      ),
-      filterIcon: (filtered:any) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }:any) => (
-        <div style={{ padding: 8 }}>
-          <Input
-            placeholder="Search Question"
-            value={selectedKeys[0]}
-            onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-            onPressEnter={() => handleSearch(selectedKeys, confirm)}
-            style={{ width: 188, marginBottom: 8, display: 'block' }}
-          />
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90, marginRight: 8 }}
-          >
-            Search
-          </Button>
-          <Button onClick={() => handleReset(clearFilters)} size="small" style={{ width: 90 }}>
-            Reset
-          </Button>
-        </div>
-      ),
-      onFilter: (value:any, record:any) => record.en?.question?.toLowerCase().includes(value.toLowerCase()),
-    },
-    {
-      title: "Difficulty",
-      dataIndex: "difficulty",
-      key: "difficulty",
-      width: "15%",
-      filters: [
-        {
-          text: "Easy",
-          value: "easy",
-        },
-        {
-          text: "Medium",
-          value: "medium",
-        },
-        {
-          text: "Hard",
-          value: "hard",
-        },
-      ],
-      onFilter: (value: any, record: any) =>
-        record.difficulty.toLowerCase().indexOf(value) === 0,
-      sorter: (a: any, b: any) => a.difficulty.length - b.difficulty.length,
-      sortDirections: ["descend", "ascend"],
-    },
-    {
-      title: "Chapter(s)",
-      dataIndex: "chapters",
-      key: "chapter",
-      width: "25%",
-      // searchable: true,
-      render: (chapters: any) => (
-        <>
-          {chapters?.map((chapter: any) => (
-            <Tag> {chapter.name}</Tag>
-          ))}
-        </>
-      ),
-      filterIcon: (filtered:any) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }:any) => (
-        <div style={{ padding: 8 }}>
-          <Input
-            placeholder="Search Chapter"
-            value={selectedKeys[0]}
-            onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-            onPressEnter={() => handleSearch(selectedKeys, confirm)}
-            style={{ width: 188, marginBottom: 8, display: 'block' }}
-          />
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90, marginRight: 8 }}
-          >
-            Search
-          </Button>
-          <Button onClick={() => handleReset(clearFilters)} size="small" style={{ width: 90 }}>
-            Reset
-          </Button>
-        </div>
-      ),
-      onFilter: (value:any, record:any) => (record.chapters.filter((item:any)=>item.name.toLowerCase().includes(value.toLowerCase())).length>0?true:false),
-    },
-    {
-      title: "Proof Read?",
-      dataIndex: "isProofRead",
-      key: "isProofRead",
-      width: "20%",
-      render: (isProofRead: boolean) => <p>{isProofRead ? "Yes" : "No"}</p>,
-    },
-  ];
 
   async function fetchQuestions() {
     // console.log({ subject });
     setLoading(true);
     const res = await API_QUESTIONS().get(`/mcq/all`, {
-      params: { subject, size:Number.MAX_SAFE_INTEGER },
+      params: { subject, size: Number.MAX_SAFE_INTEGER },
     });
 
     // console.log({ res: res.data, difficulties });
     console.log(res.data);
     if (res.data.data?.length) {
-      const questionData = res.data.data.map((item:any)=> ({key:item.id, ...item}));
+      const questionData = res.data.data.map((item: any) => ({
+        key: item.id,
+        ...item,
+      }));
       setQuestions(questionData);
     }
     setLoading(false);
@@ -234,7 +141,243 @@ const InsertQuestionModal: React.FC<Props> = ({
         });
     }
   }, [subject]);
+  const [globalSearch, setGlobalSearch] = useState<string>("");
+  const globalSearchRef = useRef<any>(null);
+  const [totalDocs, setTotalDocs] = useState(1);
 
+  const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
+  const [filterType, setFilterType] = useState<any>([]);
+  const [filterTypeReq, setFilterTypeReq] = useState<any>([
+    "single",
+    "multiple",
+    "integer",
+    "paragraph",
+    "matrix",
+  ]);
+  const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
+  const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>([
+    "Easy",
+    "Medium",
+    "Hard",
+  ]);
+  const [filterSubjects, setFilterSubjects] = useState<any>([]);
+  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(arrsub);
+  const [filterChapters, setFilterChapters] = useState<any>([]);
+  const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
+  const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
+  const [filterTopicsReq, setFilterTopicsReq] = useState<Array<any>>([]);
+
+  const [topicOptions, setTopicOptions] = useState<any>([]);
+  const [chapterOptions, setChapterOptions] = useState<any>([]);
+
+
+  const { subjects } = useContext(TestContext);
+  const { currentUser } = useContext(AuthContext);
+
+  useEffect(() => {
+    async function fetchPaginatedMCQs() {
+      setLoading(true);
+      try {
+        const res = await API_QUESTIONS().get(`/mcq/all`, {
+          params: {
+            page: 1,
+          },
+        });
+        setQuestions(res.data.data);
+        setTotalDocs(res.data.totalDocs);
+        setLoading(false);
+      } catch (err) {
+        console.log(err);
+        setLoading(false);
+      }
+    }
+    if (currentUser) {
+      fetchPaginatedMCQs();
+    }
+  }, [currentUser]);
+
+  const navigate = useNavigate();
+
+  async function onChangePageOrPageSize(page?: number, pageSize?: number) {
+    // console.log(filterSubjects);
+    setLoading(true);
+    try {
+      const res = await API_QUESTIONS().get(`/mcq/all`, {
+        params: {
+          page,
+          size: pageSize || 10,
+          search: globalSearch, // I Wrote this line
+          type: filterTypeReq,
+          difficulty: filterDifficultyReq,
+          sub: filterSubjectsReq,
+          chapters: filterChaptersReq,
+          topics: filterTopicsReq,
+        },
+      });
+      // console.log({ data: res.data });
+      setQuestions(res.data.data);
+      setTotalDocs(res.data.totalDocs);
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    async function debounceGlobalSearch() {
+      console.log("HEY I AM GETTING CALLED");
+      clearTimeout(timeoutNumber);
+      setTimeoutNumber(setTimeout(onChangePageOrPageSize, 600));
+    }
+    debounceGlobalSearch();
+  }, [globalSearch]);
+
+  useEffect(() => {
+    onChangePageOrPageSize();
+  }, [
+    filterTypeReq,
+    filterChaptersReq,
+    filterDifficultyReq,
+    filterSubjectsReq,
+    filterTopicsReq,
+  ]);
+
+
+  const typeOptions = [
+    { label: "Single", value: "single" },
+    { label: "Multiple", value: "multiple" },
+    { label: "Integer", value: "integer" },
+    { label: "Paragraph", value: "paragraph" },
+    { label: "Matrix", value: "matrix" },
+  ];
+  const difficultyOptions = [
+    { label: "Easy", value: "Easy" },
+    { label: "Medium", value: "Medium" },
+    { label: "Hard", value: "Hard" },
+  ];
+  function handleChangeType(values: string[]) {
+    setFilterType(values);
+    if (values.length === 0) {
+      setFilterTypeReq([
+        "single",
+        "multiple",
+        "integer",
+        "paragraph",
+        "matrix",
+      ]);
+    } else setFilterTypeReq(values);
+  }
+  function handleChangeDifficulty(values: string[]) {
+    setFilterDifficulty(values);
+    if (values.length === 0) {
+      setFilterDifficultyReq(["Easy", "Medium", "Hard"]);
+    } else setFilterDifficultyReq(values);
+  }
+  function handleChangeSubjects(_: any, options: any[]) {
+    setFilterSubjects(options);
+    if (options.length >= 1) {
+      let ar = [];
+      for (var i = 0; i < options.length; i++) {
+        ar.push(options[i].value);
+      }
+      setFilterSubjectsReq(ar);
+      console.log(filterSubjectsReq);
+    } else {
+      setFilterSubjectsReq(arrsub);
+      // let ar = [];
+      // for(var i = 0; i<subjects.length; i++){
+      //   ar.push(subjects[i].name);
+      // }
+      // // setFilterSubjectsReq(ar);
+      // console.log(filterSubjectsReq);
+    }
+  }
+  function handleChangeChapters(_: any, options: any) {
+    setFilterChapters(options);
+    // console.log(options);
+    if (options.length) {
+      let arr: any = [];
+      // options?.map((opt : any)=>{arr.push({
+      //   name: opt.name,
+      //   topics: opt.topics,
+      //   _id: opt.id
+      // })});
+      options?.map((opt: any) => {
+        arr.push(opt.name);
+      });
+      setFilterChaptersReq(arr);
+    } else setFilterChaptersReq([]);
+    console.log(filterChaptersReq);
+  }
+  function handleChangeTopics(options: String[]) {
+    // console.log(options);
+    setFilterTopics(options);
+    setFilterTopicsReq(options);
+  }
+  const tagRender = (props: CustomTagProps) => {
+    const { label, value, closable, onClose } = props;
+    const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    return (
+      <Tag
+        color={
+          value === "Easy"
+            ? "green"
+            : value.toLowerCase() === "medium"
+            ? "yellow"
+            : "red"
+        }
+        onMouseDown={onPreventMouseDown}
+        closable={closable}
+        onClose={onClose}
+        style={{ marginRight: 3 }}
+      >
+        {label}
+      </Tag>
+    );
+  };
+
+  useEffect(() => {
+    function getSelectSubjectChapters(): any[] {
+      let chapters: any[] = [];
+      filterSubjects?.forEach((subject: any) => {
+        if (subject.chapters)
+          chapters.push(
+            ...subject.chapters?.map((chapter: any) => ({
+              label: `[${subject.name?.slice(0, 1)}] ${chapter.name}`,
+              value: chapter.name,
+              ...chapter,
+            }))
+          );
+      });
+      return chapters;
+    }
+    if (filterSubjects?.length) setChapterOptions(getSelectSubjectChapters());
+    else setChapterOptions([]);
+  }, [filterSubjects]);
+
+
+  useEffect(() => {
+    function getSelectedChapterTopics(): any[] {
+      let topics = new Set();
+      filterChapters?.forEach((chapter: any) => {
+        if (chapter.topics) topics.add([...chapter.topics]);
+      });
+      // console.log(topics);
+      return [...topics]
+        .filter((topic: any) => topic?.length)
+        .map((topic: any) => ({
+          label: topic[0],
+          value: topic[0],
+        }));
+    }
+    if (filterChapters?.length) setTopicOptions(getSelectedChapterTopics());
+    else setTopicOptions([]);
+  }, [filterChapters]);
+  console.log({ difficultyOptions, typeOptions, subjects });
   return (
     <CustomDialog
       open={open}
@@ -243,58 +386,129 @@ const InsertQuestionModal: React.FC<Props> = ({
       title="Insert Question"
       onClickActionBtn={() => handleClickSave(selectedQuestions)}
     >
-      <div className={styles.insertQuestionModal}>
-        {/* <div className={styles.inputFieldsHeader}>
-          <MUIChipsAutocomplete
-            label="Difficulty(s)"
+      <div className={styles.questionsHeader}>
+        <div className={styles.searchAndPrint}>
+          <Search
+            ref={globalSearchRef}
+            placeholder="Search Question"
+            allowClear
+            enterButton
+            loading={loading}
+            onSearch={setGlobalSearch}
+            style={{
+              maxWidth: 500,
+            }}
+          />
+        </div>
+
+        <div className={styles.filters}>
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder="Type"
+            onChange={handleChangeType}
+            options={typeOptions}
+            maxTagCount="responsive"
+            showArrow
+            style={{
+              borderRadius: "8 px",
+              minWidth: 180,
+              zIndex: "10000",
+            }}
+          />
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder="Difficulty"
+            tagRender={tagRender}
+            onChange={handleChangeDifficulty}
             options={difficultyOptions}
-            onChange={setDifficulties}
+            maxTagCount="responsive"
+            showArrow
+            style={{
+              borderRadius: "8 px",
+              minWidth: 180,
+            }}
+
           />
-          <MUIChipsAutocomplete
-            label="Chapter(s)"
-            options={chaptersOptions}
-            onChange={setChapters}
+          <Select
+            mode="multiple"
+            allowClear
+
+            placeholder="Subject"
+            onChange={handleChangeSubjects}
+            options={subjects?.map((item: any) => ({
+              label: item.name,
+              value: item.name,
+              ...item,
+            }))}
+
+            maxTagCount="responsive"
+            showArrow
+            style={{
+              borderRadius: "8 px",
+              minWidth: 180,
+            }}
           />
-          <TextField label="Subject" disabled value={subject} />
-          <TextField label="Total Questions" disabled value={totalQuestions} />
-          <MUISimpleAutocomplete
-            label="Search Question"
-            // value={search}
-            options={[]}
-            onChange={setSearch}
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder="Chapter(s)"
+            onChange={handleChangeChapters}
+            options={chapterOptions}
+
+            maxTagCount="responsive"
+            showArrow
+            style={{
+              borderRadius: "8 px",
+              minWidth: 180,
+            }}
           />
-        </div> */}
-        {console.log({questions})}
-        <div className={styles.questionsTable}>
+          <Select
+            mode="multiple"
+            allowClear
+            placeholder="Topic(s)"
+            onChange={handleChangeTopics}
+            options={topicOptions}
+            maxTagCount="responsive"
+            showArrow
+            style={{
+              borderRadius: "8 px",
+              minWidth: 180,
+            }}
+          />
+        </div>
+      </div>
+      <div className={styles.insertQuestionModal}>
+        {/* <div className={styles.questionsTable}>
+
           <CustomTable
             loading={loading}
             selectable
-            columns={cols as any}
+            columns={questions as any}
             dataSource={questions}
             setSelectedRows={setSelectedQuestions}
           />
-        </div>
-        {/* <div className={styles.tableContainer}>
+        </div> */}
+        <div className={styles.tableContainer}>
           <AllQuestionsTable
+            enableSelect
+            noDelete={true}
+            selectedQuestions={selectedQuestions}
+            setSelectedQuestions={setSelectedQuestions}
             questions={questions}
-            handleDeleteQuestion={handleDeleteQuestion}
             loading={loading}
-            handleToggleProofRead={handleToggleProofread}
+            noEdit={true}
             pagination={{
               total: totalDocs,
               onChange: onChangePageOrPageSize,
               onShowSizeChange: onChangePageOrPageSize,
             }}
           />
-        </div> */}
+        </div>
       </div>
     </CustomDialog>
   );
 };
 
-
-
-
 export default InsertQuestionModal;
-
-
