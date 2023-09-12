@@ -11,7 +11,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { TransitionProps } from "@mui/material/transitions";
 import { Modal } from "antd";
-import { on } from "events";
+
 
 const Transition = forwardRef(function Transition(
   props: TransitionProps & {
@@ -44,12 +44,14 @@ const CustomDialog: React.FC<Props> = ({
       open={open}
       onCancel={handleClose}
       width={"100%"}
+
       onOk={onClickActionBtn}
       title={title}
       centered
       style={{
         top: 5,
         maxHeight: "100vh",
+
       }}
     >
       {children}
