@@ -1,7 +1,11 @@
 import styles from "./CreateTest.module.scss";
 import { InputField } from "../../components";
 import { useContext, useEffect, useState } from "react";
-import { IPattern, ITestQuestionObjective } from "../../utils/interfaces";
+import {
+  IPattern,
+  ITest,
+  ITestQuestionObjective,
+} from "../../utils/interfaces";
 import {
   QUESTION_COLS_ALL,
   SAMPLE_TEST,
@@ -74,6 +78,9 @@ const CreateTest = () => {
   const [pattern, setPattern] = useState<IPattern | null>(null);
   const [patternOptions, setPatternOptions] = useState<Array<IPattern>>([]);
   const [editMode, setEditMode] = useState(false);
+  const [totalQuestions, setTotalQuestions] = useState<{
+    [key: string]: number;
+  }>({});
 
   const [batchesOptions, setBatchesOptions] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -96,7 +103,18 @@ const CreateTest = () => {
     setEditMode(pathname?.includes("edit"));
   }, [pathname]);
 
-  // console.log({ pattern, sections });
+  function getTotalQuestionsSectionWise(test: ITest) {
+    let totalQuestions: any = {};
+    test.sections.forEach((section) => {
+      let key = section.subject.toLowerCase();
+      totalQuestions[key] = 0;
+      section.subSections.forEach((subSection) => {
+        totalQuestions[key] += subSection.totalQuestions;
+      });
+    });
+    console.log({ totalQuestions });
+    return totalQuestions;
+  }
 
   useEffect(() => {
     async function fetchFullTest() {
@@ -162,8 +180,7 @@ const CreateTest = () => {
             setPattern(patternObj);
           }
         }
-        if (sections) {
-        }
+        setTotalQuestions(getTotalQuestionsSectionWise(data));
       } catch (error: any) {
         message.error(error?.response?.data?.message || "Something went wrong");
       }
@@ -201,6 +218,14 @@ const CreateTest = () => {
       setTest((prev: any) => ({ ...prev, sections: pattern.sections }));
     }
   }, [pattern, editMode]);
+
+  useEffect(() => {
+    if (pattern?.sections?.length && test?.sections?.length) {
+      setTotalQuestions(
+        getTotalQuestionsSectionWise({ ...test, sections: pattern.sections })
+      );
+    }
+  }, [pattern, test]);
 
   useEffect(() => {
     let fetchData = async (examName: string) => {
@@ -386,6 +411,20 @@ const CreateTest = () => {
     return "validating";
   }
 
+  function getCountOfQuestionsFilled(subject: string) {
+    let count = 0;
+    test.sections.forEach((section) => {
+      if (section.subject === subject) {
+        section.subSections.forEach((subSection) => {
+          if (subSection.questions?.length) {
+            count += subSection.questions.length;
+          }
+        });
+      }
+    });
+    return count;
+  }
+
   return (
     <MainLayout
       name="Create Test"
@@ -567,6 +606,15 @@ const CreateTest = () => {
               </Form.Item>
             )}
           </Form>
+        </div>
+        <div className={styles.questionsAddedCount}>
+          <p>Question Selected: </p>
+          {totalQuestions &&
+            Object.keys(totalQuestions).map((key) => (
+              <p>
+                {key}: {getCountOfQuestionsFilled(key)}/{totalQuestions[key]}
+              </p>
+            ))}
         </div>
         {sections && (editMode || pattern) && (
           <section className={styles.sections}>
