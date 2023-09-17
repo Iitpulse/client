@@ -222,6 +222,7 @@ const CreateTest = () => {
   useEffect(() => {
     if (pattern?.sections?.length && test?.sections?.length) {
       setTotalQuestions(
+        // @ts-ignore
         getTotalQuestionsSectionWise({ ...test, sections: pattern.sections })
       );
     }
