@@ -919,7 +919,7 @@ const SubSection: React.FC<{
       return totalQuestions - parseInt(easy) - parseInt(medium);
     }
   }
-  console.log({ tempQuestions });
+  console.log({ tempQuestions, totalQuestions, subSection });
   return (
     <div className={styles.subSection}>
       <div className={styles.header}>
@@ -1004,6 +1004,7 @@ const SubSection: React.FC<{
         </Form>
         <div className={styles.questionsList}>
           <AllQuestionsTable
+            maxSelectedQuestions={totalQuestions || 0}
             questions={tempQuestions}
             noEdit={true}
             loading={loading}
@@ -1077,6 +1078,7 @@ const SubSection: React.FC<{
         {questionModal && (
           <InsertQuestionModal
             open={questionModal}
+            maxSelectedQuestions={totalQuestions || 0}
             onClose={() => setQuestionModal(false)}
             selectedTempQuestions={tempQuestions}
             // questions={questions ? Object.values(questions) : []}
