@@ -115,7 +115,9 @@ const CreateTest = () => {
     console.log({ totalQuestions });
     return totalQuestions;
   }
-
+  useEffect(() => {
+    console.log({ totalQuestions });
+  }, [totalQuestions]);
   useEffect(() => {
     async function fetchFullTest() {
       try {
@@ -342,7 +344,13 @@ const CreateTest = () => {
       return section.subSections.forEach((subSection) => {
         if (subSection?.questions?.length != subSection?.totalQuestions) {
           hasUnfilledQues = true;
-          messageText = `Please fill all the questions in ${subSection.name}`;
+          if (subSection?.totalQuestions)
+            messageText = `Please fill ${
+              subSection?.totalQuestions - subSection?.questions?.length
+            } more questions in ${subSection.name}`;
+          else {
+            messageText = `Please fill questions in ${subSection.name}`;
+          }
         }
       });
     });
@@ -415,7 +423,7 @@ const CreateTest = () => {
   function getCountOfQuestionsFilled(subject: string) {
     let count = 0;
     test.sections.forEach((section) => {
-      if (section.subject === subject) {
+      if (section.subject.toLowerCase() === subject.toLowerCase()) {
         section.subSections.forEach((subSection) => {
           if (subSection.questions?.length) {
             count += subSection.questions.length;
