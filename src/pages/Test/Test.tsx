@@ -90,6 +90,7 @@ const Test = () => {
       title: "Name",
       dataIndex: "name",
       with: 200,
+      searchable: true,
       render: (name: string, row: any) => (
         <Link to={`/test/edit/${row._id}`}>
           <MLink className={styles.ellipsis}>{name}</MLink>
@@ -107,19 +108,30 @@ const Test = () => {
       dataIndex: "createdAt",
       width: 200,
       render: (date: string) => new Date(date).toDateString(),
+      sorter: (a: any, b: any) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     },
     {
       title: "Duration(in minutes)",
       dataIndex: "durationInMinutes",
       width: 200,
+      defaultSortOrder: "descend",
+      sorter: (a: any, b: any) => a.durationInMinutes - b.durationInMinutes,
     },
     {
       title: "Start Time",
       render: (row: any) => new Date(row.validity.from).toLocaleString(),
+      defaultSortOrder: "descend",
+      sorter: (a: any, b: any) =>
+        new Date(a.validity.from).getTime() -
+        new Date(b.validity.from).getTime(),
     },
     {
       title: "End Time",
       render: (row: any) => new Date(row.validity.to).toLocaleString(),
+      defaultSortOrder: "descend",
+      sorter: (a: any, b: any) =>
+        new Date(a.validity.to).getTime() - new Date(b.validity.to).getTime(),
     },
     {
       title: "Status",
