@@ -31,6 +31,7 @@ interface Props {
   handleClickSave: (rows: Array<any>) => void;
   selectedTempQuestions: Array<any>;
   maxSelectedQuestions: number;
+  subjectSelected: any;
 }
 
 const rowSelection = {
@@ -81,6 +82,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   handleClickSave,
   selectedTempQuestions,
   maxSelectedQuestions,
+  subjectSelected,
 }) => {
   const [difficulties, setDifficulties] = useState([]);
   const [chapters, setChapters] = useState([]);
@@ -90,6 +92,8 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>(
     selectedTempQuestions
   );
+  const { subjects } = useContext(TestContext);
+
   console.log({ selectedTempQuestions, selectedQuestions });
   const [questions, setQuestions] = useState<Array<any>>([]);
   const [searchText, setSearchText] = useState("");
@@ -160,8 +164,17 @@ const InsertQuestionModal: React.FC<Props> = ({
     "Medium",
     "Hard",
   ]);
-  const [filterSubjects, setFilterSubjects] = useState<any>([]);
-  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(arrsub);
+  console.log({ subjectSelected, subjects });
+  let selectedSub = subjects?.find(
+    (s) => s?.name?.toLowerCase() === subjectSelected?.toLowerCase()
+  );
+  const [filterSubjects, setFilterSubjects] = useState<any>(
+    selectedSub ? [selectedSub?.name] : []
+  );
+  console.log({ subjectSelected });
+  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(
+    selectedSub ? [selectedSub?.name] : []
+  );
   const [filterChapters, setFilterChapters] = useState<any>([]);
   const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
   const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
@@ -170,7 +183,6 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
 
-  const { subjects } = useContext(TestContext);
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
@@ -338,6 +350,7 @@ const InsertQuestionModal: React.FC<Props> = ({
     );
   };
 
+  useEffect(() => {}, []);
   useEffect(() => {
     function getSelectSubjectChapters(): any[] {
       let chapters: any[] = [];
@@ -437,6 +450,7 @@ const InsertQuestionModal: React.FC<Props> = ({
               value: item.name,
               ...item,
             }))}
+            value={filterSubjects}
             maxTagCount="responsive"
             showArrow
             style={{

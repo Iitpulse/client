@@ -1077,6 +1077,7 @@ const SubSection: React.FC<{
       <div className={styles.questions2}>
         {questionModal && (
           <InsertQuestionModal
+            subjectSelected={subject}
             open={questionModal}
             maxSelectedQuestions={totalQuestions || 0}
             onClose={() => setQuestionModal(false)}
