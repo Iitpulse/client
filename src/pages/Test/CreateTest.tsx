@@ -736,7 +736,7 @@ const SubSection: React.FC<{
   subject: string;
 }> = ({ subSection, handleUpdateSubSection, subject }) => {
   const [questionModal, setQuestionModal] = useState<boolean>(false);
-  const [tempQuestions, setTempQuestions] = useState<any>([{}]);
+  const [tempQuestions, setTempQuestions] = useState<any>([]);
   // const [questions, setQuestions] = useState([]);
   console.log({ subSection });
   const { name, description, totalQuestions, toBeAttempted, type, questions } =
@@ -1077,6 +1077,7 @@ const SubSection: React.FC<{
       <div className={styles.questions2}>
         {questionModal && (
           <InsertQuestionModal
+            typeSelected={type}
             subjectSelected={subject}
             open={questionModal}
             maxSelectedQuestions={totalQuestions || 0}

@@ -146,7 +146,7 @@ const CustomTable: React.FC<Props> = ({
   const rowSelection = {
     onChange: (selRowKeys: any, selRows: any) => {
       if (maxSelectedRows && selRows.length > maxSelectedRows) {
-        message.error(`Maximum ${maxSelectedRows} rows can be selected`);
+        // message.error(`Maximum ${maxSelectedRows} questions can be selected`);
         return;
       }
       if (setSelectedRows) {
@@ -157,7 +157,7 @@ const CustomTable: React.FC<Props> = ({
     onSelect: (record: any, selected: any, selRows: any) => {
       console.log({ record, selected, selRows });
       if (maxSelectedRows && selRows.length > maxSelectedRows) {
-        message.error(`Maximum ${maxSelectedRows} rows can be selected`);
+        message.error(`Maximum ${maxSelectedRows} questions can be selected`);
         selRows = selRows.filter((row: any) => row._id !== record._id);
         selected = false;
         return;

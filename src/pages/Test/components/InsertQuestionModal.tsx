@@ -32,6 +32,7 @@ interface Props {
   selectedTempQuestions: Array<any>;
   maxSelectedQuestions: number;
   subjectSelected: any;
+  typeSelected: any;
 }
 
 const rowSelection = {
@@ -83,6 +84,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   selectedTempQuestions,
   maxSelectedQuestions,
   subjectSelected,
+  typeSelected,
 }) => {
   const [difficulties, setDifficulties] = useState([]);
   const [chapters, setChapters] = useState([]);
@@ -122,7 +124,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   useEffect(() => {
     if (open) {
       setQuestions([]);
-      fetchQuestions();
+      // fetchQuestions();
     }
   }, [open, subject]);
 
@@ -150,14 +152,8 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [totalDocs, setTotalDocs] = useState(1);
 
   const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
-  const [filterType, setFilterType] = useState<any>([]);
-  const [filterTypeReq, setFilterTypeReq] = useState<any>([
-    "single",
-    "multiple",
-    "integer",
-    "paragraph",
-    "matrix",
-  ]);
+  const [filterType, setFilterType] = useState<any>([typeSelected]);
+  const [filterTypeReq, setFilterTypeReq] = useState<any>([typeSelected]);
   const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
   const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>([
     "Easy",
@@ -185,27 +181,27 @@ const InsertQuestionModal: React.FC<Props> = ({
 
   const { currentUser } = useContext(AuthContext);
 
-  useEffect(() => {
-    async function fetchPaginatedMCQs() {
-      setLoading(true);
-      try {
-        const res = await API_QUESTIONS().get(`/mcq/all`, {
-          params: {
-            page: 1,
-          },
-        });
-        setQuestions(res.data.data);
-        setTotalDocs(res.data.totalDocs);
-        setLoading(false);
-      } catch (err) {
-        console.log(err);
-        setLoading(false);
-      }
-    }
-    if (currentUser) {
-      fetchPaginatedMCQs();
-    }
-  }, [currentUser]);
+  // useEffect(() => {
+  //   async function fetchPaginatedMCQs() {
+  //     setLoading(true);
+  //     try {
+  //       const res = await API_QUESTIONS().get(`/mcq/all`, {
+  //         params: {
+  //           page: 1,
+  //         },
+  //       });
+  //       setQuestions(res.data.data);
+  //       setTotalDocs(res.data.totalDocs);
+  //       setLoading(false);
+  //     } catch (err) {
+  //       console.log(err);
+  //       setLoading(false);
+  //     }
+  //   }
+  //   if (currentUser) {
+  //     fetchPaginatedMCQs();
+  //   }
+  // }, [currentUser]);
 
   const navigate = useNavigate();
 
@@ -416,8 +412,9 @@ const InsertQuestionModal: React.FC<Props> = ({
             mode="multiple"
             allowClear
             placeholder="Type"
-            onChange={handleChangeType}
+            disabled
             options={typeOptions}
+            value={filterType}
             maxTagCount="responsive"
             showArrow
             style={{
@@ -450,6 +447,7 @@ const InsertQuestionModal: React.FC<Props> = ({
               value: item.name,
               ...item,
             }))}
+            disabled
             value={filterSubjects}
             maxTagCount="responsive"
             showArrow
