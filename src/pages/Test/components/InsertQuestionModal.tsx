@@ -21,7 +21,6 @@ import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import { SearchOutlined } from "@mui/icons-material";
 import { AllQuestionsTable } from "../../Questions/Questions";
 
-
 const { Search } = Input;
 interface Props {
   open: boolean;
@@ -31,6 +30,9 @@ interface Props {
   type: string;
   handleClickSave: (rows: Array<any>) => void;
   selectedTempQuestions: Array<any>;
+  maxSelectedQuestions: number;
+  subjectSelected: any;
+  typeSelected: any;
 }
 
 const rowSelection = {
@@ -80,6 +82,9 @@ const InsertQuestionModal: React.FC<Props> = ({
   subject,
   handleClickSave,
   selectedTempQuestions,
+  maxSelectedQuestions,
+  subjectSelected,
+  typeSelected,
 }) => {
   const [difficulties, setDifficulties] = useState([]);
   const [chapters, setChapters] = useState([]);
@@ -89,12 +94,13 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [selectedQuestions, setSelectedQuestions] = useState<Array<any>>(
     selectedTempQuestions
   );
+  const { subjects } = useContext(TestContext);
+
   console.log({ selectedTempQuestions, selectedQuestions });
   const [questions, setQuestions] = useState<Array<any>>([]);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [loading, setLoading] = useState(false);
-
 
   async function fetchQuestions() {
     // console.log({ subject });
@@ -118,7 +124,7 @@ const InsertQuestionModal: React.FC<Props> = ({
   useEffect(() => {
     if (open) {
       setQuestions([]);
-      fetchQuestions();
+      // fetchQuestions();
     }
   }, [open, subject]);
 
@@ -146,22 +152,25 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [totalDocs, setTotalDocs] = useState(1);
 
   const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
-  const [filterType, setFilterType] = useState<any>([]);
-  const [filterTypeReq, setFilterTypeReq] = useState<any>([
-    "single",
-    "multiple",
-    "integer",
-    "paragraph",
-    "matrix",
-  ]);
+  const [filterType, setFilterType] = useState<any>([typeSelected]);
+  const [filterTypeReq, setFilterTypeReq] = useState<any>([typeSelected]);
   const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
   const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>([
     "Easy",
     "Medium",
     "Hard",
   ]);
-  const [filterSubjects, setFilterSubjects] = useState<any>([]);
-  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(arrsub);
+  console.log({ subjectSelected, subjects });
+  let selectedSub = subjects?.find(
+    (s) => s?.name?.toLowerCase() === subjectSelected?.toLowerCase()
+  );
+  const [filterSubjects, setFilterSubjects] = useState<any>(
+    selectedSub ? [selectedSub?.name] : []
+  );
+  console.log({ subjectSelected });
+  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(
+    selectedSub ? [selectedSub?.name] : []
+  );
   const [filterChapters, setFilterChapters] = useState<any>([]);
   const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
   const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
@@ -170,31 +179,29 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [topicOptions, setTopicOptions] = useState<any>([]);
   const [chapterOptions, setChapterOptions] = useState<any>([]);
 
-
-  const { subjects } = useContext(TestContext);
   const { currentUser } = useContext(AuthContext);
 
-  useEffect(() => {
-    async function fetchPaginatedMCQs() {
-      setLoading(true);
-      try {
-        const res = await API_QUESTIONS().get(`/mcq/all`, {
-          params: {
-            page: 1,
-          },
-        });
-        setQuestions(res.data.data);
-        setTotalDocs(res.data.totalDocs);
-        setLoading(false);
-      } catch (err) {
-        console.log(err);
-        setLoading(false);
-      }
-    }
-    if (currentUser) {
-      fetchPaginatedMCQs();
-    }
-  }, [currentUser]);
+  // useEffect(() => {
+  //   async function fetchPaginatedMCQs() {
+  //     setLoading(true);
+  //     try {
+  //       const res = await API_QUESTIONS().get(`/mcq/all`, {
+  //         params: {
+  //           page: 1,
+  //         },
+  //       });
+  //       setQuestions(res.data.data);
+  //       setTotalDocs(res.data.totalDocs);
+  //       setLoading(false);
+  //     } catch (err) {
+  //       console.log(err);
+  //       setLoading(false);
+  //     }
+  //   }
+  //   if (currentUser) {
+  //     fetchPaginatedMCQs();
+  //   }
+  // }, [currentUser]);
 
   const navigate = useNavigate();
 
@@ -242,7 +249,6 @@ const InsertQuestionModal: React.FC<Props> = ({
     filterSubjectsReq,
     filterTopicsReq,
   ]);
-
 
   const typeOptions = [
     { label: "Single", value: "single" },
@@ -340,6 +346,7 @@ const InsertQuestionModal: React.FC<Props> = ({
     );
   };
 
+  useEffect(() => {}, []);
   useEffect(() => {
     function getSelectSubjectChapters(): any[] {
       let chapters: any[] = [];
@@ -358,7 +365,6 @@ const InsertQuestionModal: React.FC<Props> = ({
     if (filterSubjects?.length) setChapterOptions(getSelectSubjectChapters());
     else setChapterOptions([]);
   }, [filterSubjects]);
-
 
   useEffect(() => {
     function getSelectedChapterTopics(): any[] {
@@ -406,8 +412,9 @@ const InsertQuestionModal: React.FC<Props> = ({
             mode="multiple"
             allowClear
             placeholder="Type"
-            onChange={handleChangeType}
+            disabled
             options={typeOptions}
+            value={filterType}
             maxTagCount="responsive"
             showArrow
             style={{
@@ -429,12 +436,10 @@ const InsertQuestionModal: React.FC<Props> = ({
               borderRadius: "8 px",
               minWidth: 180,
             }}
-
           />
           <Select
             mode="multiple"
             allowClear
-
             placeholder="Subject"
             onChange={handleChangeSubjects}
             options={subjects?.map((item: any) => ({
@@ -442,7 +447,8 @@ const InsertQuestionModal: React.FC<Props> = ({
               value: item.name,
               ...item,
             }))}
-
+            disabled
+            value={filterSubjects}
             maxTagCount="responsive"
             showArrow
             style={{
@@ -456,7 +462,6 @@ const InsertQuestionModal: React.FC<Props> = ({
             placeholder="Chapter(s)"
             onChange={handleChangeChapters}
             options={chapterOptions}
-
             maxTagCount="responsive"
             showArrow
             style={{
@@ -492,8 +497,9 @@ const InsertQuestionModal: React.FC<Props> = ({
         </div> */}
         <div className={styles.tableContainer}>
           <AllQuestionsTable
-            enableSelect
+            enableSelect={true}
             noDelete={true}
+            maxSelectedQuestions={maxSelectedQuestions}
             selectedQuestions={selectedQuestions}
             setSelectedQuestions={setSelectedQuestions}
             questions={questions}

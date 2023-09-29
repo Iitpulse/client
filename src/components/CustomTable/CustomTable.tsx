@@ -14,6 +14,7 @@ interface Props {
   setSelectedRows?: (rows: Array<any>) => void;
   expandable?: any;
   pagination?: any;
+  maxSelectedRows?: number;
 }
 
 const CustomTable: React.FC<Props> = ({
@@ -26,6 +27,7 @@ const CustomTable: React.FC<Props> = ({
   setSelectedRows,
   pagination,
   selectedRows,
+  maxSelectedRows,
 }) => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -33,7 +35,7 @@ const CustomTable: React.FC<Props> = ({
   const [data, setData] = useState<any>([]);
   const [cols, setCols] = useState<any>([]);
   const [tableLoading, setTableLoading] = useState(false);
-
+  console.log({ maxSelectedRows });
   useEffect(() => {
     if (loading !== undefined) {
       setTableLoading(loading);
@@ -140,16 +142,26 @@ const CustomTable: React.FC<Props> = ({
       setCols(newCols);
     }
   }, [columns]);
-
+  console.log({ selectedRows });
   const rowSelection = {
     onChange: (selRowKeys: any, selRows: any) => {
+      if (maxSelectedRows && selRows.length > maxSelectedRows) {
+        // message.error(`Maximum ${maxSelectedRows} questions can be selected`);
+        return;
+      }
       if (setSelectedRows) {
         setSelectedRows(selRows);
       }
       console.log(`selRowKeys: ${selRowKeys}`, "selRows: ", selRows);
     },
     onSelect: (record: any, selected: any, selRows: any) => {
-      console.log(record, selected, selRows);
+      console.log({ record, selected, selRows });
+      if (maxSelectedRows && selRows.length > maxSelectedRows) {
+        message.error(`Maximum ${maxSelectedRows} questions can be selected`);
+        selRows = selRows.filter((row: any) => row._id !== record._id);
+        selected = false;
+        return;
+      }
       if (setSelectedRows) {
         setSelectedRows(selRows);
       }
@@ -157,7 +169,7 @@ const CustomTable: React.FC<Props> = ({
     onSelectAll: (selected: any, selRows: any, changeRows: any) => {
       console.log(selected, selRows, changeRows);
       if (setSelectedRows) {
-        setSelectedRows(selRows);
+        setSelectedRows(selRows.splice(0, maxSelectedRows));
       }
     },
     selectedRowKeys: selectedRows,

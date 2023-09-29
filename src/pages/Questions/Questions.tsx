@@ -1073,6 +1073,7 @@ export const AllQuestionsTable: React.FC<{
     onChange: (page: number, pageSize: number) => void;
     onShowSizeChange: (page: number, pageSize: number) => void;
   };
+  maxSelectedQuestions?: number;
 }> = ({
   loading,
   questions,
@@ -1084,9 +1085,11 @@ export const AllQuestionsTable: React.FC<{
   setSelectedQuestions,
   selectedQuestions,
   noDelete,
+  maxSelectedQuestions,
 }) => {
   const [columns, setColumns] = useState<any[]>([]);
-  console.log({ selectedQuestions });
+
+  console.log({ selectedQuestions, maxSelectedQuestions });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1280,12 +1283,28 @@ export const AllQuestionsTable: React.FC<{
     }
     return "";
   }
-
+  console.log(selectedQuestions?.map((question: any) => question._id));
+  const setSelectedRowsData = (selectedRowKeys: any) => {
+    console.log({ selectedRowKeys, selectedQuestions });
+    setSelectedQuestions &&
+      selectedQuestions &&
+      setSelectedQuestions(
+        Array.from(
+          new Set([
+            ...selectedRowKeys,
+            ...selectedQuestions.filter(
+              (q) => !questions.find((ques: any) => ques._id === q._id)
+            ),
+          ])
+        ).filter((q) => q?._id)
+      );
+  };
   return (
     <CustomTable
+      maxSelectedRows={maxSelectedQuestions}
       selectable={enableSelect}
-      setSelectedRows={setSelectedQuestions}
-      selectedRows={selectedQuestions?.map((question: any) => question.key)}
+      setSelectedRows={setSelectedRowsData}
+      selectedRows={selectedQuestions?.map((question: any) => question._id)}
       loading={loading}
       dataSource={questions?.map((question: any) => ({
         ...question,
