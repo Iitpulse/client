@@ -655,6 +655,10 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
               </Form.Item>
             </Col>
           </Row>
+      
+
+
+          <SectionHeader title="Validity" divider="above" />
           <Row gutter={16}>
             {/* <Col span={12}>
               <Form.Item
