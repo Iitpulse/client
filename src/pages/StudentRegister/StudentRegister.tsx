@@ -73,6 +73,7 @@ const StudentRegister: React.FC = () => {
     delete finalvalues.parentName;
     delete finalvalues.parentContact;
     delete finalvalues.confirmPassword;
+    finalvalues.isPhoneVerified = true;
     createStudentAccount(finalvalues);
   }
 
@@ -116,7 +117,12 @@ const StudentRegister: React.FC = () => {
   const items = steps.map((item) => ({ key: item.title, title: item.title }));
 
   return (
-    <>
+    <div
+      style={{
+        minHeight: "100vh",
+        height: "fit-content",
+      }}
+    >
       <div className={styles.container}>
         <nav className={styles.flexRow}>
           <img src={logo} alt="logo" />
@@ -182,7 +188,7 @@ const StudentRegister: React.FC = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
