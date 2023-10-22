@@ -9,6 +9,7 @@ import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
 import { Add as AddIcon } from "@mui/icons-material";
 import { AuthContext } from "./../../utils/auth/AuthContext";
+import dayjs from "dayjs";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -138,25 +139,37 @@ const Test = () => {
   // console.log(permissions);
   const { ongoingTests, activeTests, inactiveTests, expiredTests } = state;
   const { currentUser } = useContext(AuthContext);
-
+  function getStatus(validity: any) {
+    const testDateRange = [dayjs(validity.from), dayjs(validity.to)];
+    if (testDateRange[0] && testDateRange[1]) {
+      if (dayjs().isBefore(testDateRange[0])) {
+        return "Upcoming";
+      }
+      if (dayjs().isAfter(testDateRange[1])) {
+        return "Expired";
+      }
+      return "Ongoing";
+    }
+    return "Active";
+  }
   useEffect(() => {
     setLoading(true);
     if (fetchTest)
-      fetchTest("inactive", false, (error, result) => {
-        let upcomingTests = result?.filter(
-          (test: any) =>
-            new Date(test.validity.from).getTime() > new Date().getTime()
-        );
+      fetchTest("active", false, (error, result) => {
         setData(
-          upcomingTests?.map((test: any) => ({
-            ...test,
-            key: test.id,
-            id: test.id,
-            name: test.name,
-            createdAt: test.createdAt,
-            status: test.status,
-            exam: test.exam,
-          }))
+          result
+            ?.filter((t) => {
+              return getStatus(t.validity) === "Upcoming";
+            })
+            ?.map((test: any) => ({
+              ...test,
+              key: test.id,
+              id: test.id,
+              name: test.name,
+              createdAt: test.createdAt,
+              status: "Upcoming",
+              exam: test.exam,
+            }))
         );
         setLoading(false);
       });
