@@ -13,7 +13,8 @@ import { Tag, message } from "antd";
 import { Link } from "react-router-dom";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
 import { API_TESTS } from "../../utils/api/config";
-import { TabPanel } from "./Test";
+import { TabPanel } from "../Questions/Common";
+// import { TabPanel } from "./Test";
 
 export const Test = () => {
   function getColorByStatus(status: string) {
