@@ -1,8 +1,8 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { IconButton, Link as MLink, Tab, Tabs } from "@mui/material";
 import styles from "./Test.module.scss";
 import { Button } from "antd";
-import { CustomTable, Modal, Sidebar } from "../../components";
+import { CustomTable, Modal } from "../../components";
 import { useTestContext } from "../../utils/contexts/TestContext";
 import { Error } from "../";
 import { useNavigate } from "react-router";
@@ -13,40 +13,9 @@ import { Tag, message } from "antd";
 import { Link } from "react-router-dom";
 import CustomPopConfirm from "../../components/PopConfirm/CustomPopConfirm";
 import { API_TESTS } from "../../utils/api/config";
-import dayjs from "dayjs";
+import { TabPanel } from "./Test";
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-interface DataType {
-  key: React.Key;
-  id: string;
-  name: string;
-  exam: string;
-  createdAt: string;
-  status: string;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && children}
-    </div>
-  );
-}
-
-const Test = () => {
+export const Test = () => {
   function getColorByStatus(status: string) {
     return status === "Ongoing"
       ? "green"
@@ -202,7 +171,6 @@ const Test = () => {
   ]);
 
   // Transfered above code from above the component to its inside to use navigate funtion inside colums array
-
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
@@ -221,19 +189,7 @@ const Test = () => {
   );
   // console.log(permissions);
   const { ongoingTests, activeTests, inactiveTests, expiredTests } = state;
-  function getStatus(validity: any) {
-    const testDateRange = [dayjs(validity.from), dayjs(validity.to)];
-    if (testDateRange[0] && testDateRange[1]) {
-      if (dayjs().isBefore(testDateRange[0])) {
-        return "Upcoming";
-      }
-      if (dayjs().isAfter(testDateRange[1])) {
-        return "Expired";
-      }
-      return "Ongoing";
-    }
-    return "Active";
-  }
+
   function handleChangeTab(event: React.ChangeEvent<{}>, newValue: number) {
     setTab(newValue);
     console.log(newValue);
@@ -257,6 +213,25 @@ const Test = () => {
           );
         });
         break;
+      // case 1:
+      //   setData([]);
+      //   setLoading(true);
+      //   fetchTest("active", false, (error, result: any[]) => {
+      //     if (error) console.log(error);
+      //     setLoading(false);
+      //     setData(
+      //       result?.map((test: any) => ({
+      //         ...test,
+      //         key: test.id,
+      //         id: test.id,
+      //         name: test.name,
+      //         createdAt: test.createdAt,
+      //         status: test.status,
+      //         exam: test.exam,
+      //       }))
+      //     );
+      //   });
+      //   break;
       case 1:
         setData([]);
         setLoading(true);
@@ -279,116 +254,46 @@ const Test = () => {
       case 2:
         setData([]);
         setLoading(true);
-        fetchTest("active", false, (error, result: any[]) => {
+        fetchTest("expired", false, (error, result: any[]) => {
           if (error) console.log(error);
-          //ongoing
           setLoading(false);
-          console.log(
-            result,
-            result?.filter((t) => {
-              console.log(t.validity, getStatus(t.validity));
-              return getStatus(t.validity) === "Ongoing";
-            })
-          );
           setData(
-            result
-              ?.filter((t) => {
-                return getStatus(t.validity) === "Ongoing";
-              })
-              ?.map((test: any) => ({
-                ...test,
-                key: test.id,
-                id: test.id,
-                name: test.name,
-                createdAt: test.createdAt,
-                status: "Ongoing",
-                exam: test.exam,
-              }))
+            result?.map((test: any) => ({
+              ...test,
+              key: test.id,
+              id: test.id,
+              name: test.name,
+              createdAt: test.createdAt,
+              status: test.status,
+              exam: test.exam,
+            }))
           );
         });
         break;
-
-      case 3:
-        setData([]);
-        setLoading(true);
-        fetchTest("active", false, (error, result: any[]) => {
-          if (error) console.log(error);
-          //upcomg
-          setLoading(false);
-          setData(
-            result
-              ?.filter((t) => {
-                return getStatus(t.validity) === "Upcoming";
-              })
-              ?.map((test: any) => ({
-                ...test,
-                key: test.id,
-                id: test.id,
-                name: test.name,
-                createdAt: test.createdAt,
-                status: "Upcoming",
-                exam: test.exam,
-              }))
-          );
-        });
-        break;
-      case 4:
-        setData([]);
-        setLoading(true);
-        fetchTest("active", false, (error, result: any[]) => {
-          if (error) console.log(error);
-          console.log(
-            result,
-            result?.filter((t) => {
-              console.log(t.validity, getStatus(t.validity));
-              return getStatus(t.validity) === "Expired";
-            })
-          );
-          //expired
-          setLoading(false);
-          setData(
-            result
-              ?.filter((t) => {
-                return getStatus(t.validity) === "Expired";
-              })
-              ?.map((test: any) => ({
-                ...test,
-                key: test.id,
-                id: test.id,
-                name: test.name,
-                createdAt: test.createdAt,
-                status: "Expired",
-                exam: test.exam,
-              }))
-          );
-        });
-        break;
-
       default:
         break;
     }
   }
   const { currentUser } = useContext(AuthContext);
 
-  useEffect(() => {
-    setLoading(true);
-    if (fetchTest)
-      fetchTest("active", false, (error, result) => {
-        setData(
-          result?.map((test: any) => ({
-            ...test,
-            key: test.id,
-            id: test.id,
-            name: test.name,
-            createdAt: test.createdAt,
-            status: test.status,
-            exam: test.exam,
-          }))
-        );
-        setLoading(false);
-      });
-  }, []);
-
+  // useEffect(() => {
+  //   setLoading(true);
+  //   if (fetchTest)
+  //     fetchTest("ongoing", false, (error, result) => {
+  //       setData(
+  //         result?.map((test: any) => ({
+  //           ...test,
+  //           key: test.id,
+  //           id: test.id,
+  //           name: test.name,
+  //           createdAt: test.createdAt,
+  //           status: test.status,
+  //           exam: test.exam,
+  //         }))
+  //       );
+  //       setLoading(false);
+  //     });
+  // }, []);
   return (
     <MainLayout
       name="Test"
@@ -491,5 +396,3 @@ const Test = () => {
     </MainLayout>
   );
 };
-
-export default Test;
