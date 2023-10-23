@@ -27,6 +27,7 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import MainLayout from "../../layouts/MainLayout";
 import ScheduleCalendar from "./ScheduleCalendar/ScheduleCalendar";
 import { ITest } from "../../utils/interfaces";
+import dayjs from "dayjs";
 
 interface SubCardProps {
   title: string;
@@ -141,17 +142,32 @@ const Home = () => {
   const { currentUser } = useContext(AuthContext);
   console.log({ currentUser });
   const { activeTests } = state;
-
+  function getStatus(validity: any) {
+    const testDateRange = [dayjs(validity.from), dayjs(validity.to)];
+    if (testDateRange[0] && testDateRange[1]) {
+      if (dayjs().isBefore(testDateRange[0])) {
+        return "Upcoming";
+      }
+      if (dayjs().isAfter(testDateRange[1])) {
+        return "Expired";
+      }
+      return "Ongoing";
+    }
+    return "Active";
+  }
   useEffect(() => {
     if (fetchTest) {
       setLoadingUpcoming(true);
       setLoadingOngoing(true);
-      fetchTest("ongoing", false, (error, result) => {
+      fetchTest("active", false, (error, result) => {
         console.log({ error, result });
         setLoadingOngoing(false);
         setOngoingTests(
           result
             ?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
+            ?.filter((t) => {
+              return getStatus(t.validity) === "Ongoing";
+            })
             ?.filter(
               (test) =>
                 !test.result.students.find(
@@ -161,10 +177,9 @@ const Home = () => {
         );
       });
       fetchTest("active", false, (error, result) => {
-        let upcomingTests = result?.filter(
-          (test: any) =>
-            new Date(test.validity.from).getTime() > new Date().getTime()
-        );
+        let upcomingTests = result?.filter((t) => {
+          return getStatus(t.validity) === "Upcoming";
+        });
         setLoadingUpcoming(false);
         setUpcomingTests(
           upcomingTests?.map((test: any) => ({
@@ -243,6 +258,11 @@ const Home = () => {
                       mode="online"
                     />
                   ))}
+                  {!loadingUpcoming && upcomingTests?.length === 0 && (
+                    <div className={styles.noTest}>
+                      <p>No Upcoming Tests available</p>
+                    </div>
+                  )}
                   {loadingUpcoming && (
                     <Box sx={{ width: "100%" }}>
                       <Skeleton height={28} />
@@ -276,6 +296,11 @@ const Home = () => {
                       mode="online"
                     />
                   ))}
+                  {!loadingOngoing && ongoingTests?.length === 0 && (
+                    <div className={styles.noTest}>
+                      <p>No Ongoing Tests available</p>
+                    </div>
+                  )}
                   {loadingOngoing && (
                     <Box sx={{ width: "100%" }}>
                       <Skeleton height={28} />
