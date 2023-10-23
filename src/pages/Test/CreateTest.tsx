@@ -47,16 +47,24 @@ import { AllQuestionsTable } from "../Questions/Questions";
 
 const statusOptions = [
   {
-    name: "Ongoing",
-    value: "Ongoing",
-  },
-  {
     name: "Active",
     value: "Active",
   },
   {
     name: "Inactive",
     value: "Inactive",
+  },
+  {
+    name: "Ongoing",
+    value: "Ongoing",
+  },
+  {
+    name: "Upcoming",
+    value: "Upcoming",
+  },
+  {
+    name: "Expired",
+    value: "Expired",
   },
 ];
 
@@ -270,18 +278,6 @@ const CreateTest = () => {
     }
   }
 
-  function getStatus(testDateRange: any) {
-    if (testDateRange[0] && testDateRange[1]) {
-      if (dayjs().isBefore(testDateRange[0])) {
-        return "Inactive";
-      }
-      if (dayjs().isAfter(testDateRange[1])) {
-        return "Expired";
-      }
-      return "Ongoing";
-    }
-    return "Inactive";
-  }
   async function handleClickSubmit() {
     const creatingTest = message.loading(
       `${editMode ? "Updating" : "Creating"} Test...`,
@@ -336,7 +332,7 @@ const CreateTest = () => {
         id: batch.id,
         name: batch.name,
       })),
-      status: getStatus(testDateRange),
+      status: "Active",
     };
     let hasUnfilledQues = false;
     let messageText = "";
@@ -370,6 +366,84 @@ const CreateTest = () => {
       console.log({ helperTexts });
       return message.error("Please fill all the fields");
     }
+    try {
+      if (editMode) {
+        updateTest(finalTest, creatingTest);
+        return;
+      }
+      let finalPayLoad = {
+        ...finalTest,
+        batches: finalTest.batches.map((batch) => ({
+          ...batch,
+          _id: batch.id,
+        })),
+      };
+      console.log({ finalPayLoad });
+      let response = await API_TESTS().post(`/test/create`, finalPayLoad);
+      creatingTest();
+      message.success("Test Created Successfully");
+    } catch (error: any) {
+      creatingTest();
+      message.error("Error: " + error?.response?.data?.message);
+    }
+    // const id = ``
+  }
+  async function saveTestAsDraft() {
+    const creatingTest = message.loading(`Saving Test as Draft...`, 0);
+    if (!userExists()) {
+      creatingTest();
+      return message.error("Please login to continue");
+    }
+
+    // console.log({ testDateRange });
+
+    let finalTest: TTestSchema = {
+      ...test,
+      exam: {
+        id: test.exam.id,
+        name: test.exam.name,
+      },
+      createdBy: {
+        id: currentUser?.id as string,
+        userType: currentUser?.userType as string,
+      },
+      validity: {
+        from: testDateRange[0] ? dayjs(testDateRange[0]).toISOString() : "",
+        to: testDateRange[1] ? dayjs(testDateRange[1]).toISOString() : "",
+      },
+      result: {
+        maxMarks: null,
+        averageMarks: null,
+        averageCompletionTime: null,
+        publishProps: {
+          type: publishType.value,
+          publishDate: getPublishDate(
+            publishType.value,
+            daysAfter,
+            testDateRange
+          ),
+          isPublished: false,
+        },
+        students: [],
+      },
+      pattern: {
+        name: pattern?.name ?? "",
+        id: pattern?._id ?? "",
+      },
+      createdAt: new Date().toISOString(),
+      modifiedAt: new Date().toISOString(),
+      durationInMinutes: editMode
+        ? test.durationInMinutes
+        : (pattern?.durationInMinutes as number),
+      batches: test.batches.map((batch) => ({
+        id: batch.id,
+        name: batch.name,
+      })),
+      status: "Inactive",
+    };
+
+    console.log({ finalTest, editMode });
+
     try {
       if (editMode) {
         updateTest(finalTest, creatingTest);
@@ -438,10 +512,26 @@ const CreateTest = () => {
     <MainLayout
       name="Create Test"
       menuActions={
-        <div className={styles.submitBtn}>
+        <div
+          className={styles.submitBtn}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            gap: "1rem",
+          }}
+        >
           <Button onClick={handleClickSubmit} type="primary">
-            {editMode ? "Update Test" : "Create Test"}
+            {editMode && test.status !== "Inactive"
+              ? "Update Test"
+              : "Create Test"}
           </Button>
+          {test.status === "Inactive" && (
+            <Button onClick={saveTestAsDraft} type="text">
+              {editMode ? "Update Draft" : "Save as Draft"}
+            </Button>
+          )}
         </div>
       }
     >
