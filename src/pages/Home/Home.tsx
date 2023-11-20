@@ -93,7 +93,7 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
     let a = document.createElement("a");
     let token = localStorage.getItem(AUTH_TOKEN);
     const testLink = import.meta.env.VITE_TEST_PORTAL_URI;
-    a.href = `${testLink}/auth/${token}/${id}`;
+    a.href = `${testLink}auth/${token}/${id}`;
     a.target = "_blank";
     a.click();
   }
@@ -143,7 +143,7 @@ const Home = () => {
   );
   const [loadingUpcoming, setLoadingUpcoming] = useState<boolean>(false);
   const [loadingOngoing, setLoadingOngoing] = useState<boolean>(false);
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, userDetails } = useContext(AuthContext);
   // console.log({ currentUser });
   const { activeTests } = state;
   function getStatus(validity: any) {
