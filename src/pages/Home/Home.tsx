@@ -160,6 +160,7 @@ const Home = () => {
     return "Active";
   }
   useEffect(() => {
+    console.log({userDetails,currentUser});
     if (fetchTest) {
       setLoadingUpcoming(true);
       setLoadingOngoing(true);
@@ -188,7 +189,7 @@ const Home = () => {
         setUpcomingTests(
           upcomingTests?.map((test: any) => ({
             ...test,
-            key: test._id,
+            // key: test._id,
             id: test._id,
             name: test.name,
             createdAt: test.createdAt,
