@@ -19,6 +19,7 @@ import {
 import { API_TESTS, API_USERS } from "../../../utils/api/config";
 import { performZodValidation, validateField, } from "../../../utils/schemas";
 import { AcademicSchema } from "./utils/AcademicModel";
+import axios from "axios";
 const { Option } = Select;
 
 const AcademicDetailsSchema = z.object({
@@ -65,7 +66,7 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
   useEffect(() => {
     async function fetchClasses() {
       try {
-        const res = await API_USERS().get(`/class/all`);
+        const res = await axios.get(import.meta.env.VITE_USERS_API+`class/alll`);
         console.log({ res });
         setData(res?.data);
       } catch (error) {

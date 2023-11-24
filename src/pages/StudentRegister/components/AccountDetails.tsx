@@ -20,6 +20,7 @@ import {
   message,
 } from "antd";
 import { API_USERS } from "../../../utils/api/config";
+import { performZodValidation, validateField, } from "../../../utils/schemas";
 
 const AccountDetailsSchema = z.object({
   contact: z.string().length(10),
@@ -51,6 +52,7 @@ interface Props {
 }
 
 const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
+  const [form] = Form.useForm();
   const [values, setValues] = useState<AccountDetailsValues>(defaultState);
   const [errors, setErrors] = useState({
     ...getErrorDefaultState(defaultState),
@@ -118,8 +120,11 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   const handleGenerate = async (e: any) => {
     e.preventDefault();
+    if(values.contact.length != 10){
+      message.error({content:"Contact number must be 10 digit long"});
+      return;
+    }
     message.loading({ content: "Generating OTP", key: "GENERATE_OTP" });
-    if (values.contact.length === 0) return;
     const phoneLowerCase = values.contact.toLowerCase();
     setValues((prevState) => ({ ...prevState, contact: phoneLowerCase }));
     try {
@@ -146,6 +151,10 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     e.preventDefault();
     const phoneLowerCase = values.contact;
     setValues((prevState) => ({ ...prevState, contact: phoneLowerCase }));
+    if(values.phoneOtp.length!=6){
+      message.error({content:"OTP length be 6 digit"});
+      return;
+    }
     try {
       const response = await API_USERS().post(`/otp/verify`, {
         number: phoneLowerCase,
@@ -158,7 +167,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         setVerified(true);
         setButtonText("Verified");
       }
-    } catch (error) {
+    } catch (error:any) {
+      message.error({content:error?.response?.data?.message})
       console.log({ error });
     }
 
@@ -180,11 +190,32 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   //     },
   //   },
   // });
+  const conversionObject: any = {
+    contact: null,
+    phoneOtp: null,
+    password: null,
+    confirmPassword: null,
+    promoCode: null,
+  };
+  function getRules(fieldName: any) {
+    try {
+      return [
+        {
+          validateTrigger: "onSubmit",
+          validator: (_: any, value: any) =>
+            validateField(fieldName, value, conversionObject, AccountDetailsSchema),
+        },
+      ];
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
   return (
-    <form onSubmit={handleSubmitForm} className={styles.regForm}>
+    <Form form={form} onFinish={handleSubmitForm} className={styles.regForm}>
       <Row>
         <Col span={24}>
+        <Form.Item name="contact" rules={getRules("contact")}>
           <Input
             size="large"
             disabled={Verified}
@@ -194,6 +225,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
             onChange={handleChangeValues}
             placeholder="Contact number"
           />
+        </Form.Item>
         </Col>
       </Row>
       {/* <Grid item xs={10}> */}
@@ -212,6 +244,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       {showTextField && (
         <Row gutter={10}>
           <Col span={12}>
+          <Form.Item name="phoneOtp" rules={getRules("phoneOtp")}>
             <Input
               // fullWidth
               size="large"
@@ -224,6 +257,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
               placeholder="Phone OTP"
               // variant="outlined"
             />
+          </Form.Item>
           </Col>
 
           <Col span={4}>
@@ -236,9 +270,9 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
       {Verified && (
         <>
+         <Form.Item name="password" rules={getRules("password")}>
           <Input.Password
             size="large"
-            required
             id="password"
             // autoComplete="new-password"
             // value={values.password}
@@ -248,10 +282,10 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
             onChange={handleChangeValues}
             placeholder="Password"
           />
-
+         </Form.Item>
+         <Form.Item name="confirmPassword" rules={getRules("confirmPassword")}>
           <Input
             size="large"
-            required
             id="confirmPassword"
             autoComplete="new-password"
             // value={values.confirmPassword}
@@ -261,10 +295,10 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
             onChange={handleChangeValues}
             placeholder="Confirm Password"
           />
-
+          </Form.Item>
+          <Form.Item name="promoCode" rules={getRules("promoCode")}>
           <Input
             size="large"
-            required
             id="promoCode"
             // value={values.promoCode}
             // error={errors.promoCode}
@@ -273,12 +307,13 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
             onChange={handleChangeValues}
             placeholder="Promo Code"
           />
+          </Form.Item>
           <Button size="large" type="primary" htmlType="submit">
             Next
           </Button>
         </>
       )}
-    </form>
+    </Form>
   );
 };
 
