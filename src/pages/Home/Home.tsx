@@ -30,6 +30,7 @@ import ScheduleCalendar from "./ScheduleCalendar/ScheduleCalendar";
 import { ITest } from "../../utils/interfaces";
 import { CodeSandboxCircleFilled } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { Navigate } from "react-router";
 
 interface SubCardProps {
   title: string;
@@ -117,8 +118,8 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
 
 const InstituteDetails = (props: InstituteDetailsProps) => {
   const { icon, batch, value } = props;
-  console.log({icon,batch,value});
-  console.log("Hello");
+  // console.log({icon,batch,value});
+  // console.log("Hello");
   return (
     <div className={styles.batch}>
       <div className={styles.batchContainer}>
@@ -144,7 +145,6 @@ const Home = () => {
   const [loadingUpcoming, setLoadingUpcoming] = useState<boolean>(false);
   const [loadingOngoing, setLoadingOngoing] = useState<boolean>(false);
   const { currentUser, userDetails } = useContext(AuthContext);
-  // console.log({ currentUser });
   const { activeTests } = state;
   function getStatus(validity: any) {
     const testDateRange = [dayjs(validity.from), dayjs(validity.to)];
@@ -159,28 +159,50 @@ const Home = () => {
     }
     return "Active";
   }
+
+
   useEffect(() => {
     console.log({userDetails,currentUser});
     if (fetchTest) {
       setLoadingUpcoming(true);
       setLoadingOngoing(true);
-      fetchTest("active", false, (error, result) => {
-        console.log({ error, result });
-        setLoadingOngoing(false);
-        setOngoingTests(
-          result
-            ?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
-            ?.filter((t) => {
-              return getStatus(t.validity) === "Ongoing";
-            })
-            ?.filter(
-              (test) =>
-                !test.result.students.find(
-                  (student: any) => student._id === currentUser?.id
-                )
-            )
-        );
-      });
+      setOngoingTests([]);
+      setUpcomingTests([]);
+      (currentUser?.userType === "student"? 
+        fetchTest("active", false, (error, result) => {
+          console.log({ error, result });
+          setLoadingOngoing(false);
+          setOngoingTests(
+            result
+              ?.map((test: any) => ({ ...test, 
+                key: test._id, 
+                id: test._id }))
+              ?.filter((t) => {
+                return getStatus(t.validity) === "Ongoing";
+              })
+              ?.filter(
+                (test) =>
+                  !test.result.students.find(
+                    (student: any) => student._id === currentUser?.id
+                  )
+              )
+          );
+        }):(
+          fetchTest("active", false, (error, result) => {
+            console.log({ error, result });
+            setLoadingOngoing(false);
+            setOngoingTests(
+              result
+                ?.map((test: any) => ({ ...test, 
+                  key: test._id, 
+                  id: test._id }))
+                ?.filter((t) => {
+                  return getStatus(t.validity) === "Ongoing";
+                })
+            );
+          })
+        )
+      )
       fetchTest("active", false, (error, result) => {
         let upcomingTests = result?.filter((t) => {
           return getStatus(t.validity) === "Upcoming";
@@ -189,7 +211,7 @@ const Home = () => {
         setUpcomingTests(
           upcomingTests?.map((test: any) => ({
             ...test,
-            // key: test._id,
+            key: test._id,
             id: test._id,
             name: test.name,
             createdAt: test.createdAt,
@@ -199,9 +221,10 @@ const Home = () => {
         );
       });
     }
-  }, [currentUser]);
+  }, [currentUser, userDetails]);
+
   useEffect(() => {
-    console.log({currentUser});
+    // console.log({currentUser});
     const fetchInstituteDetails = async () => {
       try {
         const res = await API_USERS().get(`/institute/get`, {
@@ -209,7 +232,7 @@ const Home = () => {
             _id: currentUser?.instituteId,
           },
         });
-        console.log(res);
+        // console.log(res);
         setInstituteDetailsData(res.data);
       } catch (err) {
         console.log(err);
