@@ -1,7 +1,7 @@
 import { StyledMUITextField } from "../../Users/components";
 import z from "zod";
 // import { Button, StyledMUISelect } from "../../../components";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import styles from "../StudentRegister.module.scss";
 import {
   Button,
@@ -16,9 +16,10 @@ import {
   Space,
   message,
 } from "antd";
-
+import { API_TESTS, API_USERS } from "../../../utils/api/config";
 import { performZodValidation, validateField, } from "../../../utils/schemas";
 import { AcademicSchema } from "./utils/AcademicModel";
+import axios from "axios";
 const { Option } = Select;
 
 const AcademicDetailsSchema = z.object({
@@ -58,6 +59,23 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
   const [stream, setStream] = useState("");
   const [standard, setStandard] = useState("");
   const [medium, setMedium] = useState("");
+  const [data, setData] = useState([]);
+  const [selectedClass, setSelectedClass] = useState<any>();
+  const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    async function fetchClasses() {
+      try {
+        const res = await axios.get(import.meta.env.VITE_USERS_API+`class/alll`);
+        console.log({ res });
+        setData(res?.data);
+      } catch (error) {
+        console.log("ERROR_FETCH_Classes", error);
+        message.error("Error fetching Classes");
+      }
+    }
+    fetchClasses();
+  }, []);
 
   function handleChangeValues(e: any) {
     const { id, value } = e.target;
@@ -151,9 +169,14 @@ const AcademicDetails: React.FC<Props> = ({ handleSubmit, setPrev }) => {
               setStandard(e);
             }}
           >
-            <Option value="11">11</Option>
+            {/* <Option value="11">11</Option>
             <Option value="12">12</Option>
-            <Option value="dropper">dropper</Option>
+            <Option value="dropper">dropper</Option> */}
+            {data?.map((e:any)=>
+              (
+                <Select.Option value={e.name} label={e.name}>{e.name}</Select.Option>
+              )
+            )}
           </Select>
         </Form.Item>
         <Form.Item name="medium" rules={getRules("medium")}>

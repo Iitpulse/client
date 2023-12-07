@@ -37,7 +37,7 @@ const AuthContextProvider = (props: ProviderProps) => {
       const res = await API_USERS().get(`/${userType}/single`, {
         params: { id },
       });
-      // console.log({ id, res });
+      console.log({ id, res });
       setuserDetails(res.data);
     }
     if (user) {
