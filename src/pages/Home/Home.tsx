@@ -6,6 +6,7 @@ import {
   Sidebar,
   StyledMUISelect,
 } from "../../components";
+import { Select } from "antd";
 import styles from "./Home.module.scss";
 import { useContext, useEffect, useState } from "react";
 import { Box, Grid, Skeleton } from "@mui/material";
@@ -27,6 +28,9 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import MainLayout from "../../layouts/MainLayout";
 import ScheduleCalendar from "./ScheduleCalendar/ScheduleCalendar";
 import { ITest } from "../../utils/interfaces";
+import { CodeSandboxCircleFilled } from "@ant-design/icons";
+import dayjs from "dayjs";
+import { Navigate } from "react-router";
 
 interface SubCardProps {
   title: string;
@@ -90,7 +94,7 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
     let a = document.createElement("a");
     let token = localStorage.getItem(AUTH_TOKEN);
     const testLink = import.meta.env.VITE_TEST_PORTAL_URI;
-    a.href = `${testLink}/auth/${token}/${id}`;
+    a.href = `${testLink}auth/${token}/${id}`;
     a.target = "_blank";
     a.click();
   }
@@ -114,6 +118,8 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
 
 const InstituteDetails = (props: InstituteDetailsProps) => {
   const { icon, batch, value } = props;
+  // console.log({icon,batch,value});
+  // console.log("Hello");
   return (
     <div className={styles.batch}>
       <div className={styles.batchContainer}>
@@ -138,33 +144,69 @@ const Home = () => {
   );
   const [loadingUpcoming, setLoadingUpcoming] = useState<boolean>(false);
   const [loadingOngoing, setLoadingOngoing] = useState<boolean>(false);
-  const { currentUser } = useContext(AuthContext);
-  console.log({ currentUser });
+  const { currentUser, userDetails } = useContext(AuthContext);
   const { activeTests } = state;
+  function getStatus(validity: any) {
+    const testDateRange = [dayjs(validity.from), dayjs(validity.to)];
+    if (testDateRange[0] && testDateRange[1]) {
+      if (dayjs().isBefore(testDateRange[0])) {
+        return "Upcoming";
+      }
+      if (dayjs().isAfter(testDateRange[1])) {
+        return "Expired";
+      }
+      return "Ongoing";
+    }
+    return "Active";
+  }
+
 
   useEffect(() => {
+    console.log({userDetails,currentUser});
     if (fetchTest) {
       setLoadingUpcoming(true);
       setLoadingOngoing(true);
-      fetchTest("ongoing", false, (error, result) => {
-        console.log({ error, result });
-        setLoadingOngoing(false);
-        setOngoingTests(
-          result
-            ?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
-            ?.filter(
-              (test) =>
-                !test.result.students.find(
-                  (student: any) => student._id === currentUser?.id
-                )
-            )
-        );
-      });
+      setOngoingTests([]);
+      setUpcomingTests([]);
+      (currentUser?.userType === "student"? 
+        fetchTest("active", false, (error, result) => {
+          console.log({ error, result });
+          setLoadingOngoing(false);
+          setOngoingTests(
+            result
+              ?.map((test: any) => ({ ...test, 
+                key: test._id, 
+                id: test._id }))
+              ?.filter((t) => {
+                return getStatus(t.validity) === "Ongoing";
+              })
+              ?.filter(
+                (test) =>
+                  !test.result.students.find(
+                    (student: any) => student._id === currentUser?.id
+                  )
+              )
+          );
+        }):(
+          fetchTest("active", false, (error, result) => {
+            console.log({ error, result });
+            setLoadingOngoing(false);
+            setOngoingTests(
+              result
+                ?.map((test: any) => ({ ...test, 
+                  key: test._id, 
+                  id: test._id }))
+                ?.filter((t) => {
+                  return getStatus(t.validity) === "Ongoing";
+                })
+            );
+          })
+        )
+      )
       fetchTest("active", false, (error, result) => {
-        let upcomingTests = result?.filter(
-          (test: any) =>
-            new Date(test.validity.from).getTime() > new Date().getTime()
-        );
+        let upcomingTests = result?.filter((t) => {
+          return getStatus(t.validity) === "Upcoming";
+        });
         setLoadingUpcoming(false);
         setUpcomingTests(
           upcomingTests?.map((test: any) => ({
@@ -179,8 +221,10 @@ const Home = () => {
         );
       });
     }
-  }, [currentUser]);
+  }, [currentUser, userDetails]);
+
   useEffect(() => {
+    // console.log({currentUser});
     const fetchInstituteDetails = async () => {
       try {
         const res = await API_USERS().get(`/institute/get`, {
@@ -188,6 +232,7 @@ const Home = () => {
             _id: currentUser?.instituteId,
           },
         });
+        // console.log(res);
         setInstituteDetailsData(res.data);
       } catch (err) {
         console.log(err);
@@ -212,10 +257,10 @@ const Home = () => {
     }
     return data;
   }
-  console.log({
-    ongoingTests,
-    upcomingTests,
-  });
+  // console.log({
+  //   ongoingTests,
+  //   upcomingTests,
+  // });
   return (
     <MainLayout name="Home">
       {currentUser?.userType === "student" ? (
@@ -243,6 +288,11 @@ const Home = () => {
                       mode="online"
                     />
                   ))}
+                  {!loadingUpcoming && upcomingTests?.length === 0 && (
+                    <div className={styles.noTest}>
+                      <p>No Upcoming Tests available</p>
+                    </div>
+                  )}
                   {loadingUpcoming && (
                     <Box sx={{ width: "100%" }}>
                       <Skeleton height={28} />
@@ -276,6 +326,11 @@ const Home = () => {
                       mode="online"
                     />
                   ))}
+                  {!loadingOngoing && ongoingTests?.length === 0 && (
+                    <div className={styles.noTest}>
+                      <p>No Ongoing Tests available</p>
+                    </div>
+                  )}
                   {loadingOngoing && (
                     <Box sx={{ width: "100%" }}>
                       <Skeleton height={28} />
@@ -290,10 +345,10 @@ const Home = () => {
             <Grid item xl={12} lg={12} md={12} sm={12} xs={12}>
               <Card
                 actionBtn={
-                  <StyledMUISelect
-                    label={"Recent Tests"}
+                  <Select
+                    placeholder={"Recent Tests"}
                     options={recentTest.map((test) => ({
-                      name: test.name,
+                      label: test.name,
                       value: test.name,
                     }))}
                     value={recentTestValue}
@@ -351,10 +406,10 @@ const Home = () => {
             <Grid item xl={6} lg={6} md={6} sm={12} xs={12}>
               <Card
                 actionBtn={
-                  <StyledMUISelect
-                    label={"Recent Tests"}
+                  <Select
+                    placeholder={"Recent Tests"}
                     options={recentTest.map((test) => ({
-                      name: test.name,
+                      label: test.name,
                       value: test.name,
                     }))}
                     value={recentTestValue}
@@ -409,6 +464,15 @@ const Home = () => {
                   styles={{ display: "flex", flexWrap: "wrap" }}
                   classes={[styles.upcomingTestCard]}
                 >
+                  {console.log(ongoingTests)}
+                  {ongoingTests.length === 0 && (
+                    <Box sx={{ width: "100%" }}>
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                      <Skeleton height={28} />
+                    </Box>
+                  )}
                   {ongoingTests?.map((test: any, i: number) => (
                     <ListItem
                       key={test.id}
@@ -424,29 +488,22 @@ const Home = () => {
                       mode="online"
                     />
                   ))}
-                  {!ongoingTests && (
-                    <Box sx={{ width: "100%" }}>
-                      <Skeleton height={28} />
-                      <Skeleton height={28} />
-                      <Skeleton height={28} />
-                      <Skeleton height={28} />
-                    </Box>
-                  )}
                 </Card>
+                {/* {console.log(instituteDetailsData)} */}
                 <Card
                   title="Institute Details"
                   classes={[styles.instituteDetailsCard]}
                 >
                   <div className={styles.instituteDetails}>
-                    {!instituteDetailsData?.batches && (
+                    {!instituteDetailsData?.members?.batches && (
                       <>
                         <Skeleton height={75} width={160} />
                         <Skeleton height={75} width={160} />
                         <Skeleton height={75} width={160} />
                       </>
                     )}
-                    {instituteDetailsData?.batches?.map(
-                      (batch: any, idx: number) => (
+                    {instituteDetailsData?.members?.batches?.map(
+                      (batch: any, idx: number) => ( 
                         <InstituteDetails
                           key={idx}
                           icon={yellowFlag}

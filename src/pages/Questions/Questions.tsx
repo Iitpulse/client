@@ -214,7 +214,7 @@ const Questions = () => {
           setPreviewData({});
         }}
         quillStringQuestion={quillStringForPreview}
-        quillStringSolution={previewData?.en?.solution}
+        quillStringSolution={previewData?.en?.solution? (previewData?.en?.solution):(previewData?.correctAnswer?.from)}
         previewData={previewData}
       />
     );

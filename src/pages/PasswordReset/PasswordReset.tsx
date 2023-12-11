@@ -2,7 +2,9 @@ import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import styles from "./PasswordReset.module.scss";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { TextField } from "@mui/material";
-import { Button } from "../../components";
+import {Input, Button, Form} from "antd";
+import logo from "../../assets/images/logo.svg";
+
 
 import { API_USERS } from "../../utils/api/config";
 import { message } from "antd";
@@ -58,6 +60,7 @@ const PasswordReset = () => {
   };
 
   async function requestPasswordReset() {
+    console.log("dekhlo");
     try {
       const response = await API_USERS().post(`/reset-password/request`, {
         email: values?.email,
@@ -132,58 +135,68 @@ const PasswordReset = () => {
 
   return (
     <div className={styles.container}>
+      <div className={styles.formContainer}>
+        <img src={logo} className={styles.logo} alt="iitpulse" />
+        <p>
+          Please enter your Email
+        </p>
       {!isValidURI && !token && (
-        <div className={styles.container}>
-          <form onSubmit={handleSubmit}>
-            <TextField
+        <Form layout="vertical" className={styles.form} >
+          <Form.Item label="Email" name="email">
+            <Input
               id="email"
-              label="Email"
+              placeholder="Email"
               required
               value={values?.email}
               onChange={handleChange}
               type="email"
               disabled={loading}
             />
-            <div className={styles.buttons}>
-              <Button title="Submit" type="submit" disabled={loading}>
-                Send Reset Link
-              </Button>
-            </div>
-            {!loading && error && <span className={styles.error}>{error}</span>}
-          </form>
-        </div>
+          </Form.Item>
+          <Form.Item>
+            <Button title="Submit" type="primary" onClick={handleSubmit} disabled={loading}>
+              Send Reset Link
+            </Button>
+          </Form.Item>
+          
+          {!loading && error && <span className={styles.error}>{error}</span>}
+        </Form>
       )}
       {isValidURI && token && (
-        <div className={styles.container}>
-          <form onSubmit={handleSubmit}>
-            <TextField
+          <Form layout="vertical" className={styles.form} >
+          <Form.Item label="New Password" name="newPassword">
+            <Input
               id="newPassword"
-              label="New Password"
+              placeholder="New Password"
               required
               value={values?.newPassword}
               onChange={handleChange}
               type="password"
               disabled={loading}
             />
-            <TextField
+          </Form.Item>
+          <Form.Item label="Confirm Password" name="confirmPassword">
+            <Input
               id="confirmPassword"
-              label="Confirm Password"
+              placeholder="Confirm Password"
               required
               value={values?.confirmPassword}
               onChange={handleChange}
               type="password"
               disabled={loading}
             />
-            <div className={styles.buttons}>
-              <Button title="Submit" type="submit" disabled={loading}>
+          </Form.Item>
+            <Form.Item>
+              <Button title="Submit" type="primary" onClick={handleSubmit} disabled={loading}>
                 Reset Password
               </Button>
-            </div>
+            </Form.Item>
+            
             {!loading && error && <span className={styles.error}>{error}</span>}
-          </form>
-        </div>
+          </Form>
       )}
       {isValidURI && !token && <h2>INVALID REQUEST!</h2>}
+      </div>
     </div>
   );
 };

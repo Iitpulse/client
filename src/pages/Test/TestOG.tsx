@@ -12,6 +12,7 @@ import { AuthContext } from "./../../utils/auth/AuthContext";
 import { API_TESTS } from "../../utils/api/config";
 import { AUTH_TOKEN } from "../../utils/constants";
 import { ITest } from "../../utils/interfaces";
+import dayjs from "dayjs";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -182,12 +183,36 @@ const Test = () => {
   );
   // console.log(permissions);
   const { ongoingTests } = state;
-
+  function getStatus(validity: any) {
+    const testDateRange = [dayjs(validity.from), dayjs(validity.to)];
+    if (testDateRange[0] && testDateRange[1]) {
+      if (dayjs().isBefore(testDateRange[0])) {
+        return "Upcoming";
+      }
+      if (dayjs().isAfter(testDateRange[1])) {
+        return "Expired";
+      }
+      return "Ongoing";
+    }
+    return "Active";
+  }
   useEffect(() => {
     setLoading(true);
-    fetchTest("ongoing", false, (error, result) => {
+    fetchTest("active", false, (error, result) => {
       setData(
-        result?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
+        result
+          ?.filter((t) => {
+            return getStatus(t.validity) === "Ongoing";
+          })
+          ?.map((test: any) => ({
+            ...test,
+            key: test._id,
+            id: test._id,
+            name: test.name,
+            createdAt: test.createdAt,
+            status: "Ongoing",
+            exam: test.exam,
+          }))
       );
       setLoading(false);
     });

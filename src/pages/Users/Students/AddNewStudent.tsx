@@ -66,7 +66,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
   const [roles, setRoles] = useState<any>([]);
   const [batchOptions, setBatchOptions] = useState<any>([]);
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
-
+  const [data, setData] = useState([]);
   const userCtx = useContext(AuthContext);
 
   const { fetchStudents } = useContext(UsersContext);
@@ -201,6 +201,21 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
     //Field to be removed later
     promoCode: null,
   };
+
+  useEffect(() => {
+    async function fetchClasses() {
+      try {
+        const res = await API_USERS().get(`/class/all`);
+        console.log({ res });
+        setData(res?.data);
+      } catch (error) {
+        console.log("ERROR_FETCH_Classes", error);
+        message.error("Error fetching Classes");
+      }
+    }
+    fetchClasses();
+  }, []);
+
   const onClose = () => {
     setOpen(false);
     setRoles([]);
@@ -526,26 +541,18 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
                 <Select
                   showSearch
                   placeholder="Please choose a standard"
-                  filterOption={(input, option) =>
-                    (option?.label.toLowerCase() ?? "").includes(
+                  filterOption={(input: any, option: any) =>
+                    (option?.label?.toLowerCase() ?? "").includes(
                       input.toLowerCase()
                     )
                   }
-                  options={[
-                    {
-                      value: "11",
-                      label: "11 th",
-                    },
-                    {
-                      value: "12",
-                      label: "12 th",
-                    },
-                    {
-                      value: "13",
-                      label: "Dropper",
-                    },
-                  ]}
-                />
+                >
+                  {data?.map((e:any)=>
+                    (
+                      <Select.Option value={e.name} label={e.name}>{e.name}</Select.Option>
+                    )
+                  )}
+                </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -655,6 +662,10 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
               </Form.Item>
             </Col>
           </Row>
+      
+
+
+          <SectionHeader title="Validity" divider="above" />
           <Row gutter={16}>
             {/* <Col span={12}>
               <Form.Item

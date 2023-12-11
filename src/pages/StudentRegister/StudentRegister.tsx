@@ -73,6 +73,7 @@ const StudentRegister: React.FC = () => {
     delete finalvalues.parentName;
     delete finalvalues.parentContact;
     delete finalvalues.confirmPassword;
+    finalvalues.isPhoneVerified = true;
     createStudentAccount(finalvalues);
   }
 
@@ -81,9 +82,10 @@ const StudentRegister: React.FC = () => {
       const res = await API_USERS().post(`/student/create-student`, finalVals);
       message.success("Student account created successfully");
       navigate("/login");
-    } catch (error) {
-      console.log("ERROR_CREATING_STUDENT_ACCOUNT", { error });
-      message.error("Error creating student account");
+    } catch (err:any) {
+      console.log("ERROR_CREATING_STUDENT_ACCOUNT", { err });
+      // message.error("Error creating student account");
+      message.error(err.response.data.message || "Error creating student account");
     }
   }
 
@@ -116,7 +118,12 @@ const StudentRegister: React.FC = () => {
   const items = steps.map((item) => ({ key: item.title, title: item.title }));
 
   return (
-    <>
+    <div
+      style={{
+        minHeight: "100vh",
+        height: "fit-content",
+      }}
+    >
       <div className={styles.container}>
         <nav className={styles.flexRow}>
           <img src={logo} alt="logo" />
@@ -182,7 +189,7 @@ const StudentRegister: React.FC = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

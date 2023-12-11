@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import { Button } from "../../../components";
+import { Button, Sidebar } from "../../../components";
 import styles from "./Integer.module.scss";
 import ReactQuill, { Quill } from "react-quill";
-import { TextField, Tab } from "@mui/material";
+import { IconButton,TextField, Tab } from "@mui/material";
 import { styled } from "@mui/system";
 import { formats, modules, TabPanel } from "../Common";
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
 import { getOptionID } from "../utils";
 import { Form, InputNumber, Segmented, Tabs } from "antd";
+import { Tooltip } from "antd";
+import { CheckOutlined, EyeFilled, StarFilled } from "@ant-design/icons";
+import { CheckboxValueType } from "antd/es/checkbox/Group";
+import { PreviewFullQuestion } from "../Questions";
 
 interface Props {
   setData: (data: any) => void;
@@ -78,6 +82,8 @@ const Integer: React.FC<Props> = ({
           type: "",
         }
   );
+  const [parseInputOpen, setParseInputOpen] = useState(false);
+  const [fullPreviewModalOpen, setFullPreviewModalOpen] = useState(false);
 
   useEffect(() => {
     setData({
@@ -170,6 +176,25 @@ const Integer: React.FC<Props> = ({
       },
     });
   }
+  function handleClickFullPreview() {
+    // console.log(values);
+    setFullPreviewModalOpen(true);
+  }
+  function getCurrentFullPreviewHTMLString() {
+    return (
+      values?.en?.question +
+      values?.en?.options?.map(
+          (op: any, idx: number) =>
+            `<span style='display:flex;justify-content:flex-start;margin:1rem 0;background:${
+              op.isCorrectAnswer ? "rgba(85, 188, 126, 0.3)" : "transparent"
+            };border-radius:5px;padding:0.4rem 0.6rem;'> ${String.fromCharCode(
+              idx + 65
+            )}. <span style='margin-left:1rem;'>${op.value}</span></span>`
+        )
+        .join("")
+    );
+  }
+
 
   return (
     <section className={styles.container}>
@@ -187,6 +212,11 @@ const Integer: React.FC<Props> = ({
           <label htmlFor="assertionEnglish"></label> */}
         </div>
         <div className={styles.languages}>
+          <Tooltip title="See Full Preview">
+            <IconButton onClick={handleClickFullPreview}>
+              <EyeFilled />
+            </IconButton>
+          </Tooltip>
           <Segmented
             options={[
               {
@@ -263,6 +293,23 @@ const Integer: React.FC<Props> = ({
           </Form.Item>
         </Form>
       </div>
+      <Sidebar
+        title="Preview"
+        open={fullPreviewModalOpen}
+        handleClose={() => setFullPreviewModalOpen(false)}
+        width={"40%"}
+      >
+        {console.log(values)}
+        <PreviewFullQuestion
+          quillStringQuestion={getCurrentFullPreviewHTMLString()}
+          quillStringSolution={values?.correctAnswer?.to}
+          previewData={{ ...values, subject, chapters, topics, difficulty }}
+          setQuestions={() => {}}
+          setPreviewData={() => {}}
+          handleClose={() => setFullPreviewModalOpen(false)}
+          disableFooter
+        />
+      </Sidebar>
       {/* Just for preview */}
       {/* <div dangerouslySetInnerHTML={{ __html: values.en.question }}></div> */}
     </section>

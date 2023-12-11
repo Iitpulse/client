@@ -206,12 +206,11 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
       //     roles: values.roles,
       //     // roles: roles.map((value: any) => value.value),
       // };
+      console.log({validity});
+      // const from = dayjs(validity[0]).toISOString();
+      // const to = dayjs(validity[1]).toISOString();
       const additionalValues = {
         institute: currentUser?.instituteId,
-        validity: {
-          from: dayjs(validity[0]).toISOString(),
-          to: dayjs(validity[1]).toISOString(),
-        },
         createdBy: {
           id: currentUser?.id,
           userType: currentUser?.userType,
@@ -227,6 +226,8 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
         batchSchema,
         additionalValues
       );
+      // result.validity.to = to;
+      // result.validity.from = from;
       console.log("Final Data ->", { result });
       // console.log({ finalData });
       if (!editMode) {
@@ -313,6 +314,7 @@ const CreateNewBatch: React.FC<CreateNewBatchProps> = ({
                 from: dayjs(e[0]).toISOString(),
                 to: dayjs(e[1]).toISOString(),
               });
+              console.log(validity);
             }}
           />
         </Form.Item>

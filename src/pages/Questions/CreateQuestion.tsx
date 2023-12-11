@@ -200,7 +200,7 @@ const CreateQuestion = () => {
         let chapters: any = subject.chapters.filter(
           (chap: any) =>
             questionData.chapters?.findIndex(
-              (qChapter: any) => qChapter.name === chap.name
+              (qChapter: any) => qChapter?.name?.toLowerCase() === chap?.name?.toLowerCase()
             ) !== -1
         );
         let topics: any = [];
@@ -244,6 +244,8 @@ const CreateQuestion = () => {
             ? questionTypes[0]?.name
             : questionData?.type
         );
+
+        console.log({chapters,topics})
 
         setIsLoading(false);
       } catch (error) {
