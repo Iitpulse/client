@@ -20,7 +20,7 @@ import {
   message,
 } from "antd";
 import { API_USERS } from "../../../utils/api/config";
-import { performZodValidation, validateField, } from "../../../utils/schemas";
+import { performZodValidation, validateField } from "../../../utils/schemas";
 
 const AccountDetailsSchema = z.object({
   contact: z.string().length(10),
@@ -60,7 +60,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   const [helperTexts, setHelperTexts] = useState(defaultState);
 
   function handleChangeValues(e: any) {
-    console.log(values);
+    // console.log(values);
     const { id, value } = e.target;
     setValues((prevState) => ({
       ...prevState,
@@ -120,8 +120,8 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
   const handleGenerate = async (e: any) => {
     e.preventDefault();
-    if(values.contact.length != 10){
-      message.error({content:"Contact number must be 10 digit long"});
+    if (values.contact.length != 10) {
+      message.error({ content: "Contact number must be 10 digit long" });
       return;
     }
     message.loading({ content: "Generating OTP", key: "GENERATE_OTP" });
@@ -151,8 +151,12 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     e.preventDefault();
     const phoneLowerCase = values.contact;
     setValues((prevState) => ({ ...prevState, contact: phoneLowerCase }));
-    if(values.phoneOtp.length!=6){
-      message.error({content:"OTP length be 6 digit"});
+    const loading = message.loading({
+      content: "Verifying OTP",
+      key: "verify",
+    });
+    if (values.phoneOtp.length != 6) {
+      message.error({ content: "OTP length must be 6 digit" });
       return;
     }
     try {
@@ -160,15 +164,17 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         number: phoneLowerCase,
         otp: values.phoneOtp,
       });
-      message.loading({ content: response.data.message, key: "verify" });
-      console.log(response.data.message);
+      loading();
+      message.success({ content: response.data.message, key: "verify" });
+      // console.log(response.data.message);
       if (response.status == 200) {
         setShowTextField(false);
         setVerified(true);
         setButtonText("Verified");
       }
-    } catch (error:any) {
-      message.error({content:error?.response?.data?.message})
+    } catch (error: any) {
+      loading();
+      message.error({ content: error?.response?.data?.message });
       console.log({ error });
     }
 
@@ -176,20 +182,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       message.destroy("verify");
     }, 1000);
   };
-  // const theme = createTheme({
-  //   components: {
-  //     MuiTextField: {
-  //       styleOverrides: {
-  //         root: {
-  //           "& .MuiInputBase-root.Mui-disabled": {
-  //             backgroundColor: "#f2f2f2",
-  //             color: "#808080",
-  //           },
-  //         },
-  //       },
-  //     },
-  //   },
-  // });
+
   const conversionObject: any = {
     contact: null,
     phoneOtp: null,
@@ -203,7 +196,12 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
         {
           validateTrigger: "onSubmit",
           validator: (_: any, value: any) =>
-            validateField(fieldName, value, conversionObject, AccountDetailsSchema),
+            validateField(
+              fieldName,
+              value,
+              conversionObject,
+              AccountDetailsSchema
+            ),
         },
       ];
     } catch (e) {
@@ -215,17 +213,17 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
     <Form form={form} onFinish={handleSubmitForm} className={styles.regForm}>
       <Row>
         <Col span={24}>
-        <Form.Item name="contact" rules={getRules("contact")}>
-          <Input
-            size="large"
-            disabled={Verified}
-            required
-            id="contact"
-            value={values.contact}
-            onChange={handleChangeValues}
-            placeholder="Contact number"
-          />
-        </Form.Item>
+          <Form.Item name="contact" rules={getRules("contact")}>
+            <Input
+              size="large"
+              disabled={Verified}
+              required
+              id="contact"
+              value={values.contact}
+              onChange={handleChangeValues}
+              placeholder="Contact number"
+            />
+          </Form.Item>
         </Col>
       </Row>
       {/* <Grid item xs={10}> */}
@@ -244,20 +242,20 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
       {showTextField && (
         <Row gutter={10}>
           <Col span={12}>
-          <Form.Item name="phoneOtp" rules={getRules("phoneOtp")}>
-            <Input
-              // fullWidth
-              size="large"
-              required
-              id="phoneOtp"
-              // type="number"
-              // value={values.phoneOtp}
-              // helperText=" We have sent an OTP to your Phone"
-              onChange={handleChangeValues}
-              placeholder="Phone OTP"
-              // variant="outlined"
-            />
-          </Form.Item>
+            <Form.Item name="phoneOtp" rules={getRules("phoneOtp")}>
+              <Input
+                // fullWidth
+                size="large"
+                required
+                id="phoneOtp"
+                // type="number"
+                // value={values.phoneOtp}
+                // helperText=" We have sent an OTP to your Phone"
+                onChange={handleChangeValues}
+                placeholder="Phone OTP"
+                // variant="outlined"
+              />
+            </Form.Item>
           </Col>
 
           <Col span={4}>
@@ -270,43 +268,43 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
 
       {Verified && (
         <>
-         <Form.Item name="password" rules={getRules("password")}>
-          <Input.Password
-            size="large"
-            id="password"
-            // autoComplete="new-password"
-            // value={values.password}
-            // error={errors.password}
-            // helperText={helperTexts.password}
-            type="password"
-            onChange={handleChangeValues}
-            placeholder="Password"
-          />
-         </Form.Item>
-         <Form.Item name="confirmPassword" rules={getRules("confirmPassword")}>
-          <Input
-            size="large"
-            id="confirmPassword"
-            autoComplete="new-password"
-            // value={values.confirmPassword}
-            // error={errors.confirmPassword}
-            // helperText={helperTexts.confirmPassword}
-            type="password"
-            onChange={handleChangeValues}
-            placeholder="Confirm Password"
-          />
+          <Form.Item name="password" rules={getRules("password")}>
+            <Input.Password
+              size="large"
+              id="password"
+              // autoComplete="new-password"
+              // value={values.password}
+              // error={errors.password}
+              // helperText={helperTexts.password}
+              type="password"
+              onChange={handleChangeValues}
+              placeholder="Password"
+            />
+          </Form.Item>
+          <Form.Item name="confirmPassword" rules={getRules("confirmPassword")}>
+            <Input
+              size="large"
+              id="confirmPassword"
+              autoComplete="new-password"
+              // value={values.confirmPassword}
+              // error={errors.confirmPassword}
+              // helperText={helperTexts.confirmPassword}
+              type="password"
+              onChange={handleChangeValues}
+              placeholder="Confirm Password"
+            />
           </Form.Item>
           <Form.Item name="promoCode" rules={getRules("promoCode")}>
-          <Input
-            size="large"
-            id="promoCode"
-            // value={values.promoCode}
-            // error={errors.promoCode}
-            // helperText={helperTexts.promoCode}
-            type="text"
-            onChange={handleChangeValues}
-            placeholder="Promo Code"
-          />
+            <Input
+              size="large"
+              id="promoCode"
+              // value={values.promoCode}
+              // error={errors.promoCode}
+              // helperText={helperTexts.promoCode}
+              type="text"
+              onChange={handleChangeValues}
+              placeholder="Promo Code"
+            />
           </Form.Item>
           <Button size="large" type="primary" htmlType="submit">
             Next

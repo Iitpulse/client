@@ -237,8 +237,12 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
   }
 
   function onFinishFailed(errorInfo: any) {
-    message.error(errorInfo.response.data.message);
-    console.log("Failed:", errorInfo.response.data.message);
+    if (errorInfo?.response?.data?.message) {
+      message.error(errorInfo.response.data.message);
+    } else {
+      message.error("Error in creating student");
+    }
+    console.log("createStudent onFinishFailed:", errorInfo);
   }
 
   async function validateForm() {
@@ -255,13 +259,14 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
         isEmailVerified: null,
         isPhoneVerified: null,
         //Field to be removed later
-        promoCode: (() => {
-          const batch = batchOptions.find(
-            (batch: { value: string; label: string; promoCode: string }) =>
-              batch.value === form.getFieldValue("batch")
-          );
-          return batch.promoCode;
-        })(),
+        // promoCode: (() => {
+        //   const batch = batchOptions.find(
+        //     (batch: { value: string; label: string; promoCode: string }) =>
+        //       batch.value === form.getFieldValue("batch")
+        //   );
+        //   return batch.promoCode;
+        // })(),
+        promoCode: "VIA_ADMIN",
       };
       console.log({ additionalValues });
       const result = performZodValidation(
@@ -401,7 +406,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-               <Form.Item
+              <Form.Item
                 name="password"
                 label="Password"
                 rules={getRules("password")}
@@ -547,11 +552,11 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
                     )
                   }
                 >
-                  {data?.map((e:any)=>
-                    (
-                      <Select.Option value={e.name} label={e.name}>{e.name}</Select.Option>
-                    )
-                  )}
+                  {data?.map((e: any) => (
+                    <Select.Option value={e.name} label={e.name}>
+                      {e.name}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Col>
@@ -662,8 +667,6 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
               </Form.Item>
             </Col>
           </Row>
-      
-
 
           <SectionHeader title="Validity" divider="above" />
           <Row gutter={16}>

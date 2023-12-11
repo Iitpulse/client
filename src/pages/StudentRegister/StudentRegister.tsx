@@ -82,10 +82,12 @@ const StudentRegister: React.FC = () => {
       const res = await API_USERS().post(`/student/create-student`, finalVals);
       message.success("Student account created successfully");
       navigate("/login");
-    } catch (err:any) {
+    } catch (err: any) {
       console.log("ERROR_CREATING_STUDENT_ACCOUNT", { err });
       // message.error("Error creating student account");
-      message.error(err.response.data.message || "Error creating student account");
+      message.error(
+        err?.response?.data?.message || "Error creating student account"
+      );
     }
   }
 
