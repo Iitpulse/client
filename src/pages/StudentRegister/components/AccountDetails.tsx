@@ -69,7 +69,7 @@ const AccountDetails: React.FC<Props> = ({ handleSubmit }) => {
   }
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    // e.preventDefault();
     message.loading({ content: "Logging in", key: "loader" });
     if (
       values.password.length == 0 ||

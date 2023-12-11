@@ -108,7 +108,7 @@ const PersonalDetails: React.FC<Props> = ({ handleSubmit }) => {
       ...prevState,
       [id]: value,
     }));
-    console.log(values);
+    // console.log(values);
   }
 
   const onChangee: DatePickerProps["onChange"] = (date, dateString) => {

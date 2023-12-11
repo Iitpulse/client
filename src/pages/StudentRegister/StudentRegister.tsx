@@ -31,7 +31,7 @@ const StudentRegister: React.FC = () => {
   ];
 
   function handleSubmitAccountDetails(vals: AccountDetailsValues) {
-    console.log(vals);
+    // console.log(vals);
     setValues({
       ...values,
       accountDetails: vals,
