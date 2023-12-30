@@ -94,7 +94,7 @@ const ListItem: React.FC<UpcomingTestItemProps> = ({
     let a = document.createElement("a");
     let token = localStorage.getItem(AUTH_TOKEN);
     const testLink = import.meta.env.VITE_TEST_PORTAL_URI;
-    a.href = `${testLink}auth/${token}/${id}`;
+    a.href = `${testLink}/auth/${token}/${id}`;
     a.target = "_blank";
     a.click();
   }
@@ -160,49 +160,42 @@ const Home = () => {
     return "Active";
   }
 
-
   useEffect(() => {
-    console.log({userDetails,currentUser});
+    console.log({ userDetails, currentUser });
     if (fetchTest) {
       setLoadingUpcoming(true);
       setLoadingOngoing(true);
       setOngoingTests([]);
       setUpcomingTests([]);
-      (currentUser?.userType === "student"? 
-        fetchTest("active", false, (error, result) => {
-          console.log({ error, result });
-          setLoadingOngoing(false);
-          setOngoingTests(
-            result
-              ?.map((test: any) => ({ ...test, 
-                key: test._id, 
-                id: test._id }))
-              ?.filter((t) => {
-                return getStatus(t.validity) === "Ongoing";
-              })
-              ?.filter(
-                (test) =>
-                  !test.result.students.find(
-                    (student: any) => student._id === currentUser?.id
-                  )
-              )
-          );
-        }):(
-          fetchTest("active", false, (error, result) => {
+      currentUser?.userType === "student"
+        ? fetchTest("active", false, (error, result) => {
             console.log({ error, result });
             setLoadingOngoing(false);
             setOngoingTests(
               result
-                ?.map((test: any) => ({ ...test, 
-                  key: test._id, 
-                  id: test._id }))
+                ?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
+                ?.filter((t) => {
+                  return getStatus(t.validity) === "Ongoing";
+                })
+                ?.filter(
+                  (test) =>
+                    !test.result.students.find(
+                      (student: any) => student._id === currentUser?.id
+                    )
+                )
+            );
+          })
+        : fetchTest("active", false, (error, result) => {
+            console.log({ error, result });
+            setLoadingOngoing(false);
+            setOngoingTests(
+              result
+                ?.map((test: any) => ({ ...test, key: test._id, id: test._id }))
                 ?.filter((t) => {
                   return getStatus(t.validity) === "Ongoing";
                 })
             );
-          })
-        )
-      )
+          });
       fetchTest("active", false, (error, result) => {
         let upcomingTests = result?.filter((t) => {
           return getStatus(t.validity) === "Upcoming";
@@ -503,7 +496,7 @@ const Home = () => {
                       </>
                     )}
                     {instituteDetailsData?.members?.batches?.map(
-                      (batch: any, idx: number) => ( 
+                      (batch: any, idx: number) => (
                         <InstituteDetails
                           key={idx}
                           icon={yellowFlag}
