@@ -1,10 +1,10 @@
 import type { BadgeProps } from "antd";
 import { Badge, Calendar } from "antd";
-import type { Moment } from "moment";
 import React from "react";
 import "./CalendarComponent.scss";
+import { Dayjs } from "dayjs";
 
-const getListData = (value: Moment) => {
+const getListData = (value: Dayjs) => {
   let listData;
   switch (value.date()) {
     case 8:
@@ -35,14 +35,14 @@ const getListData = (value: Moment) => {
   return listData || [];
 };
 
-const getMonthData = (value: Moment) => {
+const getMonthData = (value: Dayjs) => {
   if (value.month() === 8) {
     return 1394;
   }
 };
 
 const CalendarComponent: React.FC = () => {
-  const monthCellRender = (value: Moment) => {
+  const monthCellRender = (value: Dayjs) => {
     const num = getMonthData(value);
     return num ? (
       <div className="notes-month">
@@ -52,7 +52,7 @@ const CalendarComponent: React.FC = () => {
     ) : null;
   };
 
-  const dateCellRender = (value: Moment) => {
+  const dateCellRender = (value: Dayjs) => {
     const listData = getListData(value);
     return (
       <ul className="events">
