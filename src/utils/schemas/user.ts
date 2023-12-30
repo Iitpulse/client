@@ -76,7 +76,7 @@ export const studentSchema = userSchema.extend({
     })
     .strict(),
   batch: z.string().min(3).max(255).optional(), //Just for now
-  standard: z.number().min(1).max(13, {
+  standard: z.string().min(1).max(13, {
     message: "Invalid standard",
   }),
   stream: z.string().min(3).max(255),

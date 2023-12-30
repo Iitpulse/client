@@ -227,6 +227,7 @@ const Home = () => {
         });
         // console.log(res);
         setInstituteDetailsData(res.data);
+        console.log({ dataInstitute: res.data, currentUser });
       } catch (err) {
         console.log(err);
       }
