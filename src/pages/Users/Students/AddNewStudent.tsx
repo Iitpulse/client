@@ -281,7 +281,6 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
         setRoles([]);
         setValidity({});
         setRoleValidity({});
-        form.resetFields();
       } else {
         await onUpdate(result);
       }

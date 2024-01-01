@@ -134,7 +134,8 @@ const InstituteDetails = (props: InstituteDetailsProps) => {
 const Home = () => {
   const [open, setOpen] = React.useState(false);
   const [instituteDetailsData, setInstituteDetailsData] = useState({} as any);
-  const handleClose = () => setOpen(false);
+  const [loadingInsitutionDetails, setLoadingInstitutionDetails] =
+    useState(false);
   const [upcomingTests, setUpcomingTests] = useState<any>([]);
   const [ongoingTests, setOngoingTests] = useState<any>([]);
   const { state, recentTest, fetchTest } = useContext(TestContext);
@@ -145,7 +146,11 @@ const Home = () => {
   const [loadingUpcoming, setLoadingUpcoming] = useState<boolean>(false);
   const [loadingOngoing, setLoadingOngoing] = useState<boolean>(false);
   const { currentUser, userDetails } = useContext(AuthContext);
+
   const { activeTests } = state;
+
+  const handleClose = () => setOpen(false);
+
   function getStatus(validity: any) {
     const testDateRange = [dayjs(validity.from), dayjs(validity.to)];
     if (testDateRange[0] && testDateRange[1]) {
@@ -219,6 +224,8 @@ const Home = () => {
   useEffect(() => {
     // console.log({currentUser});
     const fetchInstituteDetails = async () => {
+      setLoadingInstitutionDetails(true);
+      console.log("fetchInstituteDetails init");
       try {
         const res = await API_USERS().get(`/institute/get`, {
           params: {
@@ -228,8 +235,11 @@ const Home = () => {
         // console.log(res);
         setInstituteDetailsData(res.data);
         console.log({ dataInstitute: res.data, currentUser });
+        setLoadingInstitutionDetails(false);
+        console.log("fetchInstituteDetails success");
       } catch (err) {
-        console.log(err);
+        setLoadingInstitutionDetails(false);
+        console.log("fetchInstituteDetails failed", err);
       }
     };
     if (currentUser) {
@@ -251,10 +261,11 @@ const Home = () => {
     }
     return data;
   }
-  // console.log({
-  //   ongoingTests,
-  //   upcomingTests,
-  // });
+
+  useEffect(() => {
+    console.log({ loadingOngoing });
+  }, [loadingOngoing]);
+
   return (
     <MainLayout name="Home">
       {currentUser?.userType === "student" ? (
@@ -458,8 +469,12 @@ const Home = () => {
                   styles={{ display: "flex", flexWrap: "wrap" }}
                   classes={[styles.upcomingTestCard]}
                 >
-                  {console.log(ongoingTests)}
-                  {ongoingTests.length === 0 && (
+                  {!loadingOngoing && ongoingTests?.length === 0 && (
+                    <div className={styles.noTest}>
+                      <p>Looks like you've finished all your tests!</p>
+                    </div>
+                  )}
+                  {loadingOngoing && (
                     <Box sx={{ width: "100%" }}>
                       <Skeleton height={28} />
                       <Skeleton height={28} />
@@ -489,13 +504,19 @@ const Home = () => {
                   classes={[styles.instituteDetailsCard]}
                 >
                   <div className={styles.instituteDetails}>
-                    {!instituteDetailsData?.members?.batches && (
+                    {loadingInsitutionDetails && (
                       <>
                         <Skeleton height={75} width={160} />
                         <Skeleton height={75} width={160} />
                         <Skeleton height={75} width={160} />
                       </>
                     )}
+                    {!loadingInsitutionDetails &&
+                      !instituteDetailsData?.members?.batches?.length && (
+                        <div className={styles.noTest}>
+                          <p>No data available</p>
+                        </div>
+                      )}
                     {instituteDetailsData?.members?.batches?.map(
                       (batch: any, idx: number) => (
                         <InstituteDetails

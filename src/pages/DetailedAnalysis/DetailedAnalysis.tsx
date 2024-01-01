@@ -694,7 +694,7 @@ const SubSection: React.FC<ISubSection> = ({
   let question = subSection?.questions[questionIndex];
   return (
     <>
-      {console.log(question)}
+      {/* {console.log(question)} */}
       <Question
         totalAppeared={totalAppeared}
         {...question}

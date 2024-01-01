@@ -95,7 +95,7 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
     Listen to all the changes finalTest obj
   */
   useEffect(() => {
-    console.log({finalTest});
+    console.log({ finalTest });
     if (finalTest?.id || finalTest?._id) {
       const { totalMarks, totalTimeTakenInSeconds } = finalTest;
       let totalCorrect = 0;
@@ -165,8 +165,6 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
     }
   }, [finalTest, currentUser]);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
     console.log({ finalSections });
   });
@@ -175,7 +173,9 @@ export const StudentResultCore: React.FC<PropsStudentResultCore> = ({
     <>
       <div className={styles.cards}>
         {Object.values(finalSections)?.map((item: any, index: number) => (
-          <SubjectCard key={item.id} color={colors[index % 4]} {...item} />
+          <div style={{ maxWidth: "500px", flex: 1 }}>
+            <SubjectCard key={item.id} color={colors[index % 4]} {...item} />
+          </div>
         ))}
       </div>
       <div className={styles.detailedBtns}>
