@@ -101,6 +101,42 @@ const InsertQuestionModal: React.FC<Props> = ({
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const [loading, setLoading] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState<string>("");
+  const globalSearchRef = useRef<any>(null);
+  const [totalDocs, setTotalDocs] = useState(1);
+
+  const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
+  const [filterType, setFilterType] = useState<any>([typeSelected]);
+  const [filterTypeReq, setFilterTypeReq] = useState<any>([typeSelected]);
+  const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
+  const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>([
+    "Easy",
+    "Medium",
+    "Hard",
+  ]);
+  // console.log({ subjectSelected, subjects });
+
+  const [filterSubjects, setFilterSubjects] = useState<any>([]);
+  console.log({ subjectSelected });
+  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>([]);
+  const [filterChapters, setFilterChapters] = useState<any>([]);
+  const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
+  const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
+  const [filterTopicsReq, setFilterTopicsReq] = useState<Array<any>>([]);
+
+  const [topicOptions, setTopicOptions] = useState<any>([]);
+  const [chapterOptions, setChapterOptions] = useState<any>([]);
+
+  useEffect(() => {
+    let selectedSub = subjects?.find(
+      (s) => s?.name?.toLowerCase() === subjectSelected?.toLowerCase()
+    );
+    console.log({ selectedSub });
+    if (selectedSub) {
+      setFilterSubjects([selectedSub]);
+      setFilterSubjectsReq([selectedSub?.name]);
+    }
+  }, [subjectSelected]);
 
   async function fetchQuestions() {
     // console.log({ subject });
@@ -147,63 +183,6 @@ const InsertQuestionModal: React.FC<Props> = ({
         });
     }
   }, [subject]);
-  const [globalSearch, setGlobalSearch] = useState<string>("");
-  const globalSearchRef = useRef<any>(null);
-  const [totalDocs, setTotalDocs] = useState(1);
-
-  const [timeoutNumber, setTimeoutNumber] = useState<any>(null);
-  const [filterType, setFilterType] = useState<any>([typeSelected]);
-  const [filterTypeReq, setFilterTypeReq] = useState<any>([typeSelected]);
-  const [filterDifficulty, setFilterDifficulty] = useState<any>([]);
-  const [filterDifficultyReq, setFilterDifficultyReq] = useState<any>([
-    "Easy",
-    "Medium",
-    "Hard",
-  ]);
-  console.log({ subjectSelected, subjects });
-  let selectedSub = subjects?.find(
-    (s) => s?.name?.toLowerCase() === subjectSelected?.toLowerCase()
-  );
-  const [filterSubjects, setFilterSubjects] = useState<any>(
-    selectedSub ? [selectedSub?.name] : []
-  );
-  console.log({ subjectSelected });
-  const [filterSubjectsReq, setFilterSubjectsReq] = useState<any>(
-    selectedSub ? [selectedSub?.name] : []
-  );
-  const [filterChapters, setFilterChapters] = useState<any>([]);
-  const [filterChaptersReq, setFilterChaptersReq] = useState<any>([]);
-  const [filterTopics, setFilterTopics] = useState<Array<String>>([""]);
-  const [filterTopicsReq, setFilterTopicsReq] = useState<Array<any>>([]);
-
-  const [topicOptions, setTopicOptions] = useState<any>([]);
-  const [chapterOptions, setChapterOptions] = useState<any>([]);
-
-  const { currentUser } = useContext(AuthContext);
-
-  // useEffect(() => {
-  //   async function fetchPaginatedMCQs() {
-  //     setLoading(true);
-  //     try {
-  //       const res = await API_QUESTIONS().get(`/mcq/all`, {
-  //         params: {
-  //           page: 1,
-  //         },
-  //       });
-  //       setQuestions(res.data.data);
-  //       setTotalDocs(res.data.totalDocs);
-  //       setLoading(false);
-  //     } catch (err) {
-  //       console.log(err);
-  //       setLoading(false);
-  //     }
-  //   }
-  //   if (currentUser) {
-  //     fetchPaginatedMCQs();
-  //   }
-  // }, [currentUser]);
-
-  const navigate = useNavigate();
 
   async function onChangePageOrPageSize(page?: number, pageSize?: number) {
     // console.log(filterSubjects);
@@ -233,7 +212,7 @@ const InsertQuestionModal: React.FC<Props> = ({
 
   useEffect(() => {
     async function debounceGlobalSearch() {
-      console.log("HEY I AM GETTING CALLED");
+      console.log("calling debounceGlobalSearch");
       clearTimeout(timeoutNumber);
       setTimeoutNumber(setTimeout(onChangePageOrPageSize, 600));
     }
@@ -262,6 +241,7 @@ const InsertQuestionModal: React.FC<Props> = ({
     { label: "Medium", value: "Medium" },
     { label: "Hard", value: "Hard" },
   ];
+
   function handleChangeType(values: string[]) {
     setFilterType(values);
     if (values.length === 0) {
@@ -274,12 +254,14 @@ const InsertQuestionModal: React.FC<Props> = ({
       ]);
     } else setFilterTypeReq(values);
   }
+
   function handleChangeDifficulty(values: string[]) {
     setFilterDifficulty(values);
     if (values.length === 0) {
       setFilterDifficultyReq(["Easy", "Medium", "Hard"]);
     } else setFilterDifficultyReq(values);
   }
+
   function handleChangeSubjects(_: any, options: any[]) {
     setFilterSubjects(options);
     if (options.length >= 1) {
@@ -299,6 +281,7 @@ const InsertQuestionModal: React.FC<Props> = ({
       // console.log(filterSubjectsReq);
     }
   }
+
   function handleChangeChapters(_: any, options: any) {
     setFilterChapters(options);
     // console.log(options);
@@ -316,11 +299,13 @@ const InsertQuestionModal: React.FC<Props> = ({
     } else setFilterChaptersReq([]);
     console.log(filterChaptersReq);
   }
+
   function handleChangeTopics(options: String[]) {
     // console.log(options);
     setFilterTopics(options);
     setFilterTopicsReq(options);
   }
+
   const tagRender = (props: CustomTagProps) => {
     const { label, value, closable, onClose } = props;
     const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
@@ -346,7 +331,6 @@ const InsertQuestionModal: React.FC<Props> = ({
     );
   };
 
-  useEffect(() => {}, []);
   useEffect(() => {
     function getSelectSubjectChapters(): any[] {
       let chapters: any[] = [];
@@ -448,7 +432,7 @@ const InsertQuestionModal: React.FC<Props> = ({
               ...item,
             }))}
             disabled
-            value={filterSubjects}
+            value={filterSubjects?.map((item: any) => item.name)}
             maxTagCount="responsive"
             showArrow
             style={{

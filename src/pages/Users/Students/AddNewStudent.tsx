@@ -120,6 +120,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
       setRoleValidity(roleval);
     }
   }, [edit, current]);
+
   const conversionObject: any = {
     name: null,
     email: null,
@@ -189,10 +190,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
       },
     },
     batch: null,
-    standard: {
-      convert: (value: any) => parseInt(value),
-      revert: (value: number) => value.toString(),
-    },
+    standard: null,
     stream: null,
     medium: null,
     school: null,

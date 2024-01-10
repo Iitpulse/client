@@ -35,7 +35,7 @@ const CustomTable: React.FC<Props> = ({
   const [data, setData] = useState<any>([]);
   const [cols, setCols] = useState<any>([]);
   const [tableLoading, setTableLoading] = useState(false);
-  console.log({ maxSelectedRows });
+  // console.log({ maxSelectedRows });
   useEffect(() => {
     if (loading !== undefined) {
       setTableLoading(loading);
@@ -142,7 +142,7 @@ const CustomTable: React.FC<Props> = ({
       setCols(newCols);
     }
   }, [columns]);
-  console.log({ selectedRows });
+  // console.log({ selectedRows });
   const rowSelection = {
     onChange: (selRowKeys: any, selRows: any) => {
       if (maxSelectedRows && selRows.length > maxSelectedRows) {

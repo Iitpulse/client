@@ -44,29 +44,7 @@ import { MessageType } from "antd/es/message/interface";
 import dayjs from "dayjs";
 import { ThunderboltOutlined } from "@ant-design/icons";
 import { AllQuestionsTable } from "../Questions/Questions";
-
-const statusOptions = [
-  {
-    name: "Active",
-    value: "Active",
-  },
-  {
-    name: "Inactive",
-    value: "Inactive",
-  },
-  {
-    name: "Ongoing",
-    value: "Ongoing",
-  },
-  {
-    name: "Upcoming",
-    value: "Upcoming",
-  },
-  {
-    name: "Expired",
-    value: "Expired",
-  },
-];
+import { TEST_STATUS } from "./utils/constants";
 
 const defaultState: any = {
   nam: "",
@@ -439,10 +417,10 @@ const CreateTest = () => {
         id: batch.id,
         name: batch.name,
       })),
-      status: "Inactive",
+      status: TEST_STATUS.Inactive,
     };
 
-    console.log({ finalTest, editMode });
+    // console.log({ finalTest, editMode });
 
     try {
       if (editMode) {
@@ -510,7 +488,9 @@ const CreateTest = () => {
 
   return (
     <MainLayout
-      name="Create Test"
+      name={`${
+        editMode && test.status !== TEST_STATUS.Inactive ? "Update" : "Create"
+      } Test - ${test?.name}`}
       menuActions={
         <div
           className={styles.submitBtn}
@@ -523,11 +503,11 @@ const CreateTest = () => {
           }}
         >
           <Button onClick={handleClickSubmit} type="primary">
-            {editMode && test.status !== "Inactive"
+            {editMode && test.status !== TEST_STATUS.Inactive
               ? "Update Test"
               : "Create Test"}
           </Button>
-          {test.status === "Inactive" && (
+          {test.status === TEST_STATUS.Inactive && (
             <Button onClick={saveTestAsDraft} type="text">
               {editMode ? "Update Draft" : "Save as Draft"}
             </Button>

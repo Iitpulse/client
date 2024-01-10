@@ -3,7 +3,7 @@ import { IconButton, Link as MLink, Tab, Tabs } from "@mui/material";
 import styles from "./Test.module.scss";
 import { Button } from "antd";
 import { CustomTable, Modal, Sidebar } from "../../components";
-import { useTestContext } from "../../utils/contexts/TestContext";
+import { TestContext, useTestContext } from "../../utils/contexts/TestContext";
 import { Error } from "../";
 import { useNavigate } from "react-router";
 import MainLayout from "../../layouts/MainLayout";
@@ -68,11 +68,14 @@ const Test = () => {
     }
   }
 
+  const { exams } = useContext(TestContext);
+
   const [columns, setColumns] = useState<any>([
     {
       title: "ID",
       dataIndex: "_id",
       width: 100,
+      fixed: "left",
       render: (text: string) => (
         <span
           style={{
@@ -90,8 +93,9 @@ const Test = () => {
     {
       title: "Name",
       dataIndex: "name",
-      with: 200,
+      width: 150,
       searchable: true,
+      fixed: "left",
       render: (name: string, row: any) => (
         <Link to={`/test/edit/${row._id}`}>
           <MLink className={styles.ellipsis}>{name}</MLink>
@@ -102,7 +106,25 @@ const Test = () => {
       title: "Exam",
       dataIndex: "exam",
       width: 150,
-      render: (exam: any) => exam.name,
+      filters: exams?.map((exam: any) => ({
+        text: exam.name,
+        value: exam.name,
+      })),
+      onFilter: (value: any, record: any) =>
+        record.exam.name.indexOf(value) == 0,
+      render: (exam: any) => (
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%",
+            display: "inline-block",
+          }}
+        >
+          {exam.name}
+        </span>
+      ),
     },
     {
       title: "Created",
@@ -113,14 +135,15 @@ const Test = () => {
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     },
     {
-      title: "Duration(in minutes)",
+      title: "Duration(min)",
       dataIndex: "durationInMinutes",
-      width: 200,
+      width: 160,
       defaultSortOrder: "descend",
       sorter: (a: any, b: any) => a.durationInMinutes - b.durationInMinutes,
     },
     {
       title: "Start Time",
+      width: 150,
       render: (row: any) => new Date(row.validity.from).toLocaleString(),
       defaultSortOrder: "descend",
       sorter: (a: any, b: any) =>
@@ -129,6 +152,7 @@ const Test = () => {
     },
     {
       title: "End Time",
+      width: 150,
       render: (row: any) => new Date(row.validity.to).toLocaleString(),
       defaultSortOrder: "descend",
       sorter: (a: any, b: any) =>
@@ -145,8 +169,9 @@ const Test = () => {
     {
       title: "Actions",
       fixed: "right",
+      width: 150,
       render: (row: any) => {
-        console.log({ row });
+        // console.log({ row });
         if (
           (row?.result?.publishProps?.type === "immediately" ||
             row?.result?.publishProps?.isPublished) &&
@@ -181,7 +206,7 @@ const Test = () => {
         } else {
           return (
             <div className={styles.flexRow}>
-              <p>Result Not Published yet</p>
+              <p>No Result</p>
               <CustomPopConfirm
                 title="Are you sure to delete Test?"
                 onConfirm={() => {
@@ -420,61 +445,20 @@ const Test = () => {
               <Tab label="Expired" />
             </Tabs>
           </div>
-          <TabPanel value={tab} index={0}>
-            <div className={styles.data}>
-              <CustomTable
-                loading={loading}
-                selectable={false}
-                columns={columns}
-                dataSource={data}
-                scroll={{ x: 600, y: 500 }}
-              />
-            </div>
-          </TabPanel>
-          <TabPanel value={tab} index={1}>
-            <div className={styles.data}>
-              <CustomTable
-                loading={loading}
-                selectable={false}
-                columns={columns}
-                dataSource={data}
-                scroll={{ x: 600, y: 500 }}
-              />
-            </div>
-          </TabPanel>
-          <TabPanel value={tab} index={2}>
-            <div className={styles.data}>
-              <CustomTable
-                loading={loading}
-                selectable={false}
-                columns={columns}
-                dataSource={data}
-                scroll={{ x: 600, y: 500 }}
-              />
-            </div>
-          </TabPanel>
-          <TabPanel value={tab} index={3}>
-            <div className={styles.data}>
-              <CustomTable
-                loading={loading}
-                selectable={false}
-                columns={columns}
-                dataSource={data}
-                scroll={{ x: 600, y: 500 }}
-              />
-            </div>
-          </TabPanel>
-          <TabPanel value={tab} index={4}>
-            <div className={styles.data}>
-              <CustomTable
-                loading={loading}
-                selectable={false}
-                columns={columns}
-                dataSource={data}
-                scroll={{ x: 600, y: 500 }}
-              />
-            </div>
-          </TabPanel>
+          {[...Array(5)].map((_, index) => (
+            <TabPanel value={tab} index={index}>
+              <div className={styles.data}>
+                <CustomTable
+                  loading={loading}
+                  selectable={false}
+                  columns={columns}
+                  dataSource={data}
+                  scroll={{ x: 600, y: 500 }}
+                />
+              </div>
+            </TabPanel>
+          ))}
+
           {/* <Sidebar title="Recent Activity">Recent</Sidebar> */}
           <Modal
             isOpen={openModal}
