@@ -36,6 +36,7 @@ import Subjects from "./pages/Subjects/Subjects";
 import Chapters from "./pages/Chapters/Chapters";
 import SubjectManagement from "./pages/SubjectsManagement/SubjectManagement";
 import Institutes from "./pages/Institutes/Institutes";
+import NotFoundPage from "./pages/NotFoundPage/NotFoundPage";
 
 const App = () => {
   // const isBatchesPermitted = usePermission(
@@ -253,6 +254,7 @@ const App = () => {
                       element={<StudentRegister />}
                     />
                     <Route path="/reset-password" element={<PasswordReset />} />
+                    <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </TestsContextProvider>
               </CurrentContextProvider>
