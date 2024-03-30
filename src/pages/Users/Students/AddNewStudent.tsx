@@ -65,6 +65,7 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
   const [validity, setValidity] = useState<any>({});
   const [roles, setRoles] = useState<any>([]);
   const [batchOptions, setBatchOptions] = useState<any>([]);
+  const [instituteOptions, setInstituteOptions] = useState<any>([]);
   const [submitDisabled, setSubmitDisabled] = useState<boolean>(false);
   const [data, setData] = useState([]);
   const userCtx = useContext(AuthContext);
@@ -324,8 +325,24 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
         }))
       );
     }
-    getBatchOption();
-    getRolesOption();
+    async function fetchInstitutes() {
+      try {
+        const res = await API_USERS().get(`/institute/get`);
+        console.log({ res });
+        setInstituteOptions(res?.data);
+      } catch (error) {
+        console.log("ERROR_FETCH_Institutes", error);
+        message.error("Error fetching Institutes");
+      }
+    }
+
+    // getBatchOption();
+    // getRolesOption();
+    // fetchInstitutes();
+    const allPromises = [getBatchOption(), getRolesOption(), fetchInstitutes()];
+    Promise.all(allPromises).then((res) => {
+      console.log("Master data fetched");
+    });
   }, []);
 
   function updateRoleValidity(id: string, value: any) {
@@ -633,7 +650,26 @@ const AddNewStudent: React.FC<IAddNewStudent> = ({
                 label="Institute"
                 rules={getRules("institute")}
               >
-                <Input placeholder="Please enter an institute" />
+                {/* <Input placeholder="Please enter an institute" /> */}
+                <Select
+                  showSearch
+                  placeholder="Please choose an institute"
+                  filterOption={(input: any, option: any) =>
+                    (option?.label?.toLowerCase() ?? "").includes(
+                      input.toLowerCase()
+                    )
+                  }
+                >
+                  {instituteOptions?.map((option: any) => (
+                    <Select.Option
+                      key={option.name}
+                      value={option.name}
+                      label={option.name}
+                    >
+                      {option.label}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
