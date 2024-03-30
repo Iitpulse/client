@@ -29,11 +29,10 @@ import deleteIcon from "../../../assets/icons/delete.svg";
 import AddNewManager from "./AddNewManager";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
 import type { ColumnsType, ColumnType } from "antd/lib/table";
-import { SearchOutlined } from "@ant-design/icons";
+import { EyeFilled, SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { DataType } from "../Users";
-
-
+import { CurrentContext } from "../../../utils/contexts/CurrentContext";
 
 const Managers: React.FC<{
   activeTab: number;
@@ -47,6 +46,8 @@ const Managers: React.FC<{
   const [edit, setEdit] = useState<any>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+
+  const { selectedUsers, setSelectedUsers } = useContext(CurrentContext);
 
   useEffect(() => {
     setIsDrawerOpen(openModal);
@@ -82,7 +83,7 @@ const Managers: React.FC<{
           ref={searchInput}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => 
+          onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
           }
           onPressEnter={() =>
@@ -162,7 +163,7 @@ const Managers: React.FC<{
             setCurrent(record);
           }}
         >
-          {record.gender === "male" ? <Face /> : <Face />}
+          <EyeFilled />
         </IconButton>
       ),
     },
@@ -204,7 +205,7 @@ const Managers: React.FC<{
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
-      ...getColumnSearchProps("contact")
+      ...getColumnSearchProps("contact"),
     },
   ];
   const deleteUser = async () => {
@@ -224,6 +225,9 @@ const Managers: React.FC<{
   return (
     <div className={styles.container}>
       <CustomTable
+        setSelectedRows={setSelectedUsers}
+        selectedRows={selectedUsers}
+        selectable
         columns={columns}
         dataSource={managers as any}
         loading={loading}

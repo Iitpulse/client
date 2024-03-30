@@ -1,32 +1,23 @@
-import { Sidebar, NotificationCard, Button } from "../../components";
 import styles from "./Users.module.scss";
 import { useContext, useState, useEffect } from "react";
-import { Tabs, Tab, IconButton } from "@mui/material";
-import clsx from "clsx";
+import { Tabs, Tab } from "@mui/material";
 import "./Users.css";
-import closeIcon from "../../assets/icons/close-circle.svg";
-import info from "../../assets/icons/info.svg";
 import { UserProps } from "./components";
 import Students from "./Students/Students";
 import Teachers from "./Teachers/Teachers";
 import Managers from "./Managers/Managers";
 import Operators from "./Operators/Operators";
 import Admins from "./Admins/Admins";
-import UserProfile from "../../components/UserProfile/UserProfile";
 import CachedIcon from "@mui/icons-material/Cached";
 import { UsersContext } from "../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../utils/contexts/CurrentContext";
-import DownloadIcon from "@mui/icons-material/Download";
 import { CSVLink } from "react-csv";
-import { flattenUserStudents } from "../../utils";
+import { flattenUserDataForCSV, flattenUserStudents } from "../../utils";
 import MainLayout from "../../layouts/MainLayout";
-import { PERMISSIONS } from "../../utils/constants";
-import { Add as AddIcon } from "@mui/icons-material";
-import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { AuthContext } from "../../utils/auth/AuthContext";
-import AddNewStudent from "./Students/AddNewStudent";
 import { Button as AntdButton } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { FileExcelOutlined, PlusOutlined } from "@ant-design/icons";
+import clsx from "clsx";
 
 const UserTypesForCards = [
   {
@@ -108,6 +99,7 @@ const Users = () => {
   const [teacher, setTeacher] = useState<any>(defaultValue);
   const [operator, setOperator] = useState<any>(defaultValue);
   const [csvData, setCsvData] = useState<any>([]);
+  const [csvTitle, setCsvTitle] = useState<any>("");
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   //For Option Menu
@@ -126,6 +118,8 @@ const Users = () => {
   //   setTeacher(defaultValue);
   //   setOperator(defaultValue);
   // }
+
+  const { selectedUsers } = useContext(CurrentContext);
 
   const [tab, setTab] = useState(0);
   useEffect(() => {
@@ -151,11 +145,11 @@ const Users = () => {
   }, [tab, permissions]);
 
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
-    console.log(event,newValue);
+    console.log(event, newValue);
     setIsDrawerOpen(false);
     setTab(newValue);
     // @ts-ignore
-    setNameTab(event?.target?.innerText.toLowerCase())
+    setNameTab(event?.target?.innerText.toLowerCase());
   };
 
   function handleCloseModal() {
@@ -204,27 +198,31 @@ const Users = () => {
     }
   }
 
-  const { students, teachers, admins, operators, managers } =
-    useContext(UsersContext);
-
-  function onClickDownloadCSV() {
+  function onClickDownloadCSV(done: any) {
+    if (selectedUsers.length === 0) return;
     switch (tab) {
       case 0:
-        setCsvData(flattenUserStudents(students));
+        setCsvTitle("Students");
+        setCsvData(flattenUserStudents(selectedUsers));
         break;
       case 1:
-        setCsvData(teachers);
+        setCsvTitle("Teachers");
+        setCsvData(flattenUserDataForCSV(selectedUsers));
         break;
       case 2:
-        setCsvData(admins);
+        setCsvTitle("Admins");
+        setCsvData(flattenUserDataForCSV(selectedUsers));
         break;
       case 3:
-        setCsvData(operators);
+        setCsvTitle("Operators");
+        setCsvData(flattenUserDataForCSV(selectedUsers));
         break;
       case 4:
-        setCsvData(managers);
+        setCsvTitle("Managers");
+        setCsvData(flattenUserDataForCSV(selectedUsers));
         break;
     }
+    done();
   }
 
   return (
@@ -263,27 +261,31 @@ const Users = () => {
               <Tab label="Managers" value={4} />
             )}
           </Tabs>
-          <div>
-            <IconButton className={styles.icons} onClick={handleClickRefresh}>
+          <div className={clsx(styles.flexRow, styles.actionBtns)}>
+            <AntdButton
+              className={styles.icons}
+              onClick={handleClickRefresh}
+              style={{ marginRight: "0.5rem" }}
+              disabled={loading || selectedUsers.length === 0}
+            >
               <CSVLink
-                filename={"Questions.csv"}
+                filename={csvTitle + ".csv"}
                 data={csvData}
                 asyncOnClick={true}
                 onClick={(event: any, done: any) => {
-                  onClickDownloadCSV();
-                  done();
+                  onClickDownloadCSV(done);
                 }}
               >
-                <DownloadIcon />
-                {/* Export to CSV */}
+                <FileExcelOutlined style={{ marginRight: "0.5rem" }} />
+                Export to CSV
               </CSVLink>
-            </IconButton>
-            <IconButton
+            </AntdButton>
+            <AntdButton
               className={styles.cacheIcon}
               onClick={handleClickRefresh}
-            >
-              <CachedIcon />
-            </IconButton>
+              style={{ height: "100%" }}
+              icon={<CachedIcon />}
+            />
           </div>
         </div>
         <TabPanel value={tab} index={0}>

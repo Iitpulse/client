@@ -3,6 +3,22 @@ import { IUserStudent } from "./interfaces";
 
 export { result } from "./data";
 
+export function flattenUserDataForCSV(data: any) {
+  return data.map((item: any) => {
+    let newItem: any = {
+      ...item,
+      createdBy: item.createdBy?.id,
+      roles: item.roles?.map((role: any) => role.id)?.join(", "),
+      createdAt: new Date(item.createdAt).toLocaleDateString(),
+      modifiedAt: new Date(item.modifiedAt).toLocaleDateString(),
+    };
+
+    delete newItem.key;
+    delete newItem.password;
+    return newItem;
+  });
+}
+
 export function flattenUserStudents(students: Array<IUserStudent>): Array<any> {
   return students.map((student: IUserStudent) => {
     let newStudent: any = {

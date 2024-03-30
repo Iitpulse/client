@@ -16,7 +16,7 @@ import {
 import { DataType, rowSelection } from "../Users";
 import { useContext, useEffect, useRef, useState } from "react";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
-import { SearchOutlined } from "@ant-design/icons";
+import { EyeFilled, SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { ColumnType } from "antd/lib/table";
 import { AuthContext } from "../../../utils/auth/AuthContext";
@@ -29,8 +29,9 @@ import {
 } from "../../../components";
 import { FilterConfirmProps } from "antd/lib/table/interface";
 import { API_USERS } from "../../../utils/api/config";
-import { Edit, Face } from "@mui/icons-material";
+import { Edit } from "@mui/icons-material";
 import AddNewAdmin from "./AddNewAdmin";
+import { CurrentContext } from "../../../utils/contexts/CurrentContext";
 // import { record } from "zod";
 
 const Admins: React.FC<{
@@ -48,6 +49,7 @@ const Admins: React.FC<{
   const [edit, setEdit] = useState<any>(false);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(openModal);
+  const { selectedUsers, setSelectedUsers } = useContext(CurrentContext);
 
   useEffect(() => {
     setIsDrawerOpen(openModal);
@@ -80,10 +82,10 @@ const Admins: React.FC<{
           ref={searchInput}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => 
+          onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
           }
-          onPressEnter={() => 
+          onPressEnter={() =>
             handleSearch(selectedKeys as string[], confirm, dataIndex)
           }
           style={{ marginBottom: 8, display: "block" }}
@@ -124,7 +126,7 @@ const Admins: React.FC<{
     filterIcon: (filtered: boolean) => (
       <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
     ),
-    onFilter: (value: any, record: any) => 
+    onFilter: (value: any, record: any) =>
       record[dataIndex]
         .toString()
         .toLowerCase()
@@ -161,7 +163,7 @@ const Admins: React.FC<{
             setCurrent(record);
           }}
         >
-          {record.gender === "male" ? <Face /> : <Face />}
+          <EyeFilled />
         </IconButton>
       ),
     },
@@ -203,7 +205,7 @@ const Admins: React.FC<{
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
-      ...getColumnSearchProps("contact")
+      ...getColumnSearchProps("contact"),
     },
   ];
 
@@ -225,6 +227,8 @@ const Admins: React.FC<{
   return (
     <div className={styles.container}>
       <CustomTable
+        selectedRows={selectedUsers}
+        setSelectedRows={setSelectedUsers}
         selectable={true}
         columns={columns}
         dataSource={admins as any}

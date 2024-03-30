@@ -172,7 +172,9 @@ const CustomTable: React.FC<Props> = ({
         setSelectedRows(selRows.splice(0, maxSelectedRows));
       }
     },
-    selectedRowKeys: selectedRows,
+    selectedRowKeys: selectedRows?.some((row) => typeof row === typeof "")
+      ? selectedRows
+      : selectedRows?.map((row) => row.id || row._id),
   };
 
   return (

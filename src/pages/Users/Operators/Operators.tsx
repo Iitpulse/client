@@ -12,13 +12,11 @@ import {
   message,
   Tag,
 } from "antd";
-import { rowSelection } from "../Users";
 import Highlighter from "react-highlight-words";
 import { useState, useContext, useEffect, useRef } from "react";
 import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
-import axios from "axios";
-import { SearchOutlined } from "@ant-design/icons";
+import { EyeFilled, SearchOutlined } from "@ant-design/icons";
 import { Grid, IconButton } from "@mui/material";
 import {
   MUIChipsAutocomplete,
@@ -28,11 +26,11 @@ import AddUserModal from "../components/AddUserModal";
 import { AuthContext } from "../../../utils/auth/AuthContext";
 import { API_USERS } from "../../../utils/api/config";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
-import { Edit, Face } from "@mui/icons-material";
+import { Edit } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
 import { DataType } from "../Users";
 import AddNewOperator from "./AddNewOperator";
-import { set } from "zod";
+import { CurrentContext } from "../../../utils/contexts/CurrentContext";
 
 const Operators: React.FC<{
   activeTab: number;
@@ -53,6 +51,8 @@ const Operators: React.FC<{
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<any>(null);
+
+  const { selectedUsers, setSelectedUsers } = useContext(CurrentContext);
 
   const handleSearch = (
     selectedKeys: string[],
@@ -81,7 +81,7 @@ const Operators: React.FC<{
           ref={searchInput}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => 
+          onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
           }
           onPressEnter={() =>
@@ -161,7 +161,7 @@ const Operators: React.FC<{
             setCurrent(record);
           }}
         >
-          {record.gender === "male" ? <Face /> : <Face />}
+          <EyeFilled />
         </IconButton>
       ),
     },
@@ -203,7 +203,7 @@ const Operators: React.FC<{
       title: "Contact",
       dataIndex: "contact",
       // width: 100,
-      ...getColumnSearchProps("contact")
+      ...getColumnSearchProps("contact"),
     },
   ];
   const deleteUser = async () => {
@@ -277,6 +277,9 @@ const Operators: React.FC<{
         />
       </Sidebar>
       <CustomTable
+        selectedRows={selectedUsers}
+        setSelectedRows={setSelectedUsers}
+        selectable
         columns={columns}
         dataSource={operators as any}
         loading={loading}

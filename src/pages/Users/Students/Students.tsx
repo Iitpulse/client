@@ -14,7 +14,6 @@ import {
   UserProps,
   MUICreatableSelect,
 } from "../components";
-import closeIcon from "../../../assets/icons/close-circle.svg";
 import styles from "./Students.module.scss";
 import {
   Input,
@@ -35,19 +34,15 @@ import {
   TextField,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { createFilterOptions } from "@mui/material/Autocomplete";
-import { APIS } from "../../../utils/constants";
 import { UsersContext } from "../../../utils/contexts/UsersContext";
 import { CurrentContext } from "../../../utils/contexts/CurrentContext";
 import AddUserModal from "../components/AddUserModal";
 import { ColumnType } from "antd/lib/table";
 import { FilterConfirmProps } from "antd/lib/table/interface";
-import { SearchOutlined } from "@ant-design/icons";
+import { EyeFilled, SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { API_USERS } from "../../../utils/api/config";
-import { DesktopDatePicker } from "@mui/lab";
-import { DeleteOutline, Edit, Face, Face3, Person } from "@mui/icons-material";
-import deleteIcon from "../../../assets/icons/delete.svg";
+import { DeleteOutline, Edit } from "@mui/icons-material";
 import AddNewStudent from "./AddNewStudent";
 
 const Students: React.FC<{
@@ -67,7 +62,6 @@ const Students: React.FC<{
 }) => {
   const { students, fetchStudents } = useContext(UsersContext);
   const [currentStudent, setCurrentStudent] = useState<any>(null);
-  const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
   const [edit, setEdit] = useState<any>(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -75,6 +69,8 @@ const Students: React.FC<{
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const { setSelectedUsers, selectedUsers } = useContext(CurrentContext);
 
   const handleSearch = (
     selectedKeys: string[],
@@ -184,7 +180,7 @@ const Students: React.FC<{
             setCurrentStudent(record);
           }}
         >
-          {record.gender === "male" ? <Face /> : <Face />}
+          <EyeFilled />
         </IconButton>
       ),
     },
@@ -300,38 +296,6 @@ const Students: React.FC<{
     branch: string;
   }
 
-  const rowSelection = {
-    onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-      setSelectedUsers(selectedRows);
-    },
-    getCheckboxProps: (record: DataType) => ({
-      disabled: record.name === "Disabled User", // Column configuration not to be checked
-      name: record.name,
-    }),
-  };
-
-  // const data: DataType[] = Array(100)
-  //   .fill({
-  //     key: "IITP_ST_ABC123",
-  //     id: "IITP_ST_ABC123",
-  //     name: "Student",
-  //     branch: "CSE",
-  //   })
-  //   .map((item, i) => ({ ...item, id: item.id + i, key: item.id + i }));
-
-  // const [data, setData] = useState([]);
-
-  // useEffect(() => {
-  //   async function fetchStudents() {
-  //     const res = await axios.get(
-  //       `${import.meta.env.VITE_USERS_API}/student/`
-  //     );
-  //     console.log({ res });
-  //     setData(res.data?.map((item: any) => ({ ...item, key: item.id })));
-  //   }
-  //   fetchStudents();
-  // }, []);
-  console.log({ students });
   const deleteUser = async () => {
     try {
       const res = await API_USERS().delete(`/student/${currentStudent?.id}`);
@@ -349,6 +313,8 @@ const Students: React.FC<{
   return (
     <div className={styles.container}>
       <CustomTable
+        selectedRows={selectedUsers}
+        setSelectedRows={setSelectedUsers}
         selectable={true}
         columns={columns}
         dataSource={students}

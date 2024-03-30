@@ -1,18 +1,8 @@
 import { StyledMUITextField, UserProps } from "../components";
-import closeIcon from "../../../assets/icons/close-circle.svg";
-import clsx from "clsx";
 import styles from "./Teachers.module.scss";
-import {
-  Button,
-  CustomTable,
-  MUIChipsAutocomplete,
-  MUISimpleAutocomplete,
-  Sidebar,
-  UserProfile,
-} from "../../../components";
+import { CustomTable, Sidebar, UserProfile } from "../../../components";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../../utils/auth/AuthContext";
-import axios from "axios";
 import { APIS } from "../../../utils/constants";
 import {
   Input,
@@ -32,14 +22,14 @@ import Highlighter from "react-highlight-words";
 import type { ColumnsType, ColumnType } from "antd/lib/table";
 import type { FilterConfirmProps } from "antd/lib/table/interface";
 import { Grid, IconButton } from "@mui/material";
-import { SearchOutlined } from "@ant-design/icons";
+import { EyeFilled, SearchOutlined } from "@ant-design/icons";
 import { API_USERS } from "../../../utils/api/config";
-import { Edit, Face } from "@mui/icons-material";
+import { Edit } from "@mui/icons-material";
 import deleteIcon from "../../../assets/icons/delete.svg";
 import { useTestContext } from "../../../utils/contexts/TestContext";
 import AddNewTeacher from "./AddNewTeacher";
-import { render } from "@testing-library/react";
-import { set } from "zod";
+import { CurrentContext } from "../../../utils/contexts/CurrentContext";
+
 const Teachers: React.FC<{
   activeTab: number;
   teacher: UserProps;
@@ -63,6 +53,8 @@ const Teachers: React.FC<{
   const [current, setCurrent] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const searchInput = useRef<any>(null);
+
+  const { selectedUsers, setSelectedUsers } = useContext(CurrentContext);
 
   const handleSearch = (
     selectedKeys: string[],
@@ -171,7 +163,7 @@ const Teachers: React.FC<{
             setCurrent(record);
           }}
         >
-          {record.gender === "male" ? <Face /> : <Face />}
+          <EyeFilled />
         </IconButton>
       ),
     },
@@ -265,7 +257,7 @@ const Teachers: React.FC<{
   ];
 
   const { teachers, fetchTeachers } = useContext(UsersContext);
-  console.log({ teachers });
+
   const deleteUser = async () => {
     console.log(current);
     try {
@@ -284,6 +276,8 @@ const Teachers: React.FC<{
   return (
     <div className={styles.container}>
       <CustomTable
+        selectedRows={selectedUsers}
+        setSelectedRows={setSelectedUsers}
         selectable={true}
         columns={columns}
         dataSource={teachers as any}
