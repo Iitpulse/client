@@ -321,7 +321,7 @@ const CreateTest = () => {
           if (subSection?.totalQuestions)
             messageText = `Please fill ${
               subSection?.totalQuestions - subSection?.questions?.length
-            } more questions in ${subSection.name}`;
+            } more question(s) in ${subSection.name}`;
           else {
             messageText = `Please fill questions in ${subSection.name}`;
           }
@@ -505,7 +505,7 @@ const CreateTest = () => {
           <Button onClick={handleClickSubmit} type="primary">
             {editMode && test.status !== TEST_STATUS.Inactive
               ? "Update Test"
-              : "Create Test"}
+              : "Publish Test"}
           </Button>
           {test.status === TEST_STATUS.Inactive && (
             <Button onClick={saveTestAsDraft} type="text">

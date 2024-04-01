@@ -60,6 +60,7 @@ const Test = () => {
     try {
       message.loading("Deleting Test", 1);
       const res = await API_TESTS().delete("test/delete/" + testId);
+      setData(data.filter((test: any) => test._id !== testId));
       message.destroy(1);
       message.success("Deleted Successfully");
     } catch (error) {

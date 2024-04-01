@@ -9,7 +9,14 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 import { usePermission } from "../../utils/contexts/PermissionsContext";
 import { PERMISSIONS, TEST } from "../../utils/constants";
 import { Error } from "../";
-import { AutoComplete, Input, InputNumber, Select, message } from "antd";
+import {
+  AutoComplete,
+  Button,
+  Input,
+  InputNumber,
+  Select,
+  message,
+} from "antd";
 import { API_TESTS } from "../../utils/api/config";
 import { TestContext } from "../../utils/contexts/TestContext";
 import { useParams } from "react-router";
@@ -290,7 +297,14 @@ const CreatePattern = () => {
   }
   console.log({ helperTexts });
   return (
-    <MainLayout name="Create Pattern">
+    <MainLayout
+      name="Create Pattern"
+      menuActions={
+        <Button type="primary" onClick={handleClickSubmit}>
+          {patternId ? "Update Pattern" : "Create Pattern"}
+        </Button>
+      }
+    >
       {hasPatternPemissions(
         {
           isReadPermitted,
@@ -365,14 +379,14 @@ const CreatePattern = () => {
               <div className={styles.addSection} onClick={handleClickAddNew}>
                 <p>+ Add New Section</p>
               </div>
-              <Tooltip title="Save Pattern" placement="top">
+              {/* <Tooltip title="Save Pattern" placement="top">
                 <IconButton
                   className={styles.savePatternBtn}
                   onClick={handleClickSubmit}
                 >
                   <img src={tickCircle} alt="save-pattern" />
                 </IconButton>
-              </Tooltip>
+              </Tooltip> */}
             </section>
           </>
         )
