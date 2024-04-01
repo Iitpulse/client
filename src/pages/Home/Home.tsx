@@ -166,7 +166,6 @@ const Home = () => {
   }
 
   useEffect(() => {
-    console.log({ userDetails, currentUser });
     if (fetchTest) {
       setLoadingUpcoming(true);
       setLoadingOngoing(true);
@@ -191,7 +190,6 @@ const Home = () => {
             );
           })
         : fetchTest("active", false, (error, result) => {
-            console.log({ error, result });
             setLoadingOngoing(false);
             setOngoingTests(
               result
@@ -225,7 +223,6 @@ const Home = () => {
     // console.log({currentUser});
     const fetchInstituteDetails = async () => {
       setLoadingInstitutionDetails(true);
-      console.log("fetchInstituteDetails init");
       try {
         const res = await API_USERS().get(`/institute/get`, {
           params: {
@@ -234,9 +231,7 @@ const Home = () => {
         });
         // console.log(res);
         setInstituteDetailsData(res.data);
-        console.log({ dataInstitute: res.data, currentUser });
         setLoadingInstitutionDetails(false);
-        console.log("fetchInstituteDetails success");
       } catch (err) {
         setLoadingInstitutionDetails(false);
         console.log("fetchInstituteDetails failed", err);
@@ -261,10 +256,6 @@ const Home = () => {
     }
     return data;
   }
-
-  useEffect(() => {
-    console.log({ loadingOngoing });
-  }, [loadingOngoing]);
 
   return (
     <MainLayout name="Home">
