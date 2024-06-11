@@ -121,18 +121,20 @@ const Question = (props: QuestionProps) => {
                 className={getOptionStyles(index)}
                 style={{
                   backgroundColor: correctAnswersTest.includes(item.id)
-                    ? "lightgreen"
+                    ? "#c5fec5"
                     : "",
                   border: selectedOptions.includes(item.id)
                     ? correctAnswersTest.includes(item.id)
-                      ? "1px solid green"
-                      : "1px solid red"
+                      ? "2px solid green"
+                      : "2px solid red"
                     : "",
                   width: "100%",
                 }}
               >
-                <span>{String.fromCharCode(65 + index)}.)</span>&nbsp;
-                <RenderWithLatex quillString={item.value} />
+            
+                <span style={{width:"5%"}}>{String.fromCharCode(65 + index)}.{")"}</span>
+                <span style={{width:"75%"}}><RenderWithLatex quillString={item.value} /></span>
+                <span style={{opacity:"50%"}}>{selectedOptions.includes(item.id)?"Selected Answer":""}</span>
               </p>
             ))}
           </div>
@@ -216,6 +218,7 @@ const Question = (props: QuestionProps) => {
       </div>
       {/* {console.log(solution)} */}
       <div className={styles.horizontalLine}></div>
+      {/* if the question do not have solution then it will not be rendered */}
       <RenderWithLatex quillString={en?.solution} />
     </>
   );
