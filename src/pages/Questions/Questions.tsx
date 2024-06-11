@@ -374,7 +374,7 @@ const Questions = () => {
         color={
           value === "Easy"
             ? "green"
-            : value.toLowerCase() === "medium"
+            : value?.toLowerCase() === "medium"
             ? "yellow"
             : "red"
         }
