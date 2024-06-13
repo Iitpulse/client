@@ -13,11 +13,13 @@ import { AuthContext } from "../../utils/auth/AuthContext";
 
 const { profilePlaceholder } = images;
 
+// line 225 return statement
+
 const Profile = () => {
   const { userId } = useParams();
 
   const [form] = Form.useForm();
-  const [user, setUser] = useState<UserType | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);  // value is set in line 195 using useEffect
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -226,7 +228,7 @@ const Profile = () => {
   return (
     <MainLayout name="Profile">
       {isDataLoading ? (
-        <div>Loading...</div>
+        <div>Loading...</div> // loader
       ) : user ? (
         <div className={styles.container}>
           <div className={styles.profile}>

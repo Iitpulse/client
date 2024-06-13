@@ -86,5 +86,9 @@
     "vite": "^3.2.4",
     "vite-plugin-env-compatible": "^1.1.1",
     "vite-plugin-svgr": "^2.2.2"
-  }
+  },
+  "description": "[![Netlify Status](https://api.netlify.com/api/v1/badges/621ca722-aec5-4a86-958b-b6a24ef9c010/deploy-status)](https://app.netlify.com/sites/staging-iitp/deploys)",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC"
 }
