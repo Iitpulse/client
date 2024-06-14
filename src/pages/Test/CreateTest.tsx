@@ -139,12 +139,9 @@ const CreateTest = () => {
           ...rest,
         }));
         console.log({ batches });
-        // validity?.from && 
         if (validity?.from || validity?.to) {
-          console.log('Test Date Range:', [dayjs(validity.from), dayjs(validity.to)]);
           setTestDateRange([dayjs(validity?.from), dayjs(validity?.to)]);
         }
-        console.log('Test Date Range:', [dayjs(validity.from), dayjs(validity.to)]);
         if (publishType?.value) {
           setPublishType(publishType);
         }
@@ -269,7 +266,7 @@ const CreateTest = () => {
       return message.error("Please login to continue");
     }
 
-    console.log({ testDateRange });
+
 
     let finalTest: TTestSchema = {
       ...test,
@@ -602,11 +599,9 @@ const CreateTest = () => {
             >
               <CustomDateRangePicker
                 showTime={true}
-                onChange={(props: any) => {
-                  console.log("Answer is ",testDateRange);
-                  setTestDateRange(props)}}
+                onChange={(props: any) => { setTestDateRange(props)}}
                 value={testDateRange}
-                disablePrevDates={true} // it should be true only
+                disablePrevDates={true} 
               />
             </Form.Item>
             {/* <Form.Item
@@ -649,7 +644,7 @@ const CreateTest = () => {
                         ?.sections || [],
                   }));
                 }}
-                disabled={!Boolean(patternOptions.length) || editMode} // earlier it was ||
+                disabled={!Boolean(patternOptions.length) || editMode}
                 options={patternOptions?.map((pt) => ({
                   id: pt._id,
                   name: pt.name,
