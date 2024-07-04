@@ -14,7 +14,6 @@ import { PreviewHTMLModal } from "../components";
 import { PreviewFullQuestion } from "../Questions";
 import { Checkbox, Radio, Segmented, Tabs, Tooltip } from "antd";
 import { CheckOutlined, EyeFilled, StarFilled } from "@ant-design/icons";
-import { CheckboxValueType } from "antd/es/checkbox/Group";
 
 interface Props {
   setData: React.Dispatch<React.SetStateAction<any>>;
@@ -260,7 +259,7 @@ const Objective: React.FC<Props> = ({
     setAnswerType(e.target.value);
   }
 
-  function handleChangeCorrectAnswer(newOption: string | CheckboxValueType[]) {
+  function handleChangeCorrectAnswer(newOption: string ) {
     if (Array.isArray(newOption)) {
       setValues((prev) => ({
         ...prev,
@@ -591,6 +590,7 @@ const Objective: React.FC<Props> = ({
                 .filter((op) => op.isCorrectAnswer)
                 .map((op) => op.id)}
               options={getCorrectAnswerCheckboxOptions()}
+              // @ts-ignore 
               onChange={(newOptions) => handleChangeCorrectAnswer(newOptions)}
             />
           )}

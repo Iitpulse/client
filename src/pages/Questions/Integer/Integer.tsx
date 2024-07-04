@@ -11,7 +11,6 @@ import { getOptionID } from "../utils";
 import { Form, InputNumber, Segmented, Tabs } from "antd";
 import { Tooltip } from "antd";
 import { CheckOutlined, EyeFilled, StarFilled } from "@ant-design/icons";
-import { CheckboxValueType } from "antd/es/checkbox/Group";
 import { PreviewFullQuestion } from "../Questions";
 
 interface Props {
