@@ -132,7 +132,7 @@ const Profile = () => {
     if (user?.email?.length === 0) return;
     const resEmail = user?.email?.toLowerCase();
     try {
-      const response = await API_USERS().post(`/emailotp/generate2`, {
+      const response = await API_USERS().post(`/emailotp/generate`, {
         email: resEmail,
       });
       message.destroy("generate_otp")
