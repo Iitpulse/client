@@ -93,8 +93,8 @@ const Objective: React.FC<Props> = ({
           };
         }
   );
-  console.log(values["en"].options[0].id);
 
+  
   const questionTabItem = {
     label: "Question",
     key: "question",

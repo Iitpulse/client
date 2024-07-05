@@ -498,7 +498,6 @@ const CreateQuestion = () => {
   }
 
   function handleCreateQuestionZodError(error: ZodError) {
-    
     let tempIssues: any = {};
     error.issues.forEach((issue) => {
       let path = `${issue.path.join(".")}`;
@@ -529,8 +528,6 @@ const CreateQuestion = () => {
         };
       });
     });
-    console.log(tempIssues);
-    console.log(formErrors);
     if (tempIssues["en.question"]) {
       message.error(tempIssues.messages["en.question"]);
       return;

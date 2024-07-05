@@ -96,43 +96,6 @@ export function generateObjectiveQuestion(
     type: data.type,
   };
 }
-// export function generateObjectiveQuestion(
-//   questionCore: TQuestionCore,
-//   data: {
-//     en: {
-//       question: string;
-//       options: { id: string; value: string }[];
-//       solution: string;
-//     };
-//     hi: {
-//       question: string;
-//       options: { id: string; value: string }[];
-//       solution: string;
-//     };
-//     type: "single" | "multiple";
-//     correctAnswers: string[];
-//   },
-//   getCorrectAnswers: (options: { id: string; value: string }[]) => string[]
-// ): TQuestionObjective {
-//   const correctAnswers = data.type === "single" ? [data.correctAnswers[0]] : data.correctAnswers;
-
-//   return {
-//     ...questionCore,
-//     en: {
-//       question: data.en.question,
-//       options: data.en.options,
-//       solution: data.en.solution,
-//     },
-//     hi: {
-//       question: data.hi.question,
-//       options: data.hi.options,
-//       solution: data.hi.solution,
-//     },
-//     correctAnswers,
-//     type: data.type,
-//   };
-// }
-
 
 export function generateIntegerQuestion(
   questionCore: TQuestionCore,
