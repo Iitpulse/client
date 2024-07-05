@@ -496,8 +496,9 @@ const CreateQuestion = () => {
       await createQuestion(`${qtype}/new`, finalQuestion);
     }
   }
-  
+
   function handleCreateQuestionZodError(error: ZodError) {
+    
     let tempIssues: any = {};
     error.issues.forEach((issue) => {
       let path = `${issue.path.join(".")}`;
@@ -528,12 +529,8 @@ const CreateQuestion = () => {
         };
       });
     });
-    if(isInitialValuePassed){
-      message.success("form updated successfully");
-        setTimeout(() => {
-          window.location.href = "http://localhost:3000/questions";
-      }, 1000);
-    }
+    console.log(tempIssues);
+    console.log(formErrors);
     if (tempIssues["en.question"]) {
       message.error(tempIssues.messages["en.question"]);
       return;
@@ -546,9 +543,9 @@ const CreateQuestion = () => {
       message.error(tempIssues.messages["correctAnswers"]);
       return;
     }
+    
     message.error("Please fill all required fields");
   }
-
 
   async function handleSubmitQuestion() {
     try {

@@ -93,7 +93,7 @@ const Objective: React.FC<Props> = ({
           };
         }
   );
-  console.log({ data, values, isInitialValuePassed });
+  console.log(values["en"].options[0].id);
 
   const questionTabItem = {
     label: "Question",
@@ -162,7 +162,26 @@ const Objective: React.FC<Props> = ({
     })),
     solutionTabItem,
   ]);
-
+  useEffect(() => {
+    // Initialize isCorrectAnswer based on correctAnswers
+    setValues(prev => ({
+      ...prev,
+      en: {
+        ...prev.en,
+        options: prev.en.options.map(option => ({
+          ...option,
+          isCorrectAnswer: prev.correctAnswers.includes(option.id),
+        })),
+      },
+      hi: {
+        ...prev.hi,
+        options: prev.hi.options.map(option => ({
+          ...option,
+          isCorrectAnswer: prev.correctAnswers.includes(option.id),
+        })),
+      },
+    }));
+  }, []);
   useEffect(() => {
     setTabItems([
       questionTabItem,
