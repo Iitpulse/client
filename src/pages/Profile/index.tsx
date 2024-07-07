@@ -418,13 +418,13 @@ const Profile = () => {
               <div className={styles.information}>
                 <p className={styles.key}>Parent Name:</p>
                 {/* @ts-ignore */}
-                <p className={styles.value}>{user.parentName}</p>
+                <p className={styles.value}>{user.parentDetails.name || "NA"}</p>
               </div>
 
               <div className={styles.information}>
                 <p className={styles.key}>Parent Contact:</p>
                 {/* @ts-ignore */}
-                <p className={styles.value}>{user.parentContact || "NA"}</p>
+                <p className={styles.value}>{user.parentDetails.contact || "NA"}</p>
               </div>
 
               <div className={styles.information}>
@@ -450,7 +450,7 @@ const Profile = () => {
               <div className={styles.information}>
                 <p className={styles.key}>Validity:</p>
                 {/* @ts-ignore */}
-                <p className={styles.value}>{user.medium || "NA"}</p>
+                <p className={styles.value}>{user?.validity.to.slice(0,10) || "NA"}</p>
               </div>
 
               {/* <div className={styles.information}>
