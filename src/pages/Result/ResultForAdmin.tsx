@@ -19,7 +19,7 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
   const hasResultViewPermission = usePermission(PERMISSIONS.TEST.VIEW_RESULT);
 
   const { currentUser } = useContext(AuthContext);
-  console.log({ finalTest });
+  console.log("final test in result for admin",{ finalTest });
   return (
     <div className={styles.container}>
       <HeaderDetails
@@ -27,18 +27,23 @@ const ResultForAdmin: React.FC<Props> = ({ finalTest }) => {
         type={finalTest?.type || ""}
         languages={[{ name: "English" }, { name: "Hindi" }]}
         duration={finalTest?.duration || 90}
-        totalAppeared={finalTest?.students?.length || 0}
+        // totalAppeared={finalTest?.students?.length || 0}
+        totalAppeared={finalTest?.totalAppeared || 0}
         totalQuestions={finalTest?.totalQuestions || 0}
         attempted={finalTest?.attempted || 0}
         totalMarks={finalTest?.students?.reduce((Total:any,ele:any) => {return Total+ele.marks},0) || 0}
         marksObtained={finalTest?.marksObtained || 0}
-        highestMarks={finalTest?.students?.reduce((Total:any,ele:any) => {return Math.max(Total,ele.marks)},0) || 0}
-        lowestMarks={finalTest?.students?.reduce((Total:any,ele:any) => {return Math.min(Total,ele.marks)},1000) || 0}
-        averageMarks={(finalTest?.students?.reduce((Total:any,ele:any) => {return Total+ele.marks},0)/finalTest?.students?.length) || 0}
+        // highestMarks={finalTest?.students?.reduce((Total:any,ele:any) => {return Math.max(Total,ele.marks)},0) || 0}
+        highestMarks={finalTest?.highestMarks || 0}
+        // lowestMarks={finalTest?.students?.reduce((Total:any,ele:any) => {return Math.min(Total,ele.marks)},1000) || 0}
+        lowestMarks={finalTest?.lowestMarks || 0}
+        // averageMarks={(finalTest?.students?.reduce((Total:any,ele:any) => {return Total+ele.marks},0)/finalTest?.students?.length) || 0}
+        averageMarks={finalTest?.averageMarks || 0}
         status={finalTest?.status || ""}
         scheduledFor={finalTest?.scheduledFor || []}
         forStudent={Boolean(hasResultViewPermission && studentId)}
       />
+      
       {hasResultViewPermission && studentId ? (
         <StudentResultCore
           finalTest={finalTest}
