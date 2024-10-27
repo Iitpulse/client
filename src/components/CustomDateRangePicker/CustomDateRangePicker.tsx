@@ -43,4 +43,3 @@ const CustomDateRangePicker: React.FC<{
 };
 
 export default CustomDateRangePicker;
-
