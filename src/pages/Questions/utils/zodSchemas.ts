@@ -1,15 +1,28 @@
 import { z } from "zod";
 
+// Helper function to strip HTML tags
+const stripHtml = (html: string) => {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
+};
+
+// Custom validation for non-empty HTML content
+const nonEmptyHtml = z.string().refine((value) => {
+  const strippedValue = stripHtml(value).trim();
+  return strippedValue.length > 0;
+}, "Field cannot be empty");
+
 const optionSchema = z.object({
-  id: z.string().nonempty(),
-  value: z.string().nonempty(),
+  id: z.string(),
+  value: nonEmptyHtml, // Ensure non-empty value after stripping HTML
 });
 
 export const coreQuestionSchema = z.object({
-  id: z.string().nonempty("Fill in ID"),
+  id: z.string().min(1, "Fill in ID"),
   type: z.enum(["single", "multiple", "integer", "paragraph", "matrix"]),
   sources: z.array(z.string()),
-  subject: z.string().nonempty("Fill in Subject"),
+  subject: z.string().min(1, "Fill in Subject"),
   exams: z.array(z.string()).min(1, "Select Exam(s)"),
   chapters: z
     .array(
@@ -35,35 +48,33 @@ export const coreQuestionSchema = z.object({
     ),
   uploadedBy: z.object({
     userType: z.enum(["operator", "teacher", "admin"]),
-    id: z.string(),
+    id: z.string().min(1, "Fill in ID"),
   }),
 });
 
-export const questionSchemaEn = z.object({
-  question: z.string().nonempty("Fill in Question"),
-  solution: z.string().nonempty("Fill in Solution").optional().default(""),
+const questionSchemaEn = z.object({
+  question: nonEmptyHtml, // Use custom validation for non-empty HTML content
+  solution: nonEmptyHtml.optional().default(""), // Use custom validation for non-empty HTML content
 });
 
-export const questionSchemaHi = z.object({
-  question: z.string().optional().default(""),
-  solution: z.string().optional().default(""),
+const questionSchemaHi = z.object({
+  question: nonEmptyHtml, // Use custom validation for non-empty HTML content
+  options: z.array(optionSchema).min(2, "Fill in Options").default([]), // At least 2 options with non-empty values
 });
 
 export const questionObjectiveSchema = coreQuestionSchema.extend({
   en: questionSchemaEn.extend({
-    options: z.array(optionSchema).min(2, "Fill in Options"),
+    options: z.array(optionSchema).min(4, "Fill in Options"), // At least 4 options with non-empty values
   }),
   hi: questionSchemaHi.extend({
     options: z
       .array(optionSchema.extend({ value: z.string().optional().default("") }))
       .min(2, "Fill in Options")
-      .optional()
       .default([]),
   }),
   correctAnswers: z
     .array(z.string())
-    .min(1, "Fill in Correct Answers")
-    .optional(),
+    .min(1, "Fill in Correct Answers"),
 });
 
 export const questionIntegerSchema = coreQuestionSchema.extend({
@@ -104,7 +115,7 @@ export const questionParagraphSchema = coreQuestionSchema.extend({
       ])
     )
     .min(1, "Fill in Questions"),
-  paragraph: z.string().nonempty("Fill in Paragraph"),
+  paragraph: nonEmptyHtml, // Use custom validation for non-empty HTML content
 });
 
 export const questionMatrixSchema = coreQuestionSchema.extend({
