@@ -139,7 +139,7 @@ const CreateTest = () => {
           ...rest,
         }));
         console.log({ batches });
-        if (validity?.from && validity?.to) {
+        if (validity?.from || validity?.to) {
           setTestDateRange([dayjs(validity?.from), dayjs(validity?.to)]);
         }
         if (publishType?.value) {
@@ -266,7 +266,7 @@ const CreateTest = () => {
       return message.error("Please login to continue");
     }
 
-    // console.log({ testDateRange });
+
 
     let finalTest: TTestSchema = {
       ...test,
@@ -599,9 +599,9 @@ const CreateTest = () => {
             >
               <CustomDateRangePicker
                 showTime={true}
-                onChange={(props: any) => setTestDateRange(props)}
+                onChange={(props: any) => { setTestDateRange(props)}}
                 value={testDateRange}
-                disablePrevDates={true}
+                disablePrevDates={true} 
               />
             </Form.Item>
             {/* <Form.Item
