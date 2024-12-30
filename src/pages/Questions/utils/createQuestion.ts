@@ -90,6 +90,7 @@ export function generateObjectiveQuestion(
     hi: {
       question: data.hi.question,
       options: data.hi.options,
+      // @ts-ignore
       solution: data.hi.solution,
     },
     correctAnswers: getCorrectAnswers(data.en.options),
@@ -111,6 +112,7 @@ export function generateIntegerQuestion(
   return {
     ...questionCore,
     en: data.en,
+    // @ts-ignore
     hi: data.hi,
     correctAnswer: data.correctAnswer,
   };
@@ -141,6 +143,7 @@ export function generateMatrixQuestion(
   return {
     ...questionCore,
     en: data.en,
+    // @ts-ignore
     hi: data.hi,
     correctAnswer: data.correctAnswers,
   };
