@@ -52,12 +52,12 @@ export const coreQuestionSchema = z.object({
   }),
 });
 
-const questionSchemaEn = z.object({
+export const questionSchemaEn = z.object({
   question: nonEmptyHtml, // Use custom validation for non-empty HTML content
   solution: nonEmptyHtml.optional().default(""), // Use custom validation for non-empty HTML content
 });
 
-const questionSchemaHi = z.object({
+export const questionSchemaHi = z.object({
   question: nonEmptyHtml, // Use custom validation for non-empty HTML content
   options: z.array(optionSchema).min(2, "Fill in Options").default([]), // At least 2 options with non-empty values
 });
@@ -72,9 +72,7 @@ export const questionObjectiveSchema = coreQuestionSchema.extend({
       .min(2, "Fill in Options")
       .default([]),
   }),
-  correctAnswers: z
-    .array(z.string())
-    .min(1, "Fill in Correct Answers"),
+  correctAnswers: z.array(z.string()).min(1, "Fill in Correct Answers"),
 });
 
 export const questionIntegerSchema = coreQuestionSchema.extend({
