@@ -28,9 +28,46 @@ export interface IUserBase {
   modifiedAt?: string;
 }
 
+export interface IStudent extends IUserBase {
+  userType: "student";
+  batch?: string | IBatch;
+  institute?: string | IInstitute;
+  class?: string;
+  rollNo?: string;
+  phone?: string;
+  parentContact?: string;
+}
+
+export interface ITeacher extends IUserBase {
+  userType: "teacher";
+  subject?: string;
+  institute?: string | IInstitute;
+  phone?: string;
+  qualification?: string;
+}
+
+export interface IAdmin extends IUserBase {
+  userType: "admin";
+  institute?: string | IInstitute;
+  phone?: string;
+}
+
+export interface IOperator extends IUserBase {
+  userType: "operator";
+  institute?: string | IInstitute;
+  phone?: string;
+}
+
+export interface IManager extends IUserBase {
+  userType: "manager";
+  institute?: string | IInstitute;
+  phone?: string;
+}
+
+// Keep old names as aliases for compatibility
 export interface IUserStudent extends IUserBase {
   userType: "student";
-  batch?: string;
+  batch?: string | IBatch;
   class?: string;
   rollNo?: string;
   parentContact?: string;
@@ -71,9 +108,12 @@ export interface IPermissions {
 export interface IInstitute {
   _id: string;
   name: string;
+  code?: string;
   address?: string;
   city?: string;
   state?: string;
+  batches?: string[] | IBatch[];
+  students?: string[];
   createdAt?: string;
 }
 
@@ -81,9 +121,11 @@ export interface IBatch {
   _id: string;
   id?: string;
   name: string;
-  instituteId: string;
+  instituteId?: string;
+  institute?: string | IInstitute;
   class?: string;
   year?: string;
+  students?: string[];
   createdAt?: string;
 }
 
@@ -95,9 +137,10 @@ export interface ISubject {
 }
 
 export interface IChapter {
-  id: string;
+  _id: string;
+  id?: string;
   name: string;
-  subject: string;
+  subject?: string;
   topics: string[];
 }
 
@@ -108,13 +151,17 @@ export type DifficultyLevel = "easy" | "medium" | "hard";
 export interface IQuestionBase {
   _id: string;
   type: QuestionType;
-  subject: string;
-  chapters: Array<{ name: string; topics: string[] }>;
+  question: string;
+  solution?: string;
+  subject: string | { _id: string; name: string };
+  chapter?: string | { _id: string; name: string };
+  chapters?: Array<{ name: string; topics: string[] }>;
+  topics?: string[];
   difficulty: DifficultyLevel;
   sources?: string[];
   exams?: string[];
   isProofRead?: boolean;
-  en: {
+  en?: {
     question: string;
     solution?: string;
   };
@@ -180,10 +227,12 @@ export interface ISubSection {
   id: string;
   name: string;
   type: QuestionType;
-  totalQuestions: number;
-  toBeAttempted: number;
-  markingScheme: IMarkingScheme;
-  questions: IQuestion[];
+  totalQuestions?: number;
+  noOfQuestions?: number;
+  toBeAttempted?: number;
+  marksPerQuestion?: number;
+  markingScheme?: IMarkingScheme;
+  questions?: IQuestion[];
 }
 
 export interface ISection {
@@ -197,7 +246,7 @@ export interface IPattern {
   _id: string;
   name: string;
   sections: ISection[];
-  exam?: string;
+  exam?: string | { _id: string; name: string };
   createdBy?: {
     userType: string;
     id: string;
@@ -209,36 +258,38 @@ export interface IPattern {
 export interface ITest {
   _id: string;
   name: string;
-  durationInMinutes: number;
+  duration?: number;
+  durationInMinutes?: number;
   description?: string;
-  sections: ISection[];
-  pattern: {
-    id: string;
+  sections?: ISection[];
+  pattern?: string | {
+    _id: string;
+    id?: string;
     name: string;
   };
-  exam?: {
-    id: string;
+  exam?: string | {
+    _id: string;
+    id?: string;
     name: string;
   };
-  batches: Array<{
-    id: string;
-    name: string;
-  }>;
+  batches?: Array<string | IBatch>;
   status: TestStatus;
-  validity: {
+  validity?: {
     from: string;
     to: string;
   };
   totalMarks?: number;
   hideResult?: boolean;
+  shuffleQuestions?: boolean;
+  shuffleOptions?: boolean;
   result?: ITestResult;
-  createdBy: {
+  createdBy?: {
     userType: string;
     id: string;
     name?: string;
   };
-  createdAt: string;
-  modifiedAt: string;
+  createdAt?: string;
+  modifiedAt?: string;
 }
 
 export interface ITestResult {

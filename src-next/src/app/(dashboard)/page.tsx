@@ -24,17 +24,20 @@ export default function DashboardPage() {
     fetchTeachers();
   }, [fetchTests, fetchStudents, fetchTeachers]);
 
+  const upcomingTests = tests.filter((t) => t.status === "scheduled");
+  const ongoingTests = tests.filter((t) => t.status === "ongoing");
+
   const stats = [
     {
       title: "Total Tests",
-      value: tests.all.length,
+      value: tests.length,
       icon: FileText,
       href: "/tests",
       color: "text-blue-600",
     },
     {
       title: "Ongoing Tests",
-      value: tests.ongoing.length,
+      value: ongoingTests.length,
       icon: Clock,
       href: "/tests?status=ongoing",
       color: "text-green-600",
@@ -106,13 +109,13 @@ export default function DashboardPage() {
             <CardDescription>Tests scheduled for the future</CardDescription>
           </CardHeader>
           <CardContent>
-            {tests.upcoming.length === 0 ? (
+            {upcomingTests.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No upcoming tests scheduled
               </p>
             ) : (
               <div className="space-y-4">
-                {tests.upcoming.slice(0, 5).map((test) => (
+                {upcomingTests.slice(0, 5).map((test) => (
                   <div
                     key={test._id}
                     className="flex items-center justify-between"
@@ -120,7 +123,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="font-medium">{test.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(test.validity.from).toLocaleDateString()}
+                        {test.validity?.from ? new Date(test.validity.from).toLocaleDateString() : "-"}
                       </p>
                     </div>
                     <Link href={`/tests/${test._id}`}>
@@ -141,13 +144,13 @@ export default function DashboardPage() {
             <CardDescription>Currently active tests</CardDescription>
           </CardHeader>
           <CardContent>
-            {tests.ongoing.length === 0 ? (
+            {ongoingTests.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No tests currently running
               </p>
             ) : (
               <div className="space-y-4">
-                {tests.ongoing.slice(0, 5).map((test) => (
+                {ongoingTests.slice(0, 5).map((test) => (
                   <div
                     key={test._id}
                     className="flex items-center justify-between"
@@ -155,7 +158,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="font-medium">{test.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {test.durationInMinutes} mins
+                        {test.duration || test.durationInMinutes} mins
                       </p>
                     </div>
                     <Link href={`/tests/${test._id}/results`}>

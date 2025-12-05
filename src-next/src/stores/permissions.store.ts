@@ -3,7 +3,7 @@ import { IRole, IPermissions } from "@/types";
 import { api } from "@/lib/api";
 import { useAuthStore } from "./auth.store";
 
-interface PermissionsState {
+export interface PermissionsState {
   roles: IRole[];
   permissions: Record<string, IPermissions>;
   userPermissions: IPermissions;
@@ -22,6 +22,8 @@ interface PermissionsState {
   };
 
   // Actions
+  setRoles: (roles: IRole[]) => void;
+  removeRole: (id: string) => void;
   fetchRoles: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
   createRole: (name: string, permissions?: Record<string, boolean>) => Promise<boolean>;
@@ -46,6 +48,19 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     batch: false,
     role: false,
     subject: false,
+  },
+
+  setRoles: (roles: IRole[]) => {
+    const permissions: Record<string, IPermissions> = {};
+    roles.forEach((role) => {
+      permissions[role._id] = role.permissions || {};
+    });
+    set({ roles, permissions });
+  },
+
+  removeRole: (id: string) => {
+    const { roles } = get();
+    set({ roles: roles.filter((r) => r._id !== id) });
   },
 
   fetchRoles: async () => {

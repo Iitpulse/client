@@ -2,15 +2,9 @@ import { create } from "zustand";
 import { ITest, IExam, ISubject, IPattern, TestStatus } from "@/types";
 import { api } from "@/lib/api";
 
-interface TestsState {
-  // Test data by status
-  tests: {
-    all: ITest[];
-    ongoing: ITest[];
-    upcoming: ITest[];
-    completed: ITest[];
-    draft: ITest[];
-  };
+export interface TestsState {
+  // Test data - simple flat array
+  tests: ITest[];
 
   // Metadata
   exams: IExam[];
@@ -25,6 +19,7 @@ interface TestsState {
   error: string | null;
 
   // Actions
+  setTests: (tests: ITest[]) => void;
   fetchTests: (status?: TestStatus) => Promise<void>;
   fetchTestById: (id: string) => Promise<ITest | null>;
   fetchExams: () => Promise<void>;
@@ -32,20 +27,14 @@ interface TestsState {
   fetchPatterns: () => Promise<void>;
   createTest: (data: Partial<ITest>) => Promise<ITest | null>;
   updateTest: (data: Partial<ITest> & { id: string }) => Promise<boolean>;
-  deleteTest: (id: string) => Promise<boolean>;
+  deleteTest: (id: string) => void;
   publishTest: (id: string) => Promise<boolean>;
   setCurrentTest: (test: ITest | null) => void;
   clearError: () => void;
 }
 
 export const useTestsStore = create<TestsState>((set, get) => ({
-  tests: {
-    all: [],
-    ongoing: [],
-    upcoming: [],
-    completed: [],
-    draft: [],
-  },
+  tests: [],
   exams: [],
   subjects: [],
   patterns: [],
@@ -53,22 +42,14 @@ export const useTestsStore = create<TestsState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  setTests: (tests: ITest[]) => set({ tests }),
+
   fetchTests: async (status?: TestStatus) => {
     set({ isLoading: true, error: null });
     try {
       const response = await api.tests.getAll({ status });
-      const tests: ITest[] = response.data.data || [];
-
-      // Categorize tests by status
-      const categorized = {
-        all: tests,
-        ongoing: tests.filter((t) => t.status === "ongoing"),
-        upcoming: tests.filter((t) => t.status === "scheduled"),
-        completed: tests.filter((t) => t.status === "completed"),
-        draft: tests.filter((t) => t.status === "draft"),
-      };
-
-      set({ tests: categorized, isLoading: false });
+      const tests: ITest[] = response.data?.tests || response.data?.data || [];
+      set({ tests, isLoading: false });
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
@@ -153,20 +134,9 @@ export const useTestsStore = create<TestsState>((set, get) => ({
     }
   },
 
-  deleteTest: async (id: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      await api.tests.delete(id);
-      await get().fetchTests();
-      set({ isLoading: false });
-      return true;
-    } catch (error: unknown) {
-      const message =
-        (error as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Failed to delete test";
-      set({ error: message, isLoading: false });
-      return false;
-    }
+  deleteTest: (id: string) => {
+    const { tests } = get();
+    set({ tests: tests.filter((t) => t._id !== id) });
   },
 
   publishTest: async (id: string) => {

@@ -1,24 +1,28 @@
 import { create } from "zustand";
 import {
-  IUserStudent,
-  IUserTeacher,
-  IUserAdmin,
-  IUserOperator,
-  IUserManager,
+  IStudent,
+  ITeacher,
+  IAdmin,
+  IOperator,
+  IManager,
 } from "@/types";
 import { api } from "@/lib/api";
 
-interface UsersState {
-  students: IUserStudent[];
-  teachers: IUserTeacher[];
-  admins: IUserAdmin[];
-  operators: IUserOperator[];
-  managers: IUserManager[];
+type UserCategory = "students" | "teachers" | "admins" | "operators" | "managers";
+type UserType = IStudent | ITeacher | IAdmin | IOperator | IManager;
+
+export interface UsersState {
+  students: IStudent[];
+  teachers: ITeacher[];
+  admins: IAdmin[];
+  operators: IOperator[];
+  managers: IManager[];
 
   isLoading: boolean;
   error: string | null;
 
   // Actions
+  setUsers: (category: UserCategory, users: UserType[]) => void;
   fetchStudents: () => Promise<void>;
   fetchTeachers: () => Promise<void>;
   fetchAdmins: () => Promise<void>;
@@ -37,11 +41,15 @@ export const useUsersStore = create<UsersState>((set) => ({
   isLoading: false,
   error: null,
 
+  setUsers: (category: UserCategory, users: UserType[]) => {
+    set({ [category]: users });
+  },
+
   fetchStudents: async () => {
     set({ isLoading: true, error: null });
     try {
       const response = await api.users.getStudents();
-      set({ students: response.data.data || [], isLoading: false });
+      set({ students: response.data?.students || response.data?.data || [], isLoading: false });
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
@@ -54,7 +62,7 @@ export const useUsersStore = create<UsersState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.users.getTeachers();
-      set({ teachers: response.data.data || [], isLoading: false });
+      set({ teachers: response.data?.teachers || response.data?.data || [], isLoading: false });
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
@@ -67,7 +75,7 @@ export const useUsersStore = create<UsersState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.users.getAdmins();
-      set({ admins: response.data.data || [], isLoading: false });
+      set({ admins: response.data?.admins || response.data?.data || [], isLoading: false });
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
@@ -80,7 +88,7 @@ export const useUsersStore = create<UsersState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.users.getOperators();
-      set({ operators: response.data.data || [], isLoading: false });
+      set({ operators: response.data?.operators || response.data?.data || [], isLoading: false });
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
@@ -93,7 +101,7 @@ export const useUsersStore = create<UsersState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.users.getManagers();
-      set({ managers: response.data.data || [], isLoading: false });
+      set({ managers: response.data?.managers || response.data?.data || [], isLoading: false });
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
@@ -114,11 +122,11 @@ export const useUsersStore = create<UsersState>((set) => ({
       ]);
 
       set({
-        students: students.data.data || [],
-        teachers: teachers.data.data || [],
-        admins: admins.data.data || [],
-        operators: operators.data.data || [],
-        managers: managers.data.data || [],
+        students: students.data?.students || students.data?.data || [],
+        teachers: teachers.data?.teachers || teachers.data?.data || [],
+        admins: admins.data?.admins || admins.data?.data || [],
+        operators: operators.data?.operators || operators.data?.data || [],
+        managers: managers.data?.managers || managers.data?.data || [],
         isLoading: false,
       });
     } catch (error: unknown) {
