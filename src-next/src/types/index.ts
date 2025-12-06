@@ -306,6 +306,7 @@ export interface IExam {
   name: string;
   fullName?: string;
   description?: string;
+  isActive?: boolean;
 }
 
 // API Response Types

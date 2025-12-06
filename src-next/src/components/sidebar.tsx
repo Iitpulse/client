@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   FileText,
   Users,
-  Settings,
   Layers,
   BookOpen,
   Shield,
@@ -16,6 +15,8 @@ import {
   GraduationCap,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
+  User,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,11 @@ const navItems: NavItem[] = [
     href: "/subjects",
     icon: BookOpen,
     permission: "subject",
+  },
+  {
+    title: "Exams",
+    href: "/exams",
+    icon: ClipboardList,
   },
 ];
 
@@ -147,18 +153,19 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Settings at bottom */}
+      {/* Profile at bottom */}
       <div className="border-t p-2">
         <Link
-          href="/settings"
+          href="/profile"
           className={cn(
             "flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+            pathname === "/profile" && "bg-primary text-primary-foreground",
             collapsed && "justify-center px-2"
           )}
-          title={collapsed ? "Settings" : undefined}
+          title={collapsed ? "Profile" : undefined}
         >
-          <Settings className={cn("h-5 w-5", !collapsed && "mr-3")} />
-          {!collapsed && <span>Settings</span>}
+          <User className={cn("h-5 w-5", !collapsed && "mr-3")} />
+          {!collapsed && <span>Profile</span>}
         </Link>
       </div>
     </aside>
