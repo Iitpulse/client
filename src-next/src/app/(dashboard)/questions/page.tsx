@@ -91,12 +91,24 @@ export default function QuestionsPage() {
   const fetchQuestions = React.useCallback(async (type: string) => {
     setLoading(true);
     try {
-      const params: Record<string, string> = {};
-      // For multi-select, join with comma for backend
-      if (selectedSubjects.length > 0) params.subject = selectedSubjects.join(",");
-      if (selectedDifficulty !== "all") params.difficulty = selectedDifficulty;
-      if (selectedChapters.length > 0) params.chapter = selectedChapters.join(",");
-      if (selectedTopics.length > 0) params.topic = selectedTopics.join(",");
+      const params: Record<string, string | string[] | number> = {
+        page: 1,
+        size: 100, // Fetch more results
+      };
+      // Backend: 'subject' uses case-insensitive regex - use pipe (|) for multiple subjects
+      if (selectedSubjects.length > 0 && subjects.length > 0) {
+        // Convert subject IDs to names for the backend
+        const subjectNames = selectedSubjects
+          .map((id) => subjects.find((s) => s._id === id)?.name)
+          .filter(Boolean) as string[];
+        if (subjectNames.length > 0) {
+          // Use regex OR pattern for multiple subjects: "Physics|Chemistry"
+          params.subject = subjectNames.join("|");
+        }
+      }
+      if (selectedDifficulty !== "all") params.difficulty = [selectedDifficulty];
+      if (selectedChapters.length > 0) params.chapters = selectedChapters;
+      if (selectedTopics.length > 0) params.topics = selectedTopics;
 
       let response;
 
@@ -123,14 +135,17 @@ export default function QuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedSubjects, selectedDifficulty, selectedChapters, selectedTopics]);
+  }, [selectedSubjects, selectedDifficulty, selectedChapters, selectedTopics, subjects]);
 
   React.useEffect(() => {
     const fetchSubjects = async () => {
       try {
         const response = await api.subjects.getAll();
-        // Backend returns { success, data: [...] }
-        setSubjects(response.data?.data || response.data?.subjects || []);
+        // Backend returns array directly
+        const subjectsData = Array.isArray(response.data)
+          ? response.data
+          : (response.data?.data || response.data?.subjects || []);
+        setSubjects(subjectsData);
       } catch (error) {
         console.error("Failed to fetch subjects:", error);
       }

@@ -12,6 +12,10 @@ function createApiClient(service: "users" | "questions" | "tests"): AxiosInstanc
     headers: {
       "Content-Type": "application/json",
     },
+    // Serialize arrays in a format Express understands (sub=a&sub=b instead of sub[]=a&sub[]=b)
+    paramsSerializer: {
+      indexes: null, // This removes the [] brackets from array params
+    },
   });
 
   // Request interceptor to add auth token
@@ -136,21 +140,22 @@ export const api = {
     delete: (id: string) => apiUsers.delete("/batch/delete", { data: { id } }),
   },
   institutes: {
+    // New Fastify routes use path params instead of query params
     getAll: () => apiUsers.get("/institute"),
-    create: (data: unknown) => apiUsers.post("/institute/create", data),
+    getById: (id: string) => apiUsers.get(`/institute/${id}`),
+    create: (data: unknown) => apiUsers.post("/institute", data),
     update: (id: string, data: Record<string, unknown>) =>
-      apiUsers.patch("/institute/update", { id, ...data }),
-    delete: (id: string) =>
-      apiUsers.delete("/institute/delete", { data: { id } }),
+      apiUsers.put(`/institute/${id}`, data),
+    delete: (id: string) => apiUsers.delete(`/institute/${id}`),
   },
   questions: {
-    getMCQ: (params?: { page?: number; size?: number; subject?: string }) =>
+    getMCQ: (params?: Record<string, unknown>) =>
       apiQuestions.get("/mcq/all", { params }),
-    getNumerical: (params?: { page?: number; size?: number; subject?: string }) =>
+    getNumerical: (params?: Record<string, unknown>) =>
       apiQuestions.get("/numerical/all", { params }),
-    getParagraph: (params?: { page?: number; size?: number; subject?: string }) =>
+    getParagraph: (params?: Record<string, unknown>) =>
       apiQuestions.get("/paragraph/all", { params }),
-    getMatrix: (params?: { page?: number; size?: number; subject?: string }) =>
+    getMatrix: (params?: Record<string, unknown>) =>
       apiQuestions.get("/matrix/all", { params }),
     getById: (id: string, type: string) =>
       apiQuestions.get(`/${type}/question/${id}`),
@@ -185,8 +190,10 @@ export const api = {
   tests: {
     getAll: (params?: { page?: number; size?: number; status?: string }) =>
       apiTests.get("/test", { params }),
-    getRecent: (limit?: number) =>
-      apiTests.get("/test/recent", { params: { limit } }),
+    getByStatus: (status: "active" | "ongoing" | "inactive" | "expired", batch?: string) =>
+      apiTests.get("/test", { params: { status, batch } }),
+    getRecent: (count?: number) =>
+      apiTests.get("/test/recent", { params: { count: count || 5 } }),
     getById: (id: string) => apiTests.get(`/test/${id}`),
     create: (data: unknown) => apiTests.post("/test/create", data),
     update: (data: unknown) => apiTests.patch("/test/update", data),
@@ -216,6 +223,10 @@ export const api = {
       apiTests.post("/exam/create", data),
     update: (data: unknown) => apiTests.patch("/exam/update", data),
     delete: (id: string) => apiTests.delete(`/exam/delete/${id}`),
+  },
+  sources: {
+    getAll: () => apiQuestions.get("/source/all"),
+    create: (data: { name: string }) => apiQuestions.post("/source/create", data),
   },
 };
 
