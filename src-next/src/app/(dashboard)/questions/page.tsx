@@ -5,25 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import {
-  MoreHorizontal,
   Plus,
   Edit,
   Trash2,
-  Eye,
   FileUp,
+  Download,
+  Check,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -40,8 +32,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from "@/components/ui/multi-select";
 import { api } from "@/lib/api";
-import { IQuestion, ISubject } from "@/types";
+import { IQuestion, ISubject, IChapter } from "@/types";
 import RenderWithLatex from "@/components/render-with-latex";
 
 const difficultyVariants: Record<string, "default" | "secondary" | "success" | "warning" | "destructive"> = {
@@ -50,20 +59,45 @@ const difficultyVariants: Record<string, "default" | "secondary" | "success" | "
   hard: "destructive",
 };
 
+const difficultyOptions = [
+  { value: "all", label: "All Difficulties" },
+  { value: "easy", label: "Easy" },
+  { value: "medium", label: "Medium" },
+  { value: "hard", label: "Hard" },
+];
+
 export default function QuestionsPage() {
   const router = useRouter();
   const [questions, setQuestions] = React.useState<IQuestion[]>([]);
   const [subjects, setSubjects] = React.useState<ISubject[]>([]);
+  const [chapters, setChapters] = React.useState<IChapter[]>([]);
+  const [topics, setTopics] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [questionToDelete, setQuestionToDelete] = React.useState<IQuestion | null>(null);
   const [activeTab, setActiveTab] = React.useState("mcq");
-  const [selectedSubject, setSelectedSubject] = React.useState<string>("all");
+
+  // Filters - using arrays for multi-select
+  const [selectedSubjects, setSelectedSubjects] = React.useState<string[]>([]);
+  const [selectedDifficulty, setSelectedDifficulty] = React.useState<string>("all");
+  const [selectedChapters, setSelectedChapters] = React.useState<string[]>([]);
+  const [selectedTopics, setSelectedTopics] = React.useState<string[]>([]);
+
+  // Preview sidebar
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [selectedQuestion, setSelectedQuestion] = React.useState<IQuestion | null>(null);
+  const [updatingProofread, setUpdatingProofread] = React.useState(false);
 
   const fetchQuestions = React.useCallback(async (type: string) => {
     setLoading(true);
     try {
-      const params = selectedSubject !== "all" ? { subject: selectedSubject } : {};
+      const params: Record<string, string> = {};
+      // For multi-select, join with comma for backend
+      if (selectedSubjects.length > 0) params.subject = selectedSubjects.join(",");
+      if (selectedDifficulty !== "all") params.difficulty = selectedDifficulty;
+      if (selectedChapters.length > 0) params.chapter = selectedChapters.join(",");
+      if (selectedTopics.length > 0) params.topic = selectedTopics.join(",");
+
       let response;
 
       switch (type) {
@@ -89,7 +123,7 @@ export default function QuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedSubject]);
+  }, [selectedSubjects, selectedDifficulty, selectedChapters, selectedTopics]);
 
   React.useEffect(() => {
     const fetchSubjects = async () => {
@@ -104,9 +138,55 @@ export default function QuestionsPage() {
     fetchSubjects();
   }, []);
 
+  // Update chapters when subjects change (collect from all selected subjects)
+  React.useEffect(() => {
+    if (selectedSubjects.length === 0) {
+      setChapters([]);
+      setSelectedChapters([]);
+      setTopics([]);
+      setSelectedTopics([]);
+      return;
+    }
+
+    // Collect chapters from all selected subjects
+    const allChapters: IChapter[] = [];
+    selectedSubjects.forEach((subjectId) => {
+      const subject = subjects.find((s) => s._id === subjectId);
+      if (subject?.chapters) {
+        allChapters.push(...subject.chapters);
+      }
+    });
+    setChapters(allChapters);
+    // Clear chapter selection when subjects change
+    setSelectedChapters([]);
+    setTopics([]);
+    setSelectedTopics([]);
+  }, [selectedSubjects, subjects]);
+
+  // Update topics when chapters change (collect from all selected chapters)
+  React.useEffect(() => {
+    if (selectedChapters.length === 0) {
+      setTopics([]);
+      setSelectedTopics([]);
+      return;
+    }
+
+    // Collect unique topics from all selected chapters
+    const allTopics = new Set<string>();
+    selectedChapters.forEach((chapterId) => {
+      const chapter = chapters.find((c) => c._id === chapterId || c.id === chapterId || c.name === chapterId);
+      if (chapter?.topics) {
+        chapter.topics.forEach((t) => allTopics.add(t));
+      }
+    });
+    setTopics(Array.from(allTopics));
+    // Clear topic selection when chapters change
+    setSelectedTopics([]);
+  }, [selectedChapters, chapters]);
+
   React.useEffect(() => {
     fetchQuestions(activeTab);
-  }, [activeTab, selectedSubject, fetchQuestions]);
+  }, [activeTab, fetchQuestions]);
 
   const handleDelete = async () => {
     if (!questionToDelete) return;
@@ -120,10 +200,78 @@ export default function QuestionsPage() {
     }
   };
 
+  const handleProofreadToggle = async (question: IQuestion, checked: boolean) => {
+    setUpdatingProofread(true);
+    try {
+      await api.questions.update(activeTab, question._id, { isProofRead: checked });
+      // Update local state
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q._id === question._id ? { ...q, isProofRead: checked } : q
+        )
+      );
+      // Update selected question if it's the same
+      if (selectedQuestion?._id === question._id) {
+        setSelectedQuestion({ ...selectedQuestion, isProofRead: checked });
+      }
+    } catch (error) {
+      console.error("Failed to update proofread status:", error);
+    } finally {
+      setUpdatingProofread(false);
+    }
+  };
+
   const stripHtml = (html: string) => {
     const tmp = document.createElement("div");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
+  };
+
+  const handleExportCSV = () => {
+    if (questions.length === 0) return;
+
+    const headers = ["ID", "Question", "Subject", "Chapter", "Topics", "Difficulty", "Status", "Uploaded By"];
+    const rows = questions.map((q) => {
+      const questionText = (q as unknown as { en?: { question?: string } })?.en?.question || "";
+      const subject = typeof q.subject === "string" ? q.subject : (q.subject as { name?: string })?.name || "";
+      const chapters = (q as unknown as { chapters?: Array<{ name: string; topics?: string[] }> })?.chapters;
+      const chapterNames = Array.isArray(chapters) ? chapters.map((ch) => ch.name).join("; ") : "";
+      const topicsList = Array.isArray(chapters)
+        ? chapters.flatMap((ch) => ch.topics || []).join("; ")
+        : "";
+      const uploadedBy = q.uploadedBy ? `${q.uploadedBy.userType} (${q.uploadedBy.id})` : "";
+
+      return [
+        q._id,
+        `"${stripHtml(questionText).replace(/"/g, '""')}"`,
+        subject,
+        chapterNames,
+        topicsList,
+        q.difficulty || "unset",
+        q.isProofRead ? "Proofread" : "Pending",
+        uploadedBy,
+      ];
+    });
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `questions_${activeTab}_${new Date().toISOString().split("T")[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const openPreview = (question: IQuestion) => {
+    setSelectedQuestion(question);
+    setPreviewOpen(true);
   };
 
   const columns: ColumnDef<IQuestion>[] = [
@@ -161,9 +309,33 @@ export default function QuestionsPage() {
       header: "Chapter",
       cell: ({ row }) => {
         // chapters is an array of { name, topics } objects
-        const chapters = (row.original as unknown as { chapters?: Array<{ name: string }> })?.chapters;
+        const chapters = (row.original as unknown as { chapters?: Array<{ name: string; topics?: string[] }> })?.chapters;
         if (Array.isArray(chapters) && chapters.length > 0) {
-          return chapters.map(ch => ch.name).join(", ");
+          return (
+            <span className="max-w-[150px] truncate block" title={chapters.map(ch => ch.name).join(", ")}>
+              {chapters.map(ch => ch.name).join(", ")}
+            </span>
+          );
+        }
+        return "-";
+      },
+    },
+    {
+      id: "topics",
+      header: "Topics",
+      cell: ({ row }) => {
+        const chapters = (row.original as unknown as { chapters?: Array<{ name: string; topics?: string[] }> })?.chapters;
+        const allTopics = Array.isArray(chapters)
+          ? chapters.flatMap((ch) => ch.topics || [])
+          : [];
+        if (allTopics.length > 0) {
+          const displayText = allTopics.slice(0, 2).join(", ");
+          const hasMore = allTopics.length > 2;
+          return (
+            <span className="max-w-[150px] truncate block" title={allTopics.join(", ")}>
+              {displayText}{hasMore && ` +${allTopics.length - 2}`}
+            </span>
+          );
         }
         return "-";
       },
@@ -174,8 +346,8 @@ export default function QuestionsPage() {
       cell: ({ row }) => {
         const difficulty = row.getValue("difficulty") as string;
         return (
-          <Badge variant={difficultyVariants[difficulty] || "default"}>
-            {difficulty?.charAt(0).toUpperCase() + difficulty?.slice(1)}
+          <Badge variant={difficultyVariants[difficulty?.toLowerCase()] || "default"}>
+            {difficulty?.charAt(0).toUpperCase() + difficulty?.slice(1).toLowerCase()}
           </Badge>
         );
       },
@@ -193,46 +365,36 @@ export default function QuestionsPage() {
       },
     },
     {
-      id: "actions",
+      id: "uploadedBy",
+      header: "Uploaded By",
+      cell: ({ row }) => {
+        const uploadedBy = row.original.uploadedBy;
+        if (uploadedBy?.userType && uploadedBy?.id) {
+          return (
+            <span className="text-sm text-muted-foreground">
+              {uploadedBy.userType}
+            </span>
+          );
+        }
+        return "-";
+      },
+    },
+    {
+      id: "edit",
+      header: "Edit",
       cell: ({ row }) => {
         const question = row.original;
-
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/questions/${question._id}/edit?type=${activeTab}`}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/questions/${question._id}/preview?type=${activeTab}`}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  Preview
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => {
-                  setQuestionToDelete(question);
-                  setDeleteDialogOpen(true);
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/questions/${question._id}/edit?type=${activeTab}`);
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
         );
       },
     },
@@ -248,6 +410,10 @@ export default function QuestionsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV} disabled={questions.length === 0}>
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
           <Button variant="outline" asChild>
             <Link href="/questions/bulk-upload">
               <FileUp className="mr-2 h-4 w-4" />
@@ -263,17 +429,75 @@ export default function QuestionsPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="w-64">
-          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="w-56">
+          <MultiSelect values={selectedSubjects} onValuesChange={setSelectedSubjects}>
+            <MultiSelectTrigger>
+              <MultiSelectValue placeholder="Filter by subject" />
+            </MultiSelectTrigger>
+            <MultiSelectContent
+              search={{ placeholder: "Search subjects...", emptyMessage: "No subjects found" }}
+            >
+              {subjects.map((subject) => (
+                <MultiSelectItem key={subject._id} value={subject._id}>
+                  {subject.name}
+                </MultiSelectItem>
+              ))}
+            </MultiSelectContent>
+          </MultiSelect>
+        </div>
+
+        <div className="w-56">
+          <MultiSelect
+            values={selectedChapters}
+            onValuesChange={setSelectedChapters}
+            disabled={selectedSubjects.length === 0 || chapters.length === 0}
+          >
+            <MultiSelectTrigger>
+              <MultiSelectValue placeholder="Filter by chapter" />
+            </MultiSelectTrigger>
+            <MultiSelectContent
+              search={{ placeholder: "Search chapters...", emptyMessage: "No chapters found" }}
+            >
+              {chapters.map((chapter) => (
+                <MultiSelectItem key={chapter._id || chapter.id || chapter.name} value={chapter.name}>
+                  {chapter.name}
+                </MultiSelectItem>
+              ))}
+            </MultiSelectContent>
+          </MultiSelect>
+        </div>
+
+        <div className="w-56">
+          <MultiSelect
+            values={selectedTopics}
+            onValuesChange={setSelectedTopics}
+            disabled={selectedChapters.length === 0 || topics.length === 0}
+          >
+            <MultiSelectTrigger>
+              <MultiSelectValue placeholder="Filter by topic" />
+            </MultiSelectTrigger>
+            <MultiSelectContent
+              search={{ placeholder: "Search topics...", emptyMessage: "No topics found" }}
+            >
+              {topics.map((topic) => (
+                <MultiSelectItem key={topic} value={topic}>
+                  {topic}
+                </MultiSelectItem>
+              ))}
+            </MultiSelectContent>
+          </MultiSelect>
+        </div>
+
+        <div className="w-48">
+          <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
             <SelectTrigger>
-              <SelectValue placeholder="Filter by subject" />
+              <SelectValue placeholder="Filter by difficulty" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Subjects</SelectItem>
-              {subjects.map((subject) => (
-                <SelectItem key={subject._id} value={subject._id}>
-                  {subject.name}
+              {difficultyOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -299,11 +523,308 @@ export default function QuestionsPage() {
               data={questions}
               searchKey="question"
               searchPlaceholder="Search questions..."
-              onRowClick={(question) => router.push(`/questions/${question._id}/preview?type=${activeTab}`)}
+              onRowClick={(question) => openPreview(question)}
             />
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Preview Sidebar */}
+      <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
+        <SheetContent className="w-[600px] sm:max-w-[600px] flex flex-col overflow-hidden">
+          <SheetHeader>
+            <SheetTitle>Question Preview</SheetTitle>
+            <SheetDescription>
+              View question details and manage proofread status
+            </SheetDescription>
+          </SheetHeader>
+
+          {selectedQuestion && (
+            <div className="mt-6 space-y-6 flex-1 overflow-y-auto pr-2">
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button asChild>
+                  <Link href={`/questions/${selectedQuestion._id}/edit?type=${activeTab}`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Question
+                  </Link>
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setQuestionToDelete(selectedQuestion);
+                    setDeleteDialogOpen(true);
+                    setPreviewOpen(false);
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
+              </div>
+
+              <Separator />
+
+              {/* Proofread Toggle */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="proofread-toggle">Proofread Status</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Mark this question as proofread
+                  </p>
+                </div>
+                <Switch
+                  id="proofread-toggle"
+                  checked={selectedQuestion.isProofRead || false}
+                  onCheckedChange={(checked) => handleProofreadToggle(selectedQuestion, checked)}
+                  disabled={updatingProofread}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Question Content */}
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Question</h4>
+                  <div className="rounded-md border p-4 bg-muted/30">
+                    <RenderWithLatex
+                      quillString={(selectedQuestion as unknown as { en?: { question?: string } })?.en?.question || ""}
+                    />
+                  </div>
+                </div>
+
+                {/* Options for MCQ */}
+                {(selectedQuestion.type === "single" || selectedQuestion.type === "multiple") && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Options</h4>
+                    <div className="space-y-2">
+                      {((selectedQuestion as unknown as { en?: { options?: Array<{ id: string; value: string }> } })?.en?.options || []).map((option, idx) => {
+                        const isCorrect = (selectedQuestion as unknown as { correctAnswers?: string[] })?.correctAnswers?.includes(option.id);
+                        return (
+                          <div
+                            key={option.id}
+                            className={`rounded-md border p-3 ${isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950/30" : "bg-muted/30"}`}
+                          >
+                            <div className="flex items-start gap-2">
+                              <span className="font-medium text-sm">
+                                {String.fromCharCode(65 + idx)}.
+                              </span>
+                              <div className="flex-1">
+                                <RenderWithLatex quillString={option.value} />
+                              </div>
+                              {isCorrect && (
+                                <Check className="h-4 w-4 text-green-600 shrink-0" />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Correct Answer for Integer */}
+                {selectedQuestion.type === "integer" && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Correct Answer</h4>
+                    <div className="rounded-md border p-3 bg-green-50 dark:bg-green-950/30 border-green-500">
+                      <span className="font-medium">
+                        {(selectedQuestion as unknown as { correctAnswer?: { from: number; to: number } })?.correctAnswer?.from}
+                        {(selectedQuestion as unknown as { correctAnswer?: { from: number; to: number } })?.correctAnswer?.from !==
+                          (selectedQuestion as unknown as { correctAnswer?: { from: number; to: number } })?.correctAnswer?.to &&
+                          ` - ${(selectedQuestion as unknown as { correctAnswer?: { from: number; to: number } })?.correctAnswer?.to}`}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Paragraph Question */}
+                {selectedQuestion.type === "paragraph" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Passage</h4>
+                      <div className="rounded-md border p-4 bg-muted/30">
+                        <RenderWithLatex
+                          quillString={
+                            (selectedQuestion as unknown as { paragraph?: { en?: { value: string } } })?.paragraph?.en?.value || ""
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">
+                        Questions ({(selectedQuestion as unknown as { questions?: unknown[] })?.questions?.length || 0})
+                      </h4>
+                      <div className="space-y-4">
+                        {((selectedQuestion as unknown as { questions?: Array<{
+                          id: string;
+                          type: string;
+                          en?: { question: string; options?: Array<{ id: string; value: string }> };
+                          correctAnswers?: string[];
+                          correctAnswer?: { from: number; to: number };
+                        }> })?.questions || []).map((childQ, idx) => (
+                          <div key={childQ.id || idx} className="rounded-md border p-4 bg-muted/20">
+                            <div className="flex items-start gap-2 mb-3">
+                              <span className="font-medium text-sm shrink-0">Q{idx + 1}.</span>
+                              <RenderWithLatex quillString={childQ.en?.question || ""} />
+                            </div>
+                            {/* Child question options */}
+                            {(childQ.type === "single" || childQ.type === "multiple") && childQ.en?.options && (
+                              <div className="space-y-2 ml-6">
+                                {childQ.en.options.map((opt, optIdx) => {
+                                  const isCorrect = childQ.correctAnswers?.includes(opt.id);
+                                  return (
+                                    <div
+                                      key={opt.id}
+                                      className={`rounded-md border p-2 text-sm ${isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950/30" : "bg-background"}`}
+                                    >
+                                      <div className="flex items-start gap-2">
+                                        <span className="font-medium">{String.fromCharCode(65 + optIdx)}.</span>
+                                        <div className="flex-1">
+                                          <RenderWithLatex quillString={opt.value} />
+                                        </div>
+                                        {isCorrect && <Check className="h-3 w-3 text-green-600 shrink-0" />}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {/* Child question integer answer */}
+                            {childQ.type === "integer" && childQ.correctAnswer && (
+                              <div className="ml-6 mt-2">
+                                <span className="text-sm text-muted-foreground">Answer: </span>
+                                <span className="font-medium text-green-600">
+                                  {childQ.correctAnswer.from}
+                                  {childQ.correctAnswer.from !== childQ.correctAnswer.to && ` - ${childQ.correctAnswer.to}`}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Matrix Question */}
+                {selectedQuestion.type === "matrix" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Answer Matrix</h4>
+                      <div className="rounded-md border p-4 bg-muted/30 overflow-x-auto">
+                        {(() => {
+                          const matrix = (selectedQuestion as unknown as { correctAnswer?: boolean[][] })?.correctAnswer || [];
+                          if (matrix.length === 0) return <p className="text-sm text-muted-foreground">No matrix data</p>;
+
+                          const cols = matrix[0]?.length || 0;
+                          return (
+                            <table className="border-collapse">
+                              <thead>
+                                <tr>
+                                  <th className="p-2 text-sm font-medium"></th>
+                                  {Array(cols).fill(0).map((_, i) => (
+                                    <th key={i} className="p-2 text-sm font-medium text-center min-w-[40px]">
+                                      C{i + 1}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {matrix.map((row, rowIdx) => (
+                                  <tr key={rowIdx}>
+                                    <td className="p-2 text-sm font-medium">R{rowIdx + 1}</td>
+                                    {row.map((cell, colIdx) => (
+                                      <td key={colIdx} className="p-2 text-center">
+                                        <div className={`w-6 h-6 mx-auto rounded border flex items-center justify-center ${
+                                          cell ? "bg-green-500 border-green-600 text-white" : "bg-muted border-border"
+                                        }`}>
+                                          {cell && <Check className="h-4 w-4" />}
+                                        </div>
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Solution */}
+                {(selectedQuestion as unknown as { en?: { solution?: string } })?.en?.solution && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Solution</h4>
+                    <div className="rounded-md border p-4 bg-muted/30">
+                      <RenderWithLatex
+                        quillString={(selectedQuestion as unknown as { en?: { solution?: string } })?.en?.solution || ""}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* Metadata */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Subject:</span>
+                    <p className="font-medium">
+                      {typeof selectedQuestion.subject === "string"
+                        ? selectedQuestion.subject
+                        : (selectedQuestion.subject as { name?: string })?.name || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Difficulty:</span>
+                    <p>
+                      <Badge variant={difficultyVariants[selectedQuestion.difficulty?.toLowerCase()] || "default"}>
+                        {selectedQuestion.difficulty?.charAt(0).toUpperCase() +
+                          selectedQuestion.difficulty?.slice(1).toLowerCase()}
+                      </Badge>
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Chapters:</span>
+                    <p className="font-medium">
+                      {(selectedQuestion as unknown as { chapters?: Array<{ name: string }> })?.chapters
+                        ?.map((ch) => ch.name)
+                        .join(", ") || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Topics:</span>
+                    <p className="font-medium">
+                      {(selectedQuestion as unknown as { chapters?: Array<{ name: string; topics?: string[] }> })?.chapters
+                        ?.flatMap((ch) => ch.topics || [])
+                        .join(", ") || "-"}
+                    </p>
+                  </div>
+                  {selectedQuestion.uploadedBy && (
+                    <div>
+                      <span className="text-muted-foreground">Uploaded By:</span>
+                      <p className="font-medium">
+                        {selectedQuestion.uploadedBy.userType} ({selectedQuestion.uploadedBy.id})
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-muted-foreground">Status:</span>
+                    <p>
+                      <Badge variant={selectedQuestion.isProofRead ? "success" : "secondary"}>
+                        {selectedQuestion.isProofRead ? "Proofread" : "Pending"}
+                      </Badge>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>

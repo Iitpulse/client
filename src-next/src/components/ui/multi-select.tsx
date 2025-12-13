@@ -36,6 +36,7 @@ type MultiSelectContextType = {
   toggleValue: (value: string) => void
   items: Map<string, ReactNode>
   onItemAdded: (value: string, label: ReactNode) => void
+  disabled?: boolean
 }
 const MultiSelectContext = createContext<MultiSelectContextType | null>(null)
 
@@ -44,11 +45,13 @@ export function MultiSelect({
   values,
   defaultValues,
   onValuesChange,
+  disabled = false,
 }: {
   children: ReactNode
   values?: string[]
   defaultValues?: string[]
   onValuesChange?: (values: string[]) => void
+  disabled?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [internalValues, setInternalValues] = useState(
@@ -87,9 +90,10 @@ export function MultiSelect({
         toggleValue,
         items,
         onItemAdded,
+        disabled,
       }}
     >
-      <Popover open={open} onOpenChange={setOpen} modal={true}>
+      <Popover open={disabled ? false : open} onOpenChange={disabled ? undefined : setOpen} modal={true}>
         {children}
       </Popover>
     </MultiSelectContext.Provider>
@@ -104,7 +108,7 @@ export function MultiSelectTrigger({
   className?: string
   children?: ReactNode
 } & ComponentPropsWithoutRef<typeof Button>) {
-  const { open } = useMultiSelectContext()
+  const { open, disabled } = useMultiSelectContext()
 
   return (
     <PopoverTrigger asChild>
@@ -113,6 +117,7 @@ export function MultiSelectTrigger({
         variant={props.variant ?? "outline"}
         role={props.role ?? "combobox"}
         aria-expanded={props["aria-expanded"] ?? open}
+        disabled={disabled}
         className={cn(
           "flex h-auto min-h-9 w-full items-center justify-between gap-2 overflow-hidden rounded-md border border-input bg-transparent px-3 py-1.5 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[placeholder]:text-muted-foreground dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
           className,
