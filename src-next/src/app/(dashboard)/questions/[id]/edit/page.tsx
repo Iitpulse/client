@@ -34,6 +34,13 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from "@/components/ui/multi-select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -43,6 +50,7 @@ import {
 } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { ISubject, IChapter, IExam } from "@/types";
+import RenderWithLatex from "@/components/render-with-latex";
 
 // Dynamic import for ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), {
@@ -206,52 +214,61 @@ export default function EditQuestionPage() {
           api.subjects.getAll(),
           api.exams.getAll(),
         ]);
-        setSubjects(subjectsRes.data?.subjects || []);
-        setExams(examsRes.data?.exams || []);
+        // API returns { success, data: [...] }
+        setSubjects(subjectsRes.data?.data || subjectsRes.data?.subjects || []);
+        setExams(examsRes.data?.data || examsRes.data?.exams || []);
 
         // Fetch the question
         const apiType = getApiType(questionTypeParam);
         const questionRes = await api.questions.getById(questionId, apiType);
-        const question = questionRes.data?.question;
+        // API returns { success, data: {...} }
+        const question = questionRes.data?.data || questionRes.data?.question;
 
         if (question) {
-          // Set basic fields
-          setQuestionEn(question.question || question.en?.question || "");
+          // Set basic fields - data is in en/hi nested objects
+          setQuestionEn(question.en?.question || question.question || "");
           setQuestionHi(question.hi?.question || question.questionHindi || "");
-          setSolutionEn(question.solution || question.en?.solution || "");
+          setSolutionEn(question.en?.solution || question.solution || "");
           setSolutionHi(question.hi?.solution || question.solutionHindi || "");
-          setDifficulty(question.difficulty || "medium");
+          setDifficulty(question.difficulty?.toLowerCase() || "medium");
           setIsProofread(question.isProofRead || false);
-          setSource(question.source || "");
+          setSource(question.sources?.[0] || question.source || "");
 
-          // Subject
-          const subjectId =
-            typeof question.subject === "object"
-              ? question.subject._id
-              : question.subject;
-          if (subjectId) {
+          // Subject - can be string (name) or object with _id
+          const subjectValue = question.subject;
+          if (subjectValue) {
+            // Subject might be stored as name string, not ID
+            const subjectId = typeof subjectValue === "object" ? subjectValue._id : subjectValue;
             setSelectedSubject(subjectId);
             const chaptersRes = await api.subjects.getChapters(subjectId);
-            setChapters(chaptersRes.data?.chapters || []);
+            setChapters(chaptersRes.data?.data || chaptersRes.data?.chapters || []);
           }
 
-          // Chapters
+          // Chapters - stored as array of { name, topics } objects
           if (question.chapters && Array.isArray(question.chapters)) {
-            setSelectedChapters(
-              question.chapters.map((c: string | { _id: string }) =>
-                typeof c === "object" ? c._id : c
-              )
+            // Chapters are stored as { name, topics } - extract names
+            const chapterNames = question.chapters.map((c: string | { _id?: string; name?: string }) =>
+              typeof c === "object" ? (c.name || c._id || "") : c
             );
+            setSelectedChapters(chapterNames);
+
+            // Extract topics from chapters
+            const topicsFromChapters = question.chapters.flatMap(
+              (c: { topics?: string[] }) => c.topics || []
+            );
+            if (topicsFromChapters.length > 0) {
+              setSelectedTopics(topicsFromChapters);
+            }
           } else if (question.chapter) {
             const chapterId =
               typeof question.chapter === "object"
-                ? question.chapter._id
+                ? question.chapter._id || question.chapter.name
                 : question.chapter;
             setSelectedChapters([chapterId]);
           }
 
-          // Topics
-          if (question.topics && Array.isArray(question.topics)) {
+          // Topics (if stored separately)
+          if (question.topics && Array.isArray(question.topics) && question.topics.length > 0) {
             setSelectedTopics(question.topics);
           }
 
@@ -265,25 +282,35 @@ export default function EditQuestionPage() {
           }
 
           // Type-specific data
-          if (questionTypeParam === "objective" && question.options) {
-            setOptions(
-              question.options.map(
-                (opt: {
-                  option?: string;
-                  text?: string;
-                  optionHindi?: string;
-                  textHindi?: string;
-                  isCorrect?: boolean;
-                }) => ({
-                  text: opt.option || opt.text || "",
-                  textHindi: opt.optionHindi || opt.textHindi || "",
-                  isCorrect: opt.isCorrect || false,
-                })
-              )
-            );
+          if (questionTypeParam === "objective") {
+            // Options are in en.options with { id, value } format
+            // Correct answers are in correctAnswers array (array of option IDs)
+            const enOptions = question.en?.options || question.options || [];
+            const hiOptions = question.hi?.options || [];
+            const correctAnswers = question.correctAnswers || [];
+
+            if (enOptions.length > 0) {
+              setOptions(
+                enOptions.map(
+                  (opt: { id?: string; value?: string; option?: string; text?: string; isCorrect?: boolean }, idx: number) => {
+                    const hiOpt = hiOptions[idx] || {};
+                    // Check if this option is correct by comparing ID with correctAnswers array
+                    const isCorrect = opt.id
+                      ? correctAnswers.includes(opt.id)
+                      : opt.isCorrect || false;
+                    return {
+                      text: opt.value || opt.option || opt.text || "",
+                      textHindi: (hiOpt as { value?: string }).value || "",
+                      isCorrect,
+                    };
+                  }
+                )
+              );
+            }
           } else if (questionTypeParam === "integer") {
-            setAnswerFrom(question.answerFrom ?? question.answer ?? 0);
-            setAnswerTo(question.answerTo ?? question.answer ?? 0);
+            // Numerical answers are in correctAnswer: { from, to }
+            setAnswerFrom(question.correctAnswer?.from ?? question.answerFrom ?? question.answer ?? 0);
+            setAnswerTo(question.correctAnswer?.to ?? question.answerTo ?? question.answer ?? 0);
           } else if (questionTypeParam === "paragraph") {
             setParagraphText(question.paragraph || question.passage || "");
             setParagraphTextHindi(
@@ -473,7 +500,10 @@ export default function EditQuestionPage() {
         solution: solutionEn,
         solutionHindi: solutionHi,
         subject: selectedSubject,
-        chapters: selectedChapters,
+        chapters: selectedChapters.map((chName) => {
+          const ch = chapters.find((c) => c.name === chName);
+          return { name: chName, topics: selectedTopics.filter((t) => ch?.topics?.includes(t)) };
+        }),
         topics: selectedTopics,
         exams: selectedExams,
         difficulty,
@@ -1111,105 +1141,73 @@ export default function EditQuestionPage() {
               {/* Chapters */}
               <div className="space-y-2">
                 <Label>Chapters</Label>
-                <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border p-2">
-                  {chapters.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      Select a subject first
-                    </p>
-                  ) : (
-                    chapters.map((chapter) => (
-                      <div
-                        key={chapter._id}
-                        className="flex items-center gap-2"
-                      >
-                        <Checkbox
-                          id={`chapter-${chapter._id}`}
-                          checked={selectedChapters.includes(chapter._id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedChapters([
-                                ...selectedChapters,
-                                chapter._id,
-                              ]);
-                            } else {
-                              setSelectedChapters(
-                                selectedChapters.filter(
-                                  (id) => id !== chapter._id
-                                )
-                              );
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={`chapter-${chapter._id}`}
-                          className="text-sm"
-                        >
+                {chapters.length === 0 ? (
+                  <p className="text-sm text-muted-foreground rounded-md border p-2">
+                    Select a subject first
+                  </p>
+                ) : (
+                  <MultiSelect
+                    values={selectedChapters}
+                    onValuesChange={setSelectedChapters}
+                  >
+                    <MultiSelectTrigger>
+                      <MultiSelectValue placeholder="Select chapters" />
+                    </MultiSelectTrigger>
+                    <MultiSelectContent search={{ placeholder: "Search chapters...", emptyMessage: "No chapters found" }}>
+                      {chapters.map((chapter) => (
+                        <MultiSelectItem key={chapter._id} value={chapter.name}>
                           {chapter.name}
-                        </label>
-                      </div>
-                    ))
-                  )}
-                </div>
+                        </MultiSelectItem>
+                      ))}
+                    </MultiSelectContent>
+                  </MultiSelect>
+                )}
               </div>
 
               {/* Topics */}
               <div className="space-y-2">
                 <Label>Topics</Label>
-                <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border p-2">
-                  {allTopics.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      No topics available
-                    </p>
-                  ) : (
-                    allTopics.map((topic) => (
-                      <div key={topic} className="flex items-center gap-2">
-                        <Checkbox
-                          id={`topic-${topic}`}
-                          checked={selectedTopics.includes(topic)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedTopics([...selectedTopics, topic]);
-                            } else {
-                              setSelectedTopics(
-                                selectedTopics.filter((t) => t !== topic)
-                              );
-                            }
-                          }}
-                        />
-                        <label htmlFor={`topic-${topic}`} className="text-sm">
+                {allTopics.length === 0 ? (
+                  <p className="text-sm text-muted-foreground rounded-md border p-2">
+                    No topics available
+                  </p>
+                ) : (
+                  <MultiSelect
+                    values={selectedTopics}
+                    onValuesChange={setSelectedTopics}
+                  >
+                    <MultiSelectTrigger>
+                      <MultiSelectValue placeholder="Select topics" />
+                    </MultiSelectTrigger>
+                    <MultiSelectContent search={{ placeholder: "Search topics...", emptyMessage: "No topics found" }}>
+                      {allTopics.map((topic) => (
+                        <MultiSelectItem key={topic} value={topic}>
                           {topic}
-                        </label>
-                      </div>
-                    ))
-                  )}
-                </div>
+                        </MultiSelectItem>
+                      ))}
+                    </MultiSelectContent>
+                  </MultiSelect>
+                )}
               </div>
 
               {/* Exams */}
               <div className="space-y-2">
                 <Label>Exams</Label>
-                <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border p-2">
-                  {exams.map((exam) => (
-                    <div key={exam._id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`exam-${exam._id}`}
-                        checked={selectedExams.includes(exam._id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedExams([...selectedExams, exam._id]);
-                          } else {
-                            setSelectedExams(
-                              selectedExams.filter((id) => id !== exam._id)
-                            );
-                          }
-                        }}
-                      />
-                      <label htmlFor={`exam-${exam._id}`} className="text-sm">
+                <MultiSelect
+                  values={selectedExams}
+                  onValuesChange={setSelectedExams}
+                >
+                  <MultiSelectTrigger>
+                    <MultiSelectValue placeholder="Select exams" />
+                  </MultiSelectTrigger>
+                  <MultiSelectContent search={{ placeholder: "Search exams...", emptyMessage: "No exams found" }}>
+                    {exams.map((exam) => (
+                      <MultiSelectItem key={exam._id} value={exam._id}>
                         {exam.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                      </MultiSelectItem>
+                    ))}
+                  </MultiSelectContent>
+                </MultiSelect>
               </div>
 
               {/* Difficulty */}
@@ -1273,19 +1271,13 @@ export default function EditQuestionPage() {
             {questionType === "paragraph" && paragraphText && (
               <div className="rounded-lg bg-muted p-4">
                 <h4 className="mb-2 font-semibold">Paragraph:</h4>
-                <div
-                  className="prose prose-sm dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: paragraphText }}
-                />
+                <RenderWithLatex quillString={paragraphText} />
               </div>
             )}
 
             <div className="rounded-lg border p-4">
               <h4 className="mb-2 font-semibold">Question:</h4>
-              <div
-                className="prose prose-sm dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: questionEn }}
-              />
+              <RenderWithLatex quillString={questionEn} />
             </div>
 
             {questionType === "objective" && (
@@ -1294,16 +1286,18 @@ export default function EditQuestionPage() {
                 {options.map((opt, idx) => (
                   <div
                     key={idx}
-                    className={`rounded-lg border p-3 ${
+                    className={`flex items-start gap-2 rounded-lg border p-3 ${
                       opt.isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950" : ""
                     }`}
                   >
-                    <span className="mr-2 font-medium">
+                    <span className="font-medium">
                       {String.fromCharCode(65 + idx)}.
                     </span>
-                    <span dangerouslySetInnerHTML={{ __html: opt.text }} />
+                    <div className="flex-1">
+                      <RenderWithLatex quillString={opt.text} />
+                    </div>
                     {opt.isCorrect && (
-                      <Badge variant="default" className="ml-2">
+                      <Badge variant="default">
                         Correct
                       </Badge>
                     )}
@@ -1324,10 +1318,7 @@ export default function EditQuestionPage() {
             {solutionEn && (
               <div className="rounded-lg border p-4">
                 <h4 className="mb-2 font-semibold">Solution:</h4>
-                <div
-                  className="prose prose-sm dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: solutionEn }}
-                />
+                <RenderWithLatex quillString={solutionEn} />
               </div>
             )}
           </div>

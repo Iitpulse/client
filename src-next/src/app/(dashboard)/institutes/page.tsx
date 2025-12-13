@@ -48,7 +48,8 @@ export default function InstitutesPage() {
   const fetchInstitutes = React.useCallback(async () => {
     try {
       const response = await api.institutes.getAll();
-      setInstitutes(response.data?.institutes || []);
+      // Backend returns { success, data: [...] }
+      setInstitutes(response.data?.data || response.data?.institutes || []);
     } catch (error) {
       console.error("Failed to fetch institutes:", error);
     } finally {

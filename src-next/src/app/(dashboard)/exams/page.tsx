@@ -62,7 +62,8 @@ export default function ExamsPage() {
   const fetchExams = async () => {
     try {
       const response = await api.exams.getAll();
-      setExams(response.data?.exams || []);
+      // Backend returns { success, data: [...] }
+      setExams(response.data?.data || response.data?.exams || []);
     } catch (error) {
       console.error("Failed to fetch exams:", error);
     } finally {

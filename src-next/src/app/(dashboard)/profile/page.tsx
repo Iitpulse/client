@@ -139,13 +139,13 @@ export default function ProfilePage() {
                   <span>Institute ID: {currentUser.instituteId}</span>
                 </div>
               )}
-              {currentUser?.roles && currentUser.roles.length > 0 && (
+              {currentUser?.roles && Object.keys(currentUser.roles).length > 0 && (
                 <div>
                   <p className="text-muted-foreground">Roles:</p>
                   <div className="mt-1 flex flex-wrap gap-1">
-                    {currentUser.roles.map((role) => (
-                      <Badge key={role} variant="outline" className="text-xs">
-                        {role}
+                    {Object.keys(currentUser.roles).map((roleId) => (
+                      <Badge key={roleId} variant="outline" className="text-xs">
+                        {roleId}
                       </Badge>
                     ))}
                   </div>

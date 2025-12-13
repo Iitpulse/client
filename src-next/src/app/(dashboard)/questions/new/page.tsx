@@ -27,6 +27,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from "@/components/ui/multi-select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -34,6 +41,7 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { ISubject, IChapter, IExam } from "@/types";
+import RenderWithLatex from "@/components/render-with-latex";
 
 // Dynamic import for ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -165,8 +173,8 @@ export default function CreateQuestionPage() {
   // Get available topics from selected chapters
   const availableTopics = React.useMemo(() => {
     const topics: string[] = [];
-    selectedChapters.forEach((chapterId) => {
-      const chapter = chapters.find((c) => c._id === chapterId);
+    selectedChapters.forEach((chapterName) => {
+      const chapter = chapters.find((c) => c.name === chapterName);
       if (chapter?.topics) {
         topics.push(...chapter.topics);
       }
@@ -258,9 +266,9 @@ export default function CreateQuestionPage() {
     try {
       let questionData: Record<string, unknown> = {
         subject: selectedSubject,
-        chapters: selectedChapters.map((chId) => {
-          const ch = chapters.find((c) => c._id === chId);
-          return { name: ch?.name, topics: selectedTopics.filter((t) => ch?.topics?.includes(t)) };
+        chapters: selectedChapters.map((chName) => {
+          const ch = chapters.find((c) => c.name === chName);
+          return { name: chName, topics: selectedTopics.filter((t) => ch?.topics?.includes(t)) };
         }),
         difficulty,
         exams: selectedExams,
@@ -436,80 +444,65 @@ export default function CreateQuestionPage() {
 
             <div className="space-y-2">
               <Label>Chapters</Label>
-              <div className="max-h-32 space-y-2 overflow-y-auto rounded-md border p-2">
-                {chapters.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Select a subject first</p>
-                ) : (
-                  chapters.map((chapter) => (
-                    <div key={chapter._id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={chapter._id}
-                        checked={selectedChapters.includes(chapter._id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedChapters([...selectedChapters, chapter._id]);
-                          } else {
-                            setSelectedChapters(selectedChapters.filter((id) => id !== chapter._id));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={chapter._id} className="text-sm cursor-pointer">
+              {chapters.length === 0 ? (
+                <p className="text-sm text-muted-foreground rounded-md border p-2">Select a subject first</p>
+              ) : (
+                <MultiSelect
+                  values={selectedChapters}
+                  onValuesChange={setSelectedChapters}
+                >
+                  <MultiSelectTrigger>
+                    <MultiSelectValue placeholder="Select chapters" />
+                  </MultiSelectTrigger>
+                  <MultiSelectContent search={{ placeholder: "Search chapters...", emptyMessage: "No chapters found" }}>
+                    {chapters.map((chapter) => (
+                      <MultiSelectItem key={chapter._id} value={chapter.name}>
                         {chapter.name}
-                      </Label>
-                    </div>
-                  ))
-                )}
-              </div>
+                      </MultiSelectItem>
+                    ))}
+                  </MultiSelectContent>
+                </MultiSelect>
+              )}
             </div>
 
             {availableTopics.length > 0 && (
               <div className="space-y-2">
                 <Label>Topics</Label>
-                <div className="max-h-32 space-y-2 overflow-y-auto rounded-md border p-2">
-                  {availableTopics.map((topic) => (
-                    <div key={topic} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`topic-${topic}`}
-                        checked={selectedTopics.includes(topic)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedTopics([...selectedTopics, topic]);
-                          } else {
-                            setSelectedTopics(selectedTopics.filter((t) => t !== topic));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={`topic-${topic}`} className="text-sm cursor-pointer">
+                <MultiSelect
+                  values={selectedTopics}
+                  onValuesChange={setSelectedTopics}
+                >
+                  <MultiSelectTrigger>
+                    <MultiSelectValue placeholder="Select topics" />
+                  </MultiSelectTrigger>
+                  <MultiSelectContent search={{ placeholder: "Search topics...", emptyMessage: "No topics found" }}>
+                    {availableTopics.map((topic) => (
+                      <MultiSelectItem key={topic} value={topic}>
                         {topic}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+                      </MultiSelectItem>
+                    ))}
+                  </MultiSelectContent>
+                </MultiSelect>
               </div>
             )}
 
             <div className="space-y-2">
               <Label>Exams</Label>
-              <div className="max-h-24 space-y-2 overflow-y-auto rounded-md border p-2">
-                {exams.map((exam) => (
-                  <div key={exam._id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`exam-${exam._id}`}
-                      checked={selectedExams.includes(exam.name)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedExams([...selectedExams, exam.name]);
-                        } else {
-                          setSelectedExams(selectedExams.filter((e) => e !== exam.name));
-                        }
-                      }}
-                    />
-                    <Label htmlFor={`exam-${exam._id}`} className="text-sm cursor-pointer">
+              <MultiSelect
+                values={selectedExams}
+                onValuesChange={setSelectedExams}
+              >
+                <MultiSelectTrigger>
+                  <MultiSelectValue placeholder="Select exams" />
+                </MultiSelectTrigger>
+                <MultiSelectContent search={{ placeholder: "Search exams...", emptyMessage: "No exams found" }}>
+                  {exams.map((exam) => (
+                    <MultiSelectItem key={exam._id} value={exam.name}>
                       {exam.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+                    </MultiSelectItem>
+                  ))}
+                </MultiSelectContent>
+              </MultiSelect>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -888,35 +881,45 @@ export default function CreateQuestionPage() {
             <DialogTitle>Question Preview</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            {questionType === "paragraph" && paragraphEn && (
+              <div className="rounded-lg bg-muted p-4">
+                <h4 className="font-semibold mb-2">Paragraph:</h4>
+                <RenderWithLatex quillString={paragraphEn} />
+              </div>
+            )}
+            <div className="rounded-lg border p-4">
               <h4 className="font-semibold mb-2">Question:</h4>
-              <div
-                className="prose prose-sm"
-                dangerouslySetInnerHTML={{ __html: questionEn || paragraphEn || "No content" }}
-              />
+              <RenderWithLatex quillString={questionEn || "No content"} />
             </div>
             {questionType === "objective" && (
-              <div>
+              <div className="space-y-2">
                 <h4 className="font-semibold mb-2">Options:</h4>
-                <div className="space-y-2">
-                  {options.map((opt, i) => (
-                    <div
-                      key={opt.id}
-                      className={`p-2 rounded ${opt.isCorrect ? "bg-green-100" : "bg-gray-50"}`}
-                    >
-                      {String.fromCharCode(65 + i)}. {opt.value || "(empty)"}
+                {options.map((opt, i) => (
+                  <div
+                    key={opt.id}
+                    className={`flex items-start gap-2 p-3 rounded-lg border ${opt.isCorrect ? "bg-green-50 border-green-500 dark:bg-green-950" : "bg-gray-50 dark:bg-gray-900"}`}
+                  >
+                    <span className="font-medium">{String.fromCharCode(65 + i)}.</span>
+                    <div className="flex-1">
+                      <RenderWithLatex quillString={opt.value || "(empty)"} />
                     </div>
-                  ))}
-                </div>
+                    {opt.isCorrect && (
+                      <Badge variant="default">Correct</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {questionType === "integer" && (
+              <div className="rounded-lg border p-4">
+                <h4 className="font-semibold mb-2">Answer Range:</h4>
+                <p>{answerFrom || 0} to {answerTo || answerFrom || 0}</p>
               </div>
             )}
             {solutionEn && (
-              <div>
+              <div className="rounded-lg border p-4">
                 <h4 className="font-semibold mb-2">Solution:</h4>
-                <div
-                  className="prose prose-sm"
-                  dangerouslySetInnerHTML={{ __html: solutionEn }}
-                />
+                <RenderWithLatex quillString={solutionEn} />
               </div>
             )}
           </div>

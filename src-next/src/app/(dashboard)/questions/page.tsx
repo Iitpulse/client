@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   MoreHorizontal,
@@ -41,6 +42,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { IQuestion, ISubject } from "@/types";
+import RenderWithLatex from "@/components/render-with-latex";
 
 const difficultyVariants: Record<string, "default" | "secondary" | "success" | "warning" | "destructive"> = {
   easy: "success",
@@ -49,6 +51,7 @@ const difficultyVariants: Record<string, "default" | "secondary" | "success" | "
 };
 
 export default function QuestionsPage() {
+  const router = useRouter();
   const [questions, setQuestions] = React.useState<IQuestion[]>([]);
   const [subjects, setSubjects] = React.useState<ISubject[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -79,7 +82,8 @@ export default function QuestionsPage() {
         default:
           response = await api.questions.getMCQ(params);
       }
-      setQuestions(response.data?.questions || []);
+      // Backend returns { success, data: [...], totalDocs, currentPage, totalPages }
+      setQuestions(response.data?.data || response.data?.questions || []);
     } catch (error) {
       console.error("Failed to fetch questions:", error);
     } finally {
@@ -91,7 +95,8 @@ export default function QuestionsPage() {
     const fetchSubjects = async () => {
       try {
         const response = await api.subjects.getAll();
-        setSubjects(response.data?.subjects || []);
+        // Backend returns { success, data: [...] }
+        setSubjects(response.data?.data || response.data?.subjects || []);
       } catch (error) {
         console.error("Failed to fetch subjects:", error);
       }
@@ -123,15 +128,19 @@ export default function QuestionsPage() {
 
   const columns: ColumnDef<IQuestion>[] = [
     {
-      accessorKey: "question",
+      id: "question",
       header: "Question",
       cell: ({ row }) => {
-        const question = row.getValue("question") as string;
-        const stripped = stripHtml(question);
+        // Question text is at en.question, not question
+        const questionText = (row.original as unknown as { en?: { question?: string } })?.en?.question || "";
+        // For table display, show truncated HTML for LaTeX rendering
+        const stripped = stripHtml(questionText);
+        const truncatedHtml = questionText.length > 150
+          ? questionText.substring(0, 150) + "..."
+          : questionText;
         return (
-          <div className="max-w-md truncate font-medium" title={stripped}>
-            {stripped.substring(0, 100)}
-            {stripped.length > 100 ? "..." : ""}
+          <div className="max-w-md font-medium" title={stripped}>
+            <RenderWithLatex quillString={truncatedHtml} className="line-clamp-2" />
           </div>
         );
       },
@@ -141,15 +150,22 @@ export default function QuestionsPage() {
       header: "Subject",
       cell: ({ row }) => {
         const subject = row.original.subject;
-        return typeof subject === "object" ? subject?.name : "-";
+        // subject can be a string (name) or an object with name property
+        if (typeof subject === "string") return subject;
+        if (typeof subject === "object" && subject) return (subject as { name?: string })?.name || "-";
+        return "-";
       },
     },
     {
-      accessorKey: "chapter",
+      id: "chapter",
       header: "Chapter",
       cell: ({ row }) => {
-        const chapter = row.original.chapter;
-        return typeof chapter === "object" ? chapter?.name : "-";
+        // chapters is an array of { name, topics } objects
+        const chapters = (row.original as unknown as { chapters?: Array<{ name: string }> })?.chapters;
+        if (Array.isArray(chapters) && chapters.length > 0) {
+          return chapters.map(ch => ch.name).join(", ");
+        }
+        return "-";
       },
     },
     {
@@ -283,6 +299,7 @@ export default function QuestionsPage() {
               data={questions}
               searchKey="question"
               searchPlaceholder="Search questions..."
+              onRowClick={(question) => router.push(`/questions/${question._id}/preview?type=${activeTab}`)}
             />
           )}
         </TabsContent>

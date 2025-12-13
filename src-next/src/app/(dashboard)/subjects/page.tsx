@@ -59,7 +59,8 @@ export default function SubjectsPage() {
   const fetchSubjects = React.useCallback(async () => {
     try {
       const response = await api.subjects.getAll();
-      setSubjects(response.data?.subjects || []);
+      // Backend returns { success, data: [...] }
+      setSubjects(response.data?.data || response.data?.subjects || []);
     } catch (error) {
       console.error("Failed to fetch subjects:", error);
     } finally {

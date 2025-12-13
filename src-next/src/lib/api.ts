@@ -116,17 +116,17 @@ export const api = {
     deleteManager: (id: string) => apiUsers.delete("/manager/delete", { data: { id } }),
   },
   roles: {
+    // New Fastify backend uses /roles (not /roles/all)
     getAll: () => apiUsers.get("/roles"),
     getById: (id: string) => apiUsers.get(`/roles/${id}`),
-    create: (data: { name: string; permissions?: Record<string, boolean> }) =>
-      apiUsers.post("/roles/create", data),
+    create: (data: unknown) => apiUsers.post("/roles", data),
     update: (id: string, data: Record<string, unknown>) =>
-      apiUsers.patch("/roles/update", { id, ...data }),
-    delete: (id: string) => apiUsers.delete("/roles/delete", { data: { id } }),
+      apiUsers.put(`/roles/${id}`, data),
+    delete: (id: string) => apiUsers.delete(`/roles/${id}`),
     addMember: (roleId: string, memberId: string) =>
-      apiUsers.post("/roles/addMember", { roleId, memberId }),
-    removeMember: (roleId: string, memberId: string) =>
-      apiUsers.post("/roles/removeMember", { roleId, memberId }),
+      apiUsers.post("/roles/addMember", { role: roleId, member: memberId }),
+    removeMember: (roleId: string, member: unknown) =>
+      apiUsers.post("/roles/removeMember", { role: roleId, member }),
   },
   batches: {
     getAll: () => apiUsers.get("/batch"),

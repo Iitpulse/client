@@ -48,7 +48,8 @@ export default function BatchesPage() {
   const fetchBatches = React.useCallback(async () => {
     try {
       const response = await api.batches.getAll();
-      setBatches(response.data?.batches || []);
+      // Backend returns { success, data: [...] }
+      setBatches(response.data?.data || response.data?.batches || []);
     } catch (error) {
       console.error("Failed to fetch batches:", error);
     } finally {

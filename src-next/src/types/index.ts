@@ -13,7 +13,8 @@ export interface ICurrentUser {
   email?: string;
   name?: string;
   instituteId?: string;
-  roles?: string[];
+  // roles is an object mapping roleId to true, e.g., { "roleId1": true, "roleId2": true }
+  roles?: Record<string, boolean>;
 }
 
 export interface IUserBase {
@@ -325,54 +326,54 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-// Permission Constants
+// Permission Constants - Must match backend format
 export const PERMISSIONS = {
   QUESTION: {
-    CREATE: "question:create",
-    READ: "question:read",
-    READ_GLOBAL: "question:read_global",
-    UPDATE: "question:update",
-    DELETE: "question:delete",
+    CREATE: "CREATE_QUESTION",
+    READ: "READ_QUESTION",
+    READ_GLOBAL: "READ_GLOBAL_QUESTION",
+    UPDATE: "UPDATE_QUESTION",
+    DELETE: "DELETE_QUESTION",
   },
   USER: {
-    READ: "user:read",
-    UPDATE: "user:update",
-    DELETE: "user:delete",
+    READ: "READ_USER",
+    UPDATE: "UPDATE_USER",
+    DELETE: "DELETE_USER",
   },
   TEST: {
-    CREATE: "test:create",
-    READ: "test:read",
-    READ_GLOBAL: "test:read_global",
-    UPDATE: "test:update",
-    DELETE: "test:delete",
-    VIEW_RESULT: "test:view_result",
-    PUBLISH_RESULT: "test:publish_result",
-    EXPORT_RESULT: "test:export_result",
+    CREATE: "CREATE_TEST",
+    READ: "READ_TEST",
+    READ_GLOBAL: "READ_GLOBAL_TEST",
+    UPDATE: "UPDATE_TEST",
+    DELETE: "DELETE_TEST",
+    VIEW_RESULT: "VIEW_RESULT",
+    PUBLISH_RESULT: "PUBLISH_RESULT",
+    EXPORT_RESULT: "EXPORT_RESULT",
   },
   BATCH: {
-    CREATE: "batch:create",
-    READ: "batch:read",
-    UPDATE: "batch:update",
-    DELETE: "batch:delete",
+    CREATE: "CREATE_BATCH",
+    READ: "READ_BATCH",
+    UPDATE: "UPDATE_BATCH",
+    DELETE: "DELETE_BATCH",
   },
   SUBJECT: {
-    CREATE: "subject:create",
-    READ: "subject:read",
-    UPDATE: "subject:update",
-    DELETE: "subject:delete",
-    MANAGE_CHAPTER: "subject:manage_chapter",
-    MANAGE_TOPIC: "subject:manage_topic",
+    CREATE: "CREATE_SUBJECT",
+    READ: "READ_SUBJECT",
+    UPDATE: "UPDATE_SUBJECT",
+    DELETE: "DELETE_SUBJECT",
+    MANAGE_CHAPTER: "MANAGE_CHAPTER",
+    MANAGE_TOPIC: "MANAGE_TOPIC",
   },
   PATTERN: {
-    CREATE: "pattern:create",
-    READ: "pattern:read",
-    UPDATE: "pattern:update",
-    DELETE: "pattern:delete",
+    CREATE: "CREATE_PATTERN",
+    READ: "READ_PATTERN",
+    UPDATE: "UPDATE_PATTERN",
+    DELETE: "DELETE_PATTERN",
   },
   ROLE: {
-    CREATE: "role:create",
-    READ: "role:read",
-    UPDATE: "role:update",
-    DELETE: "role:delete",
+    CREATE: "CREATE_ROLE",
+    READ: "READ_ROLE",
+    UPDATE: "UPDATE_ROLE",
+    DELETE: "DELETE_ROLE",
   },
 } as const;

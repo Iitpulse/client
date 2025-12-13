@@ -3,6 +3,56 @@ import { persist } from "zustand/middleware";
 import { ICurrentUser, IUserBase } from "@/types";
 import { api, auth as authHelper } from "@/lib/api";
 
+// JWT payload structure from backend
+interface JwtPayload {
+  email: string;
+  id: string;
+  userType: string;
+  instituteId?: string;
+  roles: Array<{ id: string; from?: string; to?: string }>;
+  exp: number;
+}
+
+// Helper to decode JWT payload
+function decodeJwtPayload(token: string): JwtPayload | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+// Transform roles from JWT to Record<string, boolean> for easy lookup
+// Handles multiple formats:
+// 1. Array: [{ id: "ROLE_ADMIN" }]
+// 2. Object: { ROLE_ADMIN: { ... } } or { ROLE_ADMIN: true }
+function transformRoles(
+  roles: Array<{ id: string }> | Record<string, unknown> | undefined
+): Record<string, boolean> {
+  if (!roles) return {};
+
+  const rolesRecord: Record<string, boolean> = {};
+
+  if (Array.isArray(roles)) {
+    // Format: [{ id: "ROLE_ADMIN" }]
+    roles.forEach((role) => {
+      if (role.id) {
+        rolesRecord[role.id] = true;
+      }
+    });
+  } else if (typeof roles === "object") {
+    // Format: { ROLE_ADMIN: { ... } } or { ROLE_ADMIN: true }
+    Object.keys(roles).forEach((roleId) => {
+      if (roles[roleId]) {
+        rolesRecord[roleId] = true;
+      }
+    });
+  }
+
+  return rolesRecord;
+}
+
 interface AuthState {
   currentUser: ICurrentUser | null;
   userDetails: IUserBase | null;
@@ -32,11 +82,37 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await api.auth.login({ email, password });
-          const { token, user } = response.data.data;
+          // Backend returns { success: true, data: { token: "..." } }
+          const token = response.data.data?.token || response.data.token;
+
+          if (!token) {
+            throw new Error("No token received");
+          }
 
           authHelper.setToken(token);
+
+          // Decode JWT to get user info (same as original AuthContext)
+          const decoded = decodeJwtPayload(token);
+          console.log("[Auth] Decoded JWT:", decoded);
+          console.log("[Auth] Roles from JWT:", decoded?.roles);
+          if (!decoded) {
+            throw new Error("Invalid token");
+          }
+
+          // Transform roles array to Record<string, boolean> for easy lookup
+          const rolesRecord = transformRoles(decoded.roles);
+          console.log("[Auth] Transformed roles:", rolesRecord);
+
+          const currentUser: ICurrentUser = {
+            id: decoded.id,
+            email: decoded.email,
+            userType: decoded.userType as ICurrentUser["userType"],
+            instituteId: decoded.instituteId,
+            roles: rolesRecord,
+          };
+
           set({
-            currentUser: user,
+            currentUser,
             isAuthenticated: true,
             isLoading: false,
           });
@@ -89,15 +165,38 @@ export const useAuthStore = create<AuthState>()(
           return false;
         }
 
-        // Decode JWT to check expiration
+        // Decode JWT to check expiration and restore user
         try {
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          const isExpired = payload.exp * 1000 < Date.now();
+          const decoded = decodeJwtPayload(token);
+          if (!decoded) {
+            authHelper.removeToken();
+            set({ isAuthenticated: false, currentUser: null });
+            return false;
+          }
+
+          const isExpired = decoded.exp * 1000 < Date.now();
           if (isExpired) {
             authHelper.removeToken();
             set({ isAuthenticated: false, currentUser: null });
             return false;
           }
+
+          // Restore currentUser from token if not already set or if roles are missing
+          const { currentUser } = get();
+          if (!currentUser || !currentUser.roles || Object.keys(currentUser.roles).length === 0) {
+            const rolesRecord = transformRoles(decoded.roles);
+            set({
+              currentUser: {
+                id: decoded.id,
+                email: decoded.email,
+                userType: decoded.userType as ICurrentUser["userType"],
+                instituteId: decoded.instituteId,
+                roles: rolesRecord,
+              },
+              isAuthenticated: true,
+            });
+          }
+
           return true;
         } catch {
           return false;

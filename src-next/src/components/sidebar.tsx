@@ -17,9 +17,11 @@ import {
   ChevronRight,
   ClipboardList,
   User,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface NavItem {
   title: string;
@@ -35,28 +37,28 @@ const navItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: "Tests",
-    href: "/tests",
-    icon: FileText,
-    permission: "test",
-  },
-  {
     title: "Questions",
     href: "/questions",
     icon: BookOpen,
     permission: "question",
   },
   {
-    title: "Patterns",
-    href: "/patterns",
-    icon: Layers,
-    permission: "pattern",
-  },
-  {
     title: "Users",
     href: "/users",
     icon: Users,
     permission: "user",
+  },
+  {
+    title: "Tests",
+    href: "/tests",
+    icon: FileText,
+    permission: "test",
+  },
+  {
+    title: "Patterns",
+    href: "/patterns",
+    icon: Layers,
+    permission: "pattern",
   },
   {
     title: "Batches",
@@ -74,12 +76,13 @@ const navItems: NavItem[] = [
     title: "Institutes",
     href: "/institutes",
     icon: Building2,
+    permission: "role", // Same as roles - only visible to those who can manage roles
   },
   {
     title: "Subjects",
     href: "/subjects",
-    icon: BookOpen,
-    permission: "subject",
+    icon: Settings,
+    permission: "role", // Misc/Subjects - only visible to those who can manage roles
   },
   {
     title: "Exams",
@@ -90,7 +93,7 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { hasAccess } = usePermissionsStore();
+  const { hasAccess, isLoading } = usePermissionsStore();
   const [collapsed, setCollapsed] = useState(false);
 
   const filteredItems = navItems.filter((item) => {
@@ -128,29 +131,41 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-2">
-        {filteredItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== "/" && pathname.startsWith(item.href));
+        {isLoading ? (
+          // Show skeleton while loading permissions
+          <>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton
+                key={i}
+                className={cn("h-10 rounded-md", collapsed ? "w-10" : "w-full")}
+              />
+            ))}
+          </>
+        ) : (
+          filteredItems.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href));
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                collapsed && "justify-center px-2"
-              )}
-              title={collapsed ? item.title : undefined}
-            >
-              <item.icon className={cn("h-5 w-5", !collapsed && "mr-3")} />
-              {!collapsed && <span>{item.title}</span>}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  collapsed && "justify-center px-2"
+                )}
+                title={collapsed ? item.title : undefined}
+              >
+                <item.icon className={cn("h-5 w-5", !collapsed && "mr-3")} />
+                {!collapsed && <span>{item.title}</span>}
+              </Link>
+            );
+          })
+        )}
       </nav>
 
       {/* Profile at bottom */}

@@ -48,7 +48,8 @@ export default function PatternsPage() {
   const fetchPatterns = React.useCallback(async () => {
     try {
       const response = await api.patterns.getAll();
-      setPatterns(response.data?.patterns || []);
+      // Backend returns { success, data: [...] }
+      setPatterns(response.data?.data || response.data?.patterns || []);
     } catch (error) {
       console.error("Failed to fetch patterns:", error);
     } finally {

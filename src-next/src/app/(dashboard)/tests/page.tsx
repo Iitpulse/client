@@ -57,7 +57,8 @@ export default function TestsPage() {
     const fetchTests = async () => {
       try {
         const response = await api.tests.getAll();
-        setTests(response.data?.tests || []);
+        // Backend returns { success, data: [...] }
+        setTests(response.data?.data || response.data?.tests || []);
       } catch (error) {
         console.error("Failed to fetch tests:", error);
       } finally {

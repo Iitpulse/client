@@ -52,23 +52,24 @@ export default function UsersPage() {
       switch (type) {
         case "students":
           response = await api.users.getStudents();
-          setUsers("students", response.data?.students || []);
+          // Backend returns { success, data: [...] }
+          setUsers("students", response.data?.data || response.data?.students || []);
           break;
         case "teachers":
           response = await api.users.getTeachers();
-          setUsers("teachers", response.data?.teachers || []);
+          setUsers("teachers", response.data?.data || response.data?.teachers || []);
           break;
         case "admins":
           response = await api.users.getAdmins();
-          setUsers("admins", response.data?.admins || []);
+          setUsers("admins", response.data?.data || response.data?.admins || []);
           break;
         case "operators":
           response = await api.users.getOperators();
-          setUsers("operators", response.data?.operators || []);
+          setUsers("operators", response.data?.data || response.data?.operators || []);
           break;
         case "managers":
           response = await api.users.getManagers();
-          setUsers("managers", response.data?.managers || []);
+          setUsers("managers", response.data?.data || response.data?.managers || []);
           break;
       }
     } catch (error) {

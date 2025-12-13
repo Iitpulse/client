@@ -1,12 +1,22 @@
 import { create } from "zustand";
-import { IRole, IPermissions } from "@/types";
+import { PERMISSIONS } from "@/types";
 import { api } from "@/lib/api";
 import { useAuthStore } from "./auth.store";
 
+// Role structure as returned by backend
+interface IRoleFromBackend {
+  id: string;
+  _id?: string;
+  name: string;
+  permissions: string[]; // Array of permission strings like "READ_QUESTION"
+  members: Array<{ id: string; userType: string }>;
+  createdAt?: string;
+  createdBy?: { id: string; userType: string };
+}
+
 export interface PermissionsState {
-  roles: IRole[];
-  permissions: Record<string, IPermissions>;
-  userPermissions: IPermissions;
+  allRoles: IRoleFromBackend[];
+  permissions: Record<string, string[]>; // roleId -> permissions array
   isLoading: boolean;
   error: string | null;
 
@@ -22,157 +32,14 @@ export interface PermissionsState {
   };
 
   // Actions
-  setRoles: (roles: IRole[]) => void;
-  removeRole: (id: string) => void;
   fetchRoles: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
-  createRole: (name: string, permissions?: Record<string, boolean>) => Promise<boolean>;
-  updateRole: (id: string, data: Partial<IRole>) => Promise<boolean>;
+  createRole: (name: string) => Promise<IRoleFromBackend | null>;
+  updateRole: (id: string, permissions: string[]) => Promise<boolean>;
   deleteRole: (id: string) => Promise<boolean>;
-  addMember: (roleId: string, memberId: string) => Promise<boolean>;
-  removeMember: (roleId: string, memberId: string) => Promise<boolean>;
-  computeUserPermissions: () => void;
+  removeMember: (roleId: string, member: { id: string; userType: string }) => Promise<boolean>;
+  resetPermissions: () => void;
 }
-
-export const usePermissionsStore = create<PermissionsState>((set, get) => ({
-  roles: [],
-  permissions: {},
-  userPermissions: {},
-  isLoading: false,
-  error: null,
-  hasAccess: {
-    question: false,
-    user: false,
-    test: false,
-    pattern: false,
-    batch: false,
-    role: false,
-    subject: false,
-  },
-
-  setRoles: (roles: IRole[]) => {
-    const permissions: Record<string, IPermissions> = {};
-    roles.forEach((role) => {
-      permissions[role._id] = role.permissions || {};
-    });
-    set({ roles, permissions });
-  },
-
-  removeRole: (id: string) => {
-    const { roles } = get();
-    set({ roles: roles.filter((r) => r._id !== id) });
-  },
-
-  fetchRoles: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.roles.getAll();
-      const roles: IRole[] = response.data.data || [];
-
-      // Build permissions map by role ID
-      const permissions: Record<string, IPermissions> = {};
-      roles.forEach((role) => {
-        permissions[role._id] = role.permissions || {};
-      });
-
-      set({ roles, permissions, isLoading: false });
-      get().computeUserPermissions();
-    } catch (error: unknown) {
-      const message =
-        (error as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Failed to fetch roles";
-      set({ error: message, isLoading: false });
-    }
-  },
-
-  hasPermission: (permission: string) => {
-    const { userPermissions } = get();
-    return userPermissions[permission] === true;
-  },
-
-  createRole: async (name: string, permissions?: Record<string, boolean>) => {
-    try {
-      await api.roles.create({ name, permissions });
-      await get().fetchRoles();
-      return true;
-    } catch {
-      return false;
-    }
-  },
-
-  updateRole: async (id: string, data: Partial<IRole>) => {
-    try {
-      await api.roles.update(id, data);
-      await get().fetchRoles();
-      return true;
-    } catch {
-      return false;
-    }
-  },
-
-  deleteRole: async (id: string) => {
-    try {
-      await api.roles.delete(id);
-      await get().fetchRoles();
-      return true;
-    } catch {
-      return false;
-    }
-  },
-
-  addMember: async (roleId: string, memberId: string) => {
-    try {
-      await api.roles.addMember(roleId, memberId);
-      await get().fetchRoles();
-      return true;
-    } catch {
-      return false;
-    }
-  },
-
-  removeMember: async (roleId: string, memberId: string) => {
-    try {
-      await api.roles.removeMember(roleId, memberId);
-      await get().fetchRoles();
-      return true;
-    } catch {
-      return false;
-    }
-  },
-
-  computeUserPermissions: () => {
-    const { roles, permissions } = get();
-    const currentUser = useAuthStore.getState().currentUser;
-
-    if (!currentUser || !currentUser.roles) {
-      set({ userPermissions: {}, hasAccess: getDefaultAccess() });
-      return;
-    }
-
-    // Merge permissions from all user roles
-    const userPermissions: IPermissions = {};
-    currentUser.roles.forEach((roleId) => {
-      const rolePerms = permissions[roleId] || {};
-      Object.entries(rolePerms).forEach(([key, value]) => {
-        if (value) userPermissions[key] = true;
-      });
-    });
-
-    // Compute feature access flags
-    const hasAccess = {
-      question:
-        userPermissions["question:read"] || userPermissions["question:read_global"],
-      user: userPermissions["user:read"],
-      test: userPermissions["test:read"] || userPermissions["test:read_global"],
-      pattern: userPermissions["pattern:read"],
-      batch: userPermissions["batch:read"],
-      role: userPermissions["role:read"],
-      subject: userPermissions["subject:read"],
-    };
-
-    set({ userPermissions, hasAccess });
-  },
-}));
 
 function getDefaultAccess() {
   return {
@@ -185,3 +52,167 @@ function getDefaultAccess() {
     subject: false,
   };
 }
+
+export const usePermissionsStore = create<PermissionsState>((set, get) => ({
+  allRoles: [],
+  permissions: {},
+  isLoading: false,
+  error: null,
+  hasAccess: getDefaultAccess(),
+
+  fetchRoles: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      console.log("[Permissions] Fetching roles...");
+      const response = await api.roles.getAll();
+      console.log("[Permissions] Response:", response.data);
+      // Backend returns array directly or in response.data
+      const roles: IRoleFromBackend[] = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data || [];
+      console.log("[Permissions] Parsed roles:", roles.length, "roles found");
+
+      // Build permissions map by role ID
+      const permissions: Record<string, string[]> = {};
+      roles.forEach((role) => {
+        const roleId = role.id || role._id;
+        if (roleId) {
+          permissions[roleId] = role.permissions || [];
+        }
+      });
+
+      // Get current user to compute their permissions
+      const currentUser = useAuthStore.getState().currentUser;
+      const hasAccess = { ...getDefaultAccess() };
+      console.log("[Permissions] Current user roles:", currentUser?.roles);
+
+      if (currentUser?.roles) {
+        // For each role the user has, check permissions
+        roles.forEach((role) => {
+          const roleId = role.id || role._id;
+          if (!roleId) return;
+          console.log("[Permissions] Checking role:", roleId, "user has it:", currentUser.roles?.[roleId]);
+          // currentUser.roles is Record<string, boolean>, e.g., { "roleId1": true }
+          if (currentUser.roles?.[roleId]) {
+            const rolePerms = role.permissions || [];
+
+            if (rolePerms.includes(PERMISSIONS.QUESTION.READ)) {
+              hasAccess.question = true;
+            }
+            if (rolePerms.includes(PERMISSIONS.USER.READ)) {
+              hasAccess.user = true;
+            }
+            if (rolePerms.includes(PERMISSIONS.TEST.READ)) {
+              hasAccess.test = true;
+            }
+            if (rolePerms.includes(PERMISSIONS.PATTERN.READ)) {
+              hasAccess.pattern = true;
+            }
+            if (rolePerms.includes(PERMISSIONS.BATCH.READ)) {
+              hasAccess.batch = true;
+            }
+            if (rolePerms.includes(PERMISSIONS.ROLE.READ)) {
+              hasAccess.role = true;
+            }
+            if (rolePerms.includes(PERMISSIONS.SUBJECT.READ)) {
+              hasAccess.subject = true;
+            }
+          }
+        });
+      }
+
+      console.log("[Permissions] Final hasAccess:", hasAccess);
+      set({ allRoles: roles, permissions, hasAccess, isLoading: false });
+    } catch (error: unknown) {
+      console.error("[Permissions] Error fetching roles:", error);
+      const message =
+        (error as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message || "Failed to fetch roles";
+      set({ error: message, isLoading: false, hasAccess: getDefaultAccess() });
+    }
+  },
+
+  hasPermission: (permission: string) => {
+    const { permissions } = get();
+    const currentUser = useAuthStore.getState().currentUser;
+
+    if (!currentUser?.roles) return false;
+
+    // Check if any of the user's roles have this permission
+    return Object.keys(currentUser.roles).some((roleId) => {
+      const rolePerms = permissions[roleId] || [];
+      return rolePerms.includes(permission);
+    });
+  },
+
+  createRole: async (name: string) => {
+    const currentUser = useAuthStore.getState().currentUser;
+    try {
+      const response = await api.roles.create({
+        name,
+        permissions: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: {
+          id: currentUser?.id || "",
+          userType: currentUser?.userType || "",
+        },
+      });
+      const newRole = response.data;
+      set((state) => ({
+        allRoles: [...state.allRoles, newRole],
+      }));
+      return newRole;
+    } catch {
+      return null;
+    }
+  },
+
+  updateRole: async (id: string, permissions: string[]) => {
+    try {
+      await api.roles.update(id, { permissions });
+      set((state) => ({
+        allRoles: state.allRoles.map((role) =>
+          (role.id || role._id) === id ? { ...role, permissions } : role
+        ),
+        permissions: {
+          ...state.permissions,
+          [id]: permissions,
+        },
+      }));
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  deleteRole: async (id: string) => {
+    try {
+      await api.roles.delete(id);
+      set((state) => ({
+        allRoles: state.allRoles.filter((role) => (role.id || role._id) !== id),
+      }));
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  removeMember: async (roleId: string, member: { id: string; userType: string }) => {
+    try {
+      await api.roles.removeMember(roleId, member);
+      await get().fetchRoles();
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  resetPermissions: () => {
+    set({
+      allRoles: [],
+      permissions: {},
+      hasAccess: getDefaultAccess(),
+    });
+  },
+}));

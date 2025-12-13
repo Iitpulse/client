@@ -32,34 +32,43 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { usePermissionsStore } from "@/stores";
-import { api } from "@/lib/api";
-import { IRole } from "@/types";
+
+// Role type for display (matches backend)
+interface IRoleDisplay {
+  id: string;
+  _id?: string;
+  name: string;
+  permissions: string[];
+  members: Array<{ id: string; userType: string }>;
+  createdAt?: string;
+}
 
 export default function RolesPage() {
-  const { roles, setRoles, removeRole } = usePermissionsStore();
+  const { allRoles, fetchRoles, deleteRole } = usePermissionsStore();
   const [loading, setLoading] = React.useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [roleToDelete, setRoleToDelete] = React.useState<IRole | null>(null);
+  const [roleToDelete, setRoleToDelete] = React.useState<IRoleDisplay | null>(null);
 
   React.useEffect(() => {
-    const fetchRoles = async () => {
+    const loadRoles = async () => {
       try {
-        const response = await api.roles.getAll();
-        setRoles(response.data?.roles || []);
+        await fetchRoles();
       } catch (error) {
         console.error("Failed to fetch roles:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchRoles();
-  }, [setRoles]);
+    loadRoles();
+  }, [fetchRoles]);
 
   const handleDelete = async () => {
     if (!roleToDelete) return;
+    const roleId = roleToDelete.id || roleToDelete._id;
+    if (!roleId) return;
+
     try {
-      await api.roles.delete(roleToDelete._id);
-      removeRole(roleToDelete._id);
+      await deleteRole(roleId);
       setDeleteDialogOpen(false);
       setRoleToDelete(null);
     } catch (error) {
@@ -67,11 +76,7 @@ export default function RolesPage() {
     }
   };
 
-  const getPermissionCount = (permissions: Record<string, boolean> = {}) => {
-    return Object.values(permissions).filter(Boolean).length;
-  };
-
-  const columns: ColumnDef<IRole>[] = [
+  const columns: ColumnDef<IRoleDisplay>[] = [
     {
       accessorKey: "name",
       header: "Role Name",
@@ -86,7 +91,7 @@ export default function RolesPage() {
       id: "permissions",
       header: "Permissions",
       cell: ({ row }) => {
-        const count = getPermissionCount(row.original.permissions);
+        const count = row.original.permissions?.length || 0;
         return (
           <Badge variant="secondary">
             {count} permission{count !== 1 ? "s" : ""}
@@ -173,7 +178,7 @@ export default function RolesPage() {
       ) : (
         <DataTable
           columns={columns}
-          data={roles}
+          data={allRoles}
           searchKey="name"
           searchPlaceholder="Search roles..."
         />
