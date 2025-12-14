@@ -47,9 +47,13 @@ export const useTestsStore = create<TestsState>((set, get) => ({
   fetchTests: async (status?: TestStatus) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.tests.getAll({ status });
-      const tests: ITest[] = response.data?.tests || response.data?.data || [];
-      set({ tests, isLoading: false });
+      // Normalize status to lowercase for API
+      const normalizedStatus = status?.toLowerCase() as "active" | "inactive" | "ongoing" | "expired" | undefined;
+      const response = normalizedStatus
+        ? await api.tests.getByStatus(normalizedStatus)
+        : await api.tests.getAll();
+      const tests: ITest[] = response.data?.tests || response.data?.data || response.data || [];
+      set({ tests: Array.isArray(tests) ? tests : [], isLoading: false });
     } catch (error: unknown) {
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
@@ -62,7 +66,8 @@ export const useTestsStore = create<TestsState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.tests.getById(id);
-      const test: ITest = response.data.data;
+      // Backend returns test directly, not wrapped in { data: {...} }
+      const test: ITest = response.data?.data || response.data;
       set({ currentTest: test, isLoading: false });
       return test;
     } catch (error: unknown) {
@@ -77,7 +82,9 @@ export const useTestsStore = create<TestsState>((set, get) => ({
   fetchExams: async () => {
     try {
       const response = await api.exams.getAll();
-      set({ exams: response.data.data || [] });
+      // Backend returns array directly
+      const exams = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      set({ exams });
     } catch (error) {
       console.error("Failed to fetch exams:", error);
     }
@@ -86,7 +93,9 @@ export const useTestsStore = create<TestsState>((set, get) => ({
   fetchSubjects: async () => {
     try {
       const response = await api.subjects.getAll();
-      set({ subjects: response.data.data || [] });
+      // Backend returns array directly
+      const subjects = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      set({ subjects });
     } catch (error) {
       console.error("Failed to fetch subjects:", error);
     }
@@ -95,7 +104,9 @@ export const useTestsStore = create<TestsState>((set, get) => ({
   fetchPatterns: async () => {
     try {
       const response = await api.patterns.getAllNoPagination();
-      set({ patterns: response.data.data || [] });
+      // Backend may return array or { data: [...] }
+      const patterns = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      set({ patterns });
     } catch (error) {
       console.error("Failed to fetch patterns:", error);
     }

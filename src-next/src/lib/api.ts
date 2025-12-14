@@ -210,6 +210,8 @@ export const api = {
     getAll: (params?: { page?: number; size?: number }) =>
       apiTests.get("/pattern", { params }),
     getAllNoPagination: () => apiTests.get("/pattern/all"),
+    getByExam: (exam: string) =>
+      apiTests.get("/pattern/pattern/exam", { params: { exam } }),
     getById: (id: string) => apiTests.get(`/pattern/${id}`),
     create: (data: unknown) => apiTests.post("/pattern/create", data),
     update: (data: unknown) => apiTests.patch("/pattern/update", data),

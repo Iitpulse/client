@@ -217,7 +217,7 @@ export type IQuestion =
   | IQuestionMatrix;
 
 // Test & Pattern Types
-export type TestStatus = "draft" | "scheduled" | "ongoing" | "completed" | "expired";
+export type TestStatus = "active" | "Active" | "ongoing" | "Ongoing" | "inactive" | "Inactive" | "expired" | "Expired" | "draft" | "Draft" | "scheduled" | "Scheduled" | "completed" | "Completed";
 
 export interface IMarkingScheme {
   correct: number[];
@@ -248,6 +248,8 @@ export interface IPattern {
   name: string;
   sections: ISection[];
   exam?: string | { _id: string; name: string };
+  durationInMinutes?: number;
+  totalMarks?: number;
   createdBy?: {
     userType: string;
     id: string;
