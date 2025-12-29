@@ -5,16 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import {
-  Plus,
-  Trash2,
-  BarChart3,
-} from "lucide-react";
+import { Plus, Trash2, BarChart3, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useTestsStore } from "@/stores";
 import { ITest, IExam } from "@/types";
 import api from "@/lib/api";
@@ -46,7 +43,9 @@ const statusVariants: Record<string, "default" | "secondary" | "success" | "warn
 
 // Determine test status based on validity dates
 function getTestStatus(test: ITest): TestStatusDisplay {
-  if (test.status === "Inactive" || test.status === "inactive") {
+  // Check for inactive status (case-insensitive)
+  const statusLower = test.status?.toLowerCase();
+  if (statusLower === "inactive") {
     return "Inactive";
   }
 
@@ -64,6 +63,12 @@ function getTestStatus(test: ITest): TestStatusDisplay {
     return "Ongoing";
   }
 
+  // If no validity dates, check if status is explicitly "Active"
+  if (statusLower === "active") {
+    return "Active";
+  }
+
+  // Default to Active for tests without validity dates
   return "Active";
 }
 
@@ -76,13 +81,13 @@ export default function TestsPage() {
   const [testToDelete, setTestToDelete] = React.useState<ITest | null>(null);
   const [activeTab, setActiveTab] = React.useState("active");
   const [selectedExam, setSelectedExam] = React.useState<string>("all");
+  const [searchQuery, setSearchQuery] = React.useState("");
 
-  const fetchTests = React.useCallback(async (status: string) => {
+  const fetchTests = React.useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch based on status - active or inactive from backend
-      const backendStatus = status === "inactive" ? "inactive" : "active";
-      const response = await api.tests.getByStatus(backendStatus as "active" | "inactive");
+      // Fetch all tests - status filtering is done client-side based on validity dates
+      const response = await api.tests.getAll();
       const testsData = Array.isArray(response.data)
         ? response.data
         : (response.data?.data || response.data?.tests || []);
@@ -110,13 +115,9 @@ export default function TestsPage() {
   }, []);
 
   React.useEffect(() => {
-    // Fetch active tests on initial load and when tab changes
-    if (activeTab === "inactive") {
-      fetchTests("inactive");
-    } else {
-      fetchTests("active");
-    }
-  }, [activeTab, fetchTests]);
+    // Fetch all tests once - filtering is done client-side
+    fetchTests();
+  }, [fetchTests]);
 
   const handleDelete = async () => {
     if (!testToDelete) return;
@@ -136,10 +137,10 @@ export default function TestsPage() {
       header: "ID",
       cell: ({ row }) => (
         <span
-          className="max-w-[100px] truncate block text-xs text-muted-foreground"
+          className="max-w-[80px] truncate block text-xs text-muted-foreground"
           title={row.getValue("_id")}
         >
-          {row.getValue("_id")}
+          {(row.getValue("_id") as string)?.slice(-8)}
         </span>
       ),
     },
@@ -166,12 +167,6 @@ export default function TestsPage() {
         if (!exam) return "-";
         return typeof exam === "object" ? exam.name : exam;
       },
-      filterFn: (row, id, value) => {
-        if (value === "all") return true;
-        const exam = row.original.exam;
-        const examName = typeof exam === "object" ? exam?.name : exam;
-        return examName === value;
-      },
     },
     {
       accessorKey: "createdAt",
@@ -184,10 +179,10 @@ export default function TestsPage() {
     },
     {
       accessorKey: "durationInMinutes",
-      header: "Duration (min)",
+      header: "Duration",
       cell: ({ row }) => {
         const duration = row.original.durationInMinutes || row.original.duration;
-        return duration ? `${duration}` : "-";
+        return duration ? `${duration} min` : "-";
       },
     },
     {
@@ -197,11 +192,8 @@ export default function TestsPage() {
         const validity = row.original.validity;
         if (!validity?.from) return "-";
         return (
-          <div className="text-sm">
-            <div>{format(new Date(validity.from), "MMM d, yyyy")}</div>
-            <div className="text-muted-foreground text-xs">
-              {format(new Date(validity.from), "h:mm a")}
-            </div>
+          <div className="text-sm whitespace-nowrap">
+            {format(new Date(validity.from), "MMM d, h:mm a")}
           </div>
         );
       },
@@ -213,11 +205,8 @@ export default function TestsPage() {
         const validity = row.original.validity;
         if (!validity?.to) return "-";
         return (
-          <div className="text-sm">
-            <div>{format(new Date(validity.to), "MMM d, yyyy")}</div>
-            <div className="text-muted-foreground text-xs">
-              {format(new Date(validity.to), "h:mm a")}
-            </div>
+          <div className="text-sm whitespace-nowrap">
+            {format(new Date(validity.to), "MMM d, h:mm a")}
           </div>
         );
       },
@@ -236,7 +225,7 @@ export default function TestsPage() {
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "",
       cell: ({ row }) => {
         const test = row.original;
         const status = getTestStatus(test);
@@ -249,29 +238,40 @@ export default function TestsPage() {
           status !== "Upcoming";
 
         return (
-          <div className="flex items-center gap-2">
-            {hasResult ? (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/tests/${test._id}/edit`);
+              }}
+              title="Edit test"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            {hasResult && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  const examName = typeof test.exam === "object" ? test.exam?.name : test.exam;
-                  router.push(`/tests/result/${test.name}/${examName}/${test._id}`);
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/tests/${test._id}/result`);
                 }}
+                title="View results"
               >
-                <BarChart3 className="h-4 w-4 mr-1" />
-                View Result
+                <BarChart3 className="h-4 w-4" />
               </Button>
-            ) : (
-              <span className="text-sm text-muted-foreground">No Result</span>
             )}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setTestToDelete(test);
                 setDeleteDialogOpen(true);
               }}
+              title="Delete test"
             >
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
@@ -281,7 +281,7 @@ export default function TestsPage() {
     },
   ];
 
-  // Filter tests based on active tab
+  // Filter tests based on active tab and search
   const filteredTests = React.useMemo(() => {
     let filtered = tests;
 
@@ -293,14 +293,24 @@ export default function TestsPage() {
       });
     }
 
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter((test) =>
+        test.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
     // Filter by status based on tab
+    // Note: getTestStatus computes status from validity dates
     switch (activeTab) {
       case "active":
-        // Show all active tests (any status that's not inactive)
-        return filtered.filter((t) => t.status !== "Inactive" && t.status !== "inactive");
+        // Show only Active and Ongoing tests (not expired, not upcoming, not inactive)
+        return filtered.filter((t) => {
+          const status = getTestStatus(t);
+          return status === "Active" || status === "Ongoing";
+        });
       case "inactive":
-        // Backend already returns inactive tests
-        return filtered;
+        return filtered.filter((t) => getTestStatus(t) === "Inactive");
       case "ongoing":
         return filtered.filter((t) => getTestStatus(t) === "Ongoing");
       case "upcoming":
@@ -310,14 +320,11 @@ export default function TestsPage() {
       default:
         return filtered;
     }
-  }, [tests, activeTab, selectedExam]);
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
+  }, [tests, activeTab, selectedExam, searchQuery]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tests</h1>
@@ -333,48 +340,56 @@ export default function TestsPage() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="w-48">
-          <Select value={selectedExam} onValueChange={setSelectedExam}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by exam" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Exams</SelectItem>
-              {exams.map((exam) => (
-                <SelectItem key={exam._id} value={exam.name}>
-                  {exam.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Inline Controls: Exam Filter, Tabs, Search */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <Select value={selectedExam} onValueChange={setSelectedExam}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="All Exams" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Exams</SelectItem>
+            {exams.map((exam) => (
+              <SelectItem key={exam._id} value={exam.name}>
+                {exam.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+          <TabsList>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="inactive">Inactive</TabsTrigger>
+            <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="expired">Expired</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <Input
+          placeholder="Search tests..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-[200px]"
+        />
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="inactive">Inactive</TabsTrigger>
-          <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="expired">Expired</TabsTrigger>
-        </TabsList>
-        <TabsContent value={activeTab} className="mt-4">
-          {loading ? (
-            <div className="flex h-48 items-center justify-center">
-              <div className="text-muted-foreground">Loading tests...</div>
-            </div>
-          ) : (
-            <DataTable
-              columns={columns}
-              data={filteredTests}
-              searchKey="name"
-              searchPlaceholder="Search tests..."
-            />
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* Data Table */}
+      {loading ? (
+        <div className="flex h-48 items-center justify-center border rounded-lg">
+          <div className="text-muted-foreground">Loading tests...</div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredTests}
+          searchKey="name"
+          searchPlaceholder=""
+          onRowClick={(test) => router.push(`/tests/${test._id}/edit`)}
+        />
+      )}
 
+      {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -385,10 +400,7 @@ export default function TestsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete}>

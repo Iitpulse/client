@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { useTestsStore, useUsersStore, useAuthStore } from "@/stores";
+import { useEffect, useState, useMemo } from "react";
+import { useAuthStore } from "@/stores";
+import { api } from "@/lib/api";
 import {
   Card,
   CardContent,
@@ -10,169 +11,673 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
-import { FileText, Users, BookOpen, Clock, Plus } from "lucide-react";
+import {
+  FileText,
+  Users,
+  Clock,
+  Plus,
+  Trophy,
+  Target,
+  TrendingDown,
+  UserCheck,
+  Monitor,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import dayjs from "dayjs";
+
+interface ITest {
+  _id: string;
+  name: string;
+  exam?: string;
+  status?: string;
+  durationInMinutes?: number;
+  duration?: number;
+  validity?: { from: string; to: string };
+  result?: {
+    students?: { _id: string }[];
+    highestMarks?: number;
+    averageMarks?: number;
+    lowestMarks?: number;
+    totalAppeared?: number;
+  };
+}
+
+interface IBatch {
+  name: string;
+  totalStudents: number;
+}
+
+interface IInstituteDetails {
+  name?: string;
+  members?: {
+    batches?: IBatch[];
+  };
+}
+
+interface RecentTestStats {
+  _id: string;
+  name: string;
+  highestMarks: number;
+  averageMarks: number;
+  lowestMarks: number;
+  totalAppeared: number;
+}
+
+// Stat Card Component
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  variant,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  variant: "success" | "warning" | "error" | "primary";
+}) {
+  const variantStyles = {
+    success: "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800",
+    warning: "bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800",
+    error: "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800",
+    primary: "bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800",
+  };
+
+  const iconStyles = {
+    success: "text-green-600 dark:text-green-400",
+    warning: "text-yellow-600 dark:text-yellow-400",
+    error: "text-red-600 dark:text-red-400",
+    primary: "text-blue-600 dark:text-blue-400",
+  };
+
+  return (
+    <div className={`rounded-lg border p-4 ${variantStyles[variant]}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">{title}</p>
+          <h4 className="text-2xl font-bold">{value}</h4>
+        </div>
+        <Icon className={`h-8 w-8 ${iconStyles[variant]}`} />
+      </div>
+    </div>
+  );
+}
+
+// Test List Item Component
+function TestListItem({
+  index,
+  test,
+  onClick,
+}: {
+  index: number;
+  test: ITest;
+  onClick?: () => void;
+}) {
+  const durationHours = test.durationInMinutes
+    ? (test.durationInMinutes / 60).toFixed(1)
+    : test.duration
+    ? (test.duration / 60).toFixed(1)
+    : "3";
+
+  return (
+    <div
+      className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-3">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+          {index}
+        </span>
+        <span className="font-medium">{test.name}</span>
+      </div>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span>{durationHours} Hr</span>
+        <Monitor className="h-4 w-4" />
+      </div>
+    </div>
+  );
+}
+
+// Simple Calendar Component
+function ScheduleCalendar({ tests }: { tests: ITest[] }) {
+  const [currentDate, setCurrentDate] = useState(dayjs());
+
+  const daysInMonth = currentDate.daysInMonth();
+  const firstDayOfMonth = currentDate.startOf("month").day();
+  const monthName = currentDate.format("MMMM YYYY");
+
+  const testDates = useMemo(() => {
+    const dates = new Set<string>();
+    tests.forEach((test) => {
+      if (test.validity?.from) {
+        const start = dayjs(test.validity.from);
+        const end = test.validity?.to ? dayjs(test.validity.to) : start;
+        let current = start;
+        while (current.isBefore(end) || current.isSame(end, "day")) {
+          if (current.month() === currentDate.month() && current.year() === currentDate.year()) {
+            dates.add(current.date().toString());
+          }
+          current = current.add(1, "day");
+        }
+      }
+    });
+    return dates;
+  }, [tests, currentDate]);
+
+  const days = [];
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    days.push(<div key={`empty-${i}`} className="h-10" />);
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isToday = dayjs().date() === day && dayjs().month() === currentDate.month() && dayjs().year() === currentDate.year();
+    const hasTest = testDates.has(day.toString());
+
+    days.push(
+      <div
+        key={day}
+        className={`relative flex h-10 items-center justify-center rounded-md text-sm ${
+          isToday ? "bg-primary text-primary-foreground font-bold" : ""
+        } ${hasTest && !isToday ? "bg-blue-100 dark:bg-blue-900 font-medium" : ""}`}
+      >
+        {day}
+        {hasTest && (
+          <span className="absolute bottom-1 h-1 w-1 rounded-full bg-blue-500" />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setCurrentDate(currentDate.subtract(1, "month"))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h3 className="font-semibold">{monthName}</h3>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setCurrentDate(currentDate.add(1, "month"))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
+        <div>Sun</div>
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
+      </div>
+      <div className="grid grid-cols-7 gap-1">{days}</div>
+      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <span className="h-3 w-3 rounded-full bg-primary" />
+          <span>Today</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="h-3 w-3 rounded-full bg-blue-100 dark:bg-blue-900" />
+          <span>Scheduled Test</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Helper to determine test status
+function getTestStatus(validity?: { from: string; to: string }) {
+  if (!validity?.from || !validity?.to) return "active";
+  const now = dayjs();
+  const start = dayjs(validity.from);
+  const end = dayjs(validity.to);
+  if (now.isBefore(start)) return "upcoming";
+  if (now.isAfter(end)) return "expired";
+  return "ongoing";
+}
 
 export default function DashboardPage() {
   const { currentUser } = useAuthStore();
-  const { tests, fetchTests, isLoading: testsLoading } = useTestsStore();
-  const { students, teachers, fetchStudents, fetchTeachers } = useUsersStore();
+  const isStudent = currentUser?.userType === "student";
 
+  // State
+  const [tests, setTests] = useState<ITest[]>([]);
+  const [recentTests, setRecentTests] = useState<RecentTestStats[]>([]);
+  const [instituteDetails, setInstituteDetails] = useState<IInstituteDetails | null>(null);
+  const [selectedRecentTest, setSelectedRecentTest] = useState<string>("");
+  const [loading, setLoading] = useState({
+    tests: true,
+    institute: true,
+    recent: true,
+  });
+
+  // Fetch data
   useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const response = await api.tests.getByStatus("active");
+        const data = Array.isArray(response.data) ? response.data : (response.data?.tests || response.data?.data || []);
+        setTests(data);
+      } catch {
+        setTests([]);
+      } finally {
+        setLoading((prev) => ({ ...prev, tests: false }));
+      }
+    };
+
+    const fetchRecentTests = async () => {
+      try {
+        const response = await api.tests.getRecent(5);
+        const data = Array.isArray(response.data) ? response.data : (response.data?.tests || response.data?.data || []);
+        const testsWithStats = data.map((test: { id?: string; _id?: string; name: string; highestMarks?: number; averageMarks?: number; lowestMarks?: number; totalAppeared?: number }) => ({
+          _id: test.id || test._id || "",
+          name: test.name,
+          highestMarks: test.highestMarks || 0,
+          averageMarks: test.averageMarks || 0,
+          lowestMarks: test.lowestMarks || 0,
+          totalAppeared: test.totalAppeared || 0,
+        }));
+        setRecentTests(testsWithStats);
+        if (testsWithStats.length > 0) {
+          setSelectedRecentTest(testsWithStats[0]._id);
+        }
+      } catch {
+        setRecentTests([]);
+      } finally {
+        setLoading((prev) => ({ ...prev, recent: false }));
+      }
+    };
+
+    const fetchInstituteDetails = async () => {
+      if (!currentUser?.instituteId) {
+        setLoading((prev) => ({ ...prev, institute: false }));
+        return;
+      }
+      try {
+        const response = await api.institutes.getById(currentUser.instituteId);
+        setInstituteDetails(response.data?.data || response.data || null);
+      } catch {
+        // If not found by _id, the instituteId might be the institute name (legacy data)
+        try {
+          const allResponse = await api.institutes.getAll();
+          const institutes = Array.isArray(allResponse.data) ? allResponse.data : (allResponse.data?.data || []);
+          const found = institutes.find(
+            (inst: { _id: string; name: string }) =>
+              inst.name === currentUser?.instituteId || inst._id === currentUser?.instituteId
+          );
+          setInstituteDetails(found || null);
+        } catch {
+          setInstituteDetails(null);
+        }
+      } finally {
+        setLoading((prev) => ({ ...prev, institute: false }));
+      }
+    };
+
     fetchTests();
-    fetchStudents();
-    fetchTeachers();
-  }, [fetchTests, fetchStudents, fetchTeachers]);
+    fetchRecentTests();
+    fetchInstituteDetails();
+  }, [currentUser?.instituteId]);
 
-  const upcomingTests = tests.filter((t) => t.status === "scheduled");
-  const ongoingTests = tests.filter((t) => t.status === "ongoing");
+  // Categorize tests
+  const { upcomingTests, ongoingTests } = useMemo(() => {
+    const upcoming: ITest[] = [];
+    const ongoing: ITest[] = [];
 
-  const stats = [
-    {
-      title: "Total Tests",
-      value: tests.length,
-      icon: FileText,
-      href: "/tests",
-      color: "text-blue-600",
-    },
-    {
-      title: "Ongoing Tests",
-      value: ongoingTests.length,
-      icon: Clock,
-      href: "/tests?status=ongoing",
-      color: "text-green-600",
-    },
-    {
-      title: "Students",
-      value: students.length,
-      icon: Users,
-      href: "/users?tab=students",
-      color: "text-purple-600",
-    },
-    {
-      title: "Teachers",
-      value: teachers.length,
-      icon: BookOpen,
-      href: "/users?tab=teachers",
-      color: "text-orange-600",
-    },
-  ];
+    tests.forEach((test) => {
+      const status = getTestStatus(test.validity);
+      if (status === "upcoming") upcoming.push(test);
+      else if (status === "ongoing") ongoing.push(test);
+    });
 
+    return { upcomingTests: upcoming, ongoingTests: ongoing };
+  }, [tests]);
+
+  // Get selected recent test stats
+  const selectedTestStats = useMemo(() => {
+    return recentTests.find((t) => t._id === selectedRecentTest) || recentTests[0];
+  }, [recentTests, selectedRecentTest]);
+
+  // Open test in new tab (for students)
+  const handleTestClick = (testId: string) => {
+    if (isStudent) {
+      const token = localStorage.getItem("auth_token");
+      const testPortalUrl = process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "http://localhost:3001";
+      window.open(`${testPortalUrl}/auth/${token}/${testId}`, "_blank");
+    }
+  };
+
+  // Student Dashboard
+  if (isStudent) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome back, {currentUser?.name || "Student"}!</h1>
+          <p className="text-muted-foreground">Here are your tests and progress.</p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Upcoming Tests */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Upcoming Tests</CardTitle>
+              <CardDescription>Tests scheduled for the future</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading.tests ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : upcomingTests.length === 0 ? (
+                <p className="py-8 text-center text-muted-foreground">No upcoming tests scheduled</p>
+              ) : (
+                <div className="space-y-2">
+                  {upcomingTests.slice(0, 5).map((test, i) => (
+                    <TestListItem
+                      key={test._id}
+                      index={i + 1}
+                      test={test}
+                      onClick={() => handleTestClick(test._id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ongoing Tests */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ongoing Tests</CardTitle>
+              <CardDescription>Tests you can take right now</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading.tests ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : ongoingTests.length === 0 ? (
+                <p className="py-8 text-center text-muted-foreground">No ongoing tests available</p>
+              ) : (
+                <div className="space-y-2">
+                  {ongoingTests.slice(0, 5).map((test, i) => (
+                    <TestListItem
+                      key={test._id}
+                      index={i + 1}
+                      test={test}
+                      onClick={() => handleTestClick(test._id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Test Analysis */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Recent Test Analysis</CardTitle>
+                <CardDescription>Performance statistics from recent tests</CardDescription>
+              </div>
+              {recentTests.length > 0 && (
+                <Select value={selectedRecentTest} onValueChange={setSelectedRecentTest}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select test" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recentTests.map((test) => (
+                      <SelectItem key={test._id} value={test._id}>
+                        {test.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading.recent ? (
+              <div className="grid gap-4 md:grid-cols-4">
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+              </div>
+            ) : !selectedTestStats ? (
+              <p className="py-8 text-center text-muted-foreground">No recent test data available</p>
+            ) : (
+              <>
+                <h3 className="mb-4 text-lg font-semibold">{selectedTestStats.name}</h3>
+                <div className="grid gap-4 md:grid-cols-4">
+                  <StatCard
+                    title="Highest Marks"
+                    value={selectedTestStats.highestMarks}
+                    icon={Trophy}
+                    variant="success"
+                  />
+                  <StatCard
+                    title="Average Marks"
+                    value={Math.round(selectedTestStats.averageMarks)}
+                    icon={Target}
+                    variant="warning"
+                  />
+                  <StatCard
+                    title="Lowest Marks"
+                    value={selectedTestStats.lowestMarks}
+                    icon={TrendingDown}
+                    variant="error"
+                  />
+                  <StatCard
+                    title="Total Appeared"
+                    value={selectedTestStats.totalAppeared}
+                    icon={UserCheck}
+                    variant="primary"
+                  />
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Schedule Calendar */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Schedule
+            </CardTitle>
+            <CardDescription>Your test schedule calendar</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScheduleCalendar tests={[...upcomingTests, ...ongoingTests]} />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Admin/Teacher Dashboard
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">
-            Welcome back, {currentUser?.name || "Admin"}!
-          </h1>
-          <p className="text-muted-foreground">
-            Here's what's happening with your platform today.
-          </p>
+          <h1 className="text-3xl font-bold">Welcome back, {currentUser?.name || "Admin"}!</h1>
+          <p className="text-muted-foreground">Here's what's happening with your platform today.</p>
         </div>
-        <div className="flex space-x-2">
-          <Link href="/tests/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Test
-            </Button>
-          </Link>
-        </div>
+        <Link href="/tests/new">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Test
+          </Button>
+        </Link>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Link key={stat.title} href={stat.href}>
-            <Card className="transition-shadow hover:shadow-md">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {testsLoading ? "..." : stat.value}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Recent Test Analysis */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Recent Test Analysis</CardTitle>
+              {recentTests.length > 0 && (
+                <Select value={selectedRecentTest} onValueChange={setSelectedRecentTest}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select test" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recentTests.map((test) => (
+                      <SelectItem key={test._id} value={test._id}>
+                        {test.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading.recent ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+                <Skeleton className="h-24" />
+              </div>
+            ) : !selectedTestStats ? (
+              <p className="py-8 text-center text-muted-foreground">No recent test data available</p>
+            ) : (
+              <>
+                <h3 className="mb-4 text-lg font-semibold">{selectedTestStats.name}</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <StatCard
+                    title="Highest Marks"
+                    value={selectedTestStats.highestMarks}
+                    icon={Trophy}
+                    variant="success"
+                  />
+                  <StatCard
+                    title="Average Marks"
+                    value={Math.round(selectedTestStats.averageMarks)}
+                    icon={Target}
+                    variant="warning"
+                  />
+                  <StatCard
+                    title="Lowest Marks"
+                    value={selectedTestStats.lowestMarks}
+                    icon={TrendingDown}
+                    variant="error"
+                  />
+                  <StatCard
+                    title="Total Appeared"
+                    value={selectedTestStats.totalAppeared}
+                    icon={UserCheck}
+                    variant="primary"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      {/* Recent Tests */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Tests</CardTitle>
-            <CardDescription>Tests scheduled for the future</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {upcomingTests.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No upcoming tests scheduled
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {upcomingTests.slice(0, 5).map((test) => (
-                  <div
-                    key={test._id}
-                    className="flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-medium">{test.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {test.validity?.from ? new Date(test.validity.from).toLocaleDateString() : "-"}
-                      </p>
-                    </div>
-                    <Link href={`/tests/${test._id}`}>
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
-              </div>
+              </>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ongoing Tests</CardTitle>
-            <CardDescription>Currently active tests</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {ongoingTests.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No tests currently running
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {ongoingTests.slice(0, 5).map((test) => (
-                  <div
-                    key={test._id}
-                    className="flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-medium">{test.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {test.duration || test.durationInMinutes} mins
-                      </p>
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Ongoing Tests */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ongoing Tests</CardTitle>
+              <CardDescription>Currently active tests</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading.tests ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : ongoingTests.length === 0 ? (
+                <p className="py-4 text-center text-muted-foreground">
+                  Looks like you've finished all your tests!
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {ongoingTests.slice(0, 4).map((test, i) => (
+                    <TestListItem key={test._id} index={i + 1} test={test} />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Institute Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Institute Details</CardTitle>
+              <CardDescription>Batch-wise student distribution</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading.institute ? (
+                <div className="grid gap-2 md:grid-cols-2">
+                  <Skeleton className="h-16" />
+                  <Skeleton className="h-16" />
+                  <Skeleton className="h-16" />
+                </div>
+              ) : !instituteDetails?.members?.batches?.length ? (
+                <p className="py-4 text-center text-muted-foreground">No batch data available</p>
+              ) : (
+                <div className="grid gap-2 md:grid-cols-2">
+                  {instituteDetails.members.batches.map((batch, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between rounded-lg border bg-muted/30 p-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-yellow-600" />
+                        <span className="font-medium">{batch.name}</span>
+                      </div>
+                      <Badge variant="secondary">{batch.totalStudents}</Badge>
                     </div>
-                    <Link href={`/tests/${test._id}/results`}>
-                      <Button variant="ghost" size="sm">
-                        Results
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
+      {/* Schedule Calendar */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Schedule
+          </CardTitle>
+          <CardDescription>Test schedule overview</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScheduleCalendar tests={[...upcomingTests, ...ongoingTests]} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ArrowLeft, Plus, Trash2, Zap, ChevronDown, ChevronUp } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,9 +30,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { UnsavedChangesDialog } from "@/components/unsaved-changes-dialog";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import api from "@/lib/api";
 import { IPattern, IBatch, IExam, ISection, ISubSection, IQuestion } from "@/types";
 import { QuestionSelectionModal } from "@/components/question-selection-modal";
+import { QuestionPreviewDialog } from "@/components/question-preview-dialog";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import RenderWithLatex from "@/components/render-with-latex";
@@ -61,8 +65,8 @@ interface TestFormData {
   exam: { id: string; name: string } | null;
   pattern: { id: string; name: string } | null;
   batches: Array<{ id: string; name: string }>;
-  validityFrom: string;
-  validityTo: string;
+  validityFrom: Date | undefined;
+  validityTo: Date | undefined;
   publishType: string;
   daysAfter: number;
   sections: TestSection[];
@@ -75,8 +79,8 @@ const initialFormData: TestFormData = {
   exam: null,
   pattern: null,
   batches: [],
-  validityFrom: "",
-  validityTo: "",
+  validityFrom: undefined,
+  validityTo: undefined,
   publishType: "immediately",
   daysAfter: 1,
   sections: [],
@@ -91,6 +95,7 @@ export default function CreateTestPage() {
   const [exams, setExams] = React.useState<IExam[]>([]);
   const [patterns, setPatterns] = React.useState<IPattern[]>([]);
   const [batches, setBatches] = React.useState<IBatch[]>([]);
+  const [subjectsMap, setSubjectsMap] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(false);
   const [expandedSections, setExpandedSections] = React.useState<Record<string, boolean>>({});
 
@@ -105,16 +110,58 @@ export default function CreateTestPage() {
     currentQuestions: IQuestion[];
   } | null>(null);
 
+  // Track if form has unsaved changes
+  const hasUnsavedChanges = React.useMemo(() => {
+    // Check if any field has been filled
+    return (
+      formData.name !== "" ||
+      formData.description !== "" ||
+      formData.exam !== null ||
+      formData.pattern !== null ||
+      formData.batches.length > 0 ||
+      formData.validityFrom !== undefined ||
+      formData.validityTo !== undefined ||
+      formData.sections.some((section) =>
+        section.subSections.some((sub) => (sub.questions?.length || 0) > 0)
+      )
+    );
+  }, [formData]);
+
+  const {
+    showDialog,
+    confirmNavigation,
+    cancelNavigation,
+    navigateWithCheck,
+  } = useUnsavedChanges({
+    isDirty: hasUnsavedChanges,
+    message: "You have unsaved changes to this test. Are you sure you want to leave?",
+  });
+
   // Fetch initial data
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [examsRes, batchesRes] = await Promise.all([
+        const [examsRes, batchesRes, subjectsRes] = await Promise.all([
           api.exams.getAll(),
           api.batches.getAll(),
+          api.subjects.getAll(),
         ]);
-        setExams(Array.isArray(examsRes.data) ? examsRes.data : (examsRes.data?.exams || []));
-        setBatches(Array.isArray(batchesRes.data) ? batchesRes.data : (batchesRes.data?.data || batchesRes.data?.batches || []));
+        // Backend returns { success: true, data: [...] }
+        const examsList = examsRes.data?.data || examsRes.data?.exams || examsRes.data || [];
+        setExams(Array.isArray(examsList) ? examsList : []);
+
+        const batchesList = batchesRes.data?.data || batchesRes.data?.batches || batchesRes.data || [];
+        setBatches(Array.isArray(batchesList) ? batchesList : []);
+
+        // Build subject ID to name map
+        const subjectsList = subjectsRes.data?.data || subjectsRes.data?.subjects || subjectsRes.data || [];
+        const subjectLookup: Record<string, string> = {};
+        if (Array.isArray(subjectsList)) {
+          subjectsList.forEach((s: { _id: string; name: string }) => {
+            if (s._id) subjectLookup[s._id] = s.name;
+          });
+        }
+        setSubjectsMap(subjectLookup);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
@@ -125,20 +172,22 @@ export default function CreateTestPage() {
   // Fetch patterns when exam changes
   React.useEffect(() => {
     const fetchPatterns = async () => {
-      if (!formData.exam?.name) {
+      if (!formData.exam?.id) {
         setPatterns([]);
         return;
       }
       try {
-        const response = await api.patterns.getByExam(formData.exam.name);
-        setPatterns(Array.isArray(response.data) ? response.data : (response.data?.patterns || []));
+        // Pass exam ID to filter patterns by exam
+        const response = await api.patterns.getByExam(formData.exam.id);
+        const patternsList = response.data?.data || response.data?.patterns || response.data || [];
+        setPatterns(Array.isArray(patternsList) ? patternsList : []);
       } catch (error) {
         console.error("Failed to fetch patterns:", error);
         setPatterns([]);
       }
     };
     fetchPatterns();
-  }, [formData.exam?.name]);
+  }, [formData.exam?.id]);
 
   // Update sections when pattern changes
   React.useEffect(() => {
@@ -306,8 +355,23 @@ export default function CreateTestPage() {
     return null;
   };
 
+  const validateDraft = (): string | null => {
+    // Backend schema requires these fields, so we need them even for drafts
+    if (!formData.name.trim()) return "Test name is required";
+    if (!formData.exam) return "Please select an exam";
+    if (!formData.pattern) return "Please select a pattern";
+    if (formData.batches.length === 0) return "Please select at least one batch";
+    return null;
+  };
+
   const handleSubmit = async (saveAsDraft = false) => {
-    if (!saveAsDraft) {
+    if (saveAsDraft) {
+      const draftError = validateDraft();
+      if (draftError) {
+        toast({ title: "Validation Error", description: draftError, variant: "destructive" });
+        return;
+      }
+    } else {
       const error = validateForm();
       if (error) {
         toast({ title: "Validation Error", description: error, variant: "destructive" });
@@ -318,16 +382,60 @@ export default function CreateTestPage() {
     setLoading(true);
     try {
       const selectedPattern = getSelectedPattern();
+
+      // Transform sections to ensure all questions have proper hi options
+      const transformedSections = formData.sections.map((section) => ({
+        ...section,
+        subSections: section.subSections.map((subSection) => ({
+          ...subSection,
+          questions: (subSection.questions || []).map((question) => {
+            // Ensure hi options have value field (copy from en if missing)
+            const questionWithOptions = question as {
+              options?: Array<{ id: string; en?: { value: string }; hi?: { value: string } }>;
+              en?: { options?: Array<{ id: string; value: string }> };
+              hi?: { options?: Array<{ id: string; value: string }> };
+            };
+
+            if (questionWithOptions.options) {
+              return {
+                ...question,
+                options: questionWithOptions.options.map((opt) => ({
+                  ...opt,
+                  en: opt.en || { value: "" },
+                  hi: opt.hi?.value ? opt.hi : { value: opt.en?.value || "" },
+                })),
+              };
+            }
+
+            // For questions with en/hi structure
+            if (questionWithOptions.en?.options) {
+              return {
+                ...question,
+                hi: {
+                  ...questionWithOptions.hi,
+                  options: questionWithOptions.en.options.map((opt, idx) => ({
+                    id: opt.id,
+                    value: questionWithOptions.hi?.options?.[idx]?.value || opt.value || "",
+                  })),
+                },
+              };
+            }
+
+            return question;
+          }),
+        })),
+      }));
+
       const testData = {
         name: formData.name,
         description: formData.description,
         exam: formData.exam,
         pattern: formData.pattern,
-        sections: formData.sections,
+        sections: transformedSections,
         batches: formData.batches.map((b) => ({ ...b, _id: b.id })),
         validity: {
-          from: formData.validityFrom ? new Date(formData.validityFrom).toISOString() : "",
-          to: formData.validityTo ? new Date(formData.validityTo).toISOString() : "",
+          from: formData.validityFrom ? formData.validityFrom.toISOString() : null,
+          to: formData.validityTo ? formData.validityTo.toISOString() : null,
         },
         durationInMinutes: selectedPattern?.durationInMinutes || 180,
         result: {
@@ -355,7 +463,9 @@ export default function CreateTestPage() {
       });
       router.push("/tests");
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to create test";
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const errorMessage = axiosError?.response?.data?.message ||
+        (error instanceof Error ? error.message : "Failed to create test");
       toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setLoading(false);
@@ -365,7 +475,7 @@ export default function CreateTestPage() {
   const getPublishDate = () => {
     if (formData.publishType === "immediately") return new Date().toISOString();
     if (formData.publishType === "atTheEndOfTest" && formData.validityTo) {
-      return new Date(formData.validityTo).toISOString();
+      return formData.validityTo.toISOString();
     }
     if (formData.publishType === "autoAfterXDays" && formData.validityTo) {
       const endDate = new Date(formData.validityTo);
@@ -373,6 +483,15 @@ export default function CreateTestPage() {
       return endDate.toISOString();
     }
     return null;
+  };
+
+  // Helper to get subject name from ID
+  const getSubjectName = (subjectId: string) => {
+    // If it's an ID starting with SB_, look up the name
+    if (subjectId.startsWith("SB_")) {
+      return subjectsMap[subjectId] || subjectId;
+    }
+    return subjectId;
   };
 
   // Get unique subjects from sections for question count display
@@ -389,10 +508,12 @@ export default function CreateTestPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/tests">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigateWithCheck("/tests")}
+          >
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
@@ -448,48 +569,38 @@ export default function CreateTestPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Exam *</Label>
-              <Select
+              <SearchableSelect
+                options={exams.map((exam) => ({
+                  value: exam._id,
+                  label: exam.name,
+                }))}
                 value={formData.exam?.id || ""}
                 onValueChange={handleExamChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Exam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {exams.map((exam) => (
-                    <SelectItem key={exam._id} value={exam._id}>
-                      {exam.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Select Exam"
+                searchPlaceholder="Search exams..."
+                emptyText="No exams found"
+              />
             </div>
             <div className="space-y-2">
               <Label>Pattern *</Label>
-              <Select
+              <SearchableSelect
+                options={patterns.map((pattern) => ({
+                  value: pattern._id,
+                  label: pattern.name,
+                }))}
                 value={formData.pattern?.id || ""}
                 onValueChange={handlePatternChange}
+                placeholder={
+                  !formData.exam
+                    ? "Select exam first"
+                    : patterns.length === 0
+                    ? "No patterns available"
+                    : "Select Pattern"
+                }
+                searchPlaceholder="Search patterns..."
+                emptyText="No patterns found"
                 disabled={!formData.exam || patterns.length === 0}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      !formData.exam
-                        ? "Select exam first"
-                        : patterns.length === 0
-                        ? "No patterns available"
-                        : "Select Pattern"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {patterns.map((pattern) => (
-                    <SelectItem key={pattern._id} value={pattern._id}>
-                      {pattern.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
           </div>
 
@@ -515,21 +626,19 @@ export default function CreateTestPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="validityFrom">Start Date & Time *</Label>
-              <Input
-                id="validityFrom"
-                type="datetime-local"
+              <Label>Start Date & Time *</Label>
+              <DateTimePicker
                 value={formData.validityFrom}
-                onChange={(e) => handleInputChange("validityFrom", e.target.value)}
+                onChange={(date) => handleInputChange("validityFrom", date)}
+                placeholder="Pick start date and time"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="validityTo">End Date & Time *</Label>
-              <Input
-                id="validityTo"
-                type="datetime-local"
+              <Label>End Date & Time *</Label>
+              <DateTimePicker
                 value={formData.validityTo}
-                onChange={(e) => handleInputChange("validityTo", e.target.value)}
+                onChange={(date) => handleInputChange("validityTo", date)}
+                placeholder="Pick end date and time"
               />
             </div>
           </div>
@@ -586,7 +695,7 @@ export default function CreateTestPage() {
                       filled === total ? "bg-green-50 border-green-200" : "bg-yellow-50 border-yellow-200"
                     }`}
                   >
-                    <span className="font-medium">{subject}:</span>{" "}
+                    <span className="font-medium">{getSubjectName(subject)}:</span>{" "}
                     <span className={filled === total ? "text-green-600" : "text-yellow-600"}>
                       {filled}/{total}
                     </span>
@@ -619,6 +728,7 @@ export default function CreateTestPage() {
                 }
                 onOpenQuestionModal={openQuestionModal}
                 onDeleteQuestion={handleDeleteQuestion}
+                getSubjectName={getSubjectName}
               />
             ))}
           </CardContent>
@@ -648,6 +758,14 @@ export default function CreateTestPage() {
           onSave={handleSaveQuestions}
         />
       )}
+
+      {/* Unsaved Changes Dialog */}
+      <UnsavedChangesDialog
+        open={showDialog}
+        onConfirm={confirmNavigation}
+        onCancel={cancelNavigation}
+        description="You have unsaved changes to this test. Are you sure you want to leave?"
+      />
     </div>
   );
 }
@@ -659,6 +777,7 @@ function SectionAccordion({
   onToggle,
   onOpenQuestionModal,
   onDeleteQuestion,
+  getSubjectName,
 }: {
   section: TestSection;
   isExpanded: boolean;
@@ -672,6 +791,7 @@ function SectionAccordion({
     currentQuestions: IQuestion[]
   ) => void;
   onDeleteQuestion: (sectionId: string, subSectionId: string, questionId: string) => void;
+  getSubjectName: (subjectId: string) => string;
 }) {
   const totalQuestions = section.subSections.reduce(
     (acc, sub) => acc + (sub.totalQuestions || 0),
@@ -689,7 +809,7 @@ function SectionAccordion({
           <div className="flex items-center gap-4">
             <div>
               <h3 className="font-semibold">{section.name}</h3>
-              <p className="text-sm text-muted-foreground">Subject: {section.subject}</p>
+              <p className="text-sm text-muted-foreground">Subject: {getSubjectName(section.subject || "")}</p>
             </div>
             <Badge variant={filledQuestions === totalQuestions ? "default" : "secondary"}>
               {filledQuestions}/{totalQuestions} questions
@@ -735,10 +855,13 @@ function SubSectionCard({
   ) => void;
   onDeleteQuestion: (sectionId: string, subSectionId: string, questionId: string) => void;
 }) {
+  const [previewQuestion, setPreviewQuestion] = React.useState<IQuestion | null>(null);
+
   const questionColumns: ColumnDef<IQuestion>[] = [
     {
-      accessorKey: "en.question",
+      id: "question",
       header: "Question",
+      accessorFn: (row) => row.en?.question || row.question || "",
       cell: ({ row }) => {
         const question = row.original;
         const questionText = question.en?.question || question.question || "";
@@ -752,9 +875,17 @@ function SubSectionCard({
     {
       accessorKey: "difficulty",
       header: "Difficulty",
-      cell: ({ row }) => (
-        <Badge variant="outline">{row.getValue("difficulty")}</Badge>
-      ),
+      cell: ({ row }) => {
+        const difficulty = row.getValue("difficulty") as string;
+        const difficultyLower = difficulty?.toLowerCase();
+        const colorClass =
+          difficultyLower === "easy"
+            ? "!bg-green-100 !text-green-800 border-green-200"
+            : difficultyLower === "medium"
+            ? "!bg-yellow-100 !text-yellow-800 border-yellow-200"
+            : "!bg-red-100 !text-red-800 border-red-200";
+        return <Badge variant="outline" className={colorClass}>{difficulty}</Badge>;
+      },
     },
     {
       id: "actions",
@@ -762,7 +893,10 @@ function SubSectionCard({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onDeleteQuestion(sectionId, subSection.id, row.original._id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteQuestion(sectionId, subSection.id, row.original._id);
+          }}
         >
           <Trash2 className="h-4 w-4 text-destructive" />
         </Button>
@@ -815,11 +949,19 @@ function SubSectionCard({
           <DataTable
             columns={questionColumns}
             data={subSection.questions}
-            searchKey="en.question"
+            searchKey="question"
             searchPlaceholder="Search questions..."
+            onRowClick={(question) => setPreviewQuestion(question)}
           />
         </div>
       )}
+
+      {/* Question Preview Dialog */}
+      <QuestionPreviewDialog
+        open={!!previewQuestion}
+        onClose={() => setPreviewQuestion(null)}
+        question={previewQuestion}
+      />
     </div>
   );
 }

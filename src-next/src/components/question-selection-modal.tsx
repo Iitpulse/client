@@ -24,10 +24,15 @@ import api from "@/lib/api";
 import { IQuestion } from "@/types";
 import RenderWithLatex from "@/components/render-with-latex";
 
+interface ISubject {
+  _id: string;
+  name: string;
+}
+
 interface QuestionSelectionModalProps {
   open: boolean;
   onClose: () => void;
-  subject: string;
+  subject: string; // Can be subject ID or subject name
   type: string;
   maxQuestions: number;
   selectedQuestions: IQuestion[];
@@ -49,6 +54,7 @@ export function QuestionSelectionModal({
   const [loading, setLoading] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selected, setSelected] = React.useState<IQuestion[]>(selectedQuestions);
+  const [subjectName, setSubjectName] = React.useState<string>(subject);
 
   // Auto-generate state
   const [easy, setEasy] = React.useState(Math.floor(maxQuestions * 0.3));
@@ -56,9 +62,37 @@ export function QuestionSelectionModal({
   const [hard, setHard] = React.useState(Math.floor(maxQuestions * 0.2));
   const [autoGenerating, setAutoGenerating] = React.useState(false);
 
+  // Resolve subject ID to subject name if needed
+  React.useEffect(() => {
+    const resolveSubjectName = async () => {
+      // If subject looks like an ID (starts with SB_ or contains underscores/dashes with alphanumeric)
+      if (subject && (subject.startsWith("SB_") || /^[A-Z]{2}_[a-f0-9_-]+$/i.test(subject))) {
+        try {
+          const response = await api.subjects.getAll();
+          const subjects: ISubject[] = response.data?.data || response.data?.subjects || response.data || [];
+          const found = subjects.find((s) => s._id === subject);
+          if (found) {
+            setSubjectName(found.name);
+          } else {
+            setSubjectName(subject); // Fallback to original value
+          }
+        } catch (error) {
+          console.error("Failed to resolve subject name:", error);
+          setSubjectName(subject);
+        }
+      } else {
+        setSubjectName(subject);
+      }
+    };
+
+    if (open && subject) {
+      resolveSubjectName();
+    }
+  }, [open, subject]);
+
   // Fetch questions when modal opens
   React.useEffect(() => {
-    if (open) {
+    if (open && subject) {
       fetchQuestions();
     }
   }, [open, subject, type]);
@@ -66,6 +100,7 @@ export function QuestionSelectionModal({
   const fetchQuestions = async () => {
     setLoading(true);
     try {
+      // Send original subject (ID or name) - backend handles ID resolution
       const params: Record<string, unknown> = {
         subject,
         page: 1,
@@ -128,10 +163,11 @@ export function QuestionSelectionModal({
 
     setAutoGenerating(true);
     try {
+      // Send original subject (ID or name) - backend handles ID resolution
       const params = {
         type,
-        difficulties: { easy, medium, hard },
-        rejectedQuestions: [],
+        difficulties: JSON.stringify({ easy, medium, hard }),
+        rejectedQuestions: "",
         subject,
         totalQuestions: maxQuestions,
       };
@@ -147,7 +183,7 @@ export function QuestionSelectionModal({
         return;
       }
 
-      const generatedQuestions = response?.data || [];
+      const generatedQuestions = response?.data?.data || response?.data || [];
 
       // Add attemptedBy field to options for MCQ
       const processedQuestions = generatedQuestions.map((q: IQuestion) => {
@@ -205,8 +241,9 @@ export function QuestionSelectionModal({
       },
     },
     {
-      accessorKey: "en.question",
+      id: "question",
       header: "Question",
+      accessorFn: (row) => row.en?.question || row.question || "",
       cell: ({ row }) => {
         const question = row.original;
         const questionText = question.en?.question || question.question || "";
@@ -222,13 +259,14 @@ export function QuestionSelectionModal({
       header: "Difficulty",
       cell: ({ row }) => {
         const difficulty = row.getValue("difficulty") as string;
-        const variant =
-          difficulty === "easy"
-            ? "default"
-            : difficulty === "medium"
-            ? "secondary"
-            : "destructive";
-        return <Badge variant={variant}>{difficulty}</Badge>;
+        const difficultyLower = difficulty?.toLowerCase();
+        const colorClass =
+          difficultyLower === "easy"
+            ? "!bg-green-100 !text-green-800 border-green-200"
+            : difficultyLower === "medium"
+            ? "!bg-yellow-100 !text-yellow-800 border-yellow-200"
+            : "!bg-red-100 !text-red-800 border-red-200";
+        return <Badge variant="outline" className={colorClass}>{difficulty}</Badge>;
       },
     },
     {
@@ -257,7 +295,7 @@ export function QuestionSelectionModal({
         <DialogHeader>
           <DialogTitle>Select Questions</DialogTitle>
           <DialogDescription>
-            {subject} - {type} questions ({selected.length}/{maxQuestions} selected)
+            {subjectName} - {type} questions ({selected.length}/{maxQuestions} selected)
           </DialogDescription>
         </DialogHeader>
 
@@ -289,8 +327,6 @@ export function QuestionSelectionModal({
                 <DataTable
                   columns={columns}
                   data={filteredQuestions}
-                  searchKey="en.question"
-                  searchPlaceholder=""
                 />
               )}
             </div>
@@ -358,8 +394,6 @@ export function QuestionSelectionModal({
                     <DataTable
                       columns={columns.filter((c) => c.id !== "select")}
                       data={selected}
-                      searchKey="en.question"
-                      searchPlaceholder=""
                     />
                   </div>
                 </div>

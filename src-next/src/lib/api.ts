@@ -84,6 +84,7 @@ export const api = {
   users: {
     getStudents: (params?: { page?: number; size?: number }) =>
       apiUsers.get("/student", { params }),
+    getStudentById: (id: string) => apiUsers.get(`/student/${id}`),
     getTeachers: (params?: { page?: number; size?: number }) =>
       apiUsers.get("/teacher", { params }),
     getAdmins: (params?: { page?: number; size?: number }) =>
@@ -211,7 +212,7 @@ export const api = {
       apiTests.get("/pattern", { params }),
     getAllNoPagination: () => apiTests.get("/pattern/all"),
     getByExam: (exam: string) =>
-      apiTests.get("/pattern/pattern/exam", { params: { exam } }),
+      apiTests.get("/pattern", { params: { exam } }),
     getById: (id: string) => apiTests.get(`/pattern/${id}`),
     create: (data: unknown) => apiTests.post("/pattern/create", data),
     update: (data: unknown) => apiTests.patch("/pattern/update", data),

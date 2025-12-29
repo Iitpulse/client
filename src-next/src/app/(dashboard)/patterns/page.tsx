@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import {
   MoreHorizontal,
   Plus,
@@ -10,6 +12,8 @@ import {
   Trash2,
   Copy,
   Eye,
+  Clock,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,13 +35,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
-import { IPattern } from "@/types";
+import { IPattern, IExam } from "@/types";
 
 export default function PatternsPage() {
+  const router = useRouter();
   const [patterns, setPatterns] = React.useState<IPattern[]>([]);
+  const [exams, setExams] = React.useState<IExam[]>([]);
+  const [examsMap, setExamsMap] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] = React.useState(false);
@@ -45,11 +59,36 @@ export default function PatternsPage() {
   const [patternToDuplicate, setPatternToDuplicate] = React.useState<IPattern | null>(null);
   const [duplicateName, setDuplicateName] = React.useState("");
 
+  // Filter and sort states
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [examFilter, setExamFilter] = React.useState<string>("all");
+  const [sortBy, setSortBy] = React.useState<string>("date-desc");
+
+  const handleRowClick = React.useCallback((pattern: IPattern) => {
+    router.push(`/patterns/${pattern._id}/preview`);
+  }, [router]);
+
   const fetchPatterns = React.useCallback(async () => {
     try {
-      const response = await api.patterns.getAll();
+      // Fetch all patterns - DataTable handles client-side pagination
+      const [patternsRes, examsRes] = await Promise.all([
+        api.patterns.getAllNoPagination(),
+        api.exams.getAll(),
+      ]);
       // Backend returns { success, data: [...] }
-      setPatterns(response.data?.data || response.data?.patterns || []);
+      const patternsData = patternsRes.data?.data || patternsRes.data?.patterns || patternsRes.data || [];
+      setPatterns(patternsData);
+
+      // Build exam ID -> name lookup map
+      const examsList: IExam[] = examsRes.data?.data || examsRes.data?.exams || examsRes.data || [];
+      setExams(examsList);
+      const examLookup: Record<string, string> = {};
+      examsList.forEach((exam) => {
+        if (exam._id) {
+          examLookup[exam._id] = exam.name;
+        }
+      });
+      setExamsMap(examLookup);
     } catch (error) {
       console.error("Failed to fetch patterns:", error);
     } finally {
@@ -60,6 +99,65 @@ export default function PatternsPage() {
   React.useEffect(() => {
     fetchPatterns();
   }, [fetchPatterns]);
+
+  // Filter and sort patterns
+  const filteredPatterns = React.useMemo(() => {
+    let result = patterns.filter((pattern) => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const nameMatch = pattern.name?.toLowerCase().includes(query);
+        // Get exam name - could be object, ID string, or name string
+        const examName = typeof pattern.exam === "object"
+          ? pattern.exam?.name
+          : (examsMap[pattern.exam as string] || pattern.exam);
+        const examMatch = examName?.toLowerCase().includes(query);
+        if (!nameMatch && !examMatch) return false;
+      }
+
+      // Exam filter - pattern.exam could be exam ID, exam name, or object
+      if (examFilter !== "all") {
+        const patternExamId = typeof pattern.exam === "object" ? pattern.exam?._id : pattern.exam;
+        const patternExamName = typeof pattern.exam === "object"
+          ? pattern.exam?.name
+          : (examsMap[pattern.exam as string] || pattern.exam);
+
+        // Match by ID or by name (in case exam is stored as name string)
+        const selectedExamName = examsMap[examFilter];
+        if (patternExamId !== examFilter && patternExamName !== selectedExamName) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Sort
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case "date-desc":
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        case "date-asc":
+          return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+        case "name-asc":
+          return (a.name || "").localeCompare(b.name || "");
+        case "name-desc":
+          return (b.name || "").localeCompare(a.name || "");
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [patterns, searchQuery, examFilter, sortBy, examsMap]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setExamFilter("all");
+    setSortBy("date-desc");
+  };
+
+  const hasActiveFilters = searchQuery || examFilter !== "all" || sortBy !== "date-desc";
 
   const handleDelete = async () => {
     if (!patternToDelete) return;
@@ -112,7 +210,16 @@ export default function PatternsPage() {
     }, 0) || 0;
   };
 
-  const columns: ColumnDef<IPattern>[] = [
+  const formatDuration = (minutes: number | undefined) => {
+    if (!minutes) return "-";
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
+    if (hours > 0) return `${hours}h`;
+    return `${mins}m`;
+  };
+
+  const columns: ColumnDef<IPattern>[] = React.useMemo(() => [
     {
       accessorKey: "name",
       header: "Pattern Name",
@@ -121,12 +228,32 @@ export default function PatternsPage() {
       ),
     },
     {
-      accessorKey: "exam",
-      header: "Exam",
+      id: "exam",
+      header: "Exam Type",
       cell: ({ row }) => {
         const exam = row.original.exam;
-        return typeof exam === "object" ? exam?.name : "-";
+        // Exam can be an object (populated) or a string (ID)
+        if (typeof exam === "object" && exam?.name) {
+          return exam.name;
+        }
+        // Look up exam name from examsMap using the exam ID
+        if (typeof exam === "string" && exam) {
+          const examName = examsMap[exam];
+          return examName || "-";
+        }
+        // No exam assigned
+        return "-";
       },
+    },
+    {
+      id: "duration",
+      header: "Duration",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1">
+          <Clock className="h-3 w-3 text-muted-foreground" />
+          {formatDuration(row.original.durationInMinutes)}
+        </div>
+      ),
     },
     {
       id: "sections",
@@ -148,60 +275,88 @@ export default function PatternsPage() {
       cell: ({ row }) => getTotalMarks(row.original),
     },
     {
+      id: "createdAt",
+      header: "Created",
+      cell: ({ row }) => {
+        const date = row.original.createdAt;
+        if (!date) return "-";
+        try {
+          return format(new Date(date), "dd MMM yyyy");
+        } catch {
+          return "-";
+        }
+      },
+    },
+    {
+      id: "createdBy",
+      header: "Created By",
+      cell: ({ row }) => {
+        const createdBy = row.original.createdBy;
+        if (!createdBy) return "-";
+        return (
+          <Badge variant="outline" className="uppercase text-xs">
+            {createdBy.userType || "-"}
+          </Badge>
+        );
+      },
+    },
+    {
       id: "actions",
       cell: ({ row }) => {
         const pattern = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/patterns/${pattern._id}/edit`}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/patterns/${pattern._id}/preview`}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  Preview
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setPatternToDuplicate(pattern);
-                  setDuplicateName(`${pattern.name} (Copy)`);
-                  setDuplicateDialogOpen(true);
-                }}
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => {
-                  setPatternToDelete(pattern);
-                  setDeleteDialogOpen(true);
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href={`/patterns/${pattern._id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/patterns/${pattern._id}/preview`}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setPatternToDuplicate(pattern);
+                    setDuplicateName(`${pattern.name} (Copy)`);
+                    setDuplicateDialogOpen(true);
+                  }}
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Duplicate
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={() => {
+                    setPatternToDelete(pattern);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         );
       },
     },
-  ];
+  ], [examsMap]);
 
   return (
     <div className="space-y-6">
@@ -220,6 +375,58 @@ export default function PatternsPage() {
         </Button>
       </div>
 
+      {/* Search, Filters & Sort - Inline */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
+          placeholder="Search patterns..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-[250px]"
+        />
+
+        <Select value={examFilter} onValueChange={setExamFilter}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="All Exams" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Exams</SelectItem>
+            {exams.map((exam) => (
+              <SelectItem key={exam._id} value={exam._id}>
+                {exam.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date-desc">Newest First</SelectItem>
+            <SelectItem value="date-asc">Oldest First</SelectItem>
+            <SelectItem value="name-asc">Name A-Z</SelectItem>
+            <SelectItem value="name-desc">Name Z-A</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="h-9 px-2"
+          >
+            <X className="mr-1 h-4 w-4" />
+            Clear
+          </Button>
+        )}
+
+        <span className="ml-auto text-sm text-muted-foreground">
+          {filteredPatterns.length} pattern{filteredPatterns.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+
       {loading ? (
         <div className="flex h-48 items-center justify-center">
           <div className="text-muted-foreground">Loading patterns...</div>
@@ -227,9 +434,8 @@ export default function PatternsPage() {
       ) : (
         <DataTable
           columns={columns}
-          data={patterns}
-          searchKey="name"
-          searchPlaceholder="Search patterns..."
+          data={filteredPatterns}
+          onRowClick={handleRowClick}
         />
       )}
 

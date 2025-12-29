@@ -227,7 +227,9 @@ export interface IMarkingScheme {
 export interface ISubSection {
   id: string;
   name: string;
+  description?: string;
   type: QuestionType;
+  paragraphType?: "single" | "multiple" | "integer";
   totalQuestions?: number;
   noOfQuestions?: number;
   toBeAttempted?: number;
