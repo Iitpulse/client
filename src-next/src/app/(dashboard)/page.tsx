@@ -20,7 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FileText,
   Users,
@@ -150,15 +157,18 @@ function TestListItem({
 }
 
 // Simple Calendar Component
-function ScheduleCalendar({ tests }: { tests: ITest[] }) {
+function ScheduleCalendar({ tests, onTestClick }: { tests: ITest[]; onTestClick?: (test: ITest) => void }) {
   const [currentDate, setCurrentDate] = useState(dayjs());
+  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const daysInMonth = currentDate.daysInMonth();
   const firstDayOfMonth = currentDate.startOf("month").day();
   const monthName = currentDate.format("MMMM YYYY");
 
-  const testDates = useMemo(() => {
-    const dates = new Set<string>();
+  // Map of day -> tests available on that day
+  const testsByDate = useMemo(() => {
+    const dateMap = new Map<string, ITest[]>();
     tests.forEach((test) => {
       if (test.validity?.from) {
         const start = dayjs(test.validity.from);
@@ -166,14 +176,32 @@ function ScheduleCalendar({ tests }: { tests: ITest[] }) {
         let current = start;
         while (current.isBefore(end) || current.isSame(end, "day")) {
           if (current.month() === currentDate.month() && current.year() === currentDate.year()) {
-            dates.add(current.date().toString());
+            const key = current.date().toString();
+            const existing = dateMap.get(key) || [];
+            existing.push(test);
+            dateMap.set(key, existing);
           }
           current = current.add(1, "day");
         }
       }
     });
-    return dates;
+    return dateMap;
   }, [tests, currentDate]);
+
+  // Get tests for the selected date
+  const testsForSelectedDate = useMemo(() => {
+    if (!selectedDate) return [];
+    return testsByDate.get(selectedDate.date().toString()) || [];
+  }, [selectedDate, testsByDate]);
+
+  const handleDayClick = (day: number) => {
+    const clickedDate = currentDate.date(day);
+    const testsOnDay = testsByDate.get(day.toString()) || [];
+    if (testsOnDay.length > 0) {
+      setSelectedDate(clickedDate);
+      setDialogOpen(true);
+    }
+  };
 
   const days = [];
   for (let i = 0; i < firstDayOfMonth; i++) {
@@ -181,14 +209,18 @@ function ScheduleCalendar({ tests }: { tests: ITest[] }) {
   }
   for (let day = 1; day <= daysInMonth; day++) {
     const isToday = dayjs().date() === day && dayjs().month() === currentDate.month() && dayjs().year() === currentDate.year();
-    const hasTest = testDates.has(day.toString());
+    const testsOnDay = testsByDate.get(day.toString()) || [];
+    const hasTest = testsOnDay.length > 0;
 
     days.push(
       <div
         key={day}
-        className={`relative flex h-10 items-center justify-center rounded-md text-sm ${
+        onClick={() => handleDayClick(day)}
+        className={`relative flex h-10 items-center justify-center rounded-md text-sm transition-colors ${
           isToday ? "bg-primary text-primary-foreground font-bold" : ""
-        } ${hasTest && !isToday ? "bg-blue-100 dark:bg-blue-900 font-medium" : ""}`}
+        } ${hasTest && !isToday ? "bg-blue-100 dark:bg-blue-900 font-medium" : ""} ${
+          hasTest ? "cursor-pointer hover:ring-2 hover:ring-primary hover:ring-offset-1" : ""
+        }`}
       >
         {day}
         {hasTest && (
@@ -199,45 +231,99 @@ function ScheduleCalendar({ tests }: { tests: ITest[] }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCurrentDate(currentDate.subtract(1, "month"))}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <h3 className="font-semibold">{monthName}</h3>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCurrentDate(currentDate.add(1, "month"))}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
-        <div>Sun</div>
-        <div>Mon</div>
-        <div>Tue</div>
-        <div>Wed</div>
-        <div>Thu</div>
-        <div>Fri</div>
-        <div>Sat</div>
-      </div>
-      <div className="grid grid-cols-7 gap-1">{days}</div>
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-full bg-primary" />
-          <span>Today</span>
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentDate(currentDate.subtract(1, "month"))}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h3 className="font-semibold">{monthName}</h3>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentDate(currentDate.add(1, "month"))}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-full bg-blue-100 dark:bg-blue-900" />
-          <span>Scheduled Test</span>
+        <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
+          <div>Sun</div>
+          <div>Mon</div>
+          <div>Tue</div>
+          <div>Wed</div>
+          <div>Thu</div>
+          <div>Fri</div>
+          <div>Sat</div>
+        </div>
+        <div className="grid grid-cols-7 gap-1">{days}</div>
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-full bg-primary" />
+            <span>Today</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-full bg-blue-100 dark:bg-blue-900" />
+            <span>Scheduled Test</span>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Tests Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Tests on {selectedDate?.format("MMMM D, YYYY")}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {testsForSelectedDate.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No tests scheduled for this day</p>
+            ) : (
+              testsForSelectedDate.map((test, index) => {
+                const durationHours = test.durationInMinutes
+                  ? (test.durationInMinutes / 60).toFixed(1)
+                  : test.duration
+                  ? (test.duration / 60).toFixed(1)
+                  : "3";
+                return (
+                  <div
+                    key={test._id}
+                    onClick={() => {
+                      setDialogOpen(false);
+                      onTestClick?.(test);
+                    }}
+                    className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <span className="font-medium">{test.name}</span>
+                        {test.validity?.from && (
+                          <p className="text-xs text-muted-foreground">
+                            {dayjs(test.validity.from).format("h:mm A")} - {dayjs(test.validity.to).format("h:mm A")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>{durationHours} Hr</span>
+                      <Monitor className="h-4 w-4" />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -253,6 +339,7 @@ function getTestStatus(validity?: { from: string; to: string }) {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { currentUser } = useAuthStore();
   const isStudent = currentUser?.userType === "student";
 
@@ -271,9 +358,15 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const response = await api.tests.getByStatus("active");
+        // Fetch all tests and filter by status client-side
+        const response = await api.tests.getAll();
         const data = Array.isArray(response.data) ? response.data : (response.data?.tests || response.data?.data || []);
-        setTests(data);
+        // Filter out inactive tests - we want active, ongoing, and upcoming
+        const activeTests = data.filter((test: ITest) => {
+          const status = test.status?.toLowerCase();
+          return status !== "inactive";
+        });
+        setTests(activeTests);
       } catch {
         setTests([]);
       } finally {
@@ -512,7 +605,10 @@ export default function DashboardPage() {
             <CardDescription>Your test schedule calendar</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScheduleCalendar tests={[...upcomingTests, ...ongoingTests]} />
+            <ScheduleCalendar
+              tests={[...upcomingTests, ...ongoingTests]}
+              onTestClick={(test) => handleTestClick(test._id)}
+            />
           </CardContent>
         </Card>
       </div>
@@ -622,7 +718,12 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-2">
                   {ongoingTests.slice(0, 4).map((test, i) => (
-                    <TestListItem key={test._id} index={i + 1} test={test} />
+                    <TestListItem
+                      key={test._id}
+                      index={i + 1}
+                      test={test}
+                      onClick={() => router.push(`/tests/${test._id}/edit`)}
+                    />
                   ))}
                 </div>
               )}
@@ -675,7 +776,10 @@ export default function DashboardPage() {
           <CardDescription>Test schedule overview</CardDescription>
         </CardHeader>
         <CardContent>
-          <ScheduleCalendar tests={[...upcomingTests, ...ongoingTests]} />
+          <ScheduleCalendar
+            tests={[...upcomingTests, ...ongoingTests]}
+            onTestClick={(test) => router.push(`/tests/${test._id}/edit`)}
+          />
         </CardContent>
       </Card>
     </div>

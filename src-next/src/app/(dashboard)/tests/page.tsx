@@ -383,8 +383,6 @@ export default function TestsPage() {
         <DataTable
           columns={columns}
           data={filteredTests}
-          searchKey="name"
-          searchPlaceholder=""
           onRowClick={(test) => router.push(`/tests/${test._id}/edit`)}
         />
       )}
