@@ -97,27 +97,27 @@ export const api = {
     // Student CRUD
     createStudent: (data: unknown) => apiUsers.post("/student/create", data),
     updateStudent: (id: string, data: Record<string, unknown>) =>
-      apiUsers.patch("/student/update", { id, ...data }),
+      apiUsers.put(`/student/${id}`, data),
     deleteStudent: (id: string) => apiUsers.delete("/student/delete", { data: { id } }),
     // Teacher CRUD
     createTeacher: (data: unknown) => apiUsers.post("/teacher/create", data),
     updateTeacher: (id: string, data: Record<string, unknown>) =>
-      apiUsers.patch("/teacher/update", { id, ...data }),
+      apiUsers.put(`/teacher/${id}`, data),
     deleteTeacher: (id: string) => apiUsers.delete("/teacher/delete", { data: { id } }),
     // Admin CRUD
     createAdmin: (data: unknown) => apiUsers.post("/admin/create", data),
     updateAdmin: (id: string, data: Record<string, unknown>) =>
-      apiUsers.patch("/admin/update", { id, ...data }),
+      apiUsers.put(`/admin/${id}`, data),
     deleteAdmin: (id: string) => apiUsers.delete("/admin/delete", { data: { id } }),
     // Operator CRUD
     createOperator: (data: unknown) => apiUsers.post("/operator/create", data),
     updateOperator: (id: string, data: Record<string, unknown>) =>
-      apiUsers.patch("/operator/update", { id, ...data }),
+      apiUsers.put(`/operator/${id}`, data),
     deleteOperator: (id: string) => apiUsers.delete("/operator/delete", { data: { id } }),
     // Manager CRUD
     createManager: (data: unknown) => apiUsers.post("/manager/create", data),
     updateManager: (id: string, data: Record<string, unknown>) =>
-      apiUsers.patch("/manager/update", { id, ...data }),
+      apiUsers.put(`/manager/${id}`, data),
     deleteManager: (id: string) => apiUsers.delete("/manager/delete", { data: { id } }),
   },
   roles: {

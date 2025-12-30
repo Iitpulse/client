@@ -34,35 +34,94 @@ export interface IStudent extends IUserBase {
   batch?: string | IBatch;
   institute?: string | IInstitute;
   class?: string;
+  standard?: string;
+  school?: string;
+  stream?: string;
+  medium?: string;
   rollNo?: string;
   phone?: string;
   parentContact?: string;
+  parentDetails?: {
+    name?: string;
+    contact?: string;
+  };
+  dob?: string;
+  gender?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  validity?: {
+    from?: string;
+    to?: string;
+  };
+  roles?: Array<string | { _id: string; name: string }>;
 }
 
 export interface ITeacher extends IUserBase {
   userType: "teacher";
   subject?: string;
+  subjects?: Array<string | { _id: string; name: string }>;
   institute?: string | IInstitute;
   phone?: string;
   qualification?: string;
+  dob?: string;
+  gender?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  validity?: {
+    from?: string;
+    to?: string;
+  };
+  roles?: Array<string | { _id: string; name: string }>;
 }
 
 export interface IAdmin extends IUserBase {
   userType: "admin";
   institute?: string | IInstitute;
   phone?: string;
+  dob?: string;
+  gender?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  validity?: {
+    from?: string;
+    to?: string;
+  };
+  roles?: Array<string | { _id: string; name: string }>;
 }
 
 export interface IOperator extends IUserBase {
   userType: "operator";
   institute?: string | IInstitute;
   phone?: string;
+  dob?: string;
+  gender?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  validity?: {
+    from?: string;
+    to?: string;
+  };
+  roles?: Array<string | { _id: string; name: string }>;
 }
 
 export interface IManager extends IUserBase {
   userType: "manager";
   institute?: string | IInstitute;
   phone?: string;
+  dob?: string;
+  gender?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  validity?: {
+    from?: string;
+    to?: string;
+  };
+  roles?: Array<string | { _id: string; name: string }>;
 }
 
 // Keep old names as aliases for compatibility
