@@ -154,9 +154,12 @@ export interface IUserManager extends IUserBase {
 // Role & Permission Types
 export interface IRole {
   _id: string;
+  id?: string;
   name: string;
-  permissions: Record<string, boolean>;
-  members: string[];
+  // Backend may return permissions as array of strings or object of booleans
+  permissions: string[] | Record<string, boolean>;
+  // Members can be string IDs or objects with id/userType
+  members: (string | { id: string; userType: string })[];
   createdAt?: string;
 }
 

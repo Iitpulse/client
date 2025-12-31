@@ -2,27 +2,13 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  MoreHorizontal,
-  Plus,
-  Edit,
-  Trash2,
-  Users,
-  Shield,
-} from "lucide-react";
+import { Plus, Trash2, Users, Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -44,10 +30,14 @@ interface IRoleDisplay {
 }
 
 export default function RolesPage() {
+  const router = useRouter();
   const { allRoles, fetchRoles, deleteRole } = usePermissionsStore();
   const [loading, setLoading] = React.useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [roleToDelete, setRoleToDelete] = React.useState<IRoleDisplay | null>(null);
+  const [roleToDelete, setRoleToDelete] = React.useState<IRoleDisplay | null>(
+    null
+  );
+  const [deleting, setDeleting] = React.useState(false);
 
   React.useEffect(() => {
     const loadRoles = async () => {
@@ -67,12 +57,15 @@ export default function RolesPage() {
     const roleId = roleToDelete.id || roleToDelete._id;
     if (!roleId) return;
 
+    setDeleting(true);
     try {
       await deleteRole(roleId);
       setDeleteDialogOpen(false);
       setRoleToDelete(null);
     } catch (error) {
       console.error("Failed to delete role:", error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -116,39 +109,23 @@ export default function RolesPage() {
     },
     {
       id: "actions",
+      header: "",
       cell: ({ row }) => {
         const role = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/roles/${role.name}`}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => {
-                  setRoleToDelete(role);
-                  setDeleteDialogOpen(true);
-                }}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setRoleToDelete(role);
+              setDeleteDialogOpen(true);
+            }}
+            title="Delete role"
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
         );
       },
     },
@@ -159,9 +136,7 @@ export default function RolesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Roles</h1>
-          <p className="text-muted-foreground">
-            Manage roles and permissions
-          </p>
+          <p className="text-muted-foreground">Manage roles and permissions</p>
         </div>
         <Button asChild>
           <Link href="/roles/new">
@@ -181,6 +156,7 @@ export default function RolesPage() {
           data={allRoles}
           searchKey="name"
           searchPlaceholder="Search roles..."
+          onRowClick={(role) => router.push(`/roles/${role.name}`)}
         />
       )}
 
@@ -198,11 +174,16 @@ export default function RolesPage() {
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

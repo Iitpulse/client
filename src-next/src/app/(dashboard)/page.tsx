@@ -361,10 +361,12 @@ export default function DashboardPage() {
         // Fetch all tests and filter by status client-side
         const response = await api.tests.getAll();
         const data = Array.isArray(response.data) ? response.data : (response.data?.tests || response.data?.data || []);
-        // Filter out inactive tests - we want active, ongoing, and upcoming
+        // Filter out draft tests - we want published tests that can be ongoing/upcoming
         const activeTests = data.filter((test: ITest) => {
           const status = test.status?.toLowerCase();
-          return status !== "inactive";
+          // Exclude draft tests (not yet published)
+          // Include published/scheduled/ongoing and any with validity dates
+          return status !== "draft";
         });
         setTests(activeTests);
       } catch {

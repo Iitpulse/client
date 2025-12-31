@@ -27,28 +27,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useTestsStore } from "@/stores";
+import { useTestsStore, useAuthStore } from "@/stores";
 import { ITest, IExam } from "@/types";
 import api from "@/lib/api";
 
-type TestStatusDisplay = "Active" | "Inactive" | "Ongoing" | "Upcoming" | "Expired";
+// Display status computed from stored status + validity dates
+// Stored status: 'draft' | 'published' (+ legacy: 'scheduled', 'ongoing', 'completed', 'expired')
+// Display status: 'Draft' | 'Upcoming' | 'Ongoing' | 'Expired' | 'Completed'
+type TestStatusDisplay = "Draft" | "Ongoing" | "Upcoming" | "Expired" | "Completed";
 
-const statusVariants: Record<string, "default" | "secondary" | "success" | "warning" | "destructive"> = {
-  Active: "success",
-  Inactive: "secondary",
+const statusVariants: Record<TestStatusDisplay, "default" | "secondary" | "success" | "warning" | "destructive"> = {
+  Draft: "secondary",
   Ongoing: "success",
   Upcoming: "warning",
   Expired: "destructive",
+  Completed: "default",
 };
 
-// Determine test status based on validity dates
+// Determine test display status based on stored status + validity dates
 function getTestStatus(test: ITest): TestStatusDisplay {
-  // Check for inactive status (case-insensitive)
   const statusLower = test.status?.toLowerCase();
-  if (statusLower === "inactive") {
-    return "Inactive";
+
+  // Draft tests are always shown as Draft
+  if (statusLower === "draft") {
+    return "Draft";
   }
 
+  // Completed in database means test has been finalized
+  if (statusLower === "completed") {
+    return "Completed";
+  }
+
+  // For published/scheduled/ongoing tests, compute from validity dates
   const now = new Date();
   const from = test.validity?.from ? new Date(test.validity.from) : null;
   const to = test.validity?.to ? new Date(test.validity.to) : null;
@@ -63,23 +73,20 @@ function getTestStatus(test: ITest): TestStatusDisplay {
     return "Ongoing";
   }
 
-  // If no validity dates, check if status is explicitly "Active"
-  if (statusLower === "active") {
-    return "Active";
-  }
-
-  // Default to Active for tests without validity dates
-  return "Active";
+  // If no validity dates but published, treat as Ongoing (always accessible)
+  return "Ongoing";
 }
 
 export default function TestsPage() {
   const router = useRouter();
+  const { currentUser } = useAuthStore();
+  const isStudent = currentUser?.userType === "student";
   const { tests, setTests, deleteTest } = useTestsStore();
   const [exams, setExams] = React.useState<IExam[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [testToDelete, setTestToDelete] = React.useState<ITest | null>(null);
-  const [activeTab, setActiveTab] = React.useState("active");
+  const [activeTab, setActiveTab] = React.useState("all");
   const [selectedExam, setSelectedExam] = React.useState<string>("all");
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -149,9 +156,11 @@ export default function TestsPage() {
       header: "Name",
       cell: ({ row }) => {
         const test = row.original;
+        // Students go to result page, admins go to edit page
+        const href = isStudent ? `/tests/${test._id}/result` : `/tests/${test._id}/edit`;
         return (
           <Link
-            href={`/tests/${test._id}/edit`}
+            href={href}
             className="font-medium text-primary hover:underline"
           >
             {row.getValue("name")}
@@ -237,6 +246,23 @@ export default function TestsPage() {
           status !== "Active" &&
           status !== "Upcoming";
 
+        // Students only see the results button
+        if (isStudent) {
+          return (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/tests/${test._id}/result`);
+              }}
+              title="View results"
+            >
+              <BarChart3 className="h-4 w-4" />
+            </Button>
+          );
+        }
+
         return (
           <div className="flex items-center gap-1">
             <Button
@@ -301,22 +327,20 @@ export default function TestsPage() {
     }
 
     // Filter by status based on tab
-    // Note: getTestStatus computes status from validity dates
+    // Status is computed from stored status + validity dates
     switch (activeTab) {
-      case "active":
-        // Show only Active and Ongoing tests (not expired, not upcoming, not inactive)
-        return filtered.filter((t) => {
-          const status = getTestStatus(t);
-          return status === "Active" || status === "Ongoing";
-        });
-      case "inactive":
-        return filtered.filter((t) => getTestStatus(t) === "Inactive");
+      case "all":
+        return filtered;
+      case "draft":
+        return filtered.filter((t) => getTestStatus(t) === "Draft");
       case "ongoing":
         return filtered.filter((t) => getTestStatus(t) === "Ongoing");
       case "upcoming":
         return filtered.filter((t) => getTestStatus(t) === "Upcoming");
       case "expired":
         return filtered.filter((t) => getTestStatus(t) === "Expired");
+      case "completed":
+        return filtered.filter((t) => getTestStatus(t) === "Completed");
       default:
         return filtered;
     }
@@ -329,15 +353,17 @@ export default function TestsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tests</h1>
           <p className="text-muted-foreground">
-            Manage your tests and examinations
+            {isStudent ? "View your tests and results" : "Manage your tests and examinations"}
           </p>
         </div>
-        <Button asChild>
-          <Link href="/tests/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Add New
-          </Link>
-        </Button>
+        {!isStudent && (
+          <Button asChild>
+            <Link href="/tests/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add New
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Inline Controls: Exam Filter, Tabs, Search */}
@@ -358,11 +384,12 @@ export default function TestsPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
           <TabsList>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="inactive">Inactive</TabsTrigger>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="draft">Draft</TabsTrigger>
             <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="expired">Expired</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -383,7 +410,7 @@ export default function TestsPage() {
         <DataTable
           columns={columns}
           data={filteredTests}
-          onRowClick={(test) => router.push(`/tests/${test._id}/edit`)}
+          onRowClick={(test) => router.push(isStudent ? `/tests/${test._id}/result` : `/tests/${test._id}/edit`)}
         />
       )}
 

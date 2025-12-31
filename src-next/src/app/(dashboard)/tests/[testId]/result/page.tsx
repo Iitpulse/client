@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { useAuthStore } from "@/stores";
 
 interface Submission {
   id: string;
@@ -66,6 +67,8 @@ interface TestResultData {
 export default function TestResultPage() {
   const params = useParams();
   const testId = params.testId as string;
+  const { currentUser } = useAuthStore();
+  const isStudent = currentUser?.userType === "student";
   const [resultData, setResultData] = React.useState<TestResultData | null>(null);
   const [studentMap, setStudentMap] = React.useState<Map<string, StudentInfo>>(new Map());
   const [batchMap, setBatchMap] = React.useState<Map<string, string>>(new Map());
@@ -332,18 +335,20 @@ export default function TestResultPage() {
             <p className="text-muted-foreground">Test Results & Analytics</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/tests/${testId}/detailed-analysis`}>
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Detailed Analysis
-            </Link>
-          </Button>
-          <Button onClick={exportToCSV} disabled={!rankedResults.length}>
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
-        </div>
+        {!isStudent && (
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/tests/${testId}/detailed-analysis`}>
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Detailed Analysis
+              </Link>
+            </Button>
+            <Button onClick={exportToCSV} disabled={!rankedResults.length}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-5">
@@ -387,30 +392,100 @@ export default function TestResultPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Student Results</CardTitle>
-          <CardDescription>
-            {rankedResults.length > 0
-              ? `Individual performance of ${rankedResults.length} students who took this test`
-              : "No submissions yet"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {rankedResults.length > 0 ? (
-            <DataTable
-              columns={columns}
-              data={rankedResults}
-              searchKey="studentName"
-              searchPlaceholder="Search students..."
-            />
-          ) : (
-            <div className="flex h-32 items-center justify-center text-muted-foreground">
-              No students have submitted this test yet
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {isStudent ? (
+        // Student view: Show only their own result
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Result</CardTitle>
+            <CardDescription>Your performance in this test</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const myResult = rankedResults.find(
+                (r) => r.studentId === currentUser?.id || r.id === currentUser?.id
+              );
+              if (!myResult) {
+                return (
+                  <div className="flex h-32 items-center justify-center text-muted-foreground">
+                    Your result is not available yet
+                  </div>
+                );
+              }
+              return (
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-4">
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">Your Rank</p>
+                      <p className="text-2xl font-bold">#{myResult.rank}</p>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">Marks Obtained</p>
+                      <p className="text-2xl font-bold">
+                        {myResult.obtainedMarks} / {resultData?.test?.totalMarks || "-"}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">Percentage</p>
+                      <Badge
+                        className="mt-1 text-lg"
+                        variant={
+                          myResult.percentage >= 75
+                            ? "success"
+                            : myResult.percentage >= 50
+                            ? "warning"
+                            : "destructive"
+                        }
+                      >
+                        {myResult.percentage?.toFixed(1) || "0"}%
+                      </Badge>
+                    </div>
+                    <div className="rounded-lg border p-4">
+                      <p className="text-sm text-muted-foreground">Time Taken</p>
+                      <p className="text-2xl font-bold">
+                        {myResult.timeTaken
+                          ? `${Math.floor(myResult.timeTaken / 60)}m ${myResult.timeTaken % 60}s`
+                          : "-"}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="outline" asChild>
+                    <Link href={`/tests/${testId}/student/${currentUser?.id}`}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Detailed Analysis
+                    </Link>
+                  </Button>
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+      ) : (
+        // Admin view: Show all student results
+        <Card>
+          <CardHeader>
+            <CardTitle>Student Results</CardTitle>
+            <CardDescription>
+              {rankedResults.length > 0
+                ? `Individual performance of ${rankedResults.length} students who took this test`
+                : "No submissions yet"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {rankedResults.length > 0 ? (
+              <DataTable
+                columns={columns}
+                data={rankedResults}
+                searchKey="studentName"
+                searchPlaceholder="Search students..."
+              />
+            ) : (
+              <div className="flex h-32 items-center justify-center text-muted-foreground">
+                No students have submitted this test yet
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
