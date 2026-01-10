@@ -6,7 +6,10 @@ const AUTH_TOKEN_KEY = "auth_token";
 const API_GATEWAY = process.env.NEXT_PUBLIC_API_GATEWAY || "http://localhost:8000";
 
 // Create axios instance with interceptors
-function createApiClient(service: "users" | "questions" | "tests"): AxiosInstance {
+function createApiClient(
+  service: "users" | "questions" | "tests",
+  options?: { skipAuthRedirect?: boolean }
+): AxiosInstance {
   const client = axios.create({
     baseURL: `${API_GATEWAY}/${service}`,
     headers: {
@@ -36,7 +39,8 @@ function createApiClient(service: "users" | "questions" | "tests"): AxiosInstanc
   client.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
-      if (error.response?.status === 401) {
+      // Only redirect to login on 401 if not a public endpoint
+      if (error.response?.status === 401 && !options?.skipAuthRedirect) {
         // Token expired or invalid
         if (typeof window !== "undefined") {
           localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -50,10 +54,18 @@ function createApiClient(service: "users" | "questions" | "tests"): AxiosInstanc
   return client;
 }
 
+// Public API client (no auth redirect on 401)
+function createPublicApiClient(service: "users" | "questions" | "tests"): AxiosInstance {
+  return createApiClient(service, { skipAuthRedirect: true });
+}
+
 // API clients for each service
 export const apiUsers = createApiClient("users");
 export const apiQuestions = createApiClient("questions");
 export const apiTests = createApiClient("tests");
+
+// Public API client for unauthenticated endpoints (signup, OTP, etc.)
+export const apiUsersPublic = createPublicApiClient("users");
 
 // Auth helpers
 export const auth = {
@@ -80,6 +92,21 @@ export const api = {
     login: (credentials: { email: string; password: string }) =>
       apiUsers.post("/auth/login", credentials),
     logout: () => apiUsers.post("/auth/logout"),
+  },
+  otp: {
+    // Email OTP endpoints
+    sendEmail: (email: string) => apiUsersPublic.post("/otp/email/send", { email }),
+    verifyEmail: (email: string, emailotp: string) =>
+      apiUsersPublic.post("/otp/email/verify", { email, emailotp }),
+    // Phone OTP endpoints (legacy)
+    sendPhone: (number: string) => apiUsersPublic.post("/otp/send", { number }),
+    verifyPhone: (number: string, otp: string) =>
+      apiUsersPublic.post("/otp/verify", { number, otp }),
+  },
+  registration: {
+    createStudent: (data: unknown) =>
+      apiUsersPublic.post("/student/create-student", data),
+    getClasses: () => apiUsersPublic.get("/class/public"),
   },
   users: {
     getStudents: (params?: { page?: number; size?: number }) =>
