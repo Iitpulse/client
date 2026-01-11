@@ -409,6 +409,12 @@ export default function SignupPage() {
             </div>
           )}
 
+          {currentStep === 1 && !otpVerified && (
+            <div className="p-3 text-sm text-amber-600 bg-amber-50 rounded-md">
+              Please verify your email first to continue
+            </div>
+          )}
+
           {/* Step 1: Account Details */}
           {currentStep === 1 && (
             <div className="space-y-4">
@@ -947,7 +953,7 @@ export default function SignupPage() {
               <Button
                 type="button"
                 onClick={handleNext}
-                disabled={isLoading}
+                disabled={isLoading || (currentStep === 1 && !otpVerified)}
                 className="flex-1"
               >
                 Next
