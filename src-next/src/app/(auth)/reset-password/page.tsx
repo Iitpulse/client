@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Mail, KeyRound, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Mail, KeyRound, CheckCircle, Eye, EyeOff, Check, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { OtpInput } from "@/components/ui/otp-input";
 import { apiUsers } from "@/lib/api";
 
 const emailSchema = z.object({
@@ -48,6 +50,8 @@ export default function ResetPasswordPage() {
   const [error, setError] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [otp, setOtp] = React.useState("");
+  const [passwordMatchStatus, setPasswordMatchStatus] = React.useState<"idle" | "match" | "mismatch">("idle");
 
   const emailForm = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
@@ -60,6 +64,29 @@ export default function ResetPasswordPage() {
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
+
+  // Watch password fields for live matching with debounce
+  const password = passwordForm.watch("password");
+  const confirmPassword = passwordForm.watch("confirmPassword");
+
+  React.useEffect(() => {
+    // Reset to idle if either field is empty
+    if (!password || !confirmPassword) {
+      setPasswordMatchStatus("idle");
+      return;
+    }
+
+    // Debounce the comparison
+    const timer = setTimeout(() => {
+      if (password === confirmPassword) {
+        setPasswordMatchStatus("match");
+      } else {
+        setPasswordMatchStatus("mismatch");
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [password, confirmPassword]);
 
   const handleEmailSubmit = async (data: EmailFormData) => {
     setLoading(true);
@@ -75,11 +102,15 @@ export default function ResetPasswordPage() {
     }
   };
 
-  const handleOtpSubmit = async (data: OtpFormData) => {
+  const handleOtpSubmit = async () => {
+    if (otp.length !== 6) {
+      setError("Please enter a 6-digit OTP");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      await apiUsers.post("/otp/email/verify", { email, emailotp: data.otp });
+      await apiUsers.post("/otp/email/verify", { email, emailotp: otp });
       setStep("password");
     } catch (err: unknown) {
       setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Invalid OTP");
@@ -102,9 +133,13 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-4 bg-muted/50">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
+          <div className="flex flex-col items-center mb-4">
+            <img src="/logo.png" alt="IIT Pulse" className="h-16 w-16 mb-2" />
+            <span className="text-xl font-bold text-primary">IIT Pulse</span>
+          </div>
           <div className="flex items-center gap-2">
             <Link href="/login">
               <Button variant="ghost" size="icon">
@@ -154,25 +189,25 @@ export default function ResetPasswordPage() {
           )}
 
           {step === "otp" && (
-            <form onSubmit={otpForm.handleSubmit(handleOtpSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="otp">Verification Code</Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  placeholder="Enter verification code"
-                  {...otpForm.register("otp")}
+            <div className="space-y-4">
+              <div className="space-y-4">
+                <Label className="text-center block">Verification Code</Label>
+                <OtpInput
+                  length={6}
+                  value={otp}
+                  onChange={setOtp}
+                  disabled={loading}
                 />
-                {otpForm.formState.errors.otp && (
-                  <p className="text-sm text-destructive">
-                    {otpForm.formState.errors.otp.message}
-                  </p>
-                )}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground text-center">
                 Code sent to {email}
               </p>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="button"
+                className="w-full"
+                disabled={loading || otp.length !== 6}
+                onClick={handleOtpSubmit}
+              >
                 {loading ? "Verifying..." : "Verify Code"}
               </Button>
               <Button
@@ -183,7 +218,7 @@ export default function ResetPasswordPage() {
               >
                 Use a different email
               </Button>
-            </form>
+            </div>
           )}
 
           {step === "password" && (
@@ -226,23 +261,47 @@ export default function ResetPasswordPage() {
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm new password"
-                    className="pl-10 pr-10"
+                    className={cn(
+                      "pl-10 pr-16",
+                      passwordMatchStatus === "match" && "border-green-500 focus-visible:ring-green-500",
+                      passwordMatchStatus === "mismatch" && "border-red-500 focus-visible:ring-red-500"
+                    )}
                     {...passwordForm.register("confirmPassword")}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    {passwordMatchStatus === "match" && (
+                      <Check className="h-4 w-4 text-green-500" />
                     )}
-                  </button>
+                    {passwordMatchStatus === "mismatch" && (
+                      <X className="h-4 w-4 text-red-500" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                {passwordForm.formState.errors.confirmPassword && (
+                {passwordMatchStatus === "match" && (
+                  <p className="text-sm text-green-500 flex items-center gap-1">
+                    <Check className="h-3 w-3" />
+                    Passwords match
+                  </p>
+                )}
+                {passwordMatchStatus === "mismatch" && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <X className="h-3 w-3" />
+                    Passwords do not match
+                  </p>
+                )}
+                {passwordForm.formState.errors.confirmPassword && passwordMatchStatus === "idle" && (
                   <p className="text-sm text-destructive">
                     {passwordForm.formState.errors.confirmPassword.message}
                   </p>

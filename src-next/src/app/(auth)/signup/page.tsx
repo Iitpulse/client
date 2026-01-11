@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OtpInput } from "@/components/ui/otp-input";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -457,43 +458,40 @@ export default function SignupPage() {
               </div>
 
               {otpSent && !otpVerified && (
-                <div className="space-y-2">
-                  <Label htmlFor="otp">Enter OTP</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="otp"
-                      type="text"
-                      placeholder="6 digit OTP"
-                      value={otp}
-                      onChange={(e) =>
-                        setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                      }
-                      className="flex-1"
-                    />
+                <div className="space-y-4">
+                  <Label className="text-center block">Enter OTP</Label>
+                  <OtpInput
+                    length={6}
+                    value={otp}
+                    onChange={setOtp}
+                    disabled={verifyingOtp}
+                  />
+                  <div className="flex flex-col items-center gap-2">
                     <Button
                       type="button"
                       onClick={handleVerifyOtp}
                       disabled={verifyingOtp || otp.length !== 6}
+                      className="w-full max-w-[200px]"
                     >
                       {verifyingOtp ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        "Verify"
+                        "Verify OTP"
                       )}
                     </Button>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="p-0 h-auto text-sm"
+                      onClick={handleSendOtp}
+                      disabled={sendingOtp}
+                    >
+                      Resend OTP
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Check your email inbox for the OTP
+                    </p>
                   </div>
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="p-0 h-auto text-sm"
-                    onClick={handleSendOtp}
-                    disabled={sendingOtp}
-                  >
-                    Resend OTP
-                  </Button>
-                  <p className="text-xs text-muted-foreground">
-                    Check your email inbox for the OTP
-                  </p>
                 </div>
               )}
 
