@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
-import { Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Eye, EyeOff, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,6 +119,10 @@ export default function SignupPage() {
   const [otp, setOtp] = React.useState("");
   const [sendingOtp, setSendingOtp] = React.useState(false);
   const [verifyingOtp, setVerifyingOtp] = React.useState(false);
+
+  // Password visibility states
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   // Form data
   const [accountDetails, setAccountDetails] = React.useState<AccountDetails>({
@@ -498,18 +502,33 @@ export default function SignupPage() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Minimum 6 characters"
-                      value={accountDetails.password}
-                      onChange={(e) =>
-                        setAccountDetails({
-                          ...accountDetails,
-                          password: e.target.value,
-                        })
-                      }
-                    />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Minimum 6 characters"
+                        value={accountDetails.password}
+                        onChange={(e) =>
+                          setAccountDetails({
+                            ...accountDetails,
+                            password: e.target.value,
+                          })
+                        }
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                     {accountErrors.password && (
                       <p className="text-sm text-destructive">
                         {accountErrors.password}
@@ -519,18 +538,33 @@ export default function SignupPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Re-enter password"
-                      value={accountDetails.confirmPassword}
-                      onChange={(e) =>
-                        setAccountDetails({
-                          ...accountDetails,
-                          confirmPassword: e.target.value,
-                        })
-                      }
-                    />
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Re-enter password"
+                        value={accountDetails.confirmPassword}
+                        onChange={(e) =>
+                          setAccountDetails({
+                            ...accountDetails,
+                            confirmPassword: e.target.value,
+                          })
+                        }
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                     {accountErrors.confirmPassword && (
                       <p className="text-sm text-destructive">
                         {accountErrors.confirmPassword}
