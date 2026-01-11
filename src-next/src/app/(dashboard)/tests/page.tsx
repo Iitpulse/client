@@ -243,7 +243,7 @@ export default function TestsPage() {
           (test.result?.isPublished ||
             resultProps?.type === "immediately" ||
             resultProps?.isPublished) &&
-          status !== "Active" &&
+          status !== "Ongoing" &&
           status !== "Upcoming";
 
         // Students only see the results button

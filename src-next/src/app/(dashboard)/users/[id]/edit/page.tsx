@@ -773,8 +773,8 @@ export default function EditUserPage() {
                       </Select>
                     )}
                   />
-                  {errors.standard && (
-                    <p className="text-sm text-destructive">{errors.standard.message}</p>
+                  {(errors as { standard?: { message?: string } }).standard && (
+                    <p className="text-sm text-destructive">{(errors as { standard?: { message?: string } }).standard?.message}</p>
                   )}
                 </div>
 
