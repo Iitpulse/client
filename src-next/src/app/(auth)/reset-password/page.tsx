@@ -137,7 +137,7 @@ export default function ResetPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex flex-col items-center mb-4">
-            <img src="/logo.png" alt="IIT Pulse" className="h-16 w-16 mb-2" />
+            <img src="/logo.svg" alt="IIT Pulse" className="h-16 w-auto mb-2" />
             <span className="text-xl font-bold text-primary">IIT Pulse</span>
           </div>
           <div className="flex items-center gap-2">
