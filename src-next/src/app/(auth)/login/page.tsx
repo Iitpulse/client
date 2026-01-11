@@ -35,20 +35,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex flex-col items-center mb-4">
-            <img src="/logo.svg" alt="IIT Pulse" className="h-16 w-auto mb-2" />
-            <span className="text-xl font-bold text-primary">IIT Pulse</span>
-          </div>
-          <CardTitle className="text-2xl font-bold text-center">
-            Welcome Back
-          </CardTitle>
-          <CardDescription className="text-center">
-            Sign in to your account to continue
-          </CardDescription>
-        </CardHeader>
+    <Card className="w-full max-w-md">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center">
+          Welcome Back
+        </CardTitle>
+        <CardDescription className="text-center">
+          Sign in to your account to continue
+        </CardDescription>
+      </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
@@ -121,6 +116,5 @@ export default function LoginPage() {
           </CardFooter>
         </form>
       </Card>
-    </div>
   );
 }

@@ -341,8 +341,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 py-8">
-      <Card className="w-full max-w-2xl mx-4">
+    <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             Student Registration
@@ -984,6 +983,5 @@ export default function SignupPage() {
           </div>
         </CardFooter>
       </Card>
-    </div>
   );
 }
