@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
     setError("");
     try {
-      await apiUsers.post("/emailotp/send", { email: data.email });
+      await apiUsers.post("/otp/email/send", { email: data.email });
       setEmail(data.email);
       setStep("otp");
     } catch (err: unknown) {
@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
     setError("");
     try {
-      await apiUsers.post("/emailotp/verify", { email, otp: data.otp });
+      await apiUsers.post("/otp/email/verify", { email, emailotp: data.otp });
       setStep("password");
     } catch (err: unknown) {
       setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Invalid OTP");
