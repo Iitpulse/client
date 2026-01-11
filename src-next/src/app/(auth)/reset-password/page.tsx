@@ -129,9 +129,9 @@ function ResetPasswordContent() {
     setLoading(true);
     setError("");
     try {
-      await apiUsers.post("/reset-password/confirm", {
+      await apiUsers.post("/reset-password/reset", {
         token,
-        password: data.password
+        newPassword: data.password
       });
       setStep("success");
     } catch (err: unknown) {
