@@ -30,9 +30,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { UnsavedChangesDialog } from "@/components/unsaved-changes-dialog";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import api from "@/lib/api";
-import { IPattern, IBatch, IExam, ISection, ISubSection, IQuestion } from "@/types";
+import { IBatch, ISection, ISubSection, IQuestion } from "@/types";
 import { QuestionSelectionModal } from "@/components/question-selection-modal";
 import { QuestionPreviewDialog } from "@/components/question-preview-dialog";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
@@ -69,6 +68,7 @@ interface TestFormData {
   daysAfter: number;
   sections: TestSection[];
   status: string;
+  durationInMinutes: number;
 }
 
 const initialFormData: TestFormData = {
@@ -83,6 +83,7 @@ const initialFormData: TestFormData = {
   daysAfter: 1,
   sections: [],
   status: "Active",
+  durationInMinutes: 180,
 };
 
 export default function EditTestPage() {
@@ -93,8 +94,6 @@ export default function EditTestPage() {
 
   const [formData, setFormData] = React.useState<TestFormData>(initialFormData);
   const [originalFormData, setOriginalFormData] = React.useState<TestFormData>(initialFormData);
-  const [exams, setExams] = React.useState<IExam[]>([]);
-  const [patterns, setPatterns] = React.useState<IPattern[]>([]);
   const [batches, setBatches] = React.useState<IBatch[]>([]);
   const [subjectsMap, setSubjectsMap] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(false);
@@ -131,16 +130,11 @@ export default function EditTestPage() {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [testRes, examsRes, batchesRes, subjectsRes] = await Promise.all([
+        const [testRes, batchesRes, subjectsRes] = await Promise.all([
           api.tests.getById(testId),
-          api.exams.getAll(),
           api.batches.getAll(),
           api.subjects.getAll(),
         ]);
-
-        // Parse exams
-        const examsList = examsRes.data?.data || examsRes.data?.exams || examsRes.data || [];
-        setExams(Array.isArray(examsList) ? examsList : []);
 
         // Parse batches
         const batchesList = batchesRes.data?.data || batchesRes.data?.batches || batchesRes.data || [];
@@ -204,6 +198,7 @@ export default function EditTestPage() {
             daysAfter: 1,
             sections: sectionsInfo,
             status: testData.status || "Active",
+            durationInMinutes: testData.durationInMinutes || 180,
           };
 
           setFormData(formDataFromTest);
@@ -216,16 +211,6 @@ export default function EditTestPage() {
           });
           setExpandedSections(expanded);
 
-          // Fetch patterns for the exam
-          if (examInfo?.id) {
-            try {
-              const patternsRes = await api.patterns.getByExam(examInfo.id);
-              const patternsList = patternsRes.data?.data || patternsRes.data?.patterns || patternsRes.data || [];
-              setPatterns(Array.isArray(patternsList) ? patternsList : []);
-            } catch (error) {
-              console.error("Failed to fetch patterns:", error);
-            }
-          }
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -237,74 +222,8 @@ export default function EditTestPage() {
     fetchData();
   }, [testId, toast]);
 
-  // Fetch patterns when exam changes
-  React.useEffect(() => {
-    const fetchPatterns = async () => {
-      if (!formData.exam?.id) {
-        setPatterns([]);
-        return;
-      }
-      try {
-        const response = await api.patterns.getByExam(formData.exam.id);
-        const patternsList = response.data?.data || response.data?.patterns || response.data || [];
-        setPatterns(Array.isArray(patternsList) ? patternsList : []);
-      } catch (error) {
-        console.error("Failed to fetch patterns:", error);
-        setPatterns([]);
-      }
-    };
-    // Only fetch if exam changed from original (not on initial load)
-    if (!fetching && formData.exam?.id !== originalFormData.exam?.id) {
-      fetchPatterns();
-    }
-  }, [formData.exam?.id, fetching, originalFormData.exam?.id]);
-
-  // Update sections when pattern changes (only if pattern changed from original)
-  React.useEffect(() => {
-    if (fetching) return;
-    if (formData.pattern?.id && formData.pattern.id !== originalFormData.pattern?.id && patterns.length > 0) {
-      const selectedPattern = patterns.find((p) => p._id === formData.pattern?.id);
-      if (selectedPattern?.sections) {
-        setFormData((prev) => ({
-          ...prev,
-          sections: selectedPattern.sections.map((section) => ({
-            ...section,
-            subSections: section.subSections.map((sub) => ({
-              ...sub,
-              questions: [],
-            })),
-          })),
-        }));
-        // Expand all sections by default
-        const expanded: Record<string, boolean> = {};
-        selectedPattern.sections.forEach((s) => {
-          expanded[s.id] = true;
-        });
-        setExpandedSections(expanded);
-      }
-    }
-  }, [formData.pattern?.id, patterns, fetching, originalFormData.pattern?.id]);
-
   const handleInputChange = (field: keyof TestFormData, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleExamChange = (examId: string) => {
-    const exam = exams.find((e) => e._id === examId);
-    setFormData((prev) => ({
-      ...prev,
-      exam: exam ? { id: exam._id, name: exam.name } : null,
-      pattern: null,
-      sections: [],
-    }));
-  };
-
-  const handlePatternChange = (patternId: string) => {
-    const pattern = patterns.find((p) => p._id === patternId);
-    setFormData((prev) => ({
-      ...prev,
-      pattern: pattern ? { id: pattern._id, name: pattern.name } : null,
-    }));
   };
 
   const handleBatchToggle = (batch: IBatch) => {
@@ -400,10 +319,6 @@ export default function EditTestPage() {
     return { filled, total };
   };
 
-  const getSelectedPattern = () => {
-    return patterns.find((p) => p._id === formData.pattern?.id);
-  };
-
   const validateForm = (): string | null => {
     if (!formData.name.trim()) return "Test name is required";
     if (!formData.exam) return "Please select an exam";
@@ -451,8 +366,6 @@ export default function EditTestPage() {
 
     setLoading(true);
     try {
-      const selectedPattern = getSelectedPattern();
-
       // Transform sections to ensure all questions have proper hi options
       const transformedSections = formData.sections.map((section) => ({
         ...section,
@@ -506,7 +419,7 @@ export default function EditTestPage() {
           from: formData.validityFrom ? formData.validityFrom.toISOString() : null,
           to: formData.validityTo ? formData.validityTo.toISOString() : null,
         },
-        durationInMinutes: selectedPattern?.durationInMinutes || 180,
+        durationInMinutes: formData.durationInMinutes,
         result: {
           maxMarks: null,
           averageMarks: null,
@@ -641,38 +554,25 @@ export default function EditTestPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Exam *</Label>
-              <SearchableSelect
-                options={exams.map((exam) => ({
-                  value: exam._id,
-                  label: exam.name,
-                }))}
-                value={formData.exam?.id || ""}
-                onValueChange={handleExamChange}
-                placeholder="Select Exam"
-                searchPlaceholder="Search exams..."
-                emptyText="No exams found"
+              <Input
+                value={formData.exam?.name || ""}
+                disabled
+                className="bg-muted"
               />
+              <p className="text-xs text-muted-foreground">
+                Exam cannot be changed after test creation
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Pattern *</Label>
-              <SearchableSelect
-                options={patterns.map((pattern) => ({
-                  value: pattern._id,
-                  label: pattern.name,
-                }))}
-                value={formData.pattern?.id || ""}
-                onValueChange={handlePatternChange}
-                placeholder={
-                  !formData.exam
-                    ? "Select exam first"
-                    : patterns.length === 0
-                    ? "No patterns available"
-                    : "Select Pattern"
-                }
-                searchPlaceholder="Search patterns..."
-                emptyText="No patterns found"
-                disabled={!formData.exam || patterns.length === 0}
+              <Input
+                value={formData.pattern?.name || ""}
+                disabled
+                className="bg-muted"
               />
+              <p className="text-xs text-muted-foreground">
+                Pattern cannot be changed after test creation
+              </p>
             </div>
           </div>
 
