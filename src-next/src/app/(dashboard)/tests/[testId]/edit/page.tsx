@@ -82,7 +82,7 @@ const initialFormData: TestFormData = {
   publishType: "immediately",
   daysAfter: 1,
   sections: [],
-  status: "Active",
+  status: "published",
   durationInMinutes: 180,
 };
 
@@ -197,7 +197,7 @@ export default function EditTestPage() {
             publishType,
             daysAfter: 1,
             sections: sectionsInfo,
-            status: testData.status || "Active",
+            status: testData.status || "published",
             durationInMinutes: testData.durationInMinutes || 180,
           };
 
@@ -431,7 +431,7 @@ export default function EditTestPage() {
           },
           students: [],
         },
-        status: saveAsDraft ? "Inactive" : "Active",
+        status: saveAsDraft ? "draft" : "published",
         modifiedAt: new Date().toISOString(),
       };
 

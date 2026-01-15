@@ -415,6 +415,7 @@ export const PERMISSIONS = {
     VIEW_RESULT: "VIEW_RESULT",
     PUBLISH_RESULT: "PUBLISH_RESULT",
     EXPORT_RESULT: "EXPORT_RESULT",
+    VIEW_RESTRICTED: "tests.view.restricted",
   },
   BATCH: {
     CREATE: "CREATE_BATCH",

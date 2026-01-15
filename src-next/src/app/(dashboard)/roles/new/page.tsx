@@ -50,6 +50,7 @@ const permissionGroups = [
       { key: PERMISSIONS.TEST.VIEW_RESULT, label: "View Results" },
       { key: PERMISSIONS.TEST.PUBLISH_RESULT, label: "Publish Results" },
       { key: PERMISSIONS.TEST.EXPORT_RESULT, label: "Export Results" },
+      { key: PERMISSIONS.TEST.VIEW_RESTRICTED, label: "Restricted View" },
     ],
   },
   {

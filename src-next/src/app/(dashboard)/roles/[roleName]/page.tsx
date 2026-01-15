@@ -73,6 +73,7 @@ const permissionGroups = [
       { key: PERMISSIONS.TEST.DELETE, label: "Delete" },
       { key: PERMISSIONS.TEST.VIEW_RESULT, label: "View Results" },
       { key: PERMISSIONS.TEST.PUBLISH_RESULT, label: "Publish Results" },
+      { key: PERMISSIONS.TEST.VIEW_RESTRICTED, label: "Restricted View" },
     ],
   },
   {

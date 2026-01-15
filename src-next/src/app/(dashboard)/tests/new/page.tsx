@@ -84,7 +84,7 @@ const initialFormData: TestFormData = {
   publishType: "immediately",
   daysAfter: 1,
   sections: [],
-  status: "Active",
+  status: "published",
 };
 
 export default function CreateTestPage() {
@@ -449,7 +449,7 @@ export default function CreateTestPage() {
           },
           students: [],
         },
-        status: saveAsDraft ? "Inactive" : "Active",
+        status: saveAsDraft ? "draft" : "published",
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
       };
