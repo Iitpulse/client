@@ -246,6 +246,28 @@ export default function UsersPage() {
           return user.contact || "-";
         },
       },
+      {
+        id: "roles",
+        header: "Roles",
+        cell: ({ row }) => {
+          const roles = row.original.roles;
+          if (!roles || roles.length === 0) return <span className="text-muted-foreground">-</span>;
+          return (
+            <div className="flex flex-wrap gap-1">
+              {roles.slice(0, 2).map((role, i) => (
+                <Badge key={i} variant="outline" className="text-xs">
+                  {typeof role === "object" ? role.name : role}
+                </Badge>
+              ))}
+              {roles.length > 2 && (
+                <Badge variant="secondary" className="text-xs">
+                  +{roles.length - 2}
+                </Badge>
+              )}
+            </div>
+          );
+        },
+      },
     ];
 
     // Add type-specific columns
