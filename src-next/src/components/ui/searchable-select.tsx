@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Search, X } from "lucide-react";
+import { Check, ChevronsUpDown, Search, X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,8 @@ interface SearchableSelectProps {
   emptyText?: string;
   disabled?: boolean;
   className?: string;
+  onCreateNew?: () => void;
+  createNewLabel?: string;
 }
 
 export function SearchableSelect({
@@ -37,6 +39,8 @@ export function SearchableSelect({
   emptyText = "No results found.",
   disabled = false,
   className,
+  onCreateNew,
+  createNewLabel = "Create new...",
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -107,6 +111,22 @@ export function SearchableSelect({
             ))
           )}
         </div>
+        {onCreateNew && (
+          <>
+            <div className="border-t" />
+            <div
+              className="flex cursor-pointer select-none items-center px-3 py-2 text-sm text-primary hover:bg-accent hover:text-accent-foreground"
+              onClick={() => {
+                setOpen(false);
+                setSearchQuery("");
+                onCreateNew();
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {createNewLabel}
+            </div>
+          </>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -123,6 +143,8 @@ interface SearchableMultiSelectProps {
   disabled?: boolean;
   className?: string;
   maxDisplay?: number;
+  onCreateNew?: () => void;
+  createNewLabel?: string;
 }
 
 export function SearchableMultiSelect({
@@ -135,6 +157,8 @@ export function SearchableMultiSelect({
   disabled = false,
   className,
   maxDisplay = 3,
+  onCreateNew,
+  createNewLabel = "Create new...",
 }: SearchableMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -235,6 +259,22 @@ export function SearchableMultiSelect({
             ))
           )}
         </div>
+        {onCreateNew && (
+          <>
+            <div className="border-t" />
+            <div
+              className="flex cursor-pointer select-none items-center px-3 py-2 text-sm text-primary hover:bg-accent hover:text-accent-foreground"
+              onClick={() => {
+                setOpen(false);
+                setSearchQuery("");
+                onCreateNew();
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {createNewLabel}
+            </div>
+          </>
+        )}
       </PopoverContent>
     </Popover>
   );

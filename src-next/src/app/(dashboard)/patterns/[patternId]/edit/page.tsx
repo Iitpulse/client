@@ -591,6 +591,8 @@ export default function EditPatternPage() {
                   placeholder="Select exam type"
                   searchPlaceholder="Search exams..."
                   emptyText="No exams found."
+                  onCreateNew={() => router.push("/exams/new")}
+                  createNewLabel="Create new exam..."
                 />
                 {formErrors.exam && (
                   <p className="text-sm text-destructive">
@@ -711,6 +713,8 @@ export default function EditPatternPage() {
                               placeholder="Select subject"
                               searchPlaceholder="Search subjects..."
                               emptyText="No subjects found."
+                              onCreateNew={() => router.push("/subjects/new")}
+                              createNewLabel="Create new subject..."
                             />
                           </div>
                         </div>

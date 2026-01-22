@@ -595,6 +595,8 @@ export default function CreateTestPage() {
                 placeholder="Select Exam"
                 searchPlaceholder="Search exams..."
                 emptyText="No exams found"
+                onCreateNew={() => router.push("/exams/new")}
+                createNewLabel="Create new exam..."
               />
             </div>
             <div className="space-y-2">
@@ -616,6 +618,8 @@ export default function CreateTestPage() {
                 searchPlaceholder="Search patterns..."
                 emptyText="No patterns found"
                 disabled={!formData.exam || patterns.length === 0}
+                onCreateNew={() => router.push("/patterns/new")}
+                createNewLabel="Create new pattern..."
               />
             </div>
           </div>

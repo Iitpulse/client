@@ -644,6 +644,8 @@ export default function CreateUserPage() {
                     placeholder="Select subjects"
                     searchPlaceholder="Search subjects..."
                     emptyText="No subjects found"
+                    onCreateNew={() => router.push("/subjects/new")}
+                    createNewLabel="Create new subject..."
                   />
                 )}
               />
@@ -676,6 +678,8 @@ export default function CreateUserPage() {
                       onValueChange={field.onChange}
                       placeholder="Select institute"
                       searchPlaceholder="Search institute..."
+                      onCreateNew={() => router.push("/institutes/new")}
+                      createNewLabel="Create new institute..."
                     />
                   )}
                 />
@@ -695,6 +699,8 @@ export default function CreateUserPage() {
                         placeholder="Select batch"
                         searchPlaceholder="Search batch..."
                         disabled={!selectedInstitute && filteredBatches.length === 0}
+                        onCreateNew={() => router.push("/batches/new")}
+                        createNewLabel="Create new batch..."
                       />
                     )}
                   />
@@ -724,6 +730,8 @@ export default function CreateUserPage() {
                   placeholder="Select roles"
                   searchPlaceholder="Search roles..."
                   emptyText="No roles found"
+                  onCreateNew={() => router.push("/roles/new")}
+                  createNewLabel="Create new role..."
                 />
               )}
             />
