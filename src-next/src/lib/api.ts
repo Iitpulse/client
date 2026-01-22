@@ -92,6 +92,8 @@ export const api = {
     login: (credentials: { email: string; password: string }) =>
       apiUsers.post("/auth/login", credentials),
     logout: () => apiUsers.post("/auth/logout"),
+    verifyPassword: (password: string) =>
+      apiUsers.post("/auth/verify-password", { password }),
   },
   otp: {
     // Email OTP endpoints
@@ -126,6 +128,7 @@ export const api = {
     updateStudent: (id: string, data: Record<string, unknown>) =>
       apiUsers.put(`/student/${id}`, data),
     deleteStudent: (id: string) => apiUsers.delete("/student/delete", { data: { id } }),
+    restoreStudent: (id: string) => apiUsers.post(`/student/${id}/restore`),
     // Teacher CRUD
     createTeacher: (data: unknown) => apiUsers.post("/teacher/create", data),
     updateTeacher: (id: string, data: Record<string, unknown>) =>
@@ -161,11 +164,14 @@ export const api = {
       apiUsers.post("/roles/removeMember", { role: roleId, member }),
   },
   batches: {
-    getAll: () => apiUsers.get("/batch"),
-    create: (data: unknown) => apiUsers.post("/batch/create", data),
+    getAll: (params?: { includeDeleted?: boolean }) =>
+      apiUsers.get("/batch", { params }),
+    getById: (id: string) => apiUsers.get(`/batch/${id}`),
+    create: (data: unknown) => apiUsers.post("/batch", data),
     update: (id: string, data: Record<string, unknown>) =>
-      apiUsers.patch("/batch/update", { id, ...data }),
-    delete: (id: string) => apiUsers.delete("/batch/delete", { data: { id } }),
+      apiUsers.put(`/batch/${id}`, data),
+    delete: (id: string) => apiUsers.delete(`/batch/${id}`),
+    restore: (id: string) => apiUsers.post(`/batch/${id}/restore`),
   },
   institutes: {
     // New Fastify routes use path params instead of query params
@@ -193,6 +199,8 @@ export const api = {
       apiQuestions.put(`/${type}/update/${id}`, data),
     delete: (type: string, id: string) =>
       apiQuestions.delete(`/${type}/delete`, { data: { id } }),
+    restore: (type: string, id: string) =>
+      apiQuestions.post(`/${type}/restore/${id}`),
     autoGenerate: (type: string, params: unknown) =>
       apiQuestions.get(`/${type}/autogenerate`, { params }),
   },
@@ -210,6 +218,8 @@ export const api = {
       apiQuestions.post("/subject/create-topic", data),
     deleteSubject: (id: string) =>
       apiQuestions.delete("/subject/subjects", { data: { id } }),
+    restoreSubject: (id: string) =>
+      apiQuestions.post(`/subject/${id}/restore`),
     deleteChapter: (subjectId: string, chapterId: string) =>
       apiQuestions.post("/subject/chapter/delete", { subjectId, chapterId }),
     deleteTopic: (subjectId: string, chapterId: string, topic: string) =>
@@ -226,7 +236,9 @@ export const api = {
     create: (data: unknown) => apiTests.post("/test/create", data),
     update: (data: unknown) => apiTests.patch("/test/update", data),
     delete: (id: string) => apiTests.delete(`/test/delete/${id}`),
+    restore: (id: string) => apiTests.post(`/test/${id}/restore`),
     publish: (id: string) => apiTests.patch("/test/publish", { id }),
+    publishResult: (id: string) => apiTests.patch("/test/publish-result", { id }),
     toggleResult: (id: string, hideResult: boolean) =>
       apiTests.patch("/test/toggle-result", { id, hideResult }),
     getStudentResult: (testId: string) =>
@@ -244,6 +256,7 @@ export const api = {
     create: (data: unknown) => apiTests.post("/pattern/create", data),
     update: (data: unknown) => apiTests.patch("/pattern/update", data),
     delete: (id: string) => apiTests.delete(`/pattern/delete/${id}`),
+    restore: (id: string) => apiTests.post(`/pattern/${id}/restore`),
     duplicate: (id: string, newName: string) =>
       apiTests.post("/pattern/duplicate", { id, newName }),
   },
@@ -253,6 +266,7 @@ export const api = {
       apiTests.post("/exam/create", data),
     update: (data: unknown) => apiTests.patch("/exam/update", data),
     delete: (id: string) => apiTests.delete(`/exam/delete/${id}`),
+    restore: (id: string) => apiTests.post(`/exam/${id}/restore`),
   },
   sources: {
     getAll: () => apiQuestions.get("/source/all"),

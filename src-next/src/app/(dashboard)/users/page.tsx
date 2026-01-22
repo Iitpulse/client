@@ -26,14 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
   Sheet,
   SheetContent,
@@ -139,46 +132,37 @@ export default function UsersPage() {
 
   const handleDelete = async () => {
     if (!userToDelete) return;
-    try {
-      // Call appropriate delete endpoint based on user type
-      const userType = (userToDelete as UserType).userType?.toLowerCase();
-      switch (userType) {
-        case "student":
-          await api.users.deleteStudent(userToDelete._id);
-          break;
-        case "teacher":
-          await api.users.deleteTeacher(userToDelete._id);
-          break;
-        case "admin":
-          await api.users.deleteAdmin(userToDelete._id);
-          break;
-        case "operator":
-          await api.users.deleteOperator(userToDelete._id);
-          break;
-        case "manager":
-          await api.users.deleteManager(userToDelete._id);
-          break;
-        default:
-          await api.users.deleteStudent(userToDelete._id);
-      }
-
-      toast({
-        title: "Success",
-        description: "User deleted successfully",
-      });
-      fetchUsers(activeTab);
-      setDeleteDialogOpen(false);
-      setUserToDelete(null);
-      setPreviewOpen(false);
-      setSelectedUser(null);
-    } catch (error) {
-      console.error("Failed to delete user:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete user",
-        variant: "destructive",
-      });
+    // Call appropriate delete endpoint based on user type
+    // Password verification is handled by the dialog
+    const userType = (userToDelete as UserType).userType?.toLowerCase();
+    switch (userType) {
+      case "student":
+        await api.users.deleteStudent(userToDelete._id);
+        break;
+      case "teacher":
+        await api.users.deleteTeacher(userToDelete._id);
+        break;
+      case "admin":
+        await api.users.deleteAdmin(userToDelete._id);
+        break;
+      case "operator":
+        await api.users.deleteOperator(userToDelete._id);
+        break;
+      case "manager":
+        await api.users.deleteManager(userToDelete._id);
+        break;
+      default:
+        await api.users.deleteStudent(userToDelete._id);
     }
+
+    toast({
+      title: "Success",
+      description: "User deleted successfully",
+    });
+    fetchUsers(activeTab);
+    setPreviewOpen(false);
+    setSelectedUser(null);
+    // Dialog handles closing itself on success
   };
 
   const getInitials = (name: string) => {
@@ -195,11 +179,17 @@ export default function UsersPage() {
 
     // Filter by search query
     if (searchQuery) {
-      data = data.filter((user) =>
-        user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user as IStudent).contact?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const query = searchQuery.toLowerCase();
+      data = data.filter((user) => {
+        const name = String(user.name || "");
+        const email = String(user.email || "");
+        const contact = String((user as IStudent).contact || "");
+        return (
+          name.toLowerCase().includes(query) ||
+          email.toLowerCase().includes(query) ||
+          contact.toLowerCase().includes(query)
+        );
+      });
     }
     return data;
   }, [usersData, activeTab, searchQuery]);
@@ -687,29 +677,19 @@ export default function UsersPage() {
         </SheetContent>
       </Sheet>
 
-      {/* Delete Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{userToDelete?.name}&quot;?
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Dialog with Password Confirmation */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setUserToDelete(null);
+        }}
+        title="Delete User"
+        description="Are you sure you want to delete this user? This action cannot be undone."
+        itemName={userToDelete?.name}
+        onConfirm={handleDelete}
+        requirePassword={true}
+      />
     </div>
   );
 }

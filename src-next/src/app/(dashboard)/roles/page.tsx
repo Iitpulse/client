@@ -9,14 +9,7 @@ import { Plus, Trash2, Users, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import { usePermissionsStore } from "@/stores";
 
 // Role type for display (matches backend)
@@ -37,7 +30,6 @@ export default function RolesPage() {
   const [roleToDelete, setRoleToDelete] = React.useState<IRoleDisplay | null>(
     null
   );
-  const [deleting, setDeleting] = React.useState(false);
 
   React.useEffect(() => {
     const loadRoles = async () => {
@@ -56,17 +48,9 @@ export default function RolesPage() {
     if (!roleToDelete) return;
     const roleId = roleToDelete.id || roleToDelete._id;
     if (!roleId) return;
-
-    setDeleting(true);
-    try {
-      await deleteRole(roleId);
-      setDeleteDialogOpen(false);
-      setRoleToDelete(null);
-    } catch (error) {
-      console.error("Failed to delete role:", error);
-    } finally {
-      setDeleting(false);
-    }
+    // Password verification is handled by the dialog
+    await deleteRole(roleId);
+    // Dialog handles closing itself on success
   };
 
   const columns: ColumnDef<IRoleDisplay>[] = [
@@ -160,34 +144,18 @@ export default function RolesPage() {
         />
       )}
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Role</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{roleToDelete?.name}&quot;?
-              All members will lose their permissions. This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={deleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setRoleToDelete(null);
+        }}
+        title="Delete Role"
+        description="Are you sure you want to delete this role? All members will lose their permissions. This action cannot be undone."
+        itemName={roleToDelete?.name}
+        onConfirm={handleDelete}
+        requirePassword={true}
+      />
     </div>
   );
 }

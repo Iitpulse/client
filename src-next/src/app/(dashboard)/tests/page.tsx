@@ -5,20 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Plus, Trash2, BarChart3, Pencil } from "lucide-react";
+import { Plus, Trash2, BarChart3, Pencil, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -27,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import { useTestsStore, useAuthStore } from "@/stores";
 import { ITest, IExam } from "@/types";
 import api from "@/lib/api";
@@ -122,20 +115,18 @@ export default function TestsPage() {
   }, []);
 
   React.useEffect(() => {
-    // Fetch all tests once - filtering is done client-side
+    // Always fetch tests when component mounts to get latest data
+    // This ensures we see updated status after editing a test
     fetchTests();
-  }, [fetchTests]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async () => {
     if (!testToDelete) return;
-    try {
-      await api.tests.delete(testToDelete._id);
-      deleteTest(testToDelete._id);
-      setDeleteDialogOpen(false);
-      setTestToDelete(null);
-    } catch (error) {
-      console.error("Failed to delete test:", error);
-    }
+    // The actual deletion - password verification is handled by the dialog
+    await api.tests.delete(testToDelete._id);
+    deleteTest(testToDelete._id);
+    // Dialog handles closing itself on success
   };
 
   const columns: ColumnDef<ITest>[] = [
@@ -265,6 +256,17 @@ export default function TestsPage() {
 
         return (
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/tests/${test._id}/preview`);
+              }}
+              title="Preview test"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -414,26 +416,19 @@ export default function TestsPage() {
         />
       )}
 
-      {/* Delete Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Test</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{testToDelete?.name}&quot;? This
-              action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Dialog with Password Confirmation */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setTestToDelete(null);
+        }}
+        title="Delete Test"
+        description="Are you sure you want to delete this test? This action cannot be undone."
+        itemName={testToDelete?.name}
+        onConfirm={handleDelete}
+        requirePassword={true}
+      />
     </div>
   );
 }

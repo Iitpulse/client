@@ -38,8 +38,11 @@ export function QuestionPreviewDialog({
       ? "!bg-yellow-100 !text-yellow-800 border-yellow-200"
       : "!bg-red-100 !text-red-800 border-red-200";
 
-  // Get options for MCQ questions
-  const options = (question as { options?: Array<{ id: string; en?: { value: string }; hi?: { value: string } }> }).options;
+  // Get options for MCQ questions - options can be in en.options or top-level options
+  const enContent = question.en as { options?: Array<{ id: string; value: string }> } | undefined;
+  const topLevelOptions = (question as { options?: Array<{ id: string; value?: string; en?: { value: string } }> }).options;
+  // Prefer en.options, fallback to top-level options
+  const options = enContent?.options || topLevelOptions || [];
   const correctAnswers = (question as { correctAnswers?: string[] }).correctAnswers || [];
 
   // Get correct answer for integer questions
@@ -90,6 +93,8 @@ export function QuestionPreviewDialog({
                 <div className="space-y-2">
                   {options.map((option, index) => {
                     const isCorrect = correctAnswers.includes(option.id);
+                    // Handle both formats: option.value (direct) or option.en?.value (nested)
+                    const optionValue = option.value || (option as { en?: { value: string } }).en?.value || "";
                     return (
                       <div
                         key={option.id}
@@ -109,7 +114,7 @@ export function QuestionPreviewDialog({
                           {String.fromCharCode(65 + index)}
                         </span>
                         <div className="flex-1">
-                          <RenderWithLatex quillString={option.en?.value || ""} />
+                          <RenderWithLatex quillString={optionValue} />
                         </div>
                         {isCorrect && (
                           <Badge variant="outline" className="!bg-green-100 !text-green-800 border-green-200">
@@ -189,13 +194,41 @@ export function QuestionPreviewDialog({
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
-                {question.chapters && question.chapters.length > 0 && (
+                {/* Subject */}
+                {question.subject && (
                   <div>
-                    <span className="text-muted-foreground">Chapter:</span>{" "}
-                    <span className="font-medium">{question.chapters[0]?.name || "-"}</span>
+                    <span className="text-muted-foreground">Subject:</span>{" "}
+                    <span className="font-medium">
+                      {typeof question.subject === "string"
+                        ? question.subject
+                        : question.subject.name}
+                    </span>
                   </div>
                 )}
-                {question.topics && question.topics.length > 0 && (
+                {/* Chapters and Topics */}
+                {question.chapters && question.chapters.length > 0 && (
+                  <>
+                    <div>
+                      <span className="text-muted-foreground">Chapter:</span>{" "}
+                      <span className="font-medium">
+                        {question.chapters.map(ch => ch.name).join(", ") || "-"}
+                      </span>
+                    </div>
+                    {question.chapters.some(ch => ch.topics && ch.topics.length > 0) && (
+                      <div className="col-span-2">
+                        <span className="text-muted-foreground">Topics:</span>{" "}
+                        <span className="font-medium">
+                          {question.chapters
+                            .flatMap(ch => ch.topics || [])
+                            .filter(Boolean)
+                            .join(", ") || "-"}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+                {/* Fallback for legacy topics field */}
+                {question.topics && question.topics.length > 0 && (!question.chapters || question.chapters.length === 0) && (
                   <div>
                     <span className="text-muted-foreground">Topics:</span>{" "}
                     <span className="font-medium">{question.topics.join(", ")}</span>

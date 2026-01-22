@@ -21,16 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
   Table,
   TableBody,
@@ -118,14 +109,10 @@ export default function ExamsPage() {
 
   const confirmDelete = async () => {
     if (!selectedExam) return;
-
-    try {
-      await api.exams.delete(selectedExam._id);
-      await fetchExams();
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to delete exam:", error);
-    }
+    // Password verification is handled by the dialog
+    await api.exams.delete(selectedExam._id);
+    await fetchExams();
+    // Dialog handles closing itself on success
   };
 
   const filteredExams = exams.filter((exam) =>
@@ -269,26 +256,18 @@ export default function ExamsPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Exam Type</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{selectedExam?.name}"? This action
-              cannot be undone and may affect existing patterns and tests.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setSelectedExam(null);
+        }}
+        title="Delete Exam Type"
+        description="Are you sure you want to delete this exam type? This action cannot be undone and may affect existing patterns and tests."
+        itemName={selectedExam?.name}
+        onConfirm={confirmDelete}
+        requirePassword={true}
+      />
     </div>
   );
 }

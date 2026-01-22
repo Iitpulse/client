@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
   Select,
   SelectContent,
@@ -161,14 +162,10 @@ export default function PatternsPage() {
 
   const handleDelete = async () => {
     if (!patternToDelete) return;
-    try {
-      await api.patterns.delete(patternToDelete._id);
-      fetchPatterns();
-      setDeleteDialogOpen(false);
-      setPatternToDelete(null);
-    } catch (error) {
-      console.error("Failed to delete pattern:", error);
-    }
+    // Password verification is handled by the dialog
+    await api.patterns.delete(patternToDelete._id);
+    fetchPatterns();
+    // Dialog handles closing itself on success
   };
 
   const handleDuplicate = async () => {
@@ -439,28 +436,18 @@ export default function PatternsPage() {
         />
       )}
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Pattern</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{patternToDelete?.name}&quot;?
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setPatternToDelete(null);
+        }}
+        title="Delete Pattern"
+        description="Are you sure you want to delete this pattern? This action cannot be undone."
+        itemName={patternToDelete?.name}
+        onConfirm={handleDelete}
+        requirePassword={true}
+      />
 
       <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
         <DialogContent>

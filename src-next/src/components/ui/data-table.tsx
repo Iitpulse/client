@@ -40,6 +40,7 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string;
   pageSize?: number;
   onRowClick?: (row: TData) => void;
+  maxHeight?: string; // e.g., "400px" for scrollable body with sticky header
 }
 
 export function DataTable<TData, TValue>({
@@ -49,6 +50,7 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Search...",
   pageSize = 10,
   onRowClick,
+  maxHeight,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -98,14 +100,17 @@ export function DataTable<TData, TValue>({
           />
         </div>
       )}
-      <div className="rounded-md border">
+      <div
+        className={`rounded-md border ${maxHeight ? "overflow-auto" : ""}`}
+        style={maxHeight ? { maxHeight } : undefined}
+      >
         <Table>
-          <TableHeader>
+          <TableHeader className={maxHeight ? "sticky top-0 bg-background z-10" : ""}>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className={maxHeight ? "bg-background" : ""}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(

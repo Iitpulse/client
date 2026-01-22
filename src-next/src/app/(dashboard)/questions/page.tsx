@@ -17,14 +17,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
   Select,
   SelectContent,
@@ -205,14 +198,10 @@ export default function QuestionsPage() {
 
   const handleDelete = async () => {
     if (!questionToDelete) return;
-    try {
-      await api.questions.delete(activeTab, questionToDelete._id);
-      fetchQuestions(activeTab);
-      setDeleteDialogOpen(false);
-      setQuestionToDelete(null);
-    } catch (error) {
-      console.error("Failed to delete question:", error);
-    }
+    // Password verification is handled by the dialog
+    await api.questions.delete(activeTab, questionToDelete._id);
+    fetchQuestions(activeTab);
+    // Dialog handles closing itself on success
   };
 
   const handleProofreadToggle = async (question: IQuestion, checked: boolean) => {
@@ -841,28 +830,17 @@ export default function QuestionsPage() {
         </SheetContent>
       </Sheet>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Question</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this question? This action cannot
-              be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setQuestionToDelete(null);
+        }}
+        title="Delete Question"
+        description="Are you sure you want to delete this question? This action cannot be undone."
+        onConfirm={handleDelete}
+        requirePassword={true}
+      />
     </div>
   );
 }

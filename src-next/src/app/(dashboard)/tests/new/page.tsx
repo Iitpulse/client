@@ -59,6 +59,12 @@ interface TestSubSection extends ISubSection {
   toBeAttempted?: number;
 }
 
+interface FullscreenPolicy {
+  enabled: boolean;
+  maxExits: number;
+  action: "warn" | "submit";
+}
+
 interface TestFormData {
   name: string;
   description: string;
@@ -71,6 +77,8 @@ interface TestFormData {
   daysAfter: number;
   sections: TestSection[];
   status: string;
+  fullscreenPolicy: FullscreenPolicy;
+  autoSubmitGracePeriodMinutes: number;
 }
 
 const initialFormData: TestFormData = {
@@ -85,6 +93,12 @@ const initialFormData: TestFormData = {
   daysAfter: 1,
   sections: [],
   status: "published",
+  fullscreenPolicy: {
+    enabled: false,
+    maxExits: 3,
+    action: "warn",
+  },
+  autoSubmitGracePeriodMinutes: 2,
 };
 
 export default function CreateTestPage() {
@@ -450,6 +464,8 @@ export default function CreateTestPage() {
           students: [],
         },
         status: saveAsDraft ? "draft" : "published",
+        fullscreenPolicy: formData.fullscreenPolicy,
+        autoSubmitGracePeriodMinutes: formData.autoSubmitGracePeriodMinutes,
         createdAt: new Date().toISOString(),
         modifiedAt: new Date().toISOString(),
       };
@@ -674,6 +690,95 @@ export default function CreateTestPage() {
                 />
               </div>
             )}
+          </div>
+
+          {/* Anti-cheating Settings */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-medium mb-4">Anti-Cheating Settings</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="fullscreenEnabled"
+                    checked={formData.fullscreenPolicy.enabled}
+                    onCheckedChange={(checked) =>
+                      setFormData({
+                        ...formData,
+                        fullscreenPolicy: {
+                          ...formData.fullscreenPolicy,
+                          enabled: checked as boolean,
+                        },
+                      })
+                    }
+                  />
+                  <Label htmlFor="fullscreenEnabled">
+                    Enforce fullscreen mode
+                  </Label>
+                </div>
+                {formData.fullscreenPolicy.enabled && (
+                  <>
+                    <div className="space-y-2 pl-6">
+                      <Label htmlFor="maxExits">Maximum allowed exits</Label>
+                      <Input
+                        id="maxExits"
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={formData.fullscreenPolicy.maxExits}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            fullscreenPolicy: {
+                              ...formData.fullscreenPolicy,
+                              maxExits: parseInt(e.target.value) || 3,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2 pl-6">
+                      <Label>Action after max exits</Label>
+                      <Select
+                        value={formData.fullscreenPolicy.action}
+                        onValueChange={(value: "warn" | "submit") =>
+                          setFormData({
+                            ...formData,
+                            fullscreenPolicy: {
+                              ...formData.fullscreenPolicy,
+                              action: value,
+                            },
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="warn">Show warning only</SelectItem>
+                          <SelectItem value="submit">Auto-submit test</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gracePeriod">Auto-submit grace period (minutes)</Label>
+                <Input
+                  id="gracePeriod"
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={formData.autoSubmitGracePeriodMinutes}
+                  onChange={(e) =>
+                    handleInputChange("autoSubmitGracePeriodMinutes", parseInt(e.target.value) || 2)
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Time after test expires before server auto-submits (for disconnected students)
+                </p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

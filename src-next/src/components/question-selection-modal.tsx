@@ -19,6 +19,13 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "@/components/ui/data-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import { IQuestion } from "@/types";
@@ -61,6 +68,33 @@ export function QuestionSelectionModal({
   const [medium, setMedium] = React.useState(Math.floor(maxQuestions * 0.5));
   const [hard, setHard] = React.useState(Math.floor(maxQuestions * 0.2));
   const [autoGenerating, setAutoGenerating] = React.useState(false);
+
+  // Filter state (manual selection)
+  const [difficultyFilter, setDifficultyFilter] = React.useState<string>("all");
+  const [chapterFilter, setChapterFilter] = React.useState<string>("all");
+  const [topicFilter, setTopicFilter] = React.useState<string>("all");
+
+  // Filter state (auto-generate)
+  const [autoChapterFilter, setAutoChapterFilter] = React.useState<string>("all");
+  const [autoTopicFilter, setAutoTopicFilter] = React.useState<string>("all");
+
+  // Extract unique chapters and topics from questions
+  const { chapters, topics } = React.useMemo(() => {
+    const chaptersSet = new Set<string>();
+    const topicsSet = new Set<string>();
+    questions.forEach((q) => {
+      if (q.chapters) {
+        q.chapters.forEach((ch) => {
+          if (ch.name) chaptersSet.add(ch.name);
+          if (ch.topics) ch.topics.forEach((t) => topicsSet.add(t));
+        });
+      }
+    });
+    return {
+      chapters: Array.from(chaptersSet).sort(),
+      topics: Array.from(topicsSet).sort(),
+    };
+  }, [questions]);
 
   // Resolve subject ID to subject name if needed
   React.useEffect(() => {
@@ -164,13 +198,21 @@ export function QuestionSelectionModal({
     setAutoGenerating(true);
     try {
       // Send original subject (ID or name) - backend handles ID resolution
-      const params = {
+      const params: Record<string, unknown> = {
         type,
         difficulties: JSON.stringify({ easy, medium, hard }),
         rejectedQuestions: "",
         subject,
         totalQuestions: maxQuestions,
       };
+
+      // Add chapter and topic filters if selected
+      if (autoChapterFilter !== "all") {
+        params.chapter = autoChapterFilter;
+      }
+      if (autoTopicFilter !== "all") {
+        params.topic = autoTopicFilter;
+      }
 
       let response;
       if (type === "single" || type === "multiple") {
@@ -281,13 +323,38 @@ export function QuestionSelectionModal({
   ];
 
   const filteredQuestions = React.useMemo(() => {
-    if (!searchQuery) return questions;
-    const query = searchQuery.toLowerCase();
-    return questions.filter((q) => {
-      const questionText = q.en?.question || q.question || "";
-      return questionText.toLowerCase().includes(query);
-    });
-  }, [questions, searchQuery]);
+    let filtered = questions;
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((q) => {
+        const questionText = q.en?.question || q.question || "";
+        return questionText.toLowerCase().includes(query);
+      });
+    }
+
+    // Difficulty filter
+    if (difficultyFilter !== "all") {
+      filtered = filtered.filter((q) => q.difficulty?.toLowerCase() === difficultyFilter.toLowerCase());
+    }
+
+    // Chapter filter
+    if (chapterFilter !== "all") {
+      filtered = filtered.filter((q) =>
+        q.chapters?.some((ch) => ch.name === chapterFilter)
+      );
+    }
+
+    // Topic filter
+    if (topicFilter !== "all") {
+      filtered = filtered.filter((q) =>
+        q.chapters?.some((ch) => ch.topics?.includes(topicFilter))
+      );
+    }
+
+    return filtered;
+  }, [questions, searchQuery, difficultyFilter, chapterFilter, topicFilter]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -306,7 +373,8 @@ export function QuestionSelectionModal({
           </TabsList>
 
           <TabsContent value="manual" className="flex-1 overflow-hidden flex flex-col mt-4">
-            <div className="mb-4">
+            {/* Search and Filters */}
+            <div className="mb-4 space-y-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -316,24 +384,166 @@ export function QuestionSelectionModal({
                   className="pl-9"
                 />
               </div>
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Difficulty Filter */}
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm text-muted-foreground whitespace-nowrap">Difficulty:</Label>
+                  <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Chapter Filter */}
+                {chapters.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-muted-foreground whitespace-nowrap">Chapter:</Label>
+                    <Select
+                      value={chapterFilter}
+                      onValueChange={(value) => {
+                        setChapterFilter(value);
+                        setTopicFilter("all"); // Reset topic when chapter changes
+                      }}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="All Chapters" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Chapters</SelectItem>
+                        {chapters.map((ch) => (
+                          <SelectItem key={ch} value={ch}>{ch}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {/* Topic Filter */}
+                {topics.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-muted-foreground whitespace-nowrap">Topic:</Label>
+                    <Select value={topicFilter} onValueChange={setTopicFilter}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="All Topics" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Topics</SelectItem>
+                        {topics.map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {/* Clear filters */}
+                {(difficultyFilter !== "all" || chapterFilter !== "all" || topicFilter !== "all") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setDifficultyFilter("all");
+                      setChapterFilter("all");
+                      setTopicFilter("all");
+                    }}
+                    className="text-muted-foreground"
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+              {/* Results count */}
+              <p className="text-xs text-muted-foreground">
+                Showing {filteredQuestions.length} of {questions.length} questions
+              </p>
             </div>
 
-            <div className="flex-1 overflow-auto border rounded-md">
+            <div className="flex-1">
               {loading ? (
-                <div className="flex items-center justify-center h-48">
+                <div className="flex items-center justify-center h-48 border rounded-md">
                   <p className="text-muted-foreground">Loading questions...</p>
                 </div>
               ) : (
                 <DataTable
                   columns={columns}
                   data={filteredQuestions}
+                  maxHeight="350px"
+                  pageSize={20}
                 />
               )}
             </div>
           </TabsContent>
 
-          <TabsContent value="auto" className="flex-1 mt-4">
-            <div className="space-y-6">
+          <TabsContent value="auto" className="flex-1 mt-4 overflow-auto">
+            <div className="space-y-6 pb-2">
+              {/* Chapter and Topic Filters for Auto-Generate */}
+              {(chapters.length > 0 || topics.length > 0) && (
+                <div className="p-4 border rounded-lg bg-muted/30">
+                  <h4 className="font-medium mb-4">Filter Questions Pool</h4>
+                  <div className="flex flex-wrap items-center gap-4">
+                    {chapters.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-muted-foreground whitespace-nowrap">Chapter:</Label>
+                        <Select
+                          value={autoChapterFilter}
+                          onValueChange={(value) => {
+                            setAutoChapterFilter(value);
+                            setAutoTopicFilter("all"); // Reset topic when chapter changes
+                          }}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="All Chapters" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Chapters</SelectItem>
+                            {chapters.map((ch) => (
+                              <SelectItem key={ch} value={ch}>{ch}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    {topics.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-muted-foreground whitespace-nowrap">Topic:</Label>
+                        <Select value={autoTopicFilter} onValueChange={setAutoTopicFilter}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="All Topics" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Topics</SelectItem>
+                            {topics.map((t) => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    {(autoChapterFilter !== "all" || autoTopicFilter !== "all") && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setAutoChapterFilter("all");
+                          setAutoTopicFilter("all");
+                        }}
+                        className="text-muted-foreground"
+                      >
+                        Clear filters
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Questions will be randomly selected from {autoChapterFilter !== "all" ? `chapter "${autoChapterFilter}"` : "all chapters"}
+                    {autoTopicFilter !== "all" ? ` and topic "${autoTopicFilter}"` : ""}
+                  </p>
+                </div>
+              )}
+
               <div className="p-4 border rounded-lg bg-muted/30">
                 <h4 className="font-medium mb-4">Difficulty Distribution</h4>
                 <div className="grid grid-cols-3 gap-4">
@@ -390,11 +600,43 @@ export function QuestionSelectionModal({
               {selected.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium">Generated Questions ({selected.length})</h4>
-                  <div className="border rounded-md max-h-[300px] overflow-auto">
-                    <DataTable
-                      columns={columns.filter((c) => c.id !== "select")}
-                      data={selected}
-                    />
+                  <div className="border rounded-md max-h-[400px] overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="bg-muted/50 sticky top-0">
+                        <tr className="border-b">
+                          <th className="text-left p-3 font-medium text-sm">Question</th>
+                          <th className="text-left p-3 font-medium text-sm w-24">Difficulty</th>
+                          <th className="text-left p-3 font-medium text-sm w-32">Chapter</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selected.map((q, idx) => {
+                          const questionText = q.en?.question || q.question || "";
+                          const difficulty = q.difficulty;
+                          const difficultyLower = difficulty?.toLowerCase();
+                          const colorClass =
+                            difficultyLower === "easy"
+                              ? "!bg-green-100 !text-green-800 border-green-200"
+                              : difficultyLower === "medium"
+                              ? "!bg-yellow-100 !text-yellow-800 border-yellow-200"
+                              : "!bg-red-100 !text-red-800 border-red-200";
+                          const chapter = q.chapters?.[0]?.name || "-";
+                          return (
+                            <tr key={q._id || idx} className="border-b hover:bg-muted/30">
+                              <td className="p-3">
+                                <div className="max-w-lg">
+                                  <RenderWithLatex quillString={questionText} />
+                                </div>
+                              </td>
+                              <td className="p-3">
+                                <Badge variant="outline" className={colorClass}>{difficulty}</Badge>
+                              </td>
+                              <td className="p-3 text-sm">{chapter}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}

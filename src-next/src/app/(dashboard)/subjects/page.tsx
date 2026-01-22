@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
   Select,
   SelectContent,
@@ -125,39 +126,36 @@ export default function SubjectsPage() {
   };
 
   const handleDelete = async () => {
-    try {
-      switch (deleteType) {
-        case "subject":
-          if (selectedSubject) {
-            await api.subjects.deleteSubject(selectedSubject._id);
-            setSelectedSubject(null);
-            setSelectedChapter(null);
-          }
-          break;
-        case "chapter":
-          if (selectedSubject && selectedChapter) {
-            await api.subjects.deleteChapter(
-              selectedSubject._id,
-              selectedChapter._id
-            );
-            setSelectedChapter(null);
-          }
-          break;
-        case "topic":
-          if (selectedSubject && selectedChapter && topicToDelete) {
-            await api.subjects.deleteTopic(
-              selectedSubject._id,
-              selectedChapter._id,
-              topicToDelete
-            );
-          }
-          break;
-      }
-      fetchSubjects();
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to delete:", error);
+    // Password verification is handled by the dialog
+    switch (deleteType) {
+      case "subject":
+        if (selectedSubject) {
+          await api.subjects.deleteSubject(selectedSubject._id);
+          setSelectedSubject(null);
+          setSelectedChapter(null);
+        }
+        break;
+      case "chapter":
+        if (selectedSubject && selectedChapter) {
+          await api.subjects.deleteChapter(
+            selectedSubject._id,
+            selectedChapter._id
+          );
+          setSelectedChapter(null);
+        }
+        break;
+      case "topic":
+        if (selectedSubject && selectedChapter && topicToDelete) {
+          await api.subjects.deleteTopic(
+            selectedSubject._id,
+            selectedChapter._id,
+            topicToDelete
+          );
+        }
+        break;
     }
+    fetchSubjects();
+    // Dialog handles closing itself on success
   };
 
   const openDeleteDialog = (type: "subject" | "chapter" | "topic", topic?: string) => {
@@ -445,31 +443,22 @@ export default function SubjectsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Delete {deleteType.charAt(0).toUpperCase() + deleteType.slice(1)}
-            </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this {deleteType}? This action
-              cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Dialog with Password Confirmation */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={`Delete ${deleteType.charAt(0).toUpperCase() + deleteType.slice(1)}`}
+        description={`Are you sure you want to delete this ${deleteType}? This action cannot be undone.`}
+        itemName={
+          deleteType === "subject"
+            ? selectedSubject?.name
+            : deleteType === "chapter"
+              ? selectedChapter?.name
+              : topicToDelete
+        }
+        onConfirm={handleDelete}
+        requirePassword={true}
+      />
     </div>
   );
 }

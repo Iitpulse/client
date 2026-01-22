@@ -31,6 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import { api } from "@/lib/api";
 import { IInstitute } from "@/types";
 
@@ -90,14 +91,10 @@ export default function InstitutesPage() {
 
   const handleDelete = async () => {
     if (!instituteToDelete) return;
-    try {
-      await api.institutes.delete(instituteToDelete._id);
-      fetchInstitutes();
-      setDeleteDialogOpen(false);
-      setInstituteToDelete(null);
-    } catch (error) {
-      console.error("Failed to delete institute:", error);
-    }
+    // Password verification is handled by the dialog
+    await api.institutes.delete(instituteToDelete._id);
+    fetchInstitutes();
+    // Dialog handles closing itself on success
   };
 
   const openEditDialog = (institute: IInstitute) => {
@@ -269,28 +266,18 @@ export default function InstitutesPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Institute</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{instituteToDelete?.name}&quot;?
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setInstituteToDelete(null);
+        }}
+        title="Delete Institute"
+        description="Are you sure you want to delete this institute? This action cannot be undone."
+        itemName={instituteToDelete?.name}
+        onConfirm={handleDelete}
+        requirePassword={true}
+      />
     </div>
   );
 }

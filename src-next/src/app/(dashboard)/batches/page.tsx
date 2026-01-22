@@ -8,6 +8,8 @@ import {
   Edit,
   Trash2,
   Users,
+  Copy,
+  Check,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,25 +32,70 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import { api } from "@/lib/api";
-import { IBatch } from "@/types";
+import { IBatch, IInstitute } from "@/types";
+
+// Copy button component
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-6 w-6 p-0"
+      onClick={handleCopy}
+    >
+      {copied ? (
+        <Check className="h-3 w-3 text-green-500" />
+      ) : (
+        <Copy className="h-3 w-3" />
+      )}
+    </Button>
+  );
+}
 
 export default function BatchesPage() {
   const [batches, setBatches] = React.useState<IBatch[]>([]);
+  const [institutes, setInstitutes] = React.useState<IInstitute[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [editingBatch, setEditingBatch] = React.useState<IBatch | null>(null);
   const [batchToDelete, setBatchToDelete] = React.useState<IBatch | null>(null);
-  const [batchName, setBatchName] = React.useState("");
   const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  // Form state
+  const [formData, setFormData] = React.useState({
+    name: "",
+    institute: "",
+    medium: "english",
+    promoCode: "",
+  });
 
   const fetchBatches = React.useCallback(async () => {
     try {
       const response = await api.batches.getAll();
-      // Backend returns { success, data: [...] }
       setBatches(response.data?.data || response.data?.batches || []);
     } catch (error) {
       console.error("Failed to fetch batches:", error);
@@ -57,25 +104,60 @@ export default function BatchesPage() {
     }
   }, []);
 
+  const fetchInstitutes = React.useCallback(async () => {
+    try {
+      const response = await api.institutes.getAll();
+      setInstitutes(response.data?.data || []);
+    } catch (error) {
+      console.error("Failed to fetch institutes:", error);
+    }
+  }, []);
+
   React.useEffect(() => {
     fetchBatches();
-  }, [fetchBatches]);
+    fetchInstitutes();
+  }, [fetchBatches, fetchInstitutes]);
 
   const handleSave = async () => {
-    if (!batchName.trim()) return;
+    if (!formData.name.trim()) return;
+
+    // Validate required fields for create
+    if (!editingBatch) {
+      if (!formData.institute) {
+        setError("Please select an institute");
+        return;
+      }
+      if (!formData.medium) {
+        setError("Please select a medium");
+        return;
+      }
+    }
+
     setSaving(true);
+    setError(null);
+
     try {
       if (editingBatch) {
-        await api.batches.update(editingBatch._id, { name: batchName });
+        await api.batches.update(editingBatch._id, {
+          name: formData.name,
+          medium: formData.medium,
+          ...(formData.promoCode && { promoCode: [formData.promoCode] }),
+        });
       } else {
-        await api.batches.create({ name: batchName });
+        await api.batches.create({
+          name: formData.name,
+          institute: formData.institute,
+          medium: formData.medium,
+          ...(formData.promoCode && { promoCode: [formData.promoCode] }),
+        });
       }
       fetchBatches();
       setDialogOpen(false);
       setEditingBatch(null);
-      setBatchName("");
-    } catch (error) {
-      console.error("Failed to save batch:", error);
+      setFormData({ name: "", institute: "", medium: "english", promoCode: "" });
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: { message?: string }; message?: string } } };
+      setError(error.response?.data?.error?.message || error.response?.data?.message || "Failed to save batch");
     } finally {
       setSaving(false);
     }
@@ -83,25 +165,33 @@ export default function BatchesPage() {
 
   const handleDelete = async () => {
     if (!batchToDelete) return;
-    try {
-      await api.batches.delete(batchToDelete._id);
-      fetchBatches();
-      setDeleteDialogOpen(false);
-      setBatchToDelete(null);
-    } catch (error) {
-      console.error("Failed to delete batch:", error);
-    }
+    // The actual deletion - password verification is handled by the dialog
+    await api.batches.delete(batchToDelete._id);
+    fetchBatches();
+    // Dialog handles closing itself on success
   };
 
   const openEditDialog = (batch: IBatch) => {
     setEditingBatch(batch);
-    setBatchName(batch.name);
+    setFormData({
+      name: batch.name,
+      institute: typeof batch.institute === "object" ? batch.institute._id : batch.institute || "",
+      medium: batch.medium || "english",
+      promoCode: batch.promoCode?.[0] || "",
+    });
+    setError(null);
     setDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingBatch(null);
-    setBatchName("");
+    setFormData({
+      name: "",
+      institute: "",
+      medium: "english",
+      promoCode: "",
+    });
+    setError(null);
     setDialogOpen(true);
   };
 
@@ -114,6 +204,28 @@ export default function BatchesPage() {
       ),
     },
     {
+      id: "promoCode",
+      header: "Promo Code",
+      cell: ({ row }) => {
+        const promoCodes = row.original.promoCode;
+        if (!promoCodes || promoCodes.length === 0) return "-";
+        const primaryCode = promoCodes[0];
+        return (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="font-mono">
+              {primaryCode}
+            </Badge>
+            <CopyButton text={primaryCode} />
+            {promoCodes.length > 1 && (
+              <Badge variant="secondary" className="text-xs">
+                +{promoCodes.length - 1} more
+              </Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "institute",
       header: "Institute",
       cell: ({ row }) => {
@@ -123,15 +235,27 @@ export default function BatchesPage() {
       },
     },
     {
-      id: "students",
+      accessorKey: "medium",
+      header: "Medium",
+      cell: ({ row }) => {
+        const medium = row.original.medium;
+        return medium ? (
+          <Badge variant="secondary" className="capitalize">
+            {medium}
+          </Badge>
+        ) : "-";
+      },
+    },
+    {
+      id: "members",
       header: "Students",
       cell: ({ row }) => {
-        const studentCount = row.original.students?.length || 0;
+        const memberCount = row.original.members?.length || 0;
         return (
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span>
-              {studentCount} student{studentCount !== 1 ? "s" : ""}
+              {memberCount} student{memberCount !== 1 ? "s" : ""}
             </span>
           </div>
         );
@@ -181,7 +305,7 @@ export default function BatchesPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Batches</h1>
           <p className="text-muted-foreground">
-            Manage student batches
+            Manage student batches and promo codes
           </p>
         </div>
         <Button onClick={openCreateDialog}>
@@ -204,59 +328,103 @@ export default function BatchesPage() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
               {editingBatch ? "Edit Batch" : "Create Batch"}
             </DialogTitle>
             <DialogDescription>
               {editingBatch
-                ? "Update the batch name"
-                : "Enter a name for the new batch"}
+                ? "Update the batch details"
+                : "Create a new batch for students to join"}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="batchName">Batch Name</Label>
-            <Input
-              id="batchName"
-              value={batchName}
-              onChange={(e) => setBatchName(e.target.value)}
-              placeholder="Enter batch name"
-            />
+          <div className="space-y-4 py-4">
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                {error}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="batchName">Batch Name *</Label>
+              <Input
+                id="batchName"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Enter batch name"
+              />
+            </div>
+            {!editingBatch && (
+              <div className="space-y-2">
+                <Label htmlFor="institute">Institute *</Label>
+                <Select
+                  value={formData.institute}
+                  onValueChange={(value) => setFormData({ ...formData, institute: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select institute" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {institutes.map((inst) => (
+                      <SelectItem key={inst._id} value={inst._id}>
+                        {inst.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="medium">Medium *</Label>
+              <Select
+                value={formData.medium}
+                onValueChange={(value) => setFormData({ ...formData, medium: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select medium" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">English</SelectItem>
+                  <SelectItem value="hindi">Hindi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="promoCode">Custom Promo Code (optional)</Label>
+              <Input
+                id="promoCode"
+                value={formData.promoCode}
+                onChange={(e) => setFormData({ ...formData, promoCode: e.target.value.toUpperCase() })}
+                placeholder="e.g., BATCH2024"
+              />
+              <p className="text-xs text-muted-foreground">
+                A default promo code will be auto-generated if not provided
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={saving || !batchName.trim()}>
+            <Button onClick={handleSave} disabled={saving || !formData.name.trim()}>
               {saving ? "Saving..." : editingBatch ? "Save" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Batch</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{batchToDelete?.name}&quot;?
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setBatchToDelete(null);
+        }}
+        title="Delete Batch"
+        description="Are you sure you want to delete this batch? This action cannot be undone."
+        itemName={batchToDelete?.name}
+        onConfirm={handleDelete}
+        requirePassword={true}
+      />
     </div>
   );
 }

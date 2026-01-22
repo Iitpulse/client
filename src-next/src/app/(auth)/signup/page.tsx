@@ -199,8 +199,9 @@ export default function SignupPage() {
       await api.otp.sendEmail(accountDetails.email);
       setOtpSent(true);
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || "Failed to send OTP");
+      const error = err as { response?: { data?: { message?: string; error?: { message?: string } } } };
+      // Backend sends error in { error: { message } } format
+      setError(error.response?.data?.error?.message || error.response?.data?.message || "Failed to send OTP");
     } finally {
       setSendingOtp(false);
     }
@@ -218,8 +219,9 @@ export default function SignupPage() {
       await api.otp.verifyEmail(accountDetails.email, otp);
       setOtpVerified(true);
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || "Invalid OTP");
+      const error = err as { response?: { data?: { message?: string; error?: { message?: string } } } };
+      // Backend sends error in { error: { message } } format
+      setError(error.response?.data?.error?.message || error.response?.data?.message || "Invalid OTP");
     } finally {
       setVerifyingOtp(false);
     }
@@ -331,9 +333,10 @@ export default function SignupPage() {
       await api.registration.createStudent(finalData);
       router.push("/login?registered=true");
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
+      const error = err as { response?: { data?: { message?: string; error?: { message?: string } } } };
+      // Backend sends error in { error: { message } } format
       setError(
-        error.response?.data?.message || "Failed to create account. Please try again."
+        error.response?.data?.error?.message || error.response?.data?.message || "Failed to create account. Please try again."
       );
     } finally {
       setIsLoading(false);
