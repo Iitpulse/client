@@ -73,12 +73,14 @@ const permissionGroups = [
       { key: PERMISSIONS.TEST.DELETE, label: "Delete" },
       { key: PERMISSIONS.TEST.VIEW_RESULT, label: "View Results" },
       { key: PERMISSIONS.TEST.PUBLISH_RESULT, label: "Publish Results" },
+      { key: PERMISSIONS.TEST.EXPORT_RESULT, label: "Export Results" },
       { key: PERMISSIONS.TEST.VIEW_RESTRICTED, label: "Restricted View" },
     ],
   },
   {
     name: "Users",
     permissions: [
+      { key: PERMISSIONS.USER.CREATE, label: "Create" },
       { key: PERMISSIONS.USER.READ, label: "Read" },
       { key: PERMISSIONS.USER.UPDATE, label: "Update" },
       { key: PERMISSIONS.USER.DELETE, label: "Delete" },
@@ -103,12 +105,32 @@ const permissionGroups = [
     ],
   },
   {
+    name: "Exams",
+    permissions: [
+      { key: PERMISSIONS.EXAM.CREATE, label: "Create" },
+      { key: PERMISSIONS.EXAM.READ, label: "Read" },
+      { key: PERMISSIONS.EXAM.UPDATE, label: "Update" },
+      { key: PERMISSIONS.EXAM.DELETE, label: "Delete" },
+    ],
+  },
+  {
     name: "Subjects",
     permissions: [
       { key: PERMISSIONS.SUBJECT.CREATE, label: "Create" },
       { key: PERMISSIONS.SUBJECT.READ, label: "Read" },
+      { key: PERMISSIONS.SUBJECT.UPDATE, label: "Update" },
+      { key: PERMISSIONS.SUBJECT.DELETE, label: "Delete" },
       { key: PERMISSIONS.SUBJECT.MANAGE_CHAPTER, label: "Chapters" },
       { key: PERMISSIONS.SUBJECT.MANAGE_TOPIC, label: "Topics" },
+    ],
+  },
+  {
+    name: "Roles",
+    permissions: [
+      { key: PERMISSIONS.ROLE.CREATE, label: "Create" },
+      { key: PERMISSIONS.ROLE.READ, label: "Read" },
+      { key: PERMISSIONS.ROLE.UPDATE, label: "Update" },
+      { key: PERMISSIONS.ROLE.DELETE, label: "Delete" },
     ],
   },
 ];

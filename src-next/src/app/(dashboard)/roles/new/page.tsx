@@ -56,6 +56,7 @@ const permissionGroups = [
   {
     name: "Users",
     permissions: [
+      { key: PERMISSIONS.USER.CREATE, label: "Create Users" },
       { key: PERMISSIONS.USER.READ, label: "Read Users" },
       { key: PERMISSIONS.USER.UPDATE, label: "Update Users" },
       { key: PERMISSIONS.USER.DELETE, label: "Delete Users" },
@@ -77,6 +78,15 @@ const permissionGroups = [
       { key: PERMISSIONS.BATCH.READ, label: "Read Batches" },
       { key: PERMISSIONS.BATCH.UPDATE, label: "Update Batches" },
       { key: PERMISSIONS.BATCH.DELETE, label: "Delete Batches" },
+    ],
+  },
+  {
+    name: "Exams",
+    permissions: [
+      { key: PERMISSIONS.EXAM.CREATE, label: "Create Exams" },
+      { key: PERMISSIONS.EXAM.READ, label: "Read Exams" },
+      { key: PERMISSIONS.EXAM.UPDATE, label: "Update Exams" },
+      { key: PERMISSIONS.EXAM.DELETE, label: "Delete Exams" },
     ],
   },
   {
@@ -167,27 +177,28 @@ export default function CreateRolePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Role Information</CardTitle>
-            <CardDescription>
-              Enter a unique name for this role
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="max-w-md space-y-2">
-              <Label htmlFor="name">Role Name</Label>
-              <Input
-                id="name"
-                placeholder="e.g., Content Manager"
-                {...register("name")}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">
-                  {errors.name.message}
-                </p>
-              )}
+          <CardHeader className="pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="space-y-1">
+                <CardTitle>Role Name</CardTitle>
+                <CardDescription>
+                  Enter a unique name for this role
+                </CardDescription>
+              </div>
+              <div className="flex-1 max-w-sm">
+                <Input
+                  id="name"
+                  placeholder="e.g., Content Manager"
+                  {...register("name")}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
             </div>
-          </CardContent>
+          </CardHeader>
         </Card>
 
         <Card>
