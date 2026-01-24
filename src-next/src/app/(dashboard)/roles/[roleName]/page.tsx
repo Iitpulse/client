@@ -133,6 +133,14 @@ const permissionGroups = [
       { key: PERMISSIONS.ROLE.DELETE, label: "Delete" },
     ],
   },
+  {
+    name: "Audit Logs",
+    permissions: [
+      { key: PERMISSIONS.AUDIT.READ, label: "View Logs" },
+      { key: PERMISSIONS.AUDIT.READ_USER_ACTIVITY, label: "User Activity" },
+      { key: PERMISSIONS.AUDIT.READ_ENTITY_HISTORY, label: "Entity History" },
+    ],
+  },
 ];
 
 interface Member {

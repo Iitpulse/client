@@ -109,6 +109,8 @@ export const api = {
     createStudent: (data: unknown) =>
       apiUsersPublic.post("/student/create-student", data),
     getClasses: () => apiUsersPublic.get("/class/public"),
+    completeOnboarding: (id: string, data: unknown) =>
+      apiUsers.patch(`/student/${id}/onboarding`, data),
   },
   users: {
     getStudents: (params?: { page?: number; size?: number }) =>
@@ -261,10 +263,13 @@ export const api = {
       apiTests.post("/pattern/duplicate", { id, newName }),
   },
   exams: {
-    getAll: () => apiTests.get("/exam"),
-    create: (data: { name: string; fullName?: string }) =>
+    getAll: (params?: { page?: number; size?: number; sortBy?: string; sortOrder?: "asc" | "desc"; includeDeleted?: boolean }) =>
+      apiTests.get("/exam", { params }),
+    getAllNoPagination: () => apiTests.get("/exam/all"),
+    create: (data: { name: string; fullName?: string; description?: string }) =>
       apiTests.post("/exam/create", data),
-    update: (data: unknown) => apiTests.patch("/exam/update", data),
+    update: (data: { id: string; name?: string; fullName?: string; description?: string }) =>
+      apiTests.patch("/exam/update", data),
     delete: (id: string) => apiTests.delete(`/exam/delete/${id}`),
     restore: (id: string) => apiTests.post(`/exam/${id}/restore`),
   },
@@ -272,6 +277,295 @@ export const api = {
     getAll: () => apiQuestions.get("/source/all"),
     create: (data: { name: string }) => apiQuestions.post("/source/create", data),
   },
+  bulk: {
+    // Template downloads
+    downloadTemplate: (type: "students" | "teachers" | "batches") =>
+      apiUsers.get(`/bulk/template/${type}`, { responseType: "blob" }),
+    getColumns: (type: "students" | "teachers" | "batches") =>
+      apiUsers.get(`/bulk/columns/${type}`),
+    // Preview before import
+    previewStudents: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiUsers.post("/bulk/students/preview", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    previewTeachers: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiUsers.post("/bulk/teachers/preview", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    previewBatches: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiUsers.post("/bulk/batches/preview", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    // Import
+    importStudents: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiUsers.post("/bulk/students", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    importTeachers: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiUsers.post("/bulk/teachers", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    importBatches: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiUsers.post("/bulk/batches", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    // Bulk delete
+    deleteStudents: (ids: string[]) =>
+      apiUsers.post("/bulk/students/delete", { ids }),
+    deleteTeachers: (ids: string[]) =>
+      apiUsers.post("/bulk/teachers/delete", { ids }),
+    deleteBatches: (ids: string[]) =>
+      apiUsers.post("/bulk/batches/delete", { ids }),
+    // Bulk export
+    exportStudents: (ids?: string[], format: "csv" | "xlsx" = "xlsx") =>
+      apiUsers.post("/bulk/students/export", { ids, format }, { responseType: "blob" }),
+    exportTeachers: (ids?: string[], format: "csv" | "xlsx" = "xlsx") =>
+      apiUsers.post("/bulk/teachers/export", { ids, format }, { responseType: "blob" }),
+    exportBatches: (ids?: string[], format: "csv" | "xlsx" = "xlsx") =>
+      apiUsers.post("/bulk/batches/export", { ids, format }, { responseType: "blob" }),
+  },
+  // AI Question Parsing endpoints
+  aiParsing: {
+    // Parse file asynchronously (returns job ID)
+    parseFile: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiQuestions.post("/ai/parse", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    // Parse file synchronously (for smaller files)
+    parseFileSync: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiQuestions.post<{ success: boolean; data: AIParseResult }>("/ai/parse-sync", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    // Parse raw text
+    parseText: (content: string) =>
+      apiQuestions.post<{ success: boolean; data: AIParseResult }>("/ai/parse-text", { content }),
+    // Get job status
+    getJobStatus: (jobId: string) =>
+      apiQuestions.get<{ success: boolean; data: AIParseJobStatus }>(`/ai/parse-status/${jobId}`),
+    // Confirm and save questions
+    confirmQuestions: (questions: Array<{
+      type: "single" | "multiple";
+      difficulty: "easy" | "medium" | "hard";
+      en: { question: string; options: Array<{ id: string; value: string }>; solution?: string };
+      hi?: { question: string; options: Array<{ id: string; value: string }>; solution?: string };
+      correctAnswers: string[];
+      subject: string;
+      chapters: Array<{ name: string; topics: string[] }>;
+      exams?: string[];
+      sources?: string[];
+    }>) => apiQuestions.post("/ai/confirm", { questions }),
+  },
+  // Audit log endpoints
+  audit: {
+    query: (params?: AuditLogQueryParams) =>
+      apiUsers.get("/audit", { params }),
+    getEntityHistory: (entityType: string, entityId: string, params?: { page?: number; limit?: number }) =>
+      apiUsers.get(`/audit/entity/${entityType}/${entityId}`, { params }),
+    getUserActivity: (userId: string, params?: { page?: number; limit?: number }) =>
+      apiUsers.get(`/audit/user/${userId}`, { params }),
+    getActions: () => apiUsers.get("/audit/actions"),
+    getEntityTypes: () => apiUsers.get("/audit/entity-types"),
+  },
+  // UI Template endpoints
+  uiTemplates: {
+    getAll: (params?: { page?: number; size?: number; includeDeleted?: boolean }) =>
+      apiTests.get("/ui-template", { params }),
+    getAllNoPagination: () => apiTests.get("/ui-template/all"),
+    getPresets: () => apiTests.get<{ success: boolean; data: UITemplatePreset[] }>("/ui-template/presets"),
+    getDefault: () => apiTests.get<{ success: boolean; data: TestUITemplate }>("/ui-template/default"),
+    getById: (id: string) => apiTests.get<{ success: boolean; data: TestUITemplate }>(`/ui-template/${id}`),
+    create: (data: Omit<TestUITemplate, "_id" | "createdBy" | "createdAt" | "modifiedAt">) =>
+      apiTests.post("/ui-template/create", data),
+    createFromPreset: (data: { presetKey: string; name: string; description?: string; isDefault?: boolean }) =>
+      apiTests.post("/ui-template/create-from-preset", data),
+    update: (data: Partial<TestUITemplate> & { id: string }) =>
+      apiTests.patch("/ui-template/update", data),
+    setDefault: (id: string) => apiTests.post(`/ui-template/${id}/set-default`),
+    duplicate: (id: string, name: string) =>
+      apiTests.post(`/ui-template/${id}/duplicate`, { name }),
+    delete: (id: string) => apiTests.delete(`/ui-template/delete/${id}`),
+    restore: (id: string) => apiTests.post(`/ui-template/${id}/restore`),
+  },
 };
+
+// AI Question Parsing types
+export interface ParsedQuestion {
+  id: string;
+  type: "single" | "multiple";
+  difficulty: "easy" | "medium" | "hard";
+  en: {
+    question: string;
+    options: Array<{ id: string; value: string }>;
+    solution?: string;
+  };
+  hi?: {
+    question: string;
+    options: Array<{ id: string; value: string }>;
+    solution?: string;
+  };
+  correctAnswers: string[];
+  subject?: string;
+  chapter?: string;
+  topics?: string[];
+  confidence: number;
+  chunkIndex?: number;
+}
+
+export interface AIParseResult {
+  questions: ParsedQuestion[];
+  invalidQuestions: Array<{ question: ParsedQuestion; reason: string }>;
+  totalParsed: number;
+  validCount: number;
+  invalidCount: number;
+  totalChunks: number;
+  processingTime: number;
+  errors: string[];
+}
+
+export interface AIParseJobStatus {
+  status: "pending" | "processing" | "completed" | "failed";
+  progress: number;
+  totalChunks: number;
+  questions?: ParsedQuestion[];
+  invalidQuestions?: Array<{ question: ParsedQuestion; reason: string }>;
+  errors: string[];
+  startedAt: string;
+  completedAt?: string;
+}
+
+// Audit log types
+export interface AuditLogEntry {
+  _id: string;
+  action: "CREATE" | "UPDATE" | "DELETE" | "RESTORE" | "BULK_CREATE" | "BULK_DELETE" | "LOGIN" | "LOGOUT";
+  entityType: string;
+  entityId: string;
+  entityName?: string;
+  userId: string;
+  userName?: string;
+  userType: string;
+  instituteId?: string;
+  timestamp: string;
+  changes?: Array<{ field: string; oldValue: unknown; newValue: unknown }>;
+  metadata?: Record<string, unknown>;
+  ipAddress?: string;
+}
+
+export interface AuditLogQueryParams {
+  entityType?: string;
+  entityId?: string;
+  userId?: string;
+  instituteId?: string;
+  action?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
+
+// UI Template types
+export interface ColorScheme {
+  primary: string;
+  secondary: string;
+  background: string;
+  surface: string;
+  text: string;
+  textSecondary: string;
+  accent: string;
+  success: string;
+  warning: string;
+  error: string;
+  border: string;
+}
+
+export interface Typography {
+  fontFamily: string;
+  questionFontSize: "small" | "medium" | "large";
+  optionFontSize: "small" | "medium" | "large";
+}
+
+export interface Layout {
+  questionPanelPosition: "left" | "center";
+  navigationPosition: "top" | "bottom" | "right";
+  showTimer: boolean;
+  showQuestionPalette: boolean;
+  compactMode: boolean;
+}
+
+export interface Branding {
+  logoUrl?: string;
+  instituteName?: string;
+  showLogo: boolean;
+  headerText?: string;
+  footerText?: string;
+}
+
+export interface ButtonStyles {
+  borderRadius: "none" | "small" | "medium" | "large" | "full";
+  variant: "solid" | "outline" | "ghost";
+}
+
+export interface Animations {
+  enableTransitions: boolean;
+  questionTransition: "none" | "fade" | "slide";
+}
+
+export interface TestUITemplate {
+  _id: string;
+  name: string;
+  description?: string;
+  isDefault?: boolean;
+  colorScheme: ColorScheme;
+  typography: Typography;
+  layout: Layout;
+  branding: Branding;
+  buttonStyles: ButtonStyles;
+  animations: Animations;
+  previewImageUrl?: string;
+  instituteId?: string;
+  isPreset?: boolean;
+  createdBy?: {
+    userType: string;
+    id: string;
+    name?: string;
+  };
+  createdAt?: string;
+  modifiedAt?: string;
+}
+
+export interface UITemplatePreset {
+  key: string;
+  name: string;
+  description: string;
+  colorScheme: ColorScheme;
+  typography: Typography;
+  layout: Layout;
+  branding: Branding;
+  buttonStyles: ButtonStyles;
+  animations: Animations;
+}
 
 export default api;

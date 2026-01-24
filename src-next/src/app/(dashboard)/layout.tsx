@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore, usePermissionsStore } from "@/stores";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
+import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 
 export default function DashboardLayout({
   children,
@@ -12,8 +13,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, checkAuth } = useAuthStore();
+  const { isAuthenticated, checkAuth, currentUser, userDetails, fetchUserDetails } = useAuthStore();
   const { fetchRoles } = usePermissionsStore();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     const isValid = checkAuth();
@@ -24,7 +26,21 @@ export default function DashboardLayout({
 
     // Fetch roles/permissions on mount
     fetchRoles();
-  }, [checkAuth, router, fetchRoles]);
+    // Fetch user details to check onboarding status
+    fetchUserDetails();
+  }, [checkAuth, router, fetchRoles, fetchUserDetails]);
+
+  // Check if student needs to complete onboarding
+  useEffect(() => {
+    if (
+      currentUser?.userType === "student" &&
+      userDetails &&
+      // @ts-expect-error - onboardingCompleted may not exist in older records
+      userDetails.onboardingCompleted === false
+    ) {
+      setShowOnboarding(true);
+    }
+  }, [currentUser, userDetails]);
 
   if (!isAuthenticated) {
     return (
@@ -41,6 +57,13 @@ export default function DashboardLayout({
         <Header />
         <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
       </div>
+
+      {/* Onboarding wizard for students who haven't completed their profile */}
+      <OnboardingWizard
+        open={showOnboarding}
+        onOpenChange={setShowOnboarding}
+        onComplete={() => setShowOnboarding(false)}
+      />
     </div>
   );
 }

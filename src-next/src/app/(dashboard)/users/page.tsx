@@ -37,6 +37,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { IStudent, ITeacher, IAdmin, IOperator, IManager, IBatch } from "@/types";
+import { BulkImportDialog } from "@/components/bulk/BulkImportDialog";
 
 type UserType = IStudent | ITeacher | IAdmin | IOperator | IManager;
 type UserCategory = "students" | "teachers" | "admins" | "operators" | "managers";
@@ -63,6 +64,9 @@ export default function UsersPage() {
   // Preview sidebar state
   const [selectedUser, setSelectedUser] = React.useState<UserType | null>(null);
   const [previewOpen, setPreviewOpen] = React.useState(false);
+
+  // Bulk import dialog state
+  const [bulkImportOpen, setBulkImportOpen] = React.useState(false);
 
   const fetchUsers = React.useCallback(async (type: UserCategory) => {
     console.log(`[Users] Fetching ${type}...`);
@@ -426,12 +430,10 @@ export default function UsersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {activeTab === "students" && (
-            <Button variant="outline" asChild>
-              <Link href="/users/bulk-upload">
-                <FileUp className="mr-2 h-4 w-4" />
-                Bulk Upload
-              </Link>
+          {(activeTab === "students" || activeTab === "teachers") && (
+            <Button variant="outline" onClick={() => setBulkImportOpen(true)}>
+              <FileUp className="mr-2 h-4 w-4" />
+              Import
             </Button>
           )}
           <Button asChild>
@@ -472,6 +474,7 @@ export default function UsersPage() {
           columns={getColumns()}
           data={getCurrentData}
           onRowClick={(user) => openPreview(user)}
+          maxHeight="calc(100vh - 350px)"
         />
       )}
 
@@ -711,6 +714,14 @@ export default function UsersPage() {
         itemName={userToDelete?.name}
         onConfirm={handleDelete}
         requirePassword={true}
+      />
+
+      {/* Bulk Import Dialog */}
+      <BulkImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        type={activeTab === "teachers" ? "teachers" : "students"}
+        onSuccess={() => fetchUsers(activeTab)}
       />
     </div>
   );

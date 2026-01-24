@@ -324,6 +324,7 @@ export default function BatchesPage() {
           data={batches}
           searchKey="name"
           searchPlaceholder="Search batches..."
+          maxHeight="calc(100vh - 350px)"
         />
       )}
 

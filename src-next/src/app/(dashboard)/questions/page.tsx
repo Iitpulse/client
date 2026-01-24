@@ -528,6 +528,7 @@ export default function QuestionsPage() {
               searchKey="question"
               searchPlaceholder="Search questions..."
               onRowClick={(question) => openPreview(question)}
+              maxHeight="calc(100vh - 450px)"
             />
           )}
         </TabsContent>

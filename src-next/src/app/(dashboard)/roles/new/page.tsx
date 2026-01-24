@@ -109,6 +109,14 @@ const permissionGroups = [
       { key: PERMISSIONS.ROLE.DELETE, label: "Delete Roles" },
     ],
   },
+  {
+    name: "Audit Logs",
+    permissions: [
+      { key: PERMISSIONS.AUDIT.READ, label: "View Audit Logs" },
+      { key: PERMISSIONS.AUDIT.READ_USER_ACTIVITY, label: "View User Activity" },
+      { key: PERMISSIONS.AUDIT.READ_ENTITY_HISTORY, label: "View Entity History" },
+    ],
+  },
 ];
 
 export default function CreateRolePage() {

@@ -18,6 +18,7 @@ import {
   ClipboardList,
   User,
   Settings,
+  History,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -88,6 +89,12 @@ const navItems: NavItem[] = [
     title: "Exams",
     href: "/exams",
     icon: ClipboardList,
+  },
+  {
+    title: "Audit Logs",
+    href: "/audit-logs",
+    icon: History,
+    permission: "role", // Only admins can view audit logs
   },
 ];
 

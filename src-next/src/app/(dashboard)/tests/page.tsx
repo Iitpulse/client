@@ -413,6 +413,7 @@ export default function TestsPage() {
           columns={columns}
           data={filteredTests}
           onRowClick={(test) => router.push(isStudent ? `/tests/${test._id}/result` : `/tests/${test._id}/edit`)}
+          maxHeight="calc(100vh - 400px)"
         />
       )}
 

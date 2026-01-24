@@ -141,6 +141,7 @@ export default function RolesPage() {
           searchKey="name"
           searchPlaceholder="Search roles..."
           onRowClick={(role) => router.push(`/roles/${role.name}`)}
+          maxHeight="calc(100vh - 300px)"
         />
       )}
 

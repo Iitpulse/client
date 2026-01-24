@@ -433,6 +433,7 @@ export default function PatternsPage() {
           columns={columns}
           data={filteredPatterns}
           onRowClick={handleRowClick}
+          maxHeight="calc(100vh - 350px)"
         />
       )}
 

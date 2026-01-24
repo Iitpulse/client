@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
+  RowSelectionState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -41,6 +43,9 @@ interface DataTableProps<TData, TValue> {
   pageSize?: number;
   onRowClick?: (row: TData) => void;
   maxHeight?: string; // e.g., "400px" for scrollable body with sticky header
+  enableSelection?: boolean;
+  onSelectionChange?: (selectedRows: TData[]) => void;
+  getRowId?: (row: TData) => string;
 }
 
 export function DataTable<TData, TValue>({
@@ -51,6 +56,9 @@ export function DataTable<TData, TValue>({
   pageSize = 10,
   onRowClick,
   maxHeight,
+  enableSelection = false,
+  onSelectionChange,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -58,11 +66,46 @@ export function DataTable<TData, TValue>({
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+
+  // Create selection column if enabled
+  const selectionColumn: ColumnDef<TData, unknown> = {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="translate-y-[2px]"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="translate-y-[2px]"
+        onClick={(e) => e.stopPropagation()} // Prevent row click when clicking checkbox
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  };
+
+  // Combine selection column with provided columns
+  const allColumns = React.useMemo(() => {
+    if (enableSelection) {
+      return [selectionColumn, ...columns];
+    }
+    return columns;
+  }, [enableSelection, columns]);
 
   const table = useReactTable({
     data,
-    columns,
+    columns: allColumns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -71,6 +114,7 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    getRowId: getRowId ? (row) => getRowId(row) : undefined,
     state: {
       sorting,
       columnFilters,
@@ -83,6 +127,16 @@ export function DataTable<TData, TValue>({
       },
     },
   });
+
+  // Notify parent of selection changes
+  React.useEffect(() => {
+    if (onSelectionChange) {
+      const selectedRows = table
+        .getFilteredSelectedRowModel()
+        .rows.map((row) => row.original);
+      onSelectionChange(selectedRows);
+    }
+  }, [rowSelection, onSelectionChange, table]);
 
   return (
     <div className="w-full">

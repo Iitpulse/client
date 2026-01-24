@@ -187,9 +187,33 @@ export interface IBatch {
   instituteId?: string;
   institute?: string | IInstitute;
   class?: string;
+  classes?: string[];
+  exams?: string[];
+  medium?: string;
   year?: string;
   students?: string[];
+  members?: Array<{
+    memberId: string;
+    memberType: string;
+    name: string;
+  }>;
+  roles?: string[];
+  promoCode?: string[];
+  code?: string;
   createdAt?: string;
+  createdBy?: {
+    id: string;
+    name: string;
+    userType: string;
+  };
+  modifiedAt?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletedBy?: {
+    id: string;
+    name: string;
+    userType: string;
+  };
 }
 
 // Subject & Chapter Types
@@ -374,6 +398,9 @@ export interface IExam {
   fullName?: string;
   description?: string;
   isActive?: boolean;
+  isDeleted?: boolean;
+  createdAt?: string;
+  modifiedAt?: string;
 }
 
 // API Response Types
@@ -449,5 +476,10 @@ export const PERMISSIONS = {
     READ: "READ_ROLE",
     UPDATE: "UPDATE_ROLE",
     DELETE: "DELETE_ROLE",
+  },
+  AUDIT: {
+    READ: "READ_AUDIT",
+    READ_USER_ACTIVITY: "READ_USER_ACTIVITY",
+    READ_ENTITY_HISTORY: "READ_ENTITY_HISTORY",
   },
 } as const;
