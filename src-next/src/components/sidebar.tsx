@@ -89,6 +89,7 @@ const navItems: NavItem[] = [
     title: "Exams",
     href: "/exams",
     icon: ClipboardList,
+    permission: "pattern", // Exams are related to patterns/tests - not for students
   },
   {
     title: "Audit Logs",

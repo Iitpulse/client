@@ -30,6 +30,21 @@ export default function DashboardLayout({
     fetchUserDetails();
   }, [checkAuth, router, fetchRoles, fetchUserDetails]);
 
+  // Update page title based on user type
+  useEffect(() => {
+    if (currentUser?.userType) {
+      const titleMap: Record<string, string> = {
+        student: "IITP Student Dashboard",
+        teacher: "IITP Teacher Dashboard",
+        admin: "IITP Admin Dashboard",
+        superadmin: "IITP Super Admin Dashboard",
+        operator: "IITP Operator Dashboard",
+        manager: "IITP Manager Dashboard",
+      };
+      document.title = titleMap[currentUser.userType] || "IITP Dashboard";
+    }
+  }, [currentUser?.userType]);
+
   // Check if student needs to complete onboarding
   useEffect(() => {
     if (

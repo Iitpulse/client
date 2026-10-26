@@ -20,7 +20,17 @@ export function Header() {
     <header className="flex h-16 items-center justify-between border-b bg-card px-6">
       <div className="flex items-center space-x-4">
         <h1 className="text-lg font-semibold">
-          {currentUser?.userType === "student" ? "Student Dashboard" : "Admin Dashboard"}
+          {(() => {
+            const titleMap: Record<string, string> = {
+              student: "Student Dashboard",
+              teacher: "Teacher Dashboard",
+              admin: "Admin Dashboard",
+              superadmin: "Super Admin Dashboard",
+              operator: "Operator Dashboard",
+              manager: "Manager Dashboard",
+            };
+            return titleMap[currentUser?.userType || ""] || "Dashboard";
+          })()}
         </h1>
       </div>
 

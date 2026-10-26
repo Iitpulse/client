@@ -197,6 +197,18 @@ export default function BatchesPage() {
 
   const columns: ColumnDef<IBatch>[] = [
     {
+      accessorKey: "_id",
+      header: "Batch Code",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+            {row.original._id}
+          </code>
+          <CopyButton text={row.original._id} />
+        </div>
+      ),
+    },
+    {
       accessorKey: "name",
       header: "Batch Name",
       cell: ({ row }) => (

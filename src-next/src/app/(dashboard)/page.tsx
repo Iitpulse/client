@@ -462,16 +462,144 @@ export default function DashboardPage() {
   if (isStudent) {
     return (
       <div className="space-y-6">
-        <div>
+        {/* Hero Section */}
+        <div className="rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6 border">
           <h1 className="text-3xl font-bold">Welcome back, {currentUser?.name || "Student"}!</h1>
-          <p className="text-muted-foreground">Here are your tests and progress.</p>
+          <p className="text-muted-foreground mt-1">Ready to ace your next test? Check out what's available below.</p>
+          {ongoingTests.length > 0 && (
+            <div className="mt-4">
+              <Button
+                size="lg"
+                onClick={() => handleTestClick(ongoingTests[0]._id)}
+                className="shadow-lg"
+              >
+                <FileText className="mr-2 h-5 w-5" />
+                Start Test: {ongoingTests[0].name}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950 dark:to-green-900/50 border-green-200 dark:border-green-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Available Now</p>
+                  <h3 className="text-3xl font-bold text-green-700 dark:text-green-400">{ongoingTests.length}</h3>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950 dark:to-blue-900/50 border-blue-200 dark:border-blue-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Upcoming</p>
+                  <h3 className="text-3xl font-bold text-blue-700 dark:text-blue-400">{upcomingTests.length}</h3>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950 dark:to-purple-900/50 border-purple-200 dark:border-purple-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Tests</p>
+                  <h3 className="text-3xl font-bold text-purple-700 dark:text-purple-400">{tests.length}</h3>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                  <Target className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950 dark:to-amber-900/50 border-amber-200 dark:border-amber-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Recent Results</p>
+                  <h3 className="text-3xl font-bold text-amber-700 dark:text-amber-400">{recentTests.length}</h3>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Trophy className="h-6 w-6 text-amber-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
+          {/* Ongoing Tests - More Prominent */}
+          <Card className="border-green-200 dark:border-green-800">
+            <CardHeader className="bg-green-50/50 dark:bg-green-950/50 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <CardTitle className="text-green-700 dark:text-green-400">Available Now</CardTitle>
+              </div>
+              <CardDescription>Tests you can take right now - click to start!</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {loading.tests ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ) : ongoingTests.length === 0 ? (
+                <div className="py-8 text-center">
+                  <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-muted-foreground">No tests available right now</p>
+                  <p className="text-sm text-muted-foreground/70">Check back later or see upcoming tests</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {ongoingTests.slice(0, 5).map((test, i) => {
+                    const durationHours = test.durationInMinutes
+                      ? (test.durationInMinutes / 60).toFixed(1)
+                      : test.duration
+                      ? (test.duration / 60).toFixed(1)
+                      : "3";
+                    return (
+                      <div
+                        key={test._id}
+                        onClick={() => handleTestClick(test._id)}
+                        className="group flex cursor-pointer items-center justify-between rounded-lg border border-green-200 dark:border-green-800 p-4 transition-all hover:bg-green-50 dark:hover:bg-green-950/50 hover:shadow-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900 text-sm font-medium text-green-700 dark:text-green-300">
+                            {i + 1}
+                          </span>
+                          <div>
+                            <span className="font-medium group-hover:text-green-700 dark:group-hover:text-green-300">{test.name}</span>
+                            <p className="text-xs text-muted-foreground">{durationHours} hours</p>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline" className="border-green-500 text-green-600 hover:bg-green-500 hover:text-white">
+                          Start Test
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Upcoming Tests */}
           <Card>
             <CardHeader>
-              <CardTitle>Upcoming Tests</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-blue-500" />
+                Upcoming Tests
+              </CardTitle>
               <CardDescription>Tests scheduled for the future</CardDescription>
             </CardHeader>
             <CardContent>
@@ -482,40 +610,13 @@ export default function DashboardPage() {
                   <Skeleton className="h-12 w-full" />
                 </div>
               ) : upcomingTests.length === 0 ? (
-                <p className="py-8 text-center text-muted-foreground">No upcoming tests scheduled</p>
+                <div className="py-8 text-center">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-muted-foreground">No upcoming tests scheduled</p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {upcomingTests.slice(0, 5).map((test, i) => (
-                    <TestListItem
-                      key={test._id}
-                      index={i + 1}
-                      test={test}
-                      onClick={() => handleTestClick(test._id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Ongoing Tests */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Ongoing Tests</CardTitle>
-              <CardDescription>Tests you can take right now</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading.tests ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : ongoingTests.length === 0 ? (
-                <p className="py-8 text-center text-muted-foreground">No ongoing tests available</p>
-              ) : (
-                <div className="space-y-2">
-                  {ongoingTests.slice(0, 5).map((test, i) => (
                     <TestListItem
                       key={test._id}
                       index={i + 1}
@@ -534,8 +635,11 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Recent Test Analysis</CardTitle>
-                <CardDescription>Performance statistics from recent tests</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-amber-500" />
+                  Test Performance
+                </CardTitle>
+                <CardDescription>How students performed on recent tests</CardDescription>
               </div>
               {recentTests.length > 0 && (
                 <Select value={selectedRecentTest} onValueChange={setSelectedRecentTest}>
@@ -562,10 +666,17 @@ export default function DashboardPage() {
                 <Skeleton className="h-24" />
               </div>
             ) : !selectedTestStats ? (
-              <p className="py-8 text-center text-muted-foreground">No recent test data available</p>
+              <div className="py-8 text-center">
+                <Target className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">No test results available yet</p>
+                <p className="text-sm text-muted-foreground/70">Complete a test to see performance stats</p>
+              </div>
             ) : (
               <>
-                <h3 className="mb-4 text-lg font-semibold">{selectedTestStats.name}</h3>
+                <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                  <h3 className="text-lg font-semibold">{selectedTestStats.name}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedTestStats.totalAppeared} students appeared</p>
+                </div>
                 <div className="grid gap-4 md:grid-cols-4">
                   <StatCard
                     title="Highest Marks"
@@ -601,16 +712,33 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Schedule
+              <Calendar className="h-5 w-5 text-primary" />
+              Your Test Schedule
             </CardTitle>
-            <CardDescription>Your test schedule calendar</CardDescription>
+            <CardDescription>View your upcoming and ongoing tests on the calendar</CardDescription>
           </CardHeader>
           <CardContent>
             <ScheduleCalendar
               tests={[...upcomingTests, ...ongoingTests]}
               onTestClick={(test) => handleTestClick(test._id)}
             />
+          </CardContent>
+        </Card>
+
+        {/* Help Section */}
+        <Card className="bg-muted/30">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Need Help?</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  If you're having trouble accessing a test or viewing your results, please contact your teacher or institute administrator.
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
