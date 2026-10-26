@@ -126,28 +126,28 @@ export const api = {
       apiUsers.get("/manager", { params }),
     getUserById: (id: string) => apiUsers.get(`/users/${id}`),
     // Student CRUD
-    createStudent: (data: unknown) => apiUsers.post("/student/create", data),
+    createStudent: (data: unknown) => apiUsers.post("/student", data),
     updateStudent: (id: string, data: Record<string, unknown>) =>
       apiUsers.put(`/student/${id}`, data),
     deleteStudent: (id: string) => apiUsers.delete("/student/delete", { data: { id } }),
     restoreStudent: (id: string) => apiUsers.post(`/student/${id}/restore`),
     // Teacher CRUD
-    createTeacher: (data: unknown) => apiUsers.post("/teacher/create", data),
+    createTeacher: (data: unknown) => apiUsers.post("/teacher", data),
     updateTeacher: (id: string, data: Record<string, unknown>) =>
       apiUsers.put(`/teacher/${id}`, data),
     deleteTeacher: (id: string) => apiUsers.delete("/teacher/delete", { data: { id } }),
     // Admin CRUD
-    createAdmin: (data: unknown) => apiUsers.post("/admin/create", data),
+    createAdmin: (data: unknown) => apiUsers.post("/admin", data),
     updateAdmin: (id: string, data: Record<string, unknown>) =>
       apiUsers.put(`/admin/${id}`, data),
     deleteAdmin: (id: string) => apiUsers.delete("/admin/delete", { data: { id } }),
     // Operator CRUD
-    createOperator: (data: unknown) => apiUsers.post("/operator/create", data),
+    createOperator: (data: unknown) => apiUsers.post("/operator", data),
     updateOperator: (id: string, data: Record<string, unknown>) =>
       apiUsers.put(`/operator/${id}`, data),
     deleteOperator: (id: string) => apiUsers.delete("/operator/delete", { data: { id } }),
     // Manager CRUD
-    createManager: (data: unknown) => apiUsers.post("/manager/create", data),
+    createManager: (data: unknown) => apiUsers.post("/manager", data),
     updateManager: (id: string, data: Record<string, unknown>) =>
       apiUsers.put(`/manager/${id}`, data),
     deleteManager: (id: string) => apiUsers.delete("/manager/delete", { data: { id } }),

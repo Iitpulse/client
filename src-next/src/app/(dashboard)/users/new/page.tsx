@@ -111,6 +111,8 @@ const baseUserSchema = passwordRefinement(z.object(baseFields));
 const studentSchema = passwordRefinement(
   z.object({
     ...baseFields,
+    // The users service requires a date of birth for students
+    dob: z.date({ required_error: "Date of birth is required for students", invalid_type_error: "Date of birth is required for students" }),
     batch: z.string().optional(),
     standard: z.string().optional(),
     school: z.string().max(50).optional().or(z.literal("")),
@@ -230,23 +232,31 @@ export default function CreateUserPage() {
   const onSubmit = async (data: UserFormData) => {
     setLoading(true);
     try {
-      // Build the user data object based on user type
+      // The users API requires an institute for every user type
+      if (!data.institute) {
+        toast({ title: "Institute required", description: "Select the institute this user belongs to.", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      // Build the user data object in the shape POST /users/{type} validates:
+      // contact as a number, roles as [{ id }], validity only when both dates are set.
       const userData: Record<string, unknown> = {
         name: data.name,
         email: data.email,
         password: data.password,
-        contact: data.contact,
+        contact: Number(data.contact),
         dob: data.dob ? format(data.dob, "yyyy-MM-dd") : undefined,
         gender: data.gender,
         address: data.address,
         city: data.city,
         state: data.state,
         institute: data.institute,
-        roles: data.roles,
-        validity: {
-          from: data.validityFrom ? format(data.validityFrom, "yyyy-MM-dd") : undefined,
-          to: data.validityTo ? format(data.validityTo, "yyyy-MM-dd") : undefined,
-        },
+        roles: (data.roles || []).map((id) => ({ id })),
+        validity:
+          data.validityFrom && data.validityTo
+            ? { from: format(data.validityFrom, "yyyy-MM-dd"), to: format(data.validityTo, "yyyy-MM-dd") }
+            : undefined,
         userType: userType,
       };
 
@@ -254,14 +264,17 @@ export default function CreateUserPage() {
       if (userType === "student") {
         const studentData = data as StudentFormData;
         userData.batch = studentData.batch;
+        userData.class = studentData.standard; // API field is "class"
         userData.standard = studentData.standard;
         userData.school = studentData.school;
         userData.stream = studentData.stream;
         userData.medium = studentData.medium;
-        userData.parentDetails = {
-          name: studentData.parentName,
-          contact: studentData.parentContact,
-        };
+        if (studentData.parentName) {
+          userData.parentDetails = {
+            name: studentData.parentName,
+            contact: studentData.parentContact ? Number(studentData.parentContact) : undefined,
+          };
+        }
       }
 
       // Add teacher-specific fields
@@ -302,7 +315,10 @@ export default function CreateUserPage() {
       router.push("/users");
     } catch (error: unknown) {
       console.error("Failed to create user:", error);
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create user";
+      // The users service nests its message under error.message; other services use a top-level message
+      const errData = (error as { response?: { data?: { message?: string; error?: { message?: string } | string } } })?.response?.data;
+      const nested = typeof errData?.error === "object" ? errData.error?.message : undefined;
+      const message = nested || errData?.message || "Failed to create user";
       toast({
         title: "Error",
         description: message,
@@ -386,7 +402,7 @@ export default function CreateUserPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Date of Birth</Label>
+                <Label>Date of Birth{userType === "student" ? " *" : ""}</Label>
                 <Controller
                   name="dob"
                   control={control}
@@ -416,6 +432,9 @@ export default function CreateUserPage() {
                     </Popover>
                   )}
                 />
+                {errors.dob && (
+                  <p className="text-sm text-destructive">{errors.dob.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
