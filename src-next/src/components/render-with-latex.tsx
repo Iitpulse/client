@@ -9,6 +9,17 @@ interface Props {
   className?: string;
 }
 
+// p.innerHTML re-encodes entities, so LaTeX like "a & b" arrives as "a &amp; b"; KaTeX needs the raw characters.
+function decodeEntities(tex: string): string {
+  return tex
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
 const RenderWithLatex: React.FC<Props> = ({ quillString, className }) => {
   const [previewHTML, setPreviewHTML] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +45,7 @@ const RenderWithLatex: React.FC<Props> = ({ quillString, className }) => {
         // This handles nested braces like \[{{0}^{0}}C\]
         html = html.replace(/\\\[([\s\S]*?)\\\]/g, (match, inner) => {
           try {
-            const rendered = katex.renderToString(inner, {
+            const rendered = katex.renderToString(decodeEntities(inner), {
               throwOnError: false,
               displayMode: false, // Use inline mode for \[...\] in this context
             });
@@ -47,7 +58,7 @@ const RenderWithLatex: React.FC<Props> = ({ quillString, className }) => {
         // Match $...$ patterns (inline math)
         html = html.replace(/\$((?:[^$\\]|\\.)*)\$/g, (match, inner) => {
           try {
-            const rendered = katex.renderToString(inner, {
+            const rendered = katex.renderToString(decodeEntities(inner), {
               throwOnError: false,
               displayMode: false,
             });

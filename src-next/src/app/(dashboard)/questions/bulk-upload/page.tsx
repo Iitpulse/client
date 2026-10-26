@@ -108,7 +108,8 @@ export default function BulkUploadPage() {
     const fetchSubjects = async () => {
       try {
         const response = await api.subjects.getAll();
-        setSubjects(response.data?.subjects || []);
+        // The subjects API returns { success, data: [...] }
+        setSubjects(response.data?.data || response.data?.subjects || []);
       } catch (error) {
         console.error("Failed to fetch subjects:", error);
       }
@@ -123,15 +124,21 @@ export default function BulkUploadPage() {
         setChapters([]);
         return;
       }
+      // Subjects already carry their chapters; fall back to the chapters endpoint
+      const fromSubject = subjects.find((s) => s._id === selectedSubject)?.chapters;
+      if (fromSubject?.length) {
+        setChapters(fromSubject as IChapter[]);
+        return;
+      }
       try {
         const response = await api.subjects.getChapters(selectedSubject);
-        setChapters(response.data?.chapters || []);
+        setChapters(response.data?.data || response.data?.chapters || []);
       } catch (error) {
         console.error("Failed to fetch chapters:", error);
       }
     };
     fetchChapters();
-  }, [selectedSubject]);
+  }, [selectedSubject, subjects]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -581,6 +588,45 @@ Solution: Paris is the capital city of France."
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Re-parse
+              </Button>
+            </div>
+
+            {/* Bulk metadata: set subject/chapter on every selected question at once */}
+            <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border p-3 bg-muted/30">
+              <div className="space-y-1">
+                <Label className="text-xs">Subject for selected</Label>
+                <Select value={selectedSubject} onValueChange={(v) => { setSelectedSubject(v); setSelectedChapter(""); }}>
+                  <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select subject" /></SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((s) => (
+                      <SelectItem key={s._id} value={s._id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Chapter for selected</Label>
+                <Select value={selectedChapter} onValueChange={setSelectedChapter} disabled={!selectedSubject}>
+                  <SelectTrigger className="w-[220px]"><SelectValue placeholder="Select chapter" /></SelectTrigger>
+                  <SelectContent>
+                    {chapters.map((c) => (
+                      <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={!selectedSubject || !selectedChapter || selectedCount === 0}
+                onClick={() => {
+                  setParsedQuestions((prev) =>
+                    prev.map((q) => (q.isSelected ? { ...q, editedSubject: selectedSubject, editedChapter: selectedChapter } : q))
+                  );
+                  toast({ title: "Applied", description: `Subject and chapter set on ${selectedCount} selected question(s).` });
+                }}
+              >
+                Apply to {selectedCount} selected
               </Button>
             </div>
 
