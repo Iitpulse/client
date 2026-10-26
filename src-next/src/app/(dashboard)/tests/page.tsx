@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Plus, Trash2, BarChart3, Pencil, Eye } from "lucide-react";
+import { Plus, Trash2, BarChart3, Pencil, Eye, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -71,6 +72,7 @@ function getTestStatus(test: ITest): TestStatusDisplay {
 }
 
 export default function TestsPage() {
+  const { toast } = useToast();
   const router = useRouter();
   const { currentUser } = useAuthStore();
   const isStudent = currentUser?.userType === "student";
@@ -120,6 +122,21 @@ export default function TestsPage() {
     fetchTests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handlePublish = async (test: ITest) => {
+    try {
+      await api.tests.publish(test._id);
+      toast({ title: "Test Published", description: `"${test.name}" is now visible to its batches within its validity window.` });
+      fetchTests();
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      toast({
+        title: "Could not publish",
+        description: axiosError?.response?.data?.message || (error instanceof Error ? error.message : "Failed to publish test"),
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDelete = async () => {
     if (!testToDelete) return;
@@ -289,6 +306,20 @@ export default function TestsPage() {
                 title="View results"
               >
                 <BarChart3 className="h-4 w-4" />
+              </Button>
+            )}
+            {status === "Draft" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePublish(test);
+                }}
+                title="Publish test"
+              >
+                <Send className="h-4 w-4" />
+                <span className="ml-1">Publish</span>
               </Button>
             )}
             <Button

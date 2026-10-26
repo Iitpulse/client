@@ -470,12 +470,33 @@ export default function CreateTestPage() {
         modifiedAt: new Date().toISOString(),
       };
 
-      await api.tests.create(testData);
+      const createResponse = await api.tests.create(testData);
+      // The API always creates tests as drafts; publishing is a separate call.
+      if (!saveAsDraft) {
+        const createdId = createResponse.data?.data?._id || createResponse.data?.data?.id;
+        if (!createdId) {
+          throw new Error("Test was saved as a draft but its ID was not returned, so it could not be published");
+        }
+        try {
+          await api.tests.publish(createdId);
+        } catch (publishError: unknown) {
+          const publishAxiosError = publishError as { response?: { data?: { message?: string } } };
+          toast({
+            title: "Saved as draft, not published",
+            description:
+              publishAxiosError?.response?.data?.message ||
+              "The test was created but could not be published. Open it from the Tests list and publish it.",
+            variant: "destructive",
+          });
+          router.push("/tests");
+          return;
+        }
+      }
       toast({
-        title: saveAsDraft ? "Draft Saved" : "Test Created",
+        title: saveAsDraft ? "Draft Saved" : "Test Published",
         description: saveAsDraft
           ? "Test has been saved as draft"
-          : "Test has been created successfully",
+          : "Test has been created and published",
       });
       router.push("/tests");
     } catch (error: unknown) {
