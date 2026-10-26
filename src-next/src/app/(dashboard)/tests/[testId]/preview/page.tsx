@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import { ISection, ISubSection, IQuestion } from "@/types";
 import RenderWithLatex from "@/components/render-with-latex";
+import { StudentAccessLinks } from "@/components/student-access-links";
 
 interface TestSection extends ISection {
   subSections: TestSubSection[];
@@ -178,6 +179,7 @@ export default function TestPreviewPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="questions">Question-by-Question</TabsTrigger>
+          <TabsTrigger value="links">Student links</TabsTrigger>
         </TabsList>
 
         {/* Overview Mode */}
@@ -472,6 +474,9 @@ export default function TestPreviewPage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+        <TabsContent value="links">
+          <StudentAccessLinks testId={testId} batches={test.batches || []} validTo={test.validity?.to} />
         </TabsContent>
       </Tabs>
     </div>

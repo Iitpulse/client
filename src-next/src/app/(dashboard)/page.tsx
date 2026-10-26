@@ -450,11 +450,25 @@ export default function DashboardPage() {
   }, [recentTests, selectedRecentTest]);
 
   // Open test in new tab (for students)
-  const handleTestClick = (testId: string) => {
-    if (isStudent) {
+  const handleTestClick = async (testId: string) => {
+    if (!isStudent) return;
+    const testPortalUrl = process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "http://localhost:3001";
+    // Open the window first (popup blockers allow it inside the click), then point it at the key link
+    const portalWindow = window.open("", "_blank");
+    try {
+      const res = await api.users.myTestKey(testId);
+      const key = res.data?.data?.key;
+      if (!key) throw new Error("No key returned");
+      const url = `${testPortalUrl}/auth/${key}/${testId}`;
+      if (portalWindow) portalWindow.location.href = url;
+      else window.location.href = url;
+    } catch (error) {
+      console.error("Could not get a test access key:", error);
+      // Fall back to the legacy token link so the student is not blocked
       const token = localStorage.getItem("auth_token");
-      const testPortalUrl = process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "http://localhost:3001";
-      window.open(`${testPortalUrl}/auth/${token}/${testId}`, "_blank");
+      const url = `${testPortalUrl}/auth/${token}/${testId}`;
+      if (portalWindow) portalWindow.location.href = url;
+      else window.location.href = url;
     }
   };
 

@@ -127,6 +127,13 @@ export const api = {
     getUserById: (id: string) => apiUsers.get(`/users/${id}`),
     // Student CRUD
     createStudent: (data: unknown) => apiUsers.post("/student", data),
+    /** Test-portal single sign-on keys (one per student per test) */
+    generateTestKeys: (data: { testId: string; batchId?: string; studentIds?: string[]; expiresAt?: string }) =>
+      apiUsers.post<{ success: boolean; data: Array<{ studentId: string; name: string; email: string; key: string; expiresAt: string }> }>("/student/test-keys", data),
+    listTestKeys: (testId: string) =>
+      apiUsers.get<{ success: boolean; data: Array<{ studentId: string; name: string; email: string; key: string; expiresAt: string; useCount?: number; lastUsedAt?: string }> }>("/student/test-keys", { params: { testId } }),
+    myTestKey: (testId: string, expiresAt?: string) =>
+      apiUsers.post<{ success: boolean; data: { key: string; expiresAt: string } }>("/student/auth/test-key", { testId, expiresAt }),
     updateStudent: (id: string, data: Record<string, unknown>) =>
       apiUsers.put(`/student/${id}`, data),
     deleteStudent: (id: string) => apiUsers.delete("/student/delete", { data: { id } }),
