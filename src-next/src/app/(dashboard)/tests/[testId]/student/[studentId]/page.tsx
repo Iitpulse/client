@@ -409,9 +409,15 @@ export default function StudentAnalysisPage() {
             }
           }
 
-          if (response?.timeTakenInSeconds) {
+          const answered =
+            !!response &&
+            ((response.selectedOptions?.length ?? 0) > 0 ||
+              response.enteredAnswer !== undefined ||
+              (response.marks ?? 0) !== 0 ||
+              !!response.timeTakenInSeconds);
+          if (answered && response) {
             attempted++;
-            timeTakenInSeconds += response.timeTakenInSeconds;
+            timeTakenInSeconds += response.timeTakenInSeconds ?? 0;
             marks += response.marks ?? 0;
 
             if ((response.marks ?? 0) > 0) {

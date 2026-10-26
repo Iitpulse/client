@@ -264,7 +264,7 @@ export const api = {
   },
   exams: {
     getAll: (params?: { page?: number; size?: number; sortBy?: string; sortOrder?: "asc" | "desc"; includeDeleted?: boolean }) =>
-      apiTests.get("/exam", { params }),
+      apiTests.get("/exam", { params: { size: 500, ...params } }), // dropdowns need every exam, not the first page of 20
     getAllNoPagination: () => apiTests.get("/exam/all"),
     create: (data: { name: string; fullName?: string; description?: string }) =>
       apiTests.post("/exam/create", data),
