@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -120,6 +121,7 @@ const permissionGroups = [
 ];
 
 export default function CreateRolePage() {
+  const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
   const [selectedPermissions, setSelectedPermissions] = React.useState<
@@ -155,13 +157,24 @@ export default function CreateRolePage() {
   const onSubmit = async (data: RoleFormData) => {
     setLoading(true);
     try {
+      // The API wants the list of granted permission keys, not the {key: boolean} map
+      const permissions = Object.entries(selectedPermissions)
+        .filter(([, granted]) => granted)
+        .map(([key]) => key);
       await api.roles.create({
         name: data.name,
-        permissions: selectedPermissions,
+        permissions,
       });
+      toast({ title: "Role created", description: `"${data.name}" is ready to assign.` });
       router.push("/roles");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to create role:", error);
+      const errData = (error as { response?: { data?: { message?: string; error?: { message?: string } } } })?.response?.data;
+      toast({
+        title: "Could not create role",
+        description: errData?.error?.message || errData?.message || "Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
