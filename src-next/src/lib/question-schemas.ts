@@ -39,7 +39,11 @@ export const coreQuestionSchema = z.object({
       })
     )
     .min(1, "Fill in Chapters"),
-  difficulty: z.enum(["Easy", "Medium", "Hard", "unset"]).default("unset"),
+  // API enum is lowercase; legacy rows may still carry "Easy"/"Medium"/"Hard"
+  difficulty: z.preprocess(
+    (v) => (typeof v === "string" ? v.toLowerCase() : v),
+    z.enum(["easy", "medium", "hard", "unset"])
+  ).default("unset"),
   isProofRead: z.boolean().default(false),
   createdAt: z
     .string()

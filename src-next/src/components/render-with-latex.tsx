@@ -18,7 +18,8 @@ const RenderWithLatex: React.FC<Props> = ({ quillString, className }) => {
     setIsLoading(true);
 
     if (quillString?.length && quillString !== "<p><br></p>") {
-      const value = quillString;
+      // Option text from plain inputs is a bare string; wrap it so the <p> pass below sees it.
+      const value = /<(p|div|ul|ol|li|table|h[1-6]|blockquote|pre)\b/i.test(quillString) ? quillString : `<p>${quillString}</p>`;
       const parser = new DOMParser();
       const doc = parser.parseFromString(value, "text/html");
 

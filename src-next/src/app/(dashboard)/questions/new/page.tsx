@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2, Eye, AlertCircle, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -74,11 +75,12 @@ const questionTypes = [
   { value: "matrix", label: "Matrix Match" },
 ];
 
+// Values must match the questions API enum (lowercase); "unset" is a placeholder that is rejected on submit.
 const difficultyOptions = [
-  { value: "Easy", label: "Easy" },
-  { value: "Medium", label: "Medium" },
-  { value: "Hard", label: "Hard" },
-  { value: "unset", label: "Unset" },
+  { value: "unset", label: "Select difficulty" },
+  { value: "easy", label: "Easy" },
+  { value: "medium", label: "Medium" },
+  { value: "hard", label: "Hard" },
 ];
 
 interface Option {
@@ -223,6 +225,7 @@ export default function CreateQuestionPage() {
   const [loading, setLoading] = React.useState(false);
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [formErrors, setFormErrors] = React.useState<FormErrors>({});
+  const { toast } = useToast();
   const [topicDrawerOpen, setTopicDrawerOpen] = React.useState(false);
 
   // Get current options based on language
@@ -517,7 +520,7 @@ export default function CreateQuestionPage() {
   // Submit handler
   const handleSubmit = async () => {
     if (!currentUser) {
-      alert("Please log in to create questions");
+      toast({ title: "Not logged in", description: "Please log in to create questions", variant: "destructive" });
       return;
     }
 
@@ -530,6 +533,11 @@ export default function CreateQuestionPage() {
     }
     if (selectedChapters.length === 0) {
       setFormErrors({ chapters: "Please select at least one chapter" });
+      return;
+    }
+    if (difficulty === "unset") {
+      setFormErrors({ difficulty: "Please select a difficulty" });
+      toast({ title: "Difficulty required", description: "Choose Easy, Medium or Hard before saving.", variant: "destructive" });
       return;
     }
 
@@ -690,10 +698,16 @@ export default function CreateQuestionPage() {
       }
 
       await api.questions.create(endpoint, questionData);
+      toast({ title: "Question created", description: "The question was added to the bank." });
       router.push("/questions");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to create question:", error);
-      alert("Failed to create question. Please try again.");
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      toast({
+        title: "Failed to create question",
+        description: axiosError?.response?.data?.message || (error instanceof Error ? error.message : "Please try again."),
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -782,7 +796,7 @@ export default function CreateQuestionPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Difficulty</Label>
+              <Label>Difficulty *</Label>
               <Select value={difficulty} onValueChange={setDifficulty}>
                 <SelectTrigger>
                   <SelectValue />
@@ -795,6 +809,9 @@ export default function CreateQuestionPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {formErrors.difficulty && (
+                <p className="text-sm text-destructive">{formErrors.difficulty}</p>
+              )}
             </div>
 
             <div className="space-y-2">
