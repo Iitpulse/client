@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast } from "@/hooks/use-toast";
+
 import * as React from "react";
 import { Plus, Edit, Trash2, Search, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
@@ -50,6 +52,7 @@ interface PaginationInfo {
 }
 
 export default function ExamsPage() {
+  const { toast } = useToast();
   const [exams, setExams] = React.useState<IExam[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -145,10 +148,13 @@ export default function ExamsPage() {
           description: examDescription,
         });
       }
+      toast({ title: selectedExam ? "Exam updated" : "Exam created", description: examName });
       await fetchExams();
       setDialogOpen(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to save exam:", error);
+      const errData = (error as { response?: { data?: { message?: string; error?: { message?: string } } } })?.response?.data;
+      toast({ title: "Could not save exam", description: errData?.error?.message || errData?.message || "Please try again.", variant: "destructive" });
     } finally {
       setSaving(false);
     }

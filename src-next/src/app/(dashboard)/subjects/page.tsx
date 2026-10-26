@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast } from "@/hooks/use-toast";
+
 import * as React from "react";
 import {
   Plus,
@@ -42,6 +44,7 @@ import { api } from "@/lib/api";
 import { ISubject, IChapter } from "@/types";
 
 export default function SubjectsPage() {
+  const { toast } = useToast();
   const [subjects, setSubjects] = React.useState<ISubject[]>([]);
   const [selectedSubject, setSelectedSubject] = React.useState<ISubject | null>(null);
   const [selectedChapter, setSelectedChapter] = React.useState<IChapter | null>(null);
@@ -78,11 +81,14 @@ export default function SubjectsPage() {
     setSaving(true);
     try {
       await api.subjects.create({ name: newName });
+      toast({ title: "Subject created", description: newName });
       fetchSubjects();
       setSubjectDialogOpen(false);
       setNewName("");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to create subject:", error);
+      const errData = (error as { response?: { data?: { message?: string; error?: { message?: string } } } })?.response?.data;
+      toast({ title: "Could not create subject", description: errData?.error?.message || errData?.message || "Please try again.", variant: "destructive" });
     } finally {
       setSaving(false);
     }

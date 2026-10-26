@@ -1,5 +1,7 @@
 "use client";
 
+import { useToast } from "@/hooks/use-toast";
+
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -75,6 +77,7 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function BatchesPage() {
+  const { toast } = useToast();
   const [batches, setBatches] = React.useState<IBatch[]>([]);
   const [institutes, setInstitutes] = React.useState<IInstitute[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -151,6 +154,7 @@ export default function BatchesPage() {
           ...(formData.promoCode && { promoCode: [formData.promoCode] }),
         });
       }
+      toast({ title: editingBatch ? "Batch updated" : "Batch created", description: formData.name });
       fetchBatches();
       setDialogOpen(false);
       setEditingBatch(null);

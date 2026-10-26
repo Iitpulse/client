@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import {
   History,
@@ -46,11 +46,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import api, { AuditLogEntry, AuditLogQueryParams } from "@/lib/api";
 
@@ -321,8 +316,7 @@ export default function AuditLogsPage() {
                 </TableHeader>
                 <TableBody>
                   {logs.map((log) => (
-                    <Collapsible key={log._id} asChild>
-                      <>
+                    <Fragment key={log._id}>
                         <TableRow
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => {
@@ -336,7 +330,6 @@ export default function AuditLogsPage() {
                         >
                           <TableCell>
                             {log.changes && log.changes.length > 0 && (
-                              <CollapsibleTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -352,7 +345,6 @@ export default function AuditLogsPage() {
                                     <ChevronRight className="h-4 w-4" />
                                   )}
                                 </Button>
-                              </CollapsibleTrigger>
                             )}
                           </TableCell>
                           <TableCell className="font-mono text-sm">
@@ -415,7 +407,7 @@ export default function AuditLogsPage() {
                         {log.changes && log.changes.length > 0 && expandedRows.has(log._id) && (
                           <TableRow>
                             <TableCell colSpan={6} className="bg-muted/30 p-0">
-                              <CollapsibleContent>
+                              <div>
                                 <div className="p-4">
                                   <h4 className="text-sm font-medium mb-3">Changes</h4>
                                   <Table>
@@ -443,12 +435,11 @@ export default function AuditLogsPage() {
                                     </TableBody>
                                   </Table>
                                 </div>
-                              </CollapsibleContent>
+                              </div>
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
-                    </Collapsible>
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>

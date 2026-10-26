@@ -1155,7 +1155,7 @@ export default function EditQuestionPage() {
                     </MultiSelectTrigger>
                     <MultiSelectContent search={{ placeholder: "Search chapters...", emptyMessage: "No chapters found" }}>
                       {chapters.map((chapter) => (
-                        <MultiSelectItem key={chapter._id} value={chapter.name}>
+                        <MultiSelectItem key={chapter._id || chapter.name} value={chapter.name}>
                           {chapter.name}
                         </MultiSelectItem>
                       ))}
