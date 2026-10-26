@@ -84,9 +84,11 @@ export default function QuestionsPage() {
   const fetchQuestions = React.useCallback(async (type: string) => {
     setLoading(true);
     try {
+      // The list and its search/export are client-side, so load the whole bank for this type in pages.
+      const PAGE_SIZE = 500;
       const params: Record<string, string | string[] | number> = {
         page: 1,
-        size: 100, // Fetch more results
+        size: PAGE_SIZE,
       };
       // Backend: 'subject' uses case-insensitive regex - use pipe (|) for multiple subjects
       if (selectedSubjects.length > 0 && subjects.length > 0) {
@@ -103,26 +105,27 @@ export default function QuestionsPage() {
       if (selectedChapters.length > 0) params.chapters = selectedChapters;
       if (selectedTopics.length > 0) params.topics = selectedTopics;
 
-      let response;
-
-      switch (type) {
-        case "mcq":
-          response = await api.questions.getMCQ(params);
-          break;
-        case "numerical":
-          response = await api.questions.getNumerical(params);
-          break;
-        case "paragraph":
-          response = await api.questions.getParagraph(params);
-          break;
-        case "matrix":
-          response = await api.questions.getMatrix(params);
-          break;
-        default:
-          response = await api.questions.getMCQ(params);
-      }
+      const fetchPage = (pageParams: typeof params) => {
+        switch (type) {
+          case "numerical":
+            return api.questions.getNumerical(pageParams);
+          case "paragraph":
+            return api.questions.getParagraph(pageParams);
+          case "matrix":
+            return api.questions.getMatrix(pageParams);
+          default:
+            return api.questions.getMCQ(pageParams);
+        }
+      };
       // Backend returns { success, data: [...], totalDocs, currentPage, totalPages }
-      setQuestions(response.data?.data || response.data?.questions || []);
+      const first = await fetchPage(params);
+      const all: IQuestion[] = [...(first.data?.data || first.data?.questions || [])];
+      const totalPages = Number(first.data?.totalPages || 1);
+      for (let page = 2; page <= Math.min(totalPages, 20); page++) {
+        const next = await fetchPage({ ...params, page });
+        all.push(...(next.data?.data || next.data?.questions || []));
+      }
+      setQuestions(all);
     } catch (error) {
       console.error("Failed to fetch questions:", error);
     } finally {
