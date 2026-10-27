@@ -2,6 +2,7 @@
 
 import React, { memo, useEffect, useState } from "react";
 import katex from "katex";
+import DOMPurify from "dompurify";
 import "katex/dist/katex.min.css";
 
 interface Props {
@@ -32,7 +33,9 @@ const RenderWithLatex: React.FC<Props> = ({ quillString, className }) => {
       // Option text from plain inputs is a bare string; wrap it so the <p> pass below sees it.
       const value = /<(p|div|ul|ol|li|table|h[1-6]|blockquote|pre)\b/i.test(quillString) ? quillString : `<p>${quillString}</p>`;
       const parser = new DOMParser();
-      const doc = parser.parseFromString(value, "text/html");
+      // Question HTML comes from staff, imports and the AI parser: strip scripts, event handlers and
+      // javascript: URLs before rendering (KaTeX output is generated below and trusted)
+      const doc = parser.parseFromString(DOMPurify.sanitize(value), "text/html");
 
       // Extract from all <p> tags
       const pTags = doc.getElementsByTagName("p");
