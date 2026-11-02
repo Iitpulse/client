@@ -856,7 +856,7 @@ export default function CreateQuestionPage() {
                 </p>
               ) : (
                 <MultiSelectCreatable
-                  options={chapters.map((c) => ({
+                  options={chapters.filter((c) => c.name).map((c) => ({
                     value: c.name,
                     label: c.name,
                     ...c,
