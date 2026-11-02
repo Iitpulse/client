@@ -170,6 +170,44 @@ interface UserData {
   subjects?: (string | { _id: string; name: string })[];
 }
 
+// Looks the user up by type: the type hint from the URL if given, otherwise every type in order.
+// Kept as a loop at module scope: the React Compiler lint pass in eslint-plugin-react-hooks 7.x
+// takes exponential time on a component with a chain of sequential try/catch blocks.
+type UserListResponse = { data?: Record<string, unknown> | UserData[] };
+const findInList = (res: UserListResponse, key: string, userId: string): UserData | null => {
+  const body = res.data as Record<string, unknown> | undefined;
+  const list = body?.data || body?.[key] || body || [];
+  return Array.isArray(list) ? (list as UserData[]).find((u) => u._id === userId) ?? null : null;
+};
+
+const userLookups: { type: string; find: (userId: string) => Promise<UserData | null> }[] = [
+  {
+    type: "student",
+    find: async (userId) => {
+      const res = await api.users.getStudentById(userId);
+      const userData = res.data?.data || res.data;
+      return userData && userData._id ? userData : null;
+    },
+  },
+  { type: "teacher", find: async (userId) => findInList(await api.users.getTeachers(), "teachers", userId) },
+  { type: "admin", find: async (userId) => findInList(await api.users.getAdmins(), "admins", userId) },
+  { type: "operator", find: async (userId) => findInList(await api.users.getOperators(), "operators", userId) },
+  { type: "manager", find: async (userId) => findInList(await api.users.getManagers(), "managers", userId) },
+];
+
+async function findUserById(userId: string, userTypeParam: string | null): Promise<UserData | null> {
+  for (const { type, find } of userLookups) {
+    if (userTypeParam && userTypeParam !== type) continue;
+    try {
+      const found = await find(userId);
+      if (found) return { ...found, userType: type };
+    } catch {
+      /* Try next type */
+    }
+  }
+  return null;
+}
+
 export default function EditUserPage() {
   const router = useRouter();
   const params = useParams();
@@ -264,62 +302,7 @@ export default function EditUserPage() {
     const fetchUser = async () => {
       try {
         // Try to fetch user based on type hint or try all types
-        let foundUser: UserData | null = null;
-
-        if (userTypeParam === "student" || !userTypeParam) {
-          try {
-            const res = await api.users.getStudentById(userId);
-            const userData = res.data?.data || res.data;
-            if (userData && userData._id) {
-              foundUser = { ...userData, userType: "student" };
-            }
-          } catch { /* Try next type */ }
-        }
-
-        if (!foundUser && (userTypeParam === "teacher" || !userTypeParam)) {
-          try {
-            // Try fetching from teachers list
-            const res = await api.users.getTeachers();
-            const teachers = res.data?.data || res.data?.teachers || res.data || [];
-            const teacher = Array.isArray(teachers) ? teachers.find((t: UserData) => t._id === userId) : null;
-            if (teacher) {
-              foundUser = { ...teacher, userType: "teacher" };
-            }
-          } catch { /* Try next type */ }
-        }
-
-        if (!foundUser && (userTypeParam === "admin" || !userTypeParam)) {
-          try {
-            const res = await api.users.getAdmins();
-            const admins = res.data?.data || res.data?.admins || res.data || [];
-            const admin = Array.isArray(admins) ? admins.find((a: UserData) => a._id === userId) : null;
-            if (admin) {
-              foundUser = { ...admin, userType: "admin" };
-            }
-          } catch { /* Try next type */ }
-        }
-
-        if (!foundUser && (userTypeParam === "operator" || !userTypeParam)) {
-          try {
-            const res = await api.users.getOperators();
-            const operators = res.data?.data || res.data?.operators || res.data || [];
-            const operator = Array.isArray(operators) ? operators.find((o: UserData) => o._id === userId) : null;
-            if (operator) {
-              foundUser = { ...operator, userType: "operator" };
-            }
-          } catch { /* Try next type */ }
-        }
-
-        if (!foundUser && (userTypeParam === "manager" || !userTypeParam)) {
-          try {
-            const res = await api.users.getManagers();
-            const managers = res.data?.data || res.data?.managers || res.data || [];
-            const manager = Array.isArray(managers) ? managers.find((m: UserData) => m._id === userId) : null;
-            if (manager) {
-              foundUser = { ...manager, userType: "manager" };
-            }
-          } catch { /* Not found */ }
-        }
+        const foundUser = await findUserById(userId, userTypeParam);
 
         if (foundUser) {
           setUser(foundUser);
@@ -666,7 +649,7 @@ export default function EditUserPage() {
                           selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date) => date > new Date()}
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -1054,7 +1037,7 @@ export default function EditUserPage() {
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -1086,7 +1069,7 @@ export default function EditUserPage() {
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>

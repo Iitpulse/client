@@ -150,7 +150,7 @@ export function MultiSelectCreatable({
             <ChevronsUpDownIcon className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="min-w-[var(--radix-popover-trigger-width)] p-0">
+        <PopoverContent className="min-w-(--radix-popover-trigger-width) p-0">
           <Command shouldFilter={false}>
             <CommandInput
               placeholder={searchPlaceholder}
@@ -342,7 +342,7 @@ export function SingleSelectCreatable({
             <ChevronsUpDownIcon className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="min-w-[var(--radix-popover-trigger-width)] p-0">
+        <PopoverContent className="min-w-(--radix-popover-trigger-width) p-0">
           <Command shouldFilter={false}>
             <CommandInput
               placeholder={searchPlaceholder}

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@/components/ui/data-table";
 import {
   MoreHorizontal,
   Plus,

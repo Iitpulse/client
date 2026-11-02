@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@/components/ui/data-table";
 import { Zap, Search, Check } from "lucide-react";
 
 import {
@@ -124,13 +124,6 @@ export function QuestionSelectionModal({
     }
   }, [open, subject]);
 
-  // Fetch questions when modal opens
-  React.useEffect(() => {
-    if (open && subject) {
-      fetchQuestions();
-    }
-  }, [open, subject, type]);
-
   const fetchQuestions = async () => {
     setLoading(true);
     try {
@@ -166,6 +159,13 @@ export function QuestionSelectionModal({
       setLoading(false);
     }
   };
+
+  // Fetch questions when modal opens
+  React.useEffect(() => {
+    if (open && subject) {
+      fetchQuestions();
+    }
+  }, [open, subject, type]);
 
   const handleToggleQuestion = (question: IQuestion) => {
     setSelected((prev) => {
@@ -304,10 +304,10 @@ export function QuestionSelectionModal({
         const difficultyLower = difficulty?.toLowerCase();
         const colorClass =
           difficultyLower === "easy"
-            ? "!bg-green-100 !text-green-800 border-green-200"
+            ? "bg-green-100! text-green-800! border-green-200"
             : difficultyLower === "medium"
-            ? "!bg-yellow-100 !text-yellow-800 border-yellow-200"
-            : "!bg-red-100 !text-red-800 border-red-200";
+            ? "bg-yellow-100! text-yellow-800! border-yellow-200"
+            : "bg-red-100! text-red-800! border-red-200";
         return <Badge variant="outline" className={colorClass}>{difficulty}</Badge>;
       },
     },
@@ -616,10 +616,10 @@ export function QuestionSelectionModal({
                           const difficultyLower = difficulty?.toLowerCase();
                           const colorClass =
                             difficultyLower === "easy"
-                              ? "!bg-green-100 !text-green-800 border-green-200"
+                              ? "bg-green-100! text-green-800! border-green-200"
                               : difficultyLower === "medium"
-                              ? "!bg-yellow-100 !text-yellow-800 border-yellow-200"
-                              : "!bg-red-100 !text-red-800 border-red-200";
+                              ? "bg-yellow-100! text-yellow-800! border-yellow-200"
+                              : "bg-red-100! text-red-800! border-red-200";
                           const chapter = q.chapters?.[0]?.name || "-";
                           return (
                             <tr key={q._id || idx} className="border-b hover:bg-muted/30">

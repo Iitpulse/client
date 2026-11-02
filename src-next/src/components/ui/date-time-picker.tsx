@@ -92,7 +92,7 @@ export function DateTimePicker({
             mode="single"
             selected={value}
             onSelect={handleDateSelect}
-            initialFocus
+            autoFocus
           />
           <div className="flex flex-col border-l p-3 gap-2">
             <div className="text-sm font-medium text-center mb-2">Time</div>

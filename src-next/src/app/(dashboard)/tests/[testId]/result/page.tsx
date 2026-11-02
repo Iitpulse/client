@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@/components/ui/data-table";
 import { ArrowLeft, Download, BarChart3, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

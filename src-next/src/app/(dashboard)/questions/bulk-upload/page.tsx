@@ -541,7 +541,7 @@ Solution: Paris is the capital city of France."
                   <li>- Clear question numbering (Q1, Q2, etc.)</li>
                   <li>- Options labeled as (a), (b), (c), (d)</li>
                   <li>- Correct answers marked with * or bold</li>
-                  <li>- Solutions labeled with "Solution:" or "Explanation:"</li>
+                  <li>- Solutions labeled with &quot;Solution:&quot; or &quot;Explanation:&quot;</li>
                 </ul>
               </div>
             </CardContent>

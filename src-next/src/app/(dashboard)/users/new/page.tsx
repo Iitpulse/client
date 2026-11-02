@@ -98,7 +98,7 @@ const baseFields = {
 };
 
 // Password match refinement
-const passwordRefinement = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) =>
+const passwordRefinement = <S extends z.ZodType<{ password: string; confirmPassword: string }>>(schema: S) =>
   schema.refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
@@ -112,7 +112,7 @@ const studentSchema = passwordRefinement(
   z.object({
     ...baseFields,
     // The users service requires a date of birth for students
-    dob: z.date({ required_error: "Date of birth is required for students", invalid_type_error: "Date of birth is required for students" }),
+    dob: z.date({ error: "Date of birth is required for students" }),
     batch: z.string().optional(),
     standard: z.string().optional(),
     school: z.string().max(50).optional().or(z.literal("")),
@@ -426,7 +426,7 @@ export default function CreateUserPage() {
                           selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date) => date > new Date()}
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -794,7 +794,7 @@ export default function CreateUserPage() {
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -826,7 +826,7 @@ export default function CreateUserPage() {
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>

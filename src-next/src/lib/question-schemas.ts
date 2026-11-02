@@ -92,8 +92,8 @@ export const questionIntegerSchema = coreQuestionSchema.extend({
   en: questionSchemaEn,
   hi: questionSchemaHi,
   correctAnswer: z.object({
-    from: z.number({ required_error: "Fill in From value" }),
-    to: z.number({ required_error: "Fill in To value" }),
+    from: z.number({ error: "Fill in From value" }),
+    to: z.number({ error: "Fill in To value" }),
   }),
 });
 

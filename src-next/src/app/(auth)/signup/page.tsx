@@ -134,7 +134,7 @@ export default function SignupPage() {
       const result = accountDetailsSchema.safeParse(accountDetails);
       if (!result.success) {
         const errors: Record<string, string> = {};
-        result.error.errors.forEach((err) => {
+        result.error.issues.forEach((err) => {
           errors[err.path[0] as string] = err.message;
         });
         setAccountErrors(errors);
@@ -148,7 +148,7 @@ export default function SignupPage() {
       const result = personalDetailsSchema.safeParse(personalDetails);
       if (!result.success) {
         const errors: Record<string, string> = {};
-        result.error.errors.forEach((err) => {
+        result.error.issues.forEach((err) => {
           errors[err.path[0] as string] = err.message;
         });
         setPersonalErrors(errors);
@@ -251,7 +251,7 @@ export default function SignupPage() {
               {index < steps.length - 1 && (
                 <div
                   className={cn(
-                    "h-0.5 flex-1 mx-4 mt-[-1.5rem]",
+                    "h-0.5 flex-1 mx-4 -mt-6",
                     currentStep > step.id ? "bg-primary" : "bg-muted"
                   )}
                 />

@@ -39,7 +39,7 @@ import { QuestionSelectionModal } from "@/components/question-selection-modal";
 import { QuestionPreviewDialog } from "@/components/question-preview-dialog";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { DataTable } from "@/components/ui/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@/components/ui/data-table";
 import RenderWithLatex from "@/components/render-with-latex";
 
 const PUBLISH_TYPE_OPTIONS = [
@@ -1010,10 +1010,10 @@ function SubSectionCard({
         const difficultyLower = difficulty?.toLowerCase();
         const colorClass =
           difficultyLower === "easy"
-            ? "!bg-green-100 !text-green-800 border-green-200"
+            ? "bg-green-100! text-green-800! border-green-200"
             : difficultyLower === "medium"
-            ? "!bg-yellow-100 !text-yellow-800 border-yellow-200"
-            : "!bg-red-100 !text-red-800 border-red-200";
+            ? "bg-yellow-100! text-yellow-800! border-yellow-200"
+            : "bg-red-100! text-red-800! border-red-200";
         return <Badge variant="outline" className={colorClass}>{difficulty}</Badge>;
       },
     },

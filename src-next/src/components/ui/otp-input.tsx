@@ -114,7 +114,7 @@ export function OtpInput({
           disabled={disabled}
           className={cn(
             "w-12 h-14 text-center text-xl font-semibold rounded-md border border-input bg-background",
-            "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+            "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "transition-all duration-150"
           )}

@@ -88,7 +88,7 @@ export function StudentAccessLinks({ testId, batches, validTo }: { testId: strin
         </CardTitle>
         <CardDescription>
           Each link signs one student straight into this test on the portal. Generate them per batch, then copy or download the list to share.
-          Links stop working when the test's validity ends.
+          Links stop working when the test&apos;s validity ends.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

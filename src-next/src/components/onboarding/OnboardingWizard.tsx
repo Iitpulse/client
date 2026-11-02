@@ -66,7 +66,7 @@ const onboardingSchema = z.object({
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
   gender: z.enum(["male", "female", "other"], {
-    required_error: "Please select gender",
+    error: "Please select gender",
   }),
   address: z.string().min(5, "Address must be at least 5 characters"),
   stream: z.string().min(1, "Please select stream"),
@@ -130,7 +130,7 @@ export function OnboardingWizard({
     const result = onboardingSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         fieldErrors[err.path[0] as string] = err.message;
       });
       setErrors(fieldErrors);

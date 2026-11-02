@@ -477,9 +477,9 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         {/* Hero Section */}
-        <div className="rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6 border">
+        <div className="rounded-xl bg-linear-to-r from-primary/10 via-primary/5 to-background p-6 border">
           <h1 className="text-3xl font-bold">Welcome back, {currentUser?.name || "Student"}!</h1>
-          <p className="text-muted-foreground mt-1">Ready to ace your next test? Check out what's available below.</p>
+          <p className="text-muted-foreground mt-1">Ready to ace your next test? Check out what&apos;s available below.</p>
           {ongoingTests.length > 0 && (
             <div className="mt-4">
               <Button
@@ -496,7 +496,7 @@ export default function DashboardPage() {
 
         {/* Quick Stats */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950 dark:to-green-900/50 border-green-200 dark:border-green-800">
+          <Card className="bg-linear-to-br from-green-50 to-green-100/50 dark:from-green-950 dark:to-green-900/50 border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -509,7 +509,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950 dark:to-blue-900/50 border-blue-200 dark:border-blue-800">
+          <Card className="bg-linear-to-br from-blue-50 to-blue-100/50 dark:from-blue-950 dark:to-blue-900/50 border-blue-200 dark:border-blue-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -522,7 +522,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950 dark:to-purple-900/50 border-purple-200 dark:border-purple-800">
+          <Card className="bg-linear-to-br from-purple-50 to-purple-100/50 dark:from-purple-950 dark:to-purple-900/50 border-purple-200 dark:border-purple-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -535,7 +535,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950 dark:to-amber-900/50 border-amber-200 dark:border-amber-800">
+          <Card className="bg-linear-to-br from-amber-50 to-amber-100/50 dark:from-amber-950 dark:to-amber-900/50 border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -743,13 +743,13 @@ export default function DashboardPage() {
         <Card className="bg-muted/30">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Users className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold">Need Help?</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  If you're having trouble accessing a test or viewing your results, please contact your teacher or institute administrator.
+                  If you&apos;re having trouble accessing a test or viewing your results, please contact your teacher or institute administrator.
                 </p>
               </div>
             </div>
@@ -765,7 +765,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Welcome back, {currentUser?.name || "Admin"}!</h1>
-          <p className="text-muted-foreground">Here's what's happening with your platform today.</p>
+          <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your platform today.</p>
         </div>
         <Link href="/tests/new">
           <Button>
@@ -857,7 +857,7 @@ export default function DashboardPage() {
                 </div>
               ) : ongoingTests.length === 0 ? (
                 <p className="py-4 text-center text-muted-foreground">
-                  Looks like you've finished all your tests!
+                  Looks like you&apos;ve finished all your tests!
                 </p>
               ) : (
                 <div className="space-y-2">

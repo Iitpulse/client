@@ -33,10 +33,10 @@ export function QuestionPreviewDialog({
   const difficultyLower = difficulty?.toLowerCase();
   const difficultyColorClass =
     difficultyLower === "easy"
-      ? "!bg-green-100 !text-green-800 border-green-200"
+      ? "bg-green-100! text-green-800! border-green-200"
       : difficultyLower === "medium"
-      ? "!bg-yellow-100 !text-yellow-800 border-yellow-200"
-      : "!bg-red-100 !text-red-800 border-red-200";
+      ? "bg-yellow-100! text-yellow-800! border-yellow-200"
+      : "bg-red-100! text-red-800! border-red-200";
 
   // Get options for MCQ questions - options can be in en.options or top-level options
   const enContent = question.en as { options?: Array<{ id: string; value: string }> } | undefined;
@@ -105,7 +105,7 @@ export function QuestionPreviewDialog({
                         }`}
                       >
                         <span
-                          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                             isCorrect
                               ? "bg-green-500 text-white"
                               : "bg-muted text-muted-foreground"
@@ -117,7 +117,7 @@ export function QuestionPreviewDialog({
                           <RenderWithLatex quillString={optionValue} />
                         </div>
                         {isCorrect && (
-                          <Badge variant="outline" className="!bg-green-100 !text-green-800 border-green-200">
+                          <Badge variant="outline" className="bg-green-100! text-green-800! border-green-200">
                             Correct
                           </Badge>
                         )}
@@ -166,12 +166,12 @@ export function QuestionPreviewDialog({
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
                   {question.isProofRead ? (
-                    <Badge variant="outline" className="!bg-green-100 !text-green-800 border-green-200">
+                    <Badge variant="outline" className="bg-green-100! text-green-800! border-green-200">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Proofread
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="!bg-orange-100 !text-orange-800 border-orange-200">
+                    <Badge variant="outline" className="bg-orange-100! text-orange-800! border-orange-200">
                       <XCircle className="h-3 w-3 mr-1" />
                       Not Proofread
                     </Badge>

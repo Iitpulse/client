@@ -72,10 +72,6 @@ export default function UITemplatesPage() {
   const [newTemplateDescription, setNewTemplateDescription] = React.useState("");
   const [setAsDefault, setSetAsDefault] = React.useState(false);
 
-  React.useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -96,6 +92,10 @@ export default function UITemplatesPage() {
       setLoading(false);
     }
   };
+
+  React.useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleCreateFromPreset = async () => {
     if (!selectedPreset || !newTemplateName.trim()) return;

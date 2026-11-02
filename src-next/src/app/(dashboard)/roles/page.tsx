@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@/components/ui/data-table";
 import { Plus, Trash2, Users, Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

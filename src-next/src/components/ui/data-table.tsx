@@ -2,17 +2,33 @@
 
 import * as React from "react";
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  RowSelectionState,
-  SortingState,
-  VisibilityState,
+  type ColumnDef as TanstackColumnDef,
+  type ColumnFiltersState,
+  type ColumnVisibilityState,
+  type RowData,
+  type RowSelectionState,
+  type SortingState,
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  filterFn_arrIncludes,
+  filterFn_equals,
+  filterFn_inDateRange,
+  filterFn_inNumberRange,
+  filterFn_includesString,
+  filterFn_weakEquals,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
+  tableFeatures,
+  useTable,
 } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
@@ -35,8 +51,44 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+// TanStack Table v9: features, row models and the filter/sort functions that the
+// "auto" column filterFn/sortFn can resolve to are registered explicitly.
+const dataTableFeatures = tableFeatures({
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+    equals: filterFn_equals,
+    arrIncludes: filterFn_arrIncludes,
+    inDateRange: filterFn_inDateRange,
+    weakEquals: filterFn_weakEquals,
+  },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+    datetime: sortFn_datetime,
+    basic: sortFn_basic,
+  },
+});
+
+export type DataTableFeatures = typeof dataTableFeatures;
+
+/** Column definition for <DataTable>, bound to the features the table registers. */
+export type ColumnDef<TData extends RowData, TValue = unknown> = TanstackColumnDef<
+  DataTableFeatures,
+  TData,
+  TValue
+>;
+
+interface DataTableProps<TData extends RowData> {
+  columns: ColumnDef<TData>[];
   data: TData[];
   searchKey?: string;
   searchPlaceholder?: string;
@@ -48,7 +100,7 @@ interface DataTableProps<TData, TValue> {
   getRowId?: (row: TData) => string;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData>({
   columns,
   data,
   searchKey,
@@ -59,17 +111,17 @@ export function DataTable<TData, TValue>({
   enableSelection = false,
   onSelectionChange,
   getRowId,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<ColumnVisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
   // Create selection column if enabled
-  const selectionColumn: ColumnDef<TData, unknown> = {
+  const selectionColumn: ColumnDef<TData> = {
     id: "select",
     header: ({ table }) => (
       <Checkbox
@@ -103,15 +155,14 @@ export function DataTable<TData, TValue>({
     return columns;
   }, [enableSelection, columns]);
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data,
     columns: allColumns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    // v9 enables Shift-click range selection by default; keep v8 behaviour.
+    enableRowRangeSelection: false,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     getRowId: getRowId ? (row) => getRowId(row) : undefined,
@@ -123,6 +174,7 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
       pagination: {
+        pageIndex: 0,
         pageSize,
       },
     },
@@ -218,14 +270,14 @@ export function DataTable<TData, TValue>({
           <div className="flex items-center space-x-2">
             <p className="text-sm font-medium">Rows per page</p>
             <Select
-              value={`${table.getState().pagination.pageSize}`}
+              value={`${table.state.pagination.pageSize}`}
               onValueChange={(value) => {
                 table.setPageSize(Number(value));
               }}
             >
               <SelectTrigger className="h-8 w-[70px]">
                 <SelectValue
-                  placeholder={table.getState().pagination.pageSize}
+                  placeholder={table.state.pagination.pageSize}
                 />
               </SelectTrigger>
               <SelectContent side="top">
@@ -238,7 +290,7 @@ export function DataTable<TData, TValue>({
             </Select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            Page {table.state.pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}
           </div>
           <div className="flex items-center space-x-2">

@@ -383,7 +383,7 @@ export default function TestPreviewPage() {
                                   key={opt.id}
                                   className="flex items-start gap-3 p-3 border rounded-lg"
                                 >
-                                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
                                     {String.fromCharCode(65 + optIdx)}
                                   </span>
                                   <div className="flex-1">
