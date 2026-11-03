@@ -113,8 +113,8 @@ export function OtpInput({
           onFocus={() => handleFocus(index)}
           disabled={disabled}
           className={cn(
-            "w-12 h-14 text-center text-xl font-semibold rounded-md border border-input bg-background",
-            "focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
+            "w-12 h-14 text-center text-xl font-semibold rounded-[10px] border border-line bg-surface",
+            "outline-none focus-visible:border-brand focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-brand-200",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "transition-all duration-150"
           )}

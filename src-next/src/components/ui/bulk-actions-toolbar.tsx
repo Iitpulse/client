@@ -72,7 +72,7 @@ export function BulkActionsToolbar({
     <>
       <div
         className={cn(
-          "flex items-center gap-2 p-2 bg-muted/50 rounded-lg border animate-in fade-in slide-in-from-top-2",
+          "flex items-center gap-2 p-2 bg-ground/50 rounded-lg border animate-in fade-in slide-in-from-top-2",
           className
         )}
       >

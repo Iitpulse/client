@@ -1,5 +1,12 @@
 import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// @iitpulse/ui adds the type scale text-d1|h1|h2|h3|body (font sizes, not colours), and the primary button
+// paints a gradient (bg-(image:--grad-btn)): a background colour passed in later replaces it.
+const twMerge = extendTailwindMerge({
+  extend: { theme: { text: ["d1", "h1", "h2", "h3", "body"] } },
+  override: { conflictingClassGroups: { "bg-color": ["bg-image"] } },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

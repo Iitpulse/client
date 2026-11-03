@@ -78,7 +78,7 @@ export function SearchableSelect({
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-10 border-0 focus-visible:outline-none"
           />
         </div>
         <div className="max-h-[300px] overflow-y-auto">
@@ -91,8 +91,8 @@ export function SearchableSelect({
               <div
                 key={option.value}
                 className={cn(
-                  "relative flex cursor-pointer select-none items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground",
-                  value === option.value && "bg-accent"
+                  "relative flex cursor-pointer select-none items-center px-3 py-2 text-sm hover:bg-brand-50 hover:text-brand",
+                  value === option.value && "bg-brand-50"
                 )}
                 onClick={() => {
                   onValueChange?.(option.value);
@@ -115,7 +115,7 @@ export function SearchableSelect({
           <>
             <div className="border-t" />
             <div
-              className="flex cursor-pointer select-none items-center px-3 py-2 text-sm text-primary hover:bg-accent hover:text-accent-foreground"
+              className="flex cursor-pointer select-none items-center px-3 py-2 text-sm text-primary hover:bg-brand-50 hover:text-brand"
               onClick={() => {
                 setOpen(false);
                 setSearchQuery("");
@@ -208,7 +208,7 @@ export function SearchableMultiSelect({
                 >
                   {option.label}
                   <span
-                    className="ml-1 ring-offset-background rounded-full outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                    className="ml-1 rounded-full outline-hidden focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-200 focus-visible:outline-solid cursor-pointer"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={(e) => removeOption(option.value, e)}
                   >
@@ -230,7 +230,7 @@ export function SearchableMultiSelect({
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-10 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-10 border-0 focus-visible:outline-none"
           />
         </div>
         <div className="max-h-[300px] overflow-y-auto">
@@ -243,8 +243,8 @@ export function SearchableMultiSelect({
               <div
                 key={option.value}
                 className={cn(
-                  "relative flex cursor-pointer select-none items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground",
-                  value.includes(option.value) && "bg-accent"
+                  "relative flex cursor-pointer select-none items-center px-3 py-2 text-sm hover:bg-brand-50 hover:text-brand",
+                  value.includes(option.value) && "bg-brand-50"
                 )}
                 onClick={() => toggleOption(option.value)}
               >
@@ -263,7 +263,7 @@ export function SearchableMultiSelect({
           <>
             <div className="border-t" />
             <div
-              className="flex cursor-pointer select-none items-center px-3 py-2 text-sm text-primary hover:bg-accent hover:text-accent-foreground"
+              className="flex cursor-pointer select-none items-center px-3 py-2 text-sm text-primary hover:bg-brand-50 hover:text-brand"
               onClick={() => {
                 setOpen(false);
                 setSearchQuery("");
