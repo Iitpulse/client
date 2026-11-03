@@ -1,9 +1,12 @@
 name: CI
 
-# Public repo: this workflow uses no secrets. It checks the active Next.js app in src-next/.
+# Public repo: this workflow uses no repository secrets. It checks the active Next.js app in src-next/.
+# The private @iitpulse/ui package is installed with the job's own GITHUB_TOKEN (packages: read), which works
+# once the package grants this repo Actions access. Pull requests from forks are skipped, so no token ever
+# runs with code from outside the org (and pull_request_target is never used).
 on:
   push:
-    branches: [feature/migration-nextjs-shadcn]
+    branches: [feature/migration-nextjs-shadcn, "m1-*"]
     paths:
       - "src-next/**"
       - ".github/workflows/ci.yml"
@@ -16,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -29,6 +33,7 @@ jobs:
   check:
     name: Typecheck, lint and build
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     timeout-minutes: 20
     env:
       NEXT_TELEMETRY_DISABLED: "1"
@@ -53,6 +58,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-bun-next-${{ hashFiles('src-next/bun.lock') }}-
             ${{ runner.os }}-bun-next-
+
+      # src-next/.npmrc names the registry; the token goes to the runner's user .npmrc, never into the repo.
+      - name: Authenticate to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '//npm.pkg.github.com/:_authToken=%s\n' "$NODE_AUTH_TOKEN" > ~/.npmrc
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
