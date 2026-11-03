@@ -637,10 +637,10 @@ export default function EditPatternPage() {
                   open={section.isExpanded}
                   onOpenChange={() => toggleSectionExpanded(section.id)}
                 >
-                  <div className="rounded-lg border bg-muted/30">
+                  <div className="rounded-lg border bg-ground/30">
                     {/* Section Header */}
                     <CollapsibleTrigger asChild>
-                      <div className="flex cursor-pointer items-center justify-between p-4 hover:bg-muted/50">
+                      <div className="flex cursor-pointer items-center justify-between p-4 hover:bg-ground/50">
                         <div className="flex items-center gap-3">
                           {section.isExpanded ? (
                             <ChevronDown className="h-4 w-4" />
@@ -944,7 +944,7 @@ export default function EditPatternPage() {
                               </div>
 
                               {/* Marking Scheme */}
-                              <div className="flex flex-wrap items-center gap-4 rounded-md bg-muted/50 px-3 py-2">
+                              <div className="flex flex-wrap items-center gap-4 rounded-md bg-ground/50 px-3 py-2">
                                 <span className="text-sm font-medium text-muted-foreground">Marking Scheme:</span>
 
                                 {/* Correct marks */}

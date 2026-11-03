@@ -139,7 +139,7 @@ function TestListItem({
 
   return (
     <div
-      className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+      className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-ground/50"
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
@@ -297,7 +297,7 @@ function ScheduleCalendar({ tests, onTestClick }: { tests: ITest[]; onTestClick?
                       setDialogOpen(false);
                       onTestClick?.(test);
                     }}
-                    className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                    className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-ground/50"
                   >
                     <div className="flex items-center gap-3">
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
@@ -687,7 +687,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <>
-                <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                <div className="mb-4 p-3 bg-ground/50 rounded-lg">
                   <h3 className="text-lg font-semibold">{selectedTestStats.name}</h3>
                   <p className="text-sm text-muted-foreground">{selectedTestStats.totalAppeared} students appeared</p>
                 </div>
@@ -740,7 +740,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Help Section */}
-        <Card className="bg-muted/30">
+        <Card className="bg-ground/30">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -894,7 +894,7 @@ export default function DashboardPage() {
                   {instituteDetails.members.batches.map((batch, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between rounded-lg border bg-muted/30 p-3"
+                      className="flex items-center justify-between rounded-lg border bg-ground/30 p-3"
                     >
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-yellow-600" />

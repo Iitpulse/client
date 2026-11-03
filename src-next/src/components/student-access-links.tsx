@@ -119,7 +119,7 @@ export function StudentAccessLinks({ testId, batches, validTo }: { testId: strin
         ) : (
           <div className="overflow-x-auto rounded-md border">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left">
+              <thead className="bg-ground/50 text-left">
                 <tr>
                   <th className="p-2">Student</th>
                   <th className="p-2">Key</th>

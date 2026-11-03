@@ -6,6 +6,7 @@ import { useAuthStore, usePermissionsStore } from "@/stores";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { Paper } from "@iitpulse/ui";
 
 export default function DashboardLayout({
   children,
@@ -59,18 +60,20 @@ export default function DashboardLayout({
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div data-legacy="" className="flex min-h-screen items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    // Admin surface: the calm paper ground (dot grid, grain .24) with the margin rule on the sidebar's edge.
+    // data-legacy keeps the pages inside on their Tailwind v3 look (app/legacy.css) until they are migrated.
+    <Paper surface="admin" data-legacy="" className="flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
 
       {/* Onboarding wizard for students who haven't completed their profile */}
@@ -79,6 +82,6 @@ export default function DashboardLayout({
         onOpenChange={setShowOnboarding}
         onComplete={() => setShowOnboarding(false)}
       />
-    </div>
+    </Paper>
   );
 }

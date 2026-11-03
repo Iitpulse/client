@@ -204,7 +204,7 @@ export default function TestPreviewPage() {
                   onOpenChange={() => toggleSection(section.id)}
                 >
                   <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardHeader className="cursor-pointer hover:bg-ground/50 transition-colors">
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle className="text-base flex items-center gap-2">
@@ -263,7 +263,7 @@ export default function TestPreviewPage() {
                             {(subSection.questions || []).map((q, qIdx) => (
                               <div
                                 key={q._id}
-                                className="p-3 bg-muted/30 rounded border text-sm"
+                                className="p-3 bg-ground/30 rounded border text-sm"
                               >
                                 <div className="flex items-start gap-2">
                                   <span className="font-medium text-muted-foreground">
@@ -383,7 +383,7 @@ export default function TestPreviewPage() {
                                   key={opt.id}
                                   className="flex items-start gap-3 p-3 border rounded-lg"
                                 >
-                                  <span className="shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                                  <span className="shrink-0 w-6 h-6 rounded-full bg-ground flex items-center justify-center text-xs font-medium">
                                     {String.fromCharCode(65 + optIdx)}
                                   </span>
                                   <div className="flex-1">
@@ -400,7 +400,7 @@ export default function TestPreviewPage() {
                         {/* Input hint for numerical */}
                         {currentQuestion.type === "integer" && (
                           <div className="pt-4">
-                            <div className="p-3 border rounded-lg bg-muted/30">
+                            <div className="p-3 border rounded-lg bg-ground/30">
                               <p className="text-sm text-muted-foreground">
                                 Answer type: Numerical value
                               </p>
@@ -456,7 +456,7 @@ export default function TestPreviewPage() {
                           className={`w-8 h-8 rounded text-xs font-medium transition-colors ${
                             currentQuestionIndex === idx
                               ? "bg-primary text-primary-foreground"
-                              : "bg-muted hover:bg-muted/80"
+                              : "bg-ground hover:bg-ground/80"
                           }`}
                         >
                           {idx + 1}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Paper } from "@iitpulse/ui";
 
 export default function AuthLayout({
   children,
@@ -6,7 +7,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-muted/50">
+    // Admin surface (paper ground); data-legacy keeps the v3 look until Admin-Auth is redesigned (M6).
+    <Paper surface="admin" data-legacy="" className="min-h-screen flex flex-col">
       {/* Header with logo */}
       <header className="flex items-center justify-center py-6 bg-white border-b">
         <Link href="/login">
@@ -18,6 +20,6 @@ export default function AuthLayout({
       <main className="flex-1 flex items-center justify-center p-4">
         {children}
       </main>
-    </div>
+    </Paper>
   );
 }

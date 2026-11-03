@@ -594,7 +594,7 @@ export default function QuestionsPage() {
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium mb-2">Question</h4>
-                  <div className="rounded-md border p-4 bg-muted/30">
+                  <div className="rounded-md border p-4 bg-ground/30">
                     <RenderWithLatex
                       quillString={(selectedQuestion as unknown as { en?: { question?: string } })?.en?.question || ""}
                     />
@@ -611,7 +611,7 @@ export default function QuestionsPage() {
                         return (
                           <div
                             key={option.id}
-                            className={`rounded-md border p-3 ${isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950/30" : "bg-muted/30"}`}
+                            className={`rounded-md border p-3 ${isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950/30" : "bg-ground/30"}`}
                           >
                             <div className="flex items-start gap-2">
                               <span className="font-medium text-sm">
@@ -651,7 +651,7 @@ export default function QuestionsPage() {
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium mb-2">Passage</h4>
-                      <div className="rounded-md border p-4 bg-muted/30">
+                      <div className="rounded-md border p-4 bg-ground/30">
                         <RenderWithLatex
                           quillString={
                             (selectedQuestion as unknown as { paragraph?: { en?: { value: string } } })?.paragraph?.en?.value || ""
@@ -671,7 +671,7 @@ export default function QuestionsPage() {
                           correctAnswers?: string[];
                           correctAnswer?: { from: number; to: number };
                         }> })?.questions || []).map((childQ, idx) => (
-                          <div key={childQ.id || idx} className="rounded-md border p-4 bg-muted/20">
+                          <div key={childQ.id || idx} className="rounded-md border p-4 bg-ground/20">
                             <div className="flex items-start gap-2 mb-3">
                               <span className="font-medium text-sm shrink-0">Q{idx + 1}.</span>
                               <RenderWithLatex quillString={childQ.en?.question || ""} />
@@ -720,7 +720,7 @@ export default function QuestionsPage() {
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium mb-2">Answer Matrix</h4>
-                      <div className="rounded-md border p-4 bg-muted/30 overflow-x-auto">
+                      <div className="rounded-md border p-4 bg-ground/30 overflow-x-auto">
                         {(() => {
                           const matrix = (selectedQuestion as unknown as { correctAnswer?: boolean[][] })?.correctAnswer || [];
                           if (matrix.length === 0) return <p className="text-sm text-muted-foreground">No matrix data</p>;
@@ -745,7 +745,7 @@ export default function QuestionsPage() {
                                     {row.map((cell, colIdx) => (
                                       <td key={colIdx} className="p-2 text-center">
                                         <div className={`w-6 h-6 mx-auto rounded border flex items-center justify-center ${
-                                          cell ? "bg-green-500 border-green-600 text-white" : "bg-muted border-border"
+                                          cell ? "bg-green-500 border-green-600 text-white" : "bg-ground border-border"
                                         }`}>
                                           {cell && <Check className="h-4 w-4" />}
                                         </div>
@@ -766,7 +766,7 @@ export default function QuestionsPage() {
                 {(selectedQuestion as unknown as { en?: { solution?: string } })?.en?.solution && (
                   <div>
                     <h4 className="text-sm font-medium mb-2">Solution</h4>
-                    <div className="rounded-md border p-4 bg-muted/30">
+                    <div className="rounded-md border p-4 bg-ground/30">
                       <RenderWithLatex
                         quillString={(selectedQuestion as unknown as { en?: { solution?: string } })?.en?.solution || ""}
                       />

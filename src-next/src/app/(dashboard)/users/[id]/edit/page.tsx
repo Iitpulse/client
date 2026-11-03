@@ -620,7 +620,7 @@ export default function EditUserPage() {
                 <Input
                   value={userType.charAt(0).toUpperCase() + userType.slice(1)}
                   disabled
-                  className="bg-muted"
+                  className="bg-ground"
                 />
               </div>
 

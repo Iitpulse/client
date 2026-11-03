@@ -482,7 +482,7 @@ export function QuestionSelectionModal({
             <div className="space-y-6 pb-2">
               {/* Chapter and Topic Filters for Auto-Generate */}
               {(chapters.length > 0 || topics.length > 0) && (
-                <div className="p-4 border rounded-lg bg-muted/30">
+                <div className="p-4 border rounded-lg bg-ground/30">
                   <h4 className="font-medium mb-4">Filter Questions Pool</h4>
                   <div className="flex flex-wrap items-center gap-4">
                     {chapters.length > 0 && (
@@ -544,7 +544,7 @@ export function QuestionSelectionModal({
                 </div>
               )}
 
-              <div className="p-4 border rounded-lg bg-muted/30">
+              <div className="p-4 border rounded-lg bg-ground/30">
                 <h4 className="font-medium mb-4">Difficulty Distribution</h4>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -602,7 +602,7 @@ export function QuestionSelectionModal({
                   <h4 className="font-medium">Generated Questions ({selected.length})</h4>
                   <div className="border rounded-md max-h-[400px] overflow-y-auto">
                     <table className="w-full">
-                      <thead className="bg-muted/50 sticky top-0">
+                      <thead className="bg-ground/50 sticky top-0">
                         <tr className="border-b">
                           <th className="text-left p-3 font-medium text-sm">Question</th>
                           <th className="text-left p-3 font-medium text-sm w-24">Difficulty</th>
@@ -622,7 +622,7 @@ export function QuestionSelectionModal({
                               : "bg-red-100! text-red-800! border-red-200";
                           const chapter = q.chapters?.[0]?.name || "-";
                           return (
-                            <tr key={q._id || idx} className="border-b hover:bg-muted/30">
+                            <tr key={q._id || idx} className="border-b hover:bg-ground/30">
                               <td className="p-3">
                                 <div className="max-w-lg">
                                   <RenderWithLatex quillString={questionText} />

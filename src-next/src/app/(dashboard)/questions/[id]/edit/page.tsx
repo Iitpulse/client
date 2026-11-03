@@ -55,7 +55,7 @@ import RenderWithLatex from "@/components/render-with-latex";
 // Dynamic import for ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
-  loading: () => <div className="h-32 animate-pulse rounded-md bg-muted" />,
+  loading: () => <div className="h-32 animate-pulse rounded-md bg-ground" />,
 });
 
 import "react-quill-new/dist/quill.snow.css";
@@ -1269,7 +1269,7 @@ export default function EditQuestionPage() {
           </DialogHeader>
           <div className="space-y-4">
             {questionType === "paragraph" && paragraphText && (
-              <div className="rounded-lg bg-muted p-4">
+              <div className="rounded-lg bg-ground p-4">
                 <h4 className="mb-2 font-semibold">Paragraph:</h4>
                 <RenderWithLatex quillString={paragraphText} />
               </div>

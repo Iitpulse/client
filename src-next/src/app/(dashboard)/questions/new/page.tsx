@@ -1427,7 +1427,7 @@ export default function CreateQuestionPage() {
           <div className="space-y-4">
             {/* Paragraph passage */}
             {questionType === "paragraph" && paragraphEn && (
-              <div className="rounded-lg bg-muted p-4">
+              <div className="rounded-lg bg-ground p-4">
                 <h4 className="font-semibold mb-2">Paragraph:</h4>
                 <RenderWithLatex quillString={paragraphEn} />
               </div>
@@ -1483,7 +1483,7 @@ export default function CreateQuestionPage() {
               <div className="space-y-3">
                 <h4 className="font-semibold">Questions ({childQuestions.length}):</h4>
                 {childQuestions.map((cq, idx) => (
-                  <div key={cq.id} className="rounded-lg border p-4 bg-muted/30">
+                  <div key={cq.id} className="rounded-lg border p-4 bg-ground/30">
                     <div className="flex items-start gap-2 mb-2">
                       <span className="font-medium text-sm">Q{idx + 1}.</span>
                       <RenderWithLatex quillString={cq.en.question || "(empty)"} />
@@ -1541,7 +1541,7 @@ export default function CreateQuestionPage() {
                           {row.map((cell, colIdx) => (
                             <td key={colIdx} className="p-2 text-center">
                               <div className={`w-6 h-6 mx-auto rounded flex items-center justify-center ${
-                                cell ? "bg-green-500 text-white" : "bg-muted"
+                                cell ? "bg-green-500 text-white" : "bg-ground"
                               }`}>
                                 {cell && <Check className="h-4 w-4" />}
                               </div>

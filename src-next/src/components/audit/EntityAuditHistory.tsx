@@ -174,7 +174,7 @@ export function EntityAuditHistory({
           {logs.map((log) => (
             <Collapsible key={log._id}>
               <div
-                className="border rounded-lg p-3 hover:bg-muted/50 cursor-pointer"
+                className="border rounded-lg p-3 hover:bg-ground/50 cursor-pointer"
                 onClick={() => {
                   if (log.changes && log.changes.length > 0) {
                     toggleRowExpanded(log._id);

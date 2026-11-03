@@ -935,7 +935,7 @@ function SectionAccordion({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger asChild>
-        <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50">
+        <div className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-ground/50">
           <div className="flex items-center gap-4">
             <div>
               <h3 className="font-semibold">{section.name}</h3>

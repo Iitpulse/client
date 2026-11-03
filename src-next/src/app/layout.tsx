@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { fontClassName } from "@iitpulse/ui/fonts";
+import { devanagari, mono, sans, serif } from "./fonts";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "IITP Admin Dashboard",
@@ -16,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" className={fontClassName(sans, mono, devanagari, serif)} suppressHydrationWarning>
+      <body>
         {children}
         <Toaster />
       </body>

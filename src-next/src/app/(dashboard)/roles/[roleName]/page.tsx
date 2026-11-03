@@ -697,7 +697,7 @@ export default function EditRolePage() {
                 filteredUsers.slice(0, 20).map((user) => (
                   <div
                     key={user._id || user.id}
-                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-ground/50"
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">

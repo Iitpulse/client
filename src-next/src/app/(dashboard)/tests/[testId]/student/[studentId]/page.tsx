@@ -657,7 +657,7 @@ export default function StudentAnalysisPage() {
             <div className="space-y-4 lg:col-span-2">
               {/* Question Text */}
               {q.questionText && (
-                <div className="rounded-lg bg-muted/50 p-4">
+                <div className="rounded-lg bg-ground/50 p-4">
                   <RenderWithLatex
                     quillString={q.questionText}
                     className="prose prose-sm max-w-none dark:prose-invert"
@@ -674,7 +674,7 @@ export default function StudentAnalysisPage() {
                       const isSelected = q.selectedOptions.includes(option.id);
                       const isCorrect = q.correctAnswers.includes(option.id);
 
-                      let bgClass = "bg-muted/30";
+                      let bgClass = "bg-ground/30";
                       let borderClass = "border-transparent";
                       let icon = null;
 
@@ -825,7 +825,7 @@ export default function StudentAnalysisPage() {
                       return (
                         <div key={option.id} className="flex items-center gap-2">
                           <span className="w-4 text-sm font-medium">{optionLetter}</span>
-                          <div className="relative h-4 flex-1 overflow-hidden rounded bg-muted">
+                          <div className="relative h-4 flex-1 overflow-hidden rounded bg-ground">
                             <div
                               className={`absolute left-0 top-0 h-full transition-all ${
                                 isCorrect
@@ -1013,7 +1013,7 @@ export default function StudentAnalysisPage() {
                       <Collapsible asChild>
                         <>
                           <CollapsibleTrigger asChild>
-                            <TableRow className="cursor-pointer hover:bg-muted/50">
+                            <TableRow className="cursor-pointer hover:bg-ground/50">
                               <TableCell className="font-medium">
                                 <div className="flex items-center gap-2">
                                   <ChevronRight className="h-4 w-4 transition-transform ui-expanded:rotate-90" />
@@ -1039,7 +1039,7 @@ export default function StudentAnalysisPage() {
                           <CollapsibleContent asChild>
                             <>
                               {Object.values(chapter.topics).map((topic) => (
-                                <TableRow key={topic.name} className="bg-muted/30">
+                                <TableRow key={topic.name} className="bg-ground/30">
                                   <TableCell className="pl-10 text-muted-foreground">
                                     {topic.name}
                                   </TableCell>
@@ -1094,7 +1094,7 @@ export default function StudentAnalysisPage() {
                           ? "border-green-500 bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/30"
                           : q.status === "wrong"
                             ? "border-red-500 bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950/30"
-                            : "hover:bg-muted"
+                            : "hover:bg-ground"
                     }`}
                   >
                     {q.questionNumber}

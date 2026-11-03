@@ -72,7 +72,7 @@ export function QuestionPreviewDialog({
             {paragraph && (
               <div className="space-y-2">
                 <h4 className="font-medium text-sm text-muted-foreground">Paragraph</h4>
-                <div className="p-4 bg-muted/30 rounded-lg border">
+                <div className="p-4 bg-ground/30 rounded-lg border">
                   <RenderWithLatex quillString={paragraph.en?.value || ""} />
                 </div>
               </div>
@@ -108,7 +108,7 @@ export function QuestionPreviewDialog({
                           className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                             isCorrect
                               ? "bg-green-500 text-white"
-                              : "bg-muted text-muted-foreground"
+                              : "bg-ground text-muted-foreground"
                           }`}
                         >
                           {String.fromCharCode(65 + index)}

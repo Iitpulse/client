@@ -214,7 +214,7 @@ export function BulkImportDialog({
 
         <div className="flex-1 overflow-hidden flex flex-col gap-4">
           {/* Template download */}
-          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2 p-3 bg-ground/50 rounded-lg">
             <FileSpreadsheet className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm flex-1">
               Need a template? Download one with the correct format.
@@ -380,7 +380,7 @@ export function BulkImportDialog({
           {/* Import result */}
           {importResult && (
             <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-4 p-4 bg-ground/50 rounded-lg">
                 {importResult.failed === 0 ? (
                   <CheckCircle2 className="h-8 w-8 text-green-500" />
                 ) : (

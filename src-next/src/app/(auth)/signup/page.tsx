@@ -252,7 +252,7 @@ export default function SignupPage() {
                 <div
                   className={cn(
                     "h-0.5 flex-1 mx-4 -mt-6",
-                    currentStep > step.id ? "bg-primary" : "bg-muted"
+                    currentStep > step.id ? "bg-primary" : "bg-ground"
                   )}
                 />
               )}

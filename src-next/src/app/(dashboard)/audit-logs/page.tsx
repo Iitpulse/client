@@ -318,7 +318,7 @@ export default function AuditLogsPage() {
                   {logs.map((log) => (
                     <Fragment key={log._id}>
                         <TableRow
-                          className="cursor-pointer hover:bg-muted/50"
+                          className="cursor-pointer hover:bg-ground/50"
                           onClick={() => {
                             if (log.changes && log.changes.length > 0) {
                               toggleRowExpanded(log._id);
@@ -406,7 +406,7 @@ export default function AuditLogsPage() {
                         </TableRow>
                         {log.changes && log.changes.length > 0 && expandedRows.has(log._id) && (
                           <TableRow>
-                            <TableCell colSpan={6} className="bg-muted/30 p-0">
+                            <TableCell colSpan={6} className="bg-ground/30 p-0">
                               <div>
                                 <div className="p-4">
                                   <h4 className="text-sm font-medium mb-3">Changes</h4>
@@ -529,7 +529,7 @@ export default function AuditLogsPage() {
               {selectedLog.metadata && Object.keys(selectedLog.metadata).length > 0 && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Metadata</label>
-                  <pre className="mt-1 p-3 bg-muted rounded-md text-sm overflow-auto">
+                  <pre className="mt-1 p-3 bg-ground rounded-md text-sm overflow-auto">
                     {JSON.stringify(selectedLog.metadata, null, 2)}
                   </pre>
                 </div>

@@ -205,7 +205,7 @@ export default function BatchesPage() {
       header: "Batch Code",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+          <code className="text-xs bg-ground px-2 py-1 rounded font-mono">
             {row.original._id}
           </code>
           <CopyButton text={row.original._id} />

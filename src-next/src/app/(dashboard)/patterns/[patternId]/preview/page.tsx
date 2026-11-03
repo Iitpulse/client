@@ -54,7 +54,7 @@ function SectionCollapsible({
         <CollapsibleTrigger asChild>
           <button
             type="button"
-            className="flex w-full items-center justify-between p-4 hover:bg-muted/50"
+            className="flex w-full items-center justify-between p-4 hover:bg-ground/50"
           >
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="text-sm">

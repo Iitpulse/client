@@ -532,7 +532,7 @@ Solution: Paris is the capital city of France."
                 </Select>
               </div>
 
-              <div className="rounded-lg bg-muted p-4">
+              <div className="rounded-lg bg-ground p-4">
                 <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Tips for Best Results
@@ -592,7 +592,7 @@ Solution: Paris is the capital city of France."
             </div>
 
             {/* Bulk metadata: set subject/chapter on every selected question at once */}
-            <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border p-3 bg-muted/30">
+            <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border p-3 bg-ground/30">
               <div className="space-y-1">
                 <Label className="text-xs">Subject for selected</Label>
                 <Select value={selectedSubject} onValueChange={(v) => { setSelectedSubject(v); setSelectedChapter(""); }}>
@@ -682,7 +682,7 @@ Solution: Paris is the capital city of France."
 
                       <CollapsibleContent>
                         {expandedQuestions.has(q.id) && (
-                          <div className="border-t p-4 bg-muted/30 space-y-3">
+                          <div className="border-t p-4 bg-ground/30 space-y-3">
                             <div>
                               <h4 className="text-sm font-medium mb-1">Question:</h4>
                               <p className="text-sm whitespace-pre-wrap">{q.en.question}</p>

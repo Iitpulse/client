@@ -112,7 +112,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "flex flex-col border-r bg-card transition-all duration-300",
+        "cl-margin-edge flex flex-col bg-card transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
@@ -163,7 +163,7 @@ export function Sidebar() {
                   "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    : "text-muted-foreground hover:bg-ground hover:text-ink",
                   collapsed && "justify-center px-2"
                 )}
                 title={collapsed ? item.title : undefined}
@@ -181,7 +181,7 @@ export function Sidebar() {
         <Link
           href="/profile"
           className={cn(
-            "flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+            "flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-ground hover:text-ink",
             pathname === "/profile" && "bg-primary text-primary-foreground",
             collapsed && "justify-center px-2"
           )}

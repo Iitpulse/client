@@ -207,8 +207,8 @@ export default function SubjectsPage() {
             {subjects.map((subject) => (
               <div
                 key={subject._id}
-                className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted ${
-                  selectedSubject?._id === subject._id ? "bg-muted" : ""
+                className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-ground ${
+                  selectedSubject?._id === subject._id ? "bg-ground" : ""
                 }`}
                 onClick={() => {
                   setSelectedSubject(subject);
@@ -261,8 +261,8 @@ export default function SubjectsPage() {
             {selectedSubject?.chapters?.map((chapter) => (
               <div
                 key={chapter._id}
-                className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted ${
-                  selectedChapter?._id === chapter._id ? "bg-muted" : ""
+                className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-ground ${
+                  selectedChapter?._id === chapter._id ? "bg-ground" : ""
                 }`}
                 onClick={() => setSelectedChapter(chapter)}
               >
