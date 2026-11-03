@@ -28,7 +28,6 @@ import {
   type DoodleName,
   type StyleVars,
 } from "@iitpulse/ui";
-import logo from "@iitpulse/ui/assets/iitpulse-logo.png";
 
 const v = (o: StyleVars) => o;
 
@@ -159,7 +158,7 @@ export function MainBoard() {
       <header className="row between rise" style={{ alignItems: "flex-end" }}>
         <div className="col" style={{ gap: 14 }}>
           {/* The full logo, as the board shows it (LogoMark is the nav-size crop). */}
-          <img src={typeof logo === "string" ? logo : logo.src} alt="IIT-PULSE logo" style={{ height: 56, width: "auto", alignSelf: "flex-start" }} />
+          <img src="/iitpulse-logo.png" alt="IIT-PULSE logo" style={{ height: 56, width: "auto", alignSelf: "flex-start" }} />
           <h1 className="d1">
             <InkUnderline delay={350}>One system</InkUnderline> for students and staff
           </h1>
