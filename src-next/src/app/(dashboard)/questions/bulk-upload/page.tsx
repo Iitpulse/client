@@ -164,36 +164,28 @@ export default function BulkUploadPage() {
       let response;
 
       if (uploadMode === "file" && file) {
-        // Use sync parsing for smaller files, async for larger ones
-        const fileSizeMB = file.size / (1024 * 1024);
+        // Always parse files as a background job and poll: a synchronous parse of a long or scanned file can run
+        // past Cloudflare's 100 s proxy limit. The job survives a service restart (ai_jobs).
+        setParsingProgress(20);
+        const jobResponse = await api.aiParsing.parseFile(file);
+        const jobId = jobResponse.data.data.jobId;
+        const deadline = Date.now() + 15 * 60 * 1000;
 
-        if (fileSizeMB < 5) {
-          // Sync parsing for files under 5MB
-          setParsingProgress(30);
-          response = await api.aiParsing.parseFileSync(file);
-          setParsingProgress(100);
-        } else {
-          // Async parsing for larger files
-          const jobResponse = await api.aiParsing.parseFile(file);
-          const jobId = jobResponse.data.data.jobId;
+        while (!response) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          if (Date.now() > deadline) throw new Error("Parsing is taking too long. Try a smaller file.");
+          const statusResponse = await api.aiParsing.getJobStatus(jobId);
+          const status = statusResponse.data.data;
 
-          // Poll for completion
-          let completed = false;
-          while (!completed) {
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            const statusResponse = await api.aiParsing.getJobStatus(jobId);
-            const status = statusResponse.data.data;
+          setParsingProgress(Math.max(20, Math.min(status.progress || 50, 95)));
 
-            setParsingProgress(Math.min(status.progress || 50, 95));
-
-            if (status.status === "completed") {
-              completed = true;
-              response = { data: { success: true, data: status } };
-            } else if (status.status === "failed") {
-              throw new Error(status.errors.join(", ") || "Parsing failed");
-            }
+          if (status.status === "completed") {
+            response = { data: { success: true, data: status } };
+          } else if (status.status === "failed") {
+            throw new Error(status.errors?.join(", ") || "Parsing failed");
           }
         }
+        setParsingProgress(100);
       } else {
         // Parse text content
         setParsingProgress(30);
