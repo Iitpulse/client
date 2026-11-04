@@ -1,4 +1,5 @@
 "use client";
+/* The pre-M5 dashboard, kept only for student accounts signed in to the admin app (students use the test portal). */
 
 import { useEffect, useState, useMemo } from "react";
 import { useAuthStore } from "@/stores";
