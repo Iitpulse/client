@@ -1,0 +1,17 @@
+/* Admin-Results / Admin-Analysis board pieces: rank tiles, the score histogram, the accuracy grid, option bars. */
+.rs-rk { width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font: 700 12px var(--mono); background: var(--ground) }
+.rs-rk.g { background: linear-gradient(135deg, #FFE7A3 0%, #F5C542 100%); color: #5A4300 }
+.rs-rk.s { background: linear-gradient(135deg, #F1F2F6 0%, #D9DCE6 100%); color: #3A3F55 }
+.rs-rk.b { background: linear-gradient(135deg, #F8E3D2 0%, #E6B38E 100%); color: #5A3214 }
+.rs-hist { display: flex; align-items: flex-end; gap: 6px; height: 120px }
+.rs-hist span { flex: 1; border-radius: 4px 4px 0 0; background: var(--navy-200); transform-origin: bottom; animation: rs-hg 800ms var(--ease) both; transition: background 160ms }
+.rs-hist span:hover { background: var(--navy) }
+@keyframes rs-hg { from { transform: scaleY(0) } }
+.rs-avg { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--navy); pointer-events: none }
+.rs-avg b { position: absolute; top: 0; left: 6px; font: 500 12px var(--mono); color: var(--navy); white-space: nowrap }
+.rs-qc { aspect-ratio: 1; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font: 600 11px var(--mono); color: var(--ink); border: 0; cursor: pointer; transition: transform 120ms }
+.rs-qc:hover { transform: scale(1.1) }
+.rs-qc.low { outline: 1.5px solid var(--red-600); outline-offset: -1.5px }
+.rs-qc.on { outline: 2px solid var(--navy); outline-offset: 1px }
+.rs-ob { height: 26px; flex: none; border-radius: 6px; transform-origin: left; animation: iitp-grow 800ms var(--ease) both }
+@media (prefers-reduced-motion: reduce) { .rs-hist span, .rs-ob { animation: none } }
