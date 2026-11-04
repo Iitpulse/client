@@ -1,0 +1,14 @@
+/* Admin-BulkUpload board: step indicator, drop zone, file tile. Plain CSS so it carries no shadows or new tokens. */
+.bu-st { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted) }
+.bu-st i { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 11px; border: 1px solid #D3D6E2 }
+.bu-st.done i { background: var(--green); border-color: var(--green); color: #fff }
+.bu-st.on { color: var(--ink) }
+.bu-st.on i { background: var(--navy); border-color: var(--navy); color: #fff }
+.bu-drop { border: 1.5px dashed var(--navy-200); border-radius: 14px; background: var(--grad-tint); transition: border-color 200ms, background 200ms; min-height: 180px }
+.bu-drop:hover, .bu-drop.over { border-color: var(--navy) }
+.bu-drop.has-file { border-style: solid; border-color: var(--line); background: var(--surface); min-height: 0 }
+.bu-drop.has-file:hover { border-color: var(--navy-200) }
+.bu-drop:focus-within { outline: 3px solid var(--navy-200); outline-offset: 2px }
+.bu-file { width: 40px; height: 48px; flex: none; border-radius: 6px; background: var(--sky); color: #fff; display: inline-flex; align-items: center; justify-content: center; font: 700 11px var(--font) }
+.bu-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.bu-clamp img { display: none }
