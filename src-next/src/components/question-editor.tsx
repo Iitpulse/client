@@ -705,13 +705,13 @@ export function QuestionEditor({
                             className="font-mono text-[13px]"
                           />
                           {/\$|\\\(|\\\[|<img/.test(lang === "en" ? o.en : o.hi) && (
-                            <MathText html as="div" className="rounded-md bg-ground px-2 py-1 font-serif text-[15px] [&_img]:max-w-full [&_p]:m-0" text={lang === "en" ? o.en : o.hi} />
+                            <MathText html as="div" className={`rounded-md px-2 py-1 ${o.correct ? "bg-surface" : "bg-ground"} font-serif text-[15px] [&_img]:max-w-full [&_p]:m-0`} text={lang === "en" ? o.en : o.hi} />
                           )}
                         </div>
                         {o.correct && <span className="badge b-green mt-1.5">Correct</span>}
                         <button
                           type="button"
-                          className="btn btn-ghost btn-sm btn-icon danger-hover w-8 shrink-0"
+                          className="btn btn-ghost btn-sm btn-icon danger-hover mt-0.5 w-8 shrink-0"
                           aria-label={`Remove option ${KEY(i)}`}
                           disabled={form.options.length <= 2}
                           onClick={() => set("options", form.options.filter((x) => x.id !== o.id))}
