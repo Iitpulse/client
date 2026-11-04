@@ -326,7 +326,7 @@ export default function TestsPage() {
                         {label}
                       </span>
                     </td>
-                    <td className="sm">{t.batches?.map((b) => b.name).join(", ") || <span className="muted">—</span>}</td>
+                    <td className="sm max-w-[200px] [overflow-wrap:anywhere]">{t.batches?.map((b) => b.name).join(", ") || <span className="muted">—</span>}</td>
                     <td className="sm whitespace-nowrap">{windowLabel(t, now)}</td>
                     <td>
                       {submitted === undefined ? (
