@@ -287,7 +287,9 @@ function AdminDashboard({
                           </div>
                         </>
                       ) : (
-                        <span className="xs muted">{submitted !== undefined ? `${fmt(submitted)} submitted` : "Loading attempts…"}</span>
+                        <span className="xs muted">
+                          {submitted !== undefined ? `${fmt(submitted)} submitted` : results[resultIds.indexOf(t._id)]?.isError ? "Attempts unavailable" : "Loading attempts…"}
+                        </span>
                       )}
                     </div>
                     <Link href={`/tests/${t._id}/result`} className="btn btn-secondary btn-sm">

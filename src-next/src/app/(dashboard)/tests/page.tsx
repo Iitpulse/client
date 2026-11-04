@@ -175,6 +175,7 @@ export default function TestsPage() {
     })),
   });
   const submittedOf = (id: string) => attempts[attemptIds.indexOf(id)]?.data?.submissions.length;
+  const attemptsFailed = (id: string) => !!attempts[attemptIds.indexOf(id)]?.isError;
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["tests"] });
 
@@ -329,7 +330,9 @@ export default function TestsPage() {
                     <td className="sm whitespace-nowrap">{windowLabel(t, now)}</td>
                     <td>
                       {submitted === undefined ? (
-                        <span className="sm muted">{state === "live" || state === "ended" ? <span className="skel inline-block h-4 w-14" /> : "—"}</span>
+                        <span className="sm muted">
+                          {(state === "live" || state === "ended") && !attemptsFailed(t._id) ? <span className="skel inline-block h-4 w-14" /> : "—"}
+                        </span>
                       ) : state === "live" && assigned && submitted <= assigned ? (
                         <div className="col gap-1">
                           <span className="xs num">
