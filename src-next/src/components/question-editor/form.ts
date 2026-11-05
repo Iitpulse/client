@@ -132,7 +132,8 @@ export function emptyForm(type: QuestionType = "single"): Form {
     from: "",
     to: "",
     passage: { en: "", hi: "" },
-    children: [],
+    // a new passage starts with one question to fill
+    children: type === "paragraph" ? [blankChild("single")] : [],
     listI: rows(4, KEY),
     listII: rows(4, COL),
     matches: {},

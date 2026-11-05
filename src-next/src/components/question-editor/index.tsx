@@ -179,8 +179,9 @@ export function QuestionEditor({
   const subjects = React.useMemo(() => subjectsQ.data ?? [], [subjectsQ.data]);
 
   const initialType = typeFromParam(typeParam);
-  const [form, setForm] = React.useState<Form>(() => emptyForm(initialType));
-  const [saved, setSaved] = React.useState<Form>(() => emptyForm(initialType));
+  const [initial] = React.useState<Form>(() => emptyForm(initialType));
+  const [form, setForm] = React.useState<Form>(initial);
+  const [saved, setSaved] = React.useState<Form>(initial);
   const [loaded, setLoaded] = React.useState<BankQuestion | null>(null);
   const [loading, setLoading] = React.useState(mode === "edit" || !!fromId);
   const [notFound, setNotFound] = React.useState(false);
@@ -320,7 +321,7 @@ export function QuestionEditor({
         setSaved(f);
         setSavedAt(new Date().toISOString());
         setJustSaved(true);
-        notify.success("Question saved");
+        notify.success("Question saved", { action: { label: "Add another", href: `/questions/new?type=${f.type}` } });
         refreshUsage();
       } else {
         const r = await m6Questions.post(`/${kind}/new`, body, source("Question editor"));
