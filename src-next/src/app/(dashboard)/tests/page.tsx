@@ -30,8 +30,13 @@ import {
   useBatches,
   windowLabel,
 } from "@/lib/queries";
+import { useLiveTests } from "@/lib/queries-tests-admin";
 
-/* Admin-Tests board. "Calendar view" and "Monitor" are not drawn: neither page exists yet. */
+/*
+  Admin-Tests board. "Calendar view" and "Monitor" are not drawn: neither page exists yet.
+  Attempts of live tests ("146 / 212" = started / assigned) come from GET /tests/admin/live (polled every 30 s);
+  ended tests show submissions / assigned from the result read.
+*/
 
 const PAGE = 15;
 const TABS: { key: "all" | TestState; label: string }[] = [
@@ -117,6 +122,8 @@ export default function TestsPage() {
   const isStudent = useAuthStore((s) => s.currentUser?.userType === "student");
   const tests = useAllTests();
   const batches = useBatches();
+  const live = useLiveTests(!isStudent);
+  const liveById = useMemo(() => new Map((live.data?.tests ?? []).map((t) => [t.testId, t])), [live.data]);
   const exams = useQuery({
     queryKey: ["exams"],
     staleTime: 5 * 60_000,
@@ -161,8 +168,9 @@ export default function TestsPage() {
   const rows = tab === "all" ? filtered : filtered.filter((r) => r.state === tab);
   const pageRows = rows.slice(page * PAGE, page * PAGE + PAGE);
 
-  // Attempts: submissions per live/ended row on this page (one read per test, cached).
-  const attemptIds = pageRows.filter((r) => r.state === "live" || r.state === "ended").map((r) => r.t._id);
+  // Attempts: submissions per ended row on this page (one read per test, cached); live rows use /tests/admin/live,
+  // falling back to the result read when that route is unavailable.
+  const attemptIds = pageRows.filter((r) => r.state === "ended" || (r.state === "live" && !liveById.has(r.t._id) && !live.isLoading)).map((r) => r.t._id);
   const attempts = useQueries({
     queries: attemptIds.map((id) => ({
       queryKey: ["test-result", id],
@@ -305,8 +313,9 @@ export default function TestsPage() {
                   state === "draft" && needed && filled < needed
                     ? [`${filled} of ${needed} Qs`, "draft"]
                     : [`${needed || filled} Qs`, t.totalMarks ? `${t.totalMarks} marks` : null, t.pattern?.name ?? null];
-                const assigned = assignedStudents(t, batches.data);
-                const submitted = submittedOf(t._id);
+                const lv = state === "live" ? liveById.get(t._id) : undefined;
+                const assigned = lv ? lv.assigned : assignedStudents(t, batches.data);
+                const submitted = lv ? lv.started : submittedOf(t._id);
                 const [cls, label] = BADGE[state];
                 const published = t.result?.isPublished || t.result?.publishProps?.isPublished;
                 const instant = t.result?.publishProps?.type === "immediately" || t.result?.publishProps?.type === "atTheEndOfTest";
@@ -329,13 +338,17 @@ export default function TestsPage() {
                     <td className="sm max-w-[200px] [overflow-wrap:anywhere]">{t.batches?.map((b) => b.name).join(", ") || <span className="muted">—</span>}</td>
                     <td className="sm whitespace-nowrap">{windowLabel(t, now)}</td>
                     <td>
-                      {submitted === undefined ? (
+                      {lv && assigned === null ? (
+                        <span className="sm num" title={`${lv.submitted} submitted, ${lv.writing} writing`}>
+                          {submitted}
+                        </span>
+                      ) : submitted === undefined ? (
                         <span className="sm muted">
                           {(state === "live" || state === "ended") && !attemptsFailed(t._id) ? <span className="skel inline-block h-4 w-14" /> : "—"}
                         </span>
                       ) : state === "live" && assigned && submitted <= assigned ? (
                         <div className="col gap-1">
-                          <span className="xs num">
+                          <span className="xs num" title={lv ? `${lv.submitted} submitted, ${lv.writing} writing now` : undefined}>
                             {submitted} / {assigned}
                           </span>
                           <div className="bar h-[5px] w-[100px]">

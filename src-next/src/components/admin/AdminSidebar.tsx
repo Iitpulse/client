@@ -8,6 +8,7 @@ import { LogoMark } from "@iitpulse/ui";
 import { useAuthStore, usePermissionsStore } from "@/stores";
 import { getInitials } from "@/lib/utils";
 import { useQuestionBankTotals } from "@/lib/queries";
+import { useBankCounts, useLiveTests } from "@/lib/queries-tests-admin";
 import { CommandPalette } from "./CommandPalette";
 import { NAV, isActive, visibleItem, type Access } from "./nav";
 
@@ -25,7 +26,10 @@ function compact(n: number): string {
   return `${(n / 1000).toFixed(n < 10_000 ? 1 : 0).replace(/\.0$/, "")}k`;
 }
 
-/** AdminSidebar board: logo, ⌘K search, grouped nav, the signed-in user at the foot. */
+/**
+ * AdminSidebar board: logo, ⌘K "Search", grouped nav (Question bank total, Tests live count), the signed-in user at
+ * the foot. The "AI this month" meter is the board's `aiMeterM9` tweak (off): M9, not drawn.
+ */
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -33,7 +37,13 @@ export function AdminSidebar() {
   const { currentUser, userDetails, logout } = useAuthStore();
   const { hasAccess, isLoading } = usePermissionsStore();
   const access = hasAccess as Record<Access, boolean>;
-  const bank = useQuestionBankTotals(!isLoading && access.question);
+  const isStaff = !!currentUser && currentUser.userType !== "student";
+  const bankM5 = useBankCounts(!isLoading && access.question && isStaff);
+  // Before the M5 search route (or for an engine still on Mongo): the per-type totals.
+  const bankOld = useQuestionBankTotals(!isLoading && access.question && (!isStaff || bankM5.isError));
+  const bankTotal = bankM5.data?.total ?? bankOld.data?.total;
+  const live = useLiveTests(!isLoading && access.test && isStaff);
+  const liveCount = live.data?.tests.length ?? 0;
 
   const name = userDetails?.name || currentUser?.name || currentUser?.email || "";
   const role = ROLE_LABEL[currentUser?.userType ?? ""] ?? currentUser?.userType ?? "";
@@ -72,9 +82,15 @@ export function AdminSidebar() {
                         <Link href={item.href} className={`nav-item ${on ? "on" : ""}`} aria-current={on ? "page" : undefined}>
                           <item.icon className="size-[18px] shrink-0" strokeWidth={1.8} aria-hidden />
                           {item.label}
-                          {item.key === "questions" && bank.data && (
-                            <span className="xs mono ml-auto text-muted" title={`${bank.data.total.toLocaleString("en-IN")} questions`}>
-                              {compact(bank.data.total)}
+                          {item.key === "questions" && bankTotal !== undefined && (
+                            <span className="xs mono ml-auto text-muted" title={`${bankTotal.toLocaleString("en-IN")} questions`}>
+                              {compact(bankTotal)}
+                            </span>
+                          )}
+                          {item.key === "tests" && liveCount > 0 && (
+                            <span className="badge b-live ml-auto h-5 px-[7px]" title={`${liveCount} live now`} aria-label={`${liveCount} live now`}>
+                              <span className="live-dot size-1.5" />
+                              {liveCount}
                             </span>
                           )}
                         </Link>
