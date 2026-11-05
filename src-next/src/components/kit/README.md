@@ -87,5 +87,9 @@ Changing a filter resets `page`; under 1180px the bar folds into "Filters · N" 
 `NoAccess` (`what`, `role`), `NotFoundState`, `OfflineBanner`, `StateBox` (inside cards/tables). Also `CopyCode`,
 `Truncate` (tooltip only when cut), `RowMenu`, `apiError(e)` → `{status, code, message, details}`, `supportCode`.
 
-Not in the kit: the LaTeX/KaTeX field (K12, question editor) and the ⌘K palette (K15, `components/admin/CommandPalette`).
+LaTeX field (K12, Kit-Math): `MathField` in `math-field.tsx`, imported directly (`@/components/kit/math-field`, not
+through this index: it brings KaTeX). Source with tinted $…$, live preview, toolbar + Greek/chemistry palettes, image
+tokens with alt text/size, "needs LaTeX" flag with Convert with AI / Type it; `variant="inline"` for options and list
+rows. Conversions and checks (`latexIssues`, `replaceImageWithLatex`, …) in `lib/latex-source.ts`.
+Not in the kit: the ⌘K palette (K15, `components/admin/CommandPalette`).
 Phone bottom sheets: drawers and dialogs become sheets under 640px; the admin app itself is 1024px+.

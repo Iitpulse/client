@@ -1,0 +1,102 @@
+/*
+  Kit-Math K12: the LaTeX field (source above, live KaTeX preview below). Prefix k-mf. Colours from @iitpulse/ui
+  tokens; the only box-shadow is the boards' 4px focus/error ring, never a drop shadow.
+*/
+@layer components {
+  .k-mf { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; transition: border-color var(--t), box-shadow var(--t) }
+  .k-mf.f { border-color: var(--navy); box-shadow: 0 0 0 4px var(--navy-100) }
+  .k-mf.e { border-color: var(--red-600); box-shadow: 0 0 0 4px var(--red-50) }
+  .k-mf.flagged:not(.f):not(.e) { border-color: #E3B25C }
+  .k-mf.off { background: var(--ground) }
+
+  .k-mf-tb { display: flex; align-items: center; gap: 2px; padding: 4px 6px; border-bottom: 1px solid var(--line-2); background: #FAFBFD; flex-wrap: wrap }
+  .k-mf-tool { min-width: 30px; height: 30px; padding: 0 6px; border: 0; background: none; border-radius: 6px; color: var(--muted); cursor: pointer; font: 600 13px var(--mono); display: inline-flex; align-items: center; justify-content: center; gap: 4px }
+  .k-mf-tool:hover, .k-mf-tool[data-state="open"] { background: var(--line-2); color: var(--ink) }
+  .k-mf-tool:focus-visible { outline: 2px solid var(--navy-200); outline-offset: 1px }
+  .k-mf-tool.m { font-family: var(--serif); font-size: 15px; font-weight: 400 }
+  .k-mf-tool.w { font: 600 12px var(--font) }
+  .k-mf-tsep { width: 1px; height: 18px; background: var(--line); margin: 0 4px }
+
+  /* source: a transparent textarea over a highlighted mirror (same font, padding and wrapping) */
+  .k-mf-edit { position: relative }
+  .k-mf-src, .k-mf-ta {
+    font-family: var(--mono); font-size: 13px; line-height: 1.7; padding: 12px 14px; margin: 0; color: var(--ink);
+    white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; tab-size: 4; letter-spacing: 0; box-sizing: border-box;
+  }
+  .k-mf-src.hi, .k-mf-ta.hi { font-family: var(--font-iitp-devanagari, "Noto Sans Devanagari"), var(--mono) }
+  .k-mf-src { min-height: var(--k-mf-min, 96px); pointer-events: none }
+  .k-mf-ta {
+    position: absolute; inset: 0; width: 100%; height: 100%; resize: none; border: 0; outline: 0; background: transparent;
+    color: transparent; caret-color: var(--ink); overflow: hidden;
+  }
+  .k-mf-ta::selection { background: rgb(0 0 126 / .18); color: transparent }
+  .k-mf-ta:disabled { cursor: not-allowed }
+  .k-mf-src .tx { background: var(--navy-50); color: var(--navy); border-radius: 4px }
+  .k-mf-src .bad { background: var(--red-50); color: var(--red-600); border-radius: 4px; text-decoration: underline wavy var(--red-600); text-underline-offset: 3px }
+  .k-mf-src .tg { color: #8A8FA8 }
+  .k-mf-src .ti { background: var(--navy-100); color: var(--navy); border-radius: 4px; font-weight: 600 }
+  .k-mf-src .tq { background: var(--amber-50); color: var(--amber); border-radius: 4px; font-weight: 600; outline: 1.5px dashed #E3B25C; outline-offset: -1px }
+  .k-mf-src .ph { color: #6B7089 }
+
+  .k-mf-pv { border-top: 1px dashed var(--line); background: #FAFBFD; padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 4px }
+  .k-mf-pv-l { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+  .k-mf-pv-l span { font-weight: 500; letter-spacing: 0; text-transform: none }
+  .k-mf-body { font-family: var(--serif); font-size: 16px; line-height: 1.6; color: var(--ink); overflow-x: auto }
+  .k-mf-body.hi { font-family: var(--font-iitp-devanagari, "Noto Sans Devanagari"), var(--serif) }
+  .k-mf-body p { margin: 0 }
+  .k-mf-body img { max-width: 100%; height: auto; vertical-align: middle }
+  .k-mf-body img[data-size="small"] { max-width: 160px }
+  .k-mf-body img[data-size="medium"] { max-width: 320px }
+  .k-mf-body img[data-needs-latex="true"] { border: 1.5px dashed #E3B25C; border-radius: 6px; padding: 2px; max-height: 64px }
+  .k-mf-body table { border-collapse: collapse; font-size: 14px }
+  .k-mf-body td, .k-mf-body th { border: 1px solid var(--line); padding: 4px 8px }
+
+  .k-mf-err { display: flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 600; color: var(--red-600) }
+  .k-mf-err svg { flex: none }
+
+  /* images under the source */
+  .k-mf-imgs { display: flex; flex-direction: column; border-top: 1px solid var(--line-2) }
+  .k-mf-img { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; padding: 12px 14px }
+  .k-mf-img + .k-mf-img { border-top: 1px solid var(--line-2) }
+  .k-mf-fig { margin: 0; width: 170px; flex: none; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 8px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-height: 64px }
+  .k-mf-fig img { max-width: 152px; max-height: 96px; object-fit: contain }
+  .k-mf-flagrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px dashed #F1D29A; background: #FFFBF3 }
+  .k-mf-eq { display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1.5px dashed #E3B25C; border-radius: 8px; background: var(--surface) }
+  .k-mf-eq img { max-height: 28px; max-width: 160px; object-fit: contain }
+  .k-flag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 999px; background: var(--amber-50); color: var(--amber); font-size: 12px; font-weight: 600; white-space: nowrap }
+  .k-mf-file { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin: 10px 14px }
+  .k-mf-file.bad { border-color: #F2B1B1; background: #FFF5F5 }
+  .k-mf-file .ico { width: 34px; height: 34px; border-radius: 6px; background: var(--navy-50); color: var(--navy); display: flex; align-items: center; justify-content: center; flex: none }
+  .k-mf-file.bad .ico { background: var(--red-50); color: var(--red-600) }
+  .k-mf-file .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px }
+  .k-mf-drop { outline: 2px dashed var(--navy-200); outline-offset: -4px }
+
+  /* inline variant (option rows, list rows): no box of its own, the render beside */
+  .k-mf-inline { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 }
+  .k-mf-inline .k-mf-line { display: flex; align-items: center; gap: 10px; min-width: 0 }
+  .k-mf-inline .k-mf-edit { flex: 1; min-width: 0 }
+  .k-mf-inline .k-mf-src, .k-mf-inline .k-mf-ta { padding: 2px 0; font-size: 12.5px; line-height: 1.6; min-height: 0 }
+  .k-mf-inline.boxed .k-mf-edit { border: 1px solid var(--line); border-radius: 8px; background: var(--surface) }
+  .k-mf-inline.boxed .k-mf-src, .k-mf-inline.boxed .k-mf-ta { padding: 6px 10px }
+  .k-mf-inline.boxed.f .k-mf-edit { border-color: var(--navy); box-shadow: 0 0 0 4px var(--navy-100) }
+  .k-mf-inline.e .k-mf-edit { box-shadow: inset 0 -2px 0 var(--red-600) }
+  .k-mf-inline.boxed.e .k-mf-edit { border-color: var(--red-600); box-shadow: 0 0 0 4px var(--red-50) }
+  .k-mf-rend { padding: 2px 8px; border-radius: 6px; background: var(--ground); font-family: var(--serif); font-size: 15px; line-height: 1.5; color: var(--ink); max-width: 50%; overflow-x: auto; flex: none }
+  .k-mf-rend.hi { font-family: var(--font-iitp-devanagari, "Noto Sans Devanagari"), var(--serif) }
+  .k-mf-rend p { margin: 0 }
+  .k-mf-rend img { max-height: 40px; vertical-align: middle }
+  .k-mf-inline .k-mf-imgs { border-top: 0 }
+  .k-mf-inline .k-mf-img { padding: 0 }
+
+  /* palettes (Greek, chemistry) and help */
+  .k-mf-pal { display: flex; flex-direction: column; gap: 4px; width: 260px }
+  .k-mf-pal input { height: 32px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; font: inherit; font-size: 13px; outline: 0 }
+  .k-mf-pal input:focus { border-color: var(--navy); box-shadow: 0 0 0 4px var(--navy-100) }
+  .k-mf-pal ul { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px }
+  .k-mf-pal li button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 32px; padding: 0 8px; border: 0; background: none; border-radius: 8px; font: inherit; font-size: 13px; color: var(--ink-2); text-align: left; cursor: pointer }
+  .k-mf-pal li button:hover, .k-mf-pal li button:focus-visible, .k-mf-pal li button.focus { background: var(--navy-50); color: var(--ink); outline: 0 }
+  .k-mf-pal .sym { width: 28px; font-family: var(--serif); font-size: 16px; text-align: center; flex: none }
+  .k-mf-pal .tex { margin-left: auto; font: 12px var(--mono); color: var(--muted) }
+  .k-mf-help { width: 300px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink-2) }
+  .k-mf-help code { font: 12px var(--mono); background: var(--navy-50); color: var(--navy); border-radius: 4px; padding: 0 3px }
+}

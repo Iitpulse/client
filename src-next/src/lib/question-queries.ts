@@ -38,6 +38,19 @@ export interface BankQuestion {
   correctAnswer?: { from?: number | null; to?: number | null } | boolean[][];
   paragraph?: string | { en?: { value?: string }; hi?: { value?: string } };
   questions?: BankChild[];
+  /** M6: paragraph passage with its own Hindi (reads return it next to the old `paragraph` string) */
+  passage?: { en?: string; hi?: string | null };
+  /** M6: matrix List I / List II and the matches (row id → column ids) */
+  matrix?: {
+    listI: Array<{ id: string; en: string; hi: string | null }>;
+    listII: Array<{ id: string; en: string; hi: string | null }>;
+    matches: Record<string, string[]>;
+  };
+  /** M6: images marked data-needs-latex in the whole question */
+  needsLatex?: number;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
+  deletedBy?: { id?: string; name?: string; userType?: string } | null;
   /** Added by the client: which collection the question came from. */
   _kind: QuestionKind;
 }
@@ -138,7 +151,8 @@ export function stripHtml(html: string | undefined): string {
     .trim();
 }
 
-export function paragraphHtml(q: Pick<BankQuestion, "paragraph">): string {
+export function paragraphHtml(q: Pick<BankQuestion, "paragraph" | "passage">): string {
+  if (q.passage?.en) return q.passage.en;
   const p = q.paragraph;
   if (!p) return "";
   return typeof p === "string" ? p : p.en?.value || "";

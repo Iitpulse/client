@@ -1,0 +1,62 @@
+/* Question editor (board Admin-QuestionEditor): pieces the kit does not have. Prefix qe-. Tokens from @iitpulse/ui. */
+@layer components {
+  .qe-hm { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 999px; background: var(--amber-50); color: var(--amber); font-size: 11px; font-weight: 600; white-space: nowrap }
+  .qe-hmc { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--amber-50); color: var(--amber); font: 600 11px var(--font); margin-left: 6px }
+  .qe-err { display: flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 600; color: var(--red-600) }
+  .qe-err svg { flex: none }
+
+  .qe-opt { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); transition: border-color var(--t), background var(--t) }
+  .qe-opt.correct { border-color: #9FD3B5; background: var(--green-50) }
+  .qe-opt.correct .k-mf-rend { background: var(--surface) }
+  .qe-opt.oerr { border-color: var(--red-600) }
+  .qe-opt.sm { padding: 6px 8px 6px 12px }
+  .qe-opt .key { flex: none }
+  .qe-radio { width: 18px; height: 18px; margin: 0; accent-color: var(--green); flex: none; cursor: pointer }
+  .qe-ib { width: 30px; height: 30px; border: 0; background: none; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; flex: none }
+  .qe-ib:hover:not(:disabled) { background: var(--line-2); color: var(--ink) }
+  .qe-ib:disabled { opacity: .35; cursor: not-allowed }
+  .qe-ib.grab { cursor: grab }
+  .qe-ib:focus-visible { outline: 2px solid var(--navy-200); outline-offset: 1px }
+
+  .qe-kid { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: flex; flex-direction: column }
+  .qe-kid.open { border-color: var(--navy-200) }
+  .qe-kid.drag-over { border-color: var(--navy); border-style: dashed }
+  .qe-kid-h { display: flex; align-items: center; gap: 8px; padding: 8px 10px; min-width: 0 }
+  .qe-kid-sum { display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; min-width: 0; flex: 1 }
+  .qe-kid-body { display: flex; flex-direction: column; gap: 10px; padding: 0 12px 12px 48px }
+
+  .qe-mx { border-collapse: separate; border-spacing: 0; font-size: 13px }
+  .qe-mx th { font: 600 12px var(--mono); color: var(--muted); padding: 6px; text-align: center }
+  .qe-mx td { padding: 4px; text-align: center }
+  .qe-mx th.rh { text-align: left; padding-right: 12px }
+  .qe-mxc { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid #D3D6E2; background: var(--surface); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff }
+  .qe-mxc:hover { border-color: var(--navy) }
+  .qe-mxc.on { background: var(--green); border-color: var(--green) }
+  .qe-mxc:focus-visible { outline: 2px solid var(--navy-200); outline-offset: 2px }
+  .qe-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
+
+  .qe-cmp { border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; background: #FAFBFD }
+  .qe-draft { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--navy-100) }
+  .qe-pv { display: flex; flex-direction: column; gap: 10px }
+  .qe-pv.phone { width: 300px; max-width: 100%; align-self: center; border: 1px solid #D3D6E2; border-radius: 24px; padding: 18px 16px; box-sizing: border-box }
+  .qe-pv .math-text { font-family: var(--serif); font-size: 16px; line-height: 1.6 }
+  .qe-pv .passage { font-size: 15px; padding: 10px 12px; background: var(--ground); border-radius: 10px }
+  .qe-pv img { max-width: 100%; height: auto }
+  .qe-pv img[data-size="small"] { max-width: 160px }
+  .qe-pv img[data-size="medium"] { max-width: 280px }
+  .qe-pv .fakeinput { height: 40px; display: flex; align-items: center; width: 160px; color: #6B7089; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; font-size: 14px }
+  .qe-lock { pointer-events: none; opacity: .72 }
+  .qe-hi { font-family: var(--font-iitp-devanagari, "Noto Sans Devanagari"), var(--font) }
+  .qe-chip-btn { height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font: 500 12px var(--font); color: var(--ink-2); cursor: pointer }
+  .qe-chip-btn:hover { border-color: var(--navy-200) }
+  .qe-chip-btn.on { border-color: var(--navy); background: var(--navy-50); color: var(--navy) }
+  .qe-note { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--navy-100); font-size: 13px; color: var(--ink) }
+  .qe-note.warn { background: var(--amber-50); border-color: #F1D29A; color: #5C3600 }
+  .qe-note.err { background: #FFF5F5; border-color: #F2B1B1; color: #7A1010 }
+  .qe-note > svg { flex: none; margin-top: 2px }
+  .qe-linkbtn { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--navy); cursor: pointer; text-decoration: underline }
+  .qe-side { flex: 1 1 340px; max-width: 420px }
+  @media (max-width: 1179px) {
+    .qe-side { flex: 1 1 100%; max-width: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start }
+  }
+}
