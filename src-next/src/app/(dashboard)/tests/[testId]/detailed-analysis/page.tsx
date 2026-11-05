@@ -15,7 +15,7 @@ import { MathText } from "@iitpulse/ui";
 
 import { Topbar } from "@/components/admin/Topbar";
 import { useKeyCheck, useQuestionInsight } from "@/lib/queries-tests-admin";
-import type { KeyCheckFlag } from "@/contracts/m5";
+import type { KeyCheckFlag } from "@/lib/m5-contract";
 import { api } from "@/lib/api";
 import { ACC_BG, analyseQuestions, clock, fmt, sectionMax, type Paper, type QuestionStat, type RawSubmission } from "@/lib/results";
 import "../results.css";

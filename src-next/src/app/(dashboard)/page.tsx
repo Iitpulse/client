@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Plus } from "lucide-react";
@@ -12,7 +13,8 @@ import { Topbar } from "@/components/admin/Topbar";
 import LegacyDashboard from "@/components/student-dashboard-legacy";
 import { type AdminTest, testState, useAllTests } from "@/lib/queries";
 import { deltaTone, signed, useAdminOverview, useBankCounts, useBatchSummary, useLiveTests } from "@/lib/queries-tests-admin";
-import type { AdminOverview, LiveTest, TestKind } from "@/contracts/m5";
+import { BulkPreviewDialog } from "@/components/questions-admin/bulk-ai";
+import type { AdminOverview, DraftKind, LiveTest, TestKind } from "@/lib/m5-contract";
 
 /*
   Admin-Dashboard board (canvas v84). Numbers: GET /tests/admin/overview (tests this month, avg score + "vs previous",
@@ -20,8 +22,8 @@ import type { AdminOverview, LiveTest, TestKind } from "@/contracts/m5";
   ?pageSize=0 (bank total, missing solutions, Hindi still in English), GET /ai/admin/tests/:id/summary (the Summary line
   under the score spread). The score spread and "Next 7 days" stay client-side (contract).
   Not built (no board / not M5): "Active students", "Monitor".
-  Draft / Translate: the bulk cost preview lives with Admin-Questions; until that component lands they open the question
-  bank with the matching filter.
+  Draft / Translate open the same bulk cost preview as Admin-Questions (filter missingSolution / hindiMissing); once a
+  job starts, the question bank shows its progress (its bulk bar restores the active job).
 */
 
 interface Submission {
@@ -90,6 +92,10 @@ function AdminDashboard({
   const live = useLiveTests();
   const bank = useBankCounts(canQuestions);
   const tests = useAllTests();
+  const router = useRouter();
+  const [bulkKind, setBulkKind] = useState<DraftKind | null>(null);
+  // Stable per kind: the dialog asks for a new preview whenever the selection object changes.
+  const bulkSelection = useMemo(() => ({ filter: bulkKind === "solution" ? { missingSolution: true } : { hindiMissing: true } }), [bulkKind]);
   const institute = useQuery({
     queryKey: ["institute", instituteId],
     enabled: !!instituteId,
@@ -252,9 +258,15 @@ function AdminDashboard({
                   <span className="sm font-semibold">{a.title}</span>
                   <span className="xs muted">{a.sub}</span>
                 </span>
-                <Link href={a.href} className={`btn btn-sm ${a.warn ? "btn-secondary" : "btn-ghost"}`}>
-                  {a.action}
-                </Link>
+                {a.bulk ? (
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setBulkKind(a.bulk!)}>
+                    {a.action}
+                  </button>
+                ) : (
+                  <Link href={a.href} className={`btn btn-sm ${a.warn ? "btn-secondary" : "btn-ghost"}`}>
+                    {a.action}
+                  </Link>
+                )}
               </div>
             ))}
           </article>
@@ -308,6 +320,17 @@ function AdminDashboard({
           </article>
         </section>
       </main>
+
+      <BulkPreviewDialog
+        kind={bulkKind}
+        total={bulkKind === "solution" ? bank.data?.counts.missingSolution ?? 0 : bank.data?.counts.hindiMissing ?? 0}
+        selection={bulkSelection}
+        onClose={() => setBulkKind(null)}
+        onStarted={() => {
+          setBulkKind(null);
+          router.push("/questions");
+        }}
+      />
     </>
   );
 }
@@ -358,6 +381,8 @@ interface AttentionRow {
   href: string;
   action: string;
   warn?: boolean;
+  /** Opens the bulk cost preview for this kind instead of following href */
+  bulk?: DraftKind;
 }
 
 function attentionRows(ov: AdminOverview | undefined, bank: { missingSolution: number; hindiMissing: number } | undefined, canQuestions: boolean): AttentionRow[] {
@@ -367,18 +392,20 @@ function attentionRows(ov: AdminOverview | undefined, bank: { missingSolution: n
       key: "missing-solution",
       title: `${plural(bank.missingSolution, "question")} without solutions`,
       sub: "Students can't get AI reviews for these",
-      href: "/questions?missingSolution=1",
+      href: "/questions",
       action: "Draft",
       warn: true,
+      bulk: "solution",
     });
   if (canQuestions && bank?.hindiMissing)
     rows.push({
       key: "hindi-missing",
       title: `${fmt(bank.hindiMissing)} Hindi ${bank.hindiMissing === 1 ? "version" : "versions"} still in English`,
       sub: "Hindi readers see English text",
-      href: "/questions?hindiMissing=1",
+      href: "/questions",
       action: "Translate",
       warn: true,
+      bulk: "translation",
     });
   for (const t of ov?.attention.draftTests ?? []) {
     const opens = t.opensAt ? `Opens ${dayjs(t.opensAt).format("D MMM")}` : "No dates yet";
@@ -397,9 +424,9 @@ function attentionRows(ov: AdminOverview | undefined, bank: { missingSolution: n
     href: `/tests/${t.testId}/result`,
     action: "Open",
   }));
-  // Keep at least one unpublished result visible when drafts are many.
-  const head = rows.slice(0, results.length ? 4 : 5);
-  return [...head, ...results].slice(0, 5);
+  // Board: four rows. Keep one unpublished result visible when drafts are many.
+  const head = rows.slice(0, results.length ? 3 : 4);
+  return [...head, ...results].slice(0, 4);
 }
 
 function ScoreSpread({

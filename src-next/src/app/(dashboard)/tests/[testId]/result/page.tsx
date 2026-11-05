@@ -23,7 +23,7 @@ import { useAuthStore } from "@/stores";
 import { buildRows, duration, fmt, quantile, sectionMax, type Paper, type RawSubmission, type Row } from "@/lib/results";
 import { deltaTone, m5ErrorCode, signed, useBatchSummary, useResultInsights } from "@/lib/queries-tests-admin";
 import { toast } from "@/hooks/use-toast";
-import type { BatchSummaryResponse, IntegrityInsights, ResultInsights } from "@/contracts/m5";
+import type { BatchSummaryResponse, IntegrityInsights, ResultInsights } from "@/lib/m5-contract";
 import "../results.css";
 
 interface StudentInfo { id?: string; _id?: string; name: string; email?: string; batch?: string }

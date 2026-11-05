@@ -16,7 +16,7 @@ import type {
   QuestionInsightResponse,
   QuestionSearchResponse,
   ResultInsights,
-} from "@/contracts/m5";
+} from "@/lib/m5-contract";
 
 const API_GATEWAY = process.env.NEXT_PUBLIC_API_GATEWAY || "http://localhost:8000";
 
