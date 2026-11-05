@@ -1,9 +1,10 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { TestBuilder } from "@/components/test-builder";
+import { TestBuilderPage } from "@/components/tests/builder/TestBuilderPage";
 
+/** Admin-TestBuilder for an existing test (draft, scheduled, live, ended). */
 export default function EditTestPage() {
   const { testId } = useParams<{ testId: string }>();
-  return <TestBuilder key={testId} testId={testId} />;
+  return <TestBuilderPage key={testId} testId={testId} />;
 }
