@@ -26,6 +26,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   const hasAccess = usePermissionsStore((s) => s.hasAccess) as Record<Access, boolean>;
   const logout = useAuthStore((s) => s.logout);
   const isStaff = useAuthStore((s) => !!s.currentUser && s.currentUser.userType !== "student");
+  const currentUserIsTeacher = useAuthStore((s) => s.currentUser?.userType === "teacher");
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
   useEffect(() => {
@@ -91,7 +92,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
           </CommandGroup>
         )}
         {NAV.map((g) => {
-          const items = g.items.map((i) => visibleItem(i, hasAccess)).filter((i) => i !== null);
+          const items = g.items.map((i) => visibleItem(i, hasAccess, currentUserIsTeacher)).filter((i) => i !== null);
           if (!items.length) return null;
           return (
             <CommandGroup key={g.label} heading={g.label}>

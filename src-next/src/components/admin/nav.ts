@@ -1,7 +1,8 @@
 /*
   The admin route map, shared by the AdminSidebar, the ⌘K palette and the topbar titles of pages that are
-  not migrated yet. Boards: AdminSidebar (groups Overview, Content, People, System). The board's Institute
-  group (Billing & usage, Branding) has no routes before M7/M9, so it is not drawn.
+  not migrated yet. Boards: AdminSidebar `nav="m6"` (groups Overview, Content, People, System; "Batches & setup" is
+  one page with tabs since M6) and `nav="teacher"` (no setup, roles, audit or templates; Users reads "My students").
+  The board's Institute group (Billing & usage, Branding) has no routes before M7/M9, so it is not drawn.
 */
 import {
   FileQuestionMark,
@@ -33,8 +34,10 @@ export interface NavLink {
 export interface NavItem extends NavLink {
   key: string;
   icon: LucideIcon;
-  /** Sub-pages listed under the item while one of them is open (Batches & setup until M6 merges them into /setup). */
+  /** Sub-pages listed under the item while one of them is open. */
   children?: NavLink[];
+  /** Hidden from teachers (board AdminSidebar `nav="teacher"`: no setup, roles, audit or templates). */
+  staffOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -53,7 +56,7 @@ export const NAV: NavGroup[] = [
       { key: "questions", label: "Question bank", href: "/questions", icon: FileQuestionMark, permission: "question", keywords: ["questions"] },
       { key: "tests", label: "Tests", href: "/tests", icon: SquareCheck, permission: "test", keywords: ["exams", "mocks", "results"] },
       { key: "patterns", label: "Patterns", href: "/patterns", icon: Layers, permission: "pattern" },
-      { key: "templates", label: "Exam UI templates", href: "/ui-templates", icon: PanelTop, permission: "test", keywords: ["ui templates", "theme"] },
+      { key: "templates", label: "Exam UI templates", href: "/ui-templates", icon: PanelTop, permission: "test", keywords: ["ui templates", "theme"], staffOnly: true },
     ],
   },
   {
@@ -63,21 +66,19 @@ export const NAV: NavGroup[] = [
       {
         key: "setup",
         label: "Batches & setup",
-        href: "/batches",
+        href: "/setup",
         icon: House,
-        children: [
-          { label: "Batches", href: "/batches", permission: "batch", keywords: ["classes"] },
-          { label: "Exams", href: "/exams", permission: "pattern" },
-          { label: "Subjects", href: "/subjects", permission: "role", keywords: ["chapters", "topics"] },
-          { label: "Institutes", href: "/institutes", permission: "role", keywords: ["centres", "centers"] },
-        ],
+        permission: "batch",
+        match: ["/batches", "/exams", "/subjects", "/institutes"],
+        keywords: ["batches", "classes", "promo codes", "exams", "subjects", "chapters", "topics", "centres", "centers", "institutes"],
+        staffOnly: true,
       },
-      { key: "roles", label: "Roles & access", href: "/roles", icon: Shield, permission: "role", keywords: ["permissions"] },
+      { key: "roles", label: "Roles & access", href: "/roles", icon: Shield, permission: "role", keywords: ["permissions"], staffOnly: true },
     ],
   },
   {
     label: "System",
-    items: [{ key: "audit", label: "Audit logs", href: "/audit-logs", icon: History, permission: "role", keywords: ["history", "activity"] }],
+    items: [{ key: "audit", label: "Audit logs", href: "/audit-logs", icon: History, permission: "role", keywords: ["history", "activity"], staffOnly: true }],
   },
 ];
 
@@ -86,9 +87,9 @@ export const ACTIONS: (NavLink & { icon: LucideIcon })[] = [
   { label: "New test", href: "/tests/new", permission: "test", icon: SquareCheck, keywords: ["create test"] },
   { label: "New question", href: "/questions/new", permission: "question", icon: FileQuestionMark, keywords: ["create question", "add question"] },
   { label: "Bulk upload questions", href: "/questions/bulk-upload", permission: "question", icon: Upload, keywords: ["import", "word", "pdf"] },
-  { label: "Add user", href: "/users/new", permission: "user", icon: UserPlus, keywords: ["add student", "new student", "teacher"] },
+  { label: "Add user", href: "/users?add=student", permission: "user", icon: UserPlus, keywords: ["add student", "new student", "teacher"] },
   { label: "New pattern", href: "/patterns/new", permission: "pattern", icon: Layers },
-  { label: "New role", href: "/roles/new", permission: "role", icon: Shield },
+  { label: "New role", href: "/roles?new=1", permission: "role", icon: Shield },
 ];
 
 export function allowed(link: NavLink, hasAccess: Record<Access, boolean>): boolean {
@@ -96,7 +97,9 @@ export function allowed(link: NavLink, hasAccess: Record<Access, boolean>): bool
 }
 
 /** Visible children of an item; an item with children is shown when any child is, and opens the first one. */
-export function visibleItem(item: NavItem, hasAccess: Record<Access, boolean>): NavItem | null {
+export function visibleItem(item: NavItem, hasAccess: Record<Access, boolean>, teacher = false): NavItem | null {
+  if (teacher && item.staffOnly) return null;
+  if (teacher && item.key === "users") return { ...item, label: "My students" };
   if (!item.children) return allowed(item, hasAccess) ? item : null;
   const children = item.children.filter((c) => allowed(c, hasAccess));
   if (!children.length) return null;
