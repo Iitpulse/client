@@ -201,8 +201,11 @@ export function BulkPreviewDialog({
     setRedo(false);
   }, [kind]);
 
+  // Keyed by value: callers may pass a new selection object on every render
+  const selKey = JSON.stringify(selection);
   React.useEffect(() => {
     if (!kind) return;
+    const selection = JSON.parse(selKey) as Selection;
     let live = true;
     setLoading(true);
     setNothing(false);
@@ -226,7 +229,7 @@ export function BulkPreviewDialog({
     return () => {
       live = false;
     };
-  }, [kind, selection, redo]);
+  }, [kind, selKey, redo]);
 
   if (!kind) return null;
   const c = BULK_COPY[kind];
