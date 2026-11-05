@@ -100,6 +100,7 @@ export function Checks({
   latexHref: string | null;
   onFix: (f: CheckFix) => void;
 }) {
+  loading = loading || (!isNew && !readiness);
   const rows = isNew ? NEW_ROWS : (readiness?.checks ?? []).map((c) => rowOf(c, locked, latexHref)).filter((r): r is Row => !!r);
   const left = rows.filter((r) => r.cls === "no").length;
   return (
@@ -108,9 +109,9 @@ export function Checks({
         <h2 id="tb-ready" className="h3">
           Ready to publish?
         </h2>
-        <span className="xs muted">{loading && !isNew ? "Checking…" : left ? `${left} check${left === 1 ? "" : "s"} left` : "All set"}</span>
+        <span className="xs muted">{loading ? "Checking…" : left ? `${left} check${left === 1 ? "" : "s"} left` : "All set"}</span>
       </div>
-      {loading && !isNew && !readiness
+      {loading && !readiness
         ? Array.from({ length: 4 }, (_, i) => <div key={i} className="skel" style={{ height: 22, margin: "6px 0" }} />)
         : rows.map((r, i) => (
             <div key={i} className={`tb-chk ${r.cls}`}>
