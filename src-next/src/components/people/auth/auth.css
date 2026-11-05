@@ -1,0 +1,21 @@
+/* Admin-Auth board: messages, strength meter, the eye button, the chalk-side link. */
+.au-msg { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45 }
+.au-msg > svg { flex: none; margin-top: 1px }
+.au-msg.bad { background: #FFF5F5; border: 1px solid #F2B1B1; color: #7A1010 }
+.au-msg.warn { background: var(--amber-50); border: 1px solid #F1D29A; color: #5C3600 }
+.au-msg.info { background: var(--sky-50); border: 1px solid #BBD5F5; color: #0D2E57 }
+.au-msg.ok { background: var(--green-50); border: 1px solid #BFE3CC; color: #0B5E2F }
+.au-msg a { font-weight: 600 }
+.au-meter { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px }
+.au-meter i { height: 6px; border-radius: 3px; background: var(--line) }
+.au-meter.sm { gap: 4px }
+.au-meter.sm i { height: 4px; border-radius: 2px }
+.au-meter i.on { background: var(--meter, var(--green)) }
+.au-pw { position: relative }
+.au-pw .input { padding-right: 40px }
+.au-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer }
+.au-eye:hover { background: var(--line-2); color: var(--ink) }
+.au-stu { color: #D6D8FA; transition: color 160ms } .au-stu:hover { color: #fff }
+.au-board .cl-underline > .cl-ink { color: rgba(255, 255, 255, .88) }
+.input.e { border-color: var(--red-600); box-shadow: 0 0 0 4px var(--red-50) }
+@media (max-width: 900px) { .au-board { min-height: auto !important; max-width: none !important; flex-basis: 100% !important } .au-board .au-pitch { display: none } }

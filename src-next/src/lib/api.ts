@@ -44,7 +44,8 @@ function createApiClient(
         // Token expired or invalid
         if (typeof window !== "undefined") {
           localStorage.removeItem(AUTH_TOKEN_KEY);
-          window.location.href = "/login";
+          // Admin-Auth "session-expired": the login page explains why (not on the login page itself).
+          if (!window.location.pathname.startsWith("/login")) window.location.href = "/login?expired=1";
         }
       }
       return Promise.reject(error);

@@ -62,6 +62,8 @@ interface AuthState {
 
   // Actions
   login: (email: string, password: string) => Promise<boolean>;
+  /** Signs in with a token the page already got from POST /auth/login (Admin-Auth handles its own error states). */
+  loginWithToken: (token: string) => Promise<boolean>;
   logout: () => void;
   setCurrentUser: (user: ICurrentUser | null) => void;
   fetchUserDetails: () => Promise<void>;
@@ -127,6 +129,29 @@ export const useAuthStore = create<AuthState>()(
           set({ error: message, isLoading: false });
           return false;
         }
+      },
+
+      loginWithToken: async (token: string) => {
+        const decoded = decodeJwtPayload(token);
+        if (!decoded) {
+          set({ error: "Invalid token" });
+          return false;
+        }
+        authHelper.setToken(token);
+        set({
+          currentUser: {
+            id: decoded.id,
+            email: decoded.email,
+            userType: decoded.userType as ICurrentUser["userType"],
+            instituteId: decoded.instituteId,
+            roles: transformRoles(decoded.roles),
+          },
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+        await get().fetchUserDetails();
+        return true;
       },
 
       logout: () => {
