@@ -1,0 +1,31 @@
+/* Admin-Monitor board pieces: status tiles, status dots, exits colours, the timeline. Tokens from @iitpulse/ui. */
+.mo-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px }
+@media (max-width: 1179px) { .mo-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)) } }
+.mo-tile { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: left; font: inherit; color: inherit; cursor: pointer; transition: border-color 120ms var(--ease) }
+.mo-tile:hover { border-color: var(--navy-200) }
+.mo-tile.on { border-color: var(--navy); outline: 3px solid var(--navy-100); outline-offset: 0 }
+.mo-tile:focus-visible { outline: 3px solid var(--navy-200); outline-offset: 2px }
+.mo-tile b { font: 650 24px var(--font); letter-spacing: -.01em; font-variant-numeric: tabular-nums }
+.mo-tile .l { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px }
+.mo-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block }
+.mo-dot.writing { background: var(--navy) }
+.mo-dot.submitted { background: var(--green) }
+.mo-dot.notStarted { background: #A9ACC0 }
+.mo-dot.autoSubmitted { background: var(--amber) }
+.mo-dot.offline { background: var(--red-600) }
+.mo-dot.flagged { background: #E3B25C }
+.mo-stat { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; white-space: nowrap }
+.mo-ex { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-variant-numeric: tabular-nums }
+.mo-ex.warn { color: var(--amber); font-weight: 600 }
+.mo-ex.max { color: var(--red-600); font-weight: 600 }
+.mo-seen.off { color: var(--red-600); font-weight: 600 }
+.mo-who { display: flex; align-items: center; gap: 10px; min-width: 0 }
+.mo-who .avatar { width: 30px; height: 30px; font-size: 11px; flex: none }
+.mo-tl { display: flex; flex-direction: column; border-left: 2px solid var(--line); margin-left: 6px; padding-left: 14px }
+.mo-tl .ev { position: relative; padding: 6px 0; font-size: 13px }
+.mo-tl .ev::before { content: ""; position: absolute; left: -20px; top: 11px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid #A9ACC0 }
+.mo-tl .ev.w::before { border-color: var(--amber); background: var(--amber-50) }
+.mo-tl .ev.s::before { border-color: var(--green); background: var(--green-50) }
+.mo-tl .ev.x::before { border-color: var(--navy); background: var(--navy-50) }
+.mo-facts { display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: 8px; column-gap: 12px; font-size: 13px }
+tr.hov > td { background: var(--navy-50) }
