@@ -1,8 +1,10 @@
 "use client";
 
 /*
-  Admin-Analysis board (questions view). Data: GET /test/:id (the paper) and GET /test/result/admin (submissions).
-  Not drawn: the AI answer-key check and the "Why B" explanation (no backend before M5).
+  Admin-Analysis board (questions view, canvas v84). Data: GET /test/:id (the paper) and GET /test/result/admin
+  (submissions). M5: GET /ai/admin/tests/:id/key-check ("✦ Check answer key": flags only; fixing the key does not
+  re-score, M5 has no re-scoring) and GET /ai/admin/tests/:id/questions/:qid/insight ("✦ Why B", fetched for the
+  question on screen). "⚠ Negative · check key" in Hardest questions stays client-side (discrimination index).
 */
 
 import * as React from "react";
@@ -12,6 +14,8 @@ import { useQuery } from "@tanstack/react-query";
 import { MathText } from "@iitpulse/ui";
 
 import { Topbar } from "@/components/admin/Topbar";
+import { useKeyCheck, useQuestionInsight } from "@/lib/queries-tests-admin";
+import type { KeyCheckFlag } from "@/contracts/m5";
 import { api } from "@/lib/api";
 import { ACC_BG, analyseQuestions, clock, fmt, sectionMax, type Paper, type QuestionStat, type RawSubmission } from "@/lib/results";
 import "../results.css";
@@ -21,9 +25,40 @@ const DIFF: Record<string, string> = { easy: "b-green", medium: "b-amber", hard:
 
 function discriminationBadge(d: number | null) {
   if (d === null) return <span className="xs muted">—</span>;
-  if (d < 0) return <span className="badge b-amber" title={`Index ${d.toFixed(2)}: weaker students got it right more often than stronger ones`}>Negative</span>;
+  if (d < 0) return <span className="badge b-amber" title={`Index ${d.toFixed(2)}: weaker students got it right more often than stronger ones`}>⚠ Negative · check key</span>;
   if (d < 0.2) return <span className="badge b-amber" title={`Index ${d.toFixed(2)}`}>Weak</span>;
   return <span className="badge b-green" title={`Index ${d.toFixed(2)}`}>Good</span>;
+}
+
+/** "B", "A, C", "12" or "10–11": an answer as the board writes it. */
+function answerLabel(a: { letters?: string[]; optionIds?: string[]; value?: number; range?: { min: number; max: number } } | null | undefined): string {
+  if (!a) return "?";
+  if (a.letters?.length) return a.letters.join(", ");
+  if (a.value !== undefined) return String(a.value);
+  if (a.range) return a.range.min === a.range.max ? String(a.range.min) : `${a.range.min}–${a.range.max}`;
+  return a.optionIds?.join(", ") ?? "?";
+}
+
+/** One "✦ Check answer key" row (board: amber strip above the grid). */
+function KeyFlag({ f, onReview }: { f: KeyCheckFlag; onReview: () => void }) {
+  const popular = answerLabel(f.popular);
+  const share = Math.round(f.popular.share * 100);
+  return (
+    <div className="row gap-3 rounded-[12px] border border-[#F1D29A] bg-warning-50 px-4 py-3.5" data-testid="key-check-flag" data-verdict={f.aiVerdict ?? "none"}>
+      <span className="ai-mark flex-none whitespace-nowrap text-[#8A4F00]">✦ Check answer key</span>
+      <span className="col grow gap-1">
+        <span className="sm">
+          Q{f.n}: {share}% of the batch{f.popular.topTenCount > 0 ? `, including ${f.popular.topTenCount} of the top 10,` : ""} chose <b>{popular}</b>, but the key
+          says <b>{answerLabel(f.key)}</b>.{f.aiVerdict === "keyLooksWrong" && f.aiAnswer ? ` Working it through also gives ${answerLabel(f.aiAnswer)}.` : ""}
+        </span>
+        <span className="xs text-[#5C3600]">Fixing the key in the question bank won&apos;t change scores already given.</span>
+      </span>
+      {f.aiVerdict === "keyLooksWrong" && <span className="badge b-amber flex-none">Key looks wrong</span>}
+      <button type="button" className="btn btn-secondary btn-sm flex-none" onClick={onReview}>
+        Review Q{f.n}
+      </button>
+    </div>
+  );
 }
 
 function options(q: QuestionStat) {
@@ -65,6 +100,16 @@ export default function DetailedAnalysisPage() {
   const [selected, setSelected] = React.useState<number | null>(null);
   const [tableView, setTableView] = React.useState<"hardest" | "all">("hardest");
   const current = stats.find((q) => q.n === selected) ?? hardest[0] ?? stats[0];
+  const detailRef = React.useRef<HTMLElement>(null);
+  const keyCheck = useKeyCheck(testId, submissions.length > 0);
+  // keyLooksRight: the model agrees with the key, so nothing to flag.
+  const flags = (keyCheck.data?.flags ?? []).filter((f) => f.aiVerdict !== "keyLooksRight");
+  const hasOptions = !!current && options(current).length > 0;
+  const insight = useQuestionInsight(testId, current?.id, hasOptions && submissions.length > 0);
+  const review = (n: number) => {
+    setSelected(n);
+    detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const sectionRows = React.useMemo(() => {
     if (!test?.sections) return [];
@@ -126,6 +171,9 @@ export default function DetailedAnalysisPage() {
           </div>
         ) : (
           <>
+            {flags.map((f) => (
+              <KeyFlag key={f.questionId} f={f} onReview={() => review(f.n)} />
+            ))}
             <section className="grid items-start gap-3.5 lg:grid-cols-5">
               <article className="card pad-lg col rise gap-3 lg:col-span-2">
                 <div className="row between wrap gap-2">
@@ -160,7 +208,7 @@ export default function DetailedAnalysisPage() {
                 <span className="xs muted">{submissions.length} submissions · select a question to see how the batch answered it</span>
               </article>
 
-              <article className="card pad-lg col rise gap-3.5 lg:col-span-3" style={{ ["--i" as string]: 1 }}>
+              <article ref={detailRef} className="card pad-lg col rise scroll-mt-20 gap-3.5 lg:col-span-3" style={{ ["--i" as string]: 1 }} data-testid="analysis-question">
                 <div className="row between wrap gap-2">
                   <div className="row wrap gap-2.5">
                     <span className="h3 mono">Q{current.n}</span>
@@ -229,6 +277,18 @@ export default function DetailedAnalysisPage() {
                     </div>
                   </div>
                 </div>
+                {hasOptions && insight.data?.status === "ready" && insight.data.insight && (
+                  <div className="ai row gap-2.5 px-3.5 py-3" data-testid="why-insight">
+                    <span className="ai-mark flex-none">✦ Why {insight.data.insight.option.letter}</span>
+                    <MathText as="span" className="sm" text={[insight.data.insight.text, insight.data.insight.cue].filter(Boolean).join(" ")} />
+                  </div>
+                )}
+                {hasOptions && insight.data?.status === "generating" && (
+                  <div className="ai row gap-2.5 px-3.5 py-3" aria-busy="true" data-testid="why-insight-generating">
+                    <span className="ai-mark flex-none">✦ Why</span>
+                    <span className="skel h-4 grow" />
+                  </div>
+                )}
               </article>
             </section>
 

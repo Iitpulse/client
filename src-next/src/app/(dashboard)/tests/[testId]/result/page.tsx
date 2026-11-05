@@ -1,9 +1,11 @@
 "use client";
 
 /*
-  Admin-Results board. Data: GET /test/result/admin (test + submissions), students and batches for names.
-  Not drawn (no API yet): the AI batch summary (M5 backend), "Send to parents" (out of scope, hidden),
-  integrity flags (fullscreen exits are not in the result payload) and the "vs previous mock" deltas.
+  Admin-Results board (canvas v84). Data: GET /test/result/admin (test + submissions), students and batches for names;
+  M5: GET /tests/admin/tests/:id/result-insights (appeared / assigned, auto-submitted, average and subject averages vs the
+  previous mock, integrity flags) and GET /ai/admin/tests/:id/summary (the batch summary card, polled while generating).
+  Not built (no API in M5): "Send to parents", the summary's "Add to schedule" / "Assign practice" buttons.
+  When insights are unavailable (an engine still on Mongo) the page falls back to the client-side numbers.
 */
 
 import * as React from "react";
@@ -12,12 +14,16 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { ChevronDown, Search } from "lucide-react";
+import { AiMark, MathText } from "@iitpulse/ui";
 
 import { Topbar } from "@/components/admin/Topbar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores";
 import { buildRows, duration, fmt, quantile, sectionMax, type Paper, type RawSubmission, type Row } from "@/lib/results";
+import { deltaTone, m5ErrorCode, signed, useBatchSummary, useResultInsights } from "@/lib/queries-tests-admin";
+import { toast } from "@/hooks/use-toast";
+import type { BatchSummaryResponse, IntegrityInsights, ResultInsights } from "@/contracts/m5";
 import "../results.css";
 
 interface StudentInfo { id?: string; _id?: string; name: string; email?: string; batch?: string }
@@ -46,12 +52,85 @@ function useResultData(testId: string) {
   });
 }
 
-function Stat({ label, value, sub, i }: { label: string; value: React.ReactNode; sub?: React.ReactNode; i: number }) {
+function Stat({ label, value, sub, tone, i, testId }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "good" | "bad" | "flat"; i: number; testId?: string }) {
+  const cls = tone === "good" ? "font-semibold text-success" : tone === "bad" ? "font-semibold text-warning" : "muted";
   return (
-    <article className="card pad col rise gap-1" style={{ ["--i" as string]: i }}>
+    <article className="card pad col rise gap-1" style={{ ["--i" as string]: i }} data-testid={testId}>
       <span className="sm muted">{label}</span>
       <span className="num text-[28px] font-[650] tracking-[-.01em]">{value}</span>
-      {sub && <span className="xs muted truncate">{sub}</span>}
+      {sub && <span className={`xs truncate ${cls}`}>{sub}</span>}
+    </article>
+  );
+}
+
+/** Flags column: "3 fullscreen exits" (amber at the threshold), "1 fullscreen exit", "Auto-submitted". */
+function Flags({ exits, threshold, auto }: { exits: number | null | undefined; threshold: number; auto: boolean }) {
+  return (
+    <span className="row wrap gap-1">
+      {!!exits && <span className={`badge ${exits >= threshold ? "b-amber" : "b-grey"}`}>{exits} fullscreen {exits === 1 ? "exit" : "exits"}</span>}
+      {auto && <span className="badge b-grey">Auto-submitted</span>}
+    </span>
+  );
+}
+
+/** "Batch summary for teachers" (AI). States the board does not draw render inside the same card. */
+function BatchSummaryCard({ data, error, loading, appeared }: { data?: BatchSummaryResponse; error: unknown; loading: boolean; appeared: number }) {
+  const s = data?.status === "ready" ? data.summary : null;
+  const copy = async () => {
+    if (!s) return;
+    try {
+      await navigator.clipboard.writeText(s.text);
+      toast({ title: "Copied", description: "Paste the summary into WhatsApp." });
+    } catch {
+      toast({ title: "Could not copy", description: "Select the text and copy it instead.", variant: "destructive" });
+    }
+  };
+  let note: string | null = null;
+  if (!s && !loading && data?.status !== "generating") {
+    const code = data?.reason ?? m5ErrorCode(error);
+    note =
+      code === "TOO_FEW_SUBMISSIONS"
+        ? `The summary needs at least 5 submissions (${appeared} so far).`
+        : code === "NO_SUBMISSIONS"
+          ? "The summary appears once students submit."
+          : "The batch summary is not available right now.";
+  }
+  return (
+    <article className="ai pad-lg col rise gap-3 lg:col-span-2" style={{ ["--i" as string]: 5 }} data-testid="results-summary" data-status={data?.status ?? (error ? "error" : "loading")}>
+      <div className="row between">
+        <AiMark iconSize={13}>Batch summary for teachers</AiMark>
+        {s && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={copy}>
+            Copy for WhatsApp
+          </button>
+        )}
+      </div>
+      {s ? (
+        <>
+          <MathText as="p" className="body m-0" text={s.text} />
+          {s.suggestions.length > 0 && (
+            <div className="col gap-2">
+              {s.suggestions.map((g, i) => (
+                <div key={i} className="row gap-2.5 rounded-control border border-brand-100 bg-surface px-3 py-2.5">
+                  <MathText as="span" className="sm grow" text={g.text} />
+                </div>
+              ))}
+            </div>
+          )}
+          <span className="xs muted">
+            Based on {s.basedOn.submissions} submission{s.basedOn.submissions === 1 ? "" : "s"}
+            {s.basedOn.previous ? `, compared with ${s.basedOn.previous.name}` : ""}
+          </span>
+        </>
+      ) : note ? (
+        <p className="sm muted m-0">{note}</p>
+      ) : (
+        <div className="col gap-2" aria-busy="true" aria-label="Writing the batch summary">
+          <span className="skel h-4 w-full" />
+          <span className="skel h-4 w-[92%]" />
+          <span className="skel h-4 w-[64%]" />
+        </div>
+      )}
     </article>
   );
 }
@@ -70,7 +149,12 @@ export default function TestResultPage() {
 
   const [q, setQ] = React.useState("");
   const [batchFilter, setBatchFilter] = React.useState("all");
-  const [autoOnly, setAutoOnly] = React.useState(false);
+  const [flaggedOnly, setFlaggedOnly] = React.useState(false);
+  const insightsQ = useResultInsights(isStudent ? undefined : testId);
+  const insights: ResultInsights | undefined = insightsQ.data;
+  const summaryQ = useBatchSummary(testId, !isStudent && (insights ? insights.appeared > 0 : !!bundle?.data?.submissions?.length));
+  const integrity: IntegrityInsights | undefined = insights?.integrity;
+  const flagOf = React.useMemo(() => new Map((integrity?.students ?? []).map((s) => [s.studentId, s])), [integrity]);
   const [page, setPage] = React.useState(0);
 
   const test = bundle?.data?.test;
@@ -123,21 +207,23 @@ export default function TestResultPage() {
       (r) =>
         (!needle || r.name.toLowerCase().includes(needle) || r.studentId.toLowerCase().includes(needle) || (r.email ?? "").toLowerCase().includes(needle)) &&
         (batchFilter === "all" || r.batch === batchFilter) &&
-        (!autoOnly || r.autoSubmitted)
+        (!flaggedOnly || flagOf.has(r.studentId) || r.autoSubmitted)
     );
-  }, [rows, q, batchFilter, autoOnly]);
+  }, [rows, q, batchFilter, flaggedOnly, flagOf]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE));
   const pageRows = filtered.slice(page * PAGE, page * PAGE + PAGE);
-  React.useEffect(() => setPage(0), [q, batchFilter, autoOnly]);
-
-  // Score spread: 12 equal bins over the paper's marks (negatives fall in the first bin).
+  React.useEffect(() => setPage(0), [q, batchFilter, flaggedOnly]);
   const maxMarks = test?.totalMarks || Math.max(1, ...marks);
-  const bins = React.useMemo(() => {
-    const out = Array.from({ length: 12 }, () => 0);
-    for (const m of marks) out[Math.min(11, Math.max(0, Math.floor((m / maxMarks) * 12)))]++;
-    return out;
-  }, [marks, maxMarks]);
-  const peak = Math.max(1, ...bins);
+  const threshold = integrity?.threshold ?? 3;
+
+  // Subject averages: the insights' (merged by subject, with the previous mock), else per section from the submissions.
+  const subjectRows = React.useMemo(() => {
+    if (insights?.subjects.length) return insights.subjects.map((x) => ({ key: x.subject, name: x.subject, average: x.average, max: x.maxScore, previous: x.previousAverage, delta: x.delta }));
+    return sections.map((s) => {
+      const vals = rows.map((r) => r.bySection[s.id]).filter((v) => typeof v === "number");
+      return { key: s.id, name: s.name, average: vals.length ? vals.reduce((x, y) => x + y, 0) / vals.length : 0, max: sectionMax(s) || 1, previous: null as number | null, delta: null as number | null };
+    });
+  }, [insights, sections, rows]);
 
   const exportToCSV = () => {
     if (!test || !rows.length) return;
@@ -235,62 +321,88 @@ export default function TestResultPage() {
       />
       <main className="col gap-4 px-7 pt-5 pb-10">
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <Stat i={0} label="Appeared" value={<>{rows.length}{assigned && assigned >= rows.length ? <span className="sm muted"> / {assigned}</span> : null}</>} sub={autoCount ? `${autoCount} auto-submitted` : "No auto-submits"} />
-          <Stat i={1} label="Average" value={<>{fmt(avg)}<span className="sm muted">/{test.totalMarks ?? "—"}</span></>} sub={rows.length ? `${((avg / maxMarks) * 100).toFixed(0)}% of the paper` : undefined} />
-          <Stat i={2} label="Highest" value={top ? fmt(top.marks) : "—"} sub={top?.name} />
-          <Stat i={3} label="Median" value={rows.length ? fmt(quantile(marks, 0.5)) : "—"} sub={rows.length ? `Middle half: ${fmt(quantile(marks, 0.25), 0)}–${fmt(quantile(marks, 0.75), 0)}` : undefined} />
-          <Stat i={4} label="Lowest" value={bottom ? fmt(bottom.marks) : "—"} sub={bottom?.name} />
+          {(() => {
+            const appeared = insights?.appeared ?? rows.length;
+            const assignedN = insights ? insights.assigned : assigned;
+            const auto = insights?.autoSubmitted ?? autoCount;
+            const average = insights?.average ?? avg;
+            const prev = insights?.previous ?? null;
+            const delta = insights?.averageDelta ?? null;
+            return (
+              <>
+                <Stat
+                  i={0}
+                  testId="results-appeared"
+                  label="Appeared"
+                  value={<>{appeared}{assignedN && assignedN >= appeared ? <span className="sm muted"> / {assignedN}</span> : null}</>}
+                  sub={auto ? `${auto} auto-submitted` : "No auto-submits"}
+                />
+                <Stat
+                  i={1}
+                  testId="results-average"
+                  label="Average"
+                  value={rows.length || insights?.appeared ? fmt(average) : "—"}
+                  sub={prev && delta !== null ? `${signed(delta)} vs ${prev.name}` : rows.length ? `${((average / maxMarks) * 100).toFixed(0)}% of the paper` : undefined}
+                  tone={prev && delta !== null ? deltaTone(delta, insights?.test.maxScore ?? maxMarks) : undefined}
+                />
+                <Stat i={2} label="Highest" value={top ? fmt(top.marks) : "—"} sub={top?.name} />
+                <Stat i={3} label="Median" value={rows.length ? fmt(quantile(marks, 0.5)) : "—"} sub={rows.length ? `Middle half: ${fmt(quantile(marks, 0.25), 0)}–${fmt(quantile(marks, 0.75), 0)}` : undefined} />
+                <Stat
+                  i={4}
+                  testId="results-integrity"
+                  label="Integrity flags"
+                  value={integrity?.recorded ? integrity.flaggedCount : "—"}
+                  sub={integrity && !integrity.recorded ? "Not recorded for this test" : `${threshold}+ fullscreen exits`}
+                />
+              </>
+            );
+          })()}
         </section>
 
         {rows.length > 0 && (
           <section className="grid items-start gap-3.5 lg:grid-cols-3">
-            <article className="card pad-lg col rise gap-3.5 lg:col-span-2" style={{ ["--i" as string]: 5 }}>
-              <div className="row between">
-                <div className="col gap-0.5">
-                  <span className="h3">Score spread</span>
-                  <span className="xs muted">{rows.length} students · {test.totalMarks ?? "—"} marks</span>
-                </div>
-              </div>
-              <div className="relative pt-[22px]">
-                <div className="rs-hist" role="img" aria-label={`Score distribution of ${rows.length} students; average ${fmt(avg)}`}>
-                  {bins.map((c, i) => {
-                    const lo = Math.round((i * maxMarks) / 12);
-                    const hi = Math.round(((i + 1) * maxMarks) / 12);
-                    return <span key={i} style={{ height: `${Math.max(c ? 4 : 0, (c / peak) * 100)}%`, animationDelay: `${i * 40}ms` }} title={`${lo}–${hi}: ${c} student${c === 1 ? "" : "s"}`} />;
-                  })}
-                </div>
-                <span className="rs-avg" aria-hidden style={{ left: `${Math.min(100, Math.max(0, (avg / maxMarks) * 100))}%` }}>
-                  <b>avg {fmt(avg, 0)}</b>
-                </span>
-              </div>
-              <div className="row between xs muted mono">
-                {[0, 0.25, 0.5, 0.75, 1].map((p) => (
-                  <span key={p}>{Math.round(p * maxMarks)}</span>
-                ))}
-              </div>
-            </article>
+            <BatchSummaryCard data={summaryQ.data} error={summaryQ.error} loading={summaryQ.isLoading} appeared={insights?.appeared ?? rows.length} />
 
-            <article className="card pad-lg col rise gap-3" style={{ ["--i" as string]: 6 }}>
+            <article className="card pad-lg col rise gap-3" style={{ ["--i" as string]: 6 }} data-testid="results-subjects">
               <span className="h3">Subject averages</span>
-              {sections.map((s, i) => {
-                const vals = rows.map((r) => r.bySection[s.id]).filter((v) => typeof v === "number");
-                const a = vals.length ? vals.reduce((x, y) => x + y, 0) / vals.length : 0;
-                const mx = sectionMax(s) || 1;
+              {subjectRows.map((x, i) => {
+                const mx = x.max || 1;
+                const tone = x.delta !== null ? deltaTone(x.delta, mx) : null;
                 return (
-                  <div key={s.id} className="col gap-1.5">
+                  <div key={x.key} className="col gap-1.5">
                     <div className="row between sm">
-                      <span>{s.name}</span>
+                      <span>{x.name}</span>
                       <span className="num">
-                        {fmt(a)} / {mx}
+                        {fmt(x.average)} / {fmt(mx)}
                       </span>
                     </div>
-                    <div className="bar">
-                      <i style={{ width: `${Math.max(0, Math.min(100, (a / mx) * 100))}%`, animationDelay: `${i * 0.1}s` }} />
+                    <div className="relative">
+                      <div className="bar">
+                        <i style={{ width: `${Math.max(0, Math.min(100, (x.average / mx) * 100))}%`, animationDelay: `${i * 0.1}s` }} />
+                      </div>
+                      {x.previous !== null && insights?.previous && (
+                        <span
+                          className="rs-tick"
+                          style={{ left: `${Math.max(0, Math.min(100, (x.previous / mx) * 100))}%` }}
+                          title={`${insights.previous.name} average: ${fmt(x.previous)}`}
+                        />
+                      )}
                     </div>
+                    {x.delta !== null && insights?.previous && (
+                      <span className={`xs ${tone === "good" ? "font-semibold text-success" : tone === "bad" ? "font-semibold text-warning" : "text-ink-2"}`}>
+                        {signed(x.delta)} vs {insights.previous.name}
+                      </span>
+                    )}
                   </div>
                 );
               })}
-              {!sections.length && <span className="sm muted">This paper has no sections.</span>}
+              {!subjectRows.length && <span className="sm muted">This paper has no sections.</span>}
+              {insights?.previous && subjectRows.some((x) => x.previous !== null) && (
+                <span className="xs muted row gap-1.5">
+                  <span className="inline-block h-3 w-0.5 rounded-[1px] bg-ink" />
+                  {insights.previous.name} average
+                </span>
+              )}
             </article>
           </section>
         )}
@@ -321,9 +433,9 @@ export default function TestResultPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              {autoCount > 0 && (
-                <button type="button" aria-pressed={autoOnly} className={`chip h-9 ${autoOnly ? "on" : ""}`} onClick={() => setAutoOnly((v) => !v)}>
-                  Auto-submitted only
+              {(flagOf.size > 0 || autoCount > 0) && (
+                <button type="button" aria-pressed={flaggedOnly} className={`chip h-9 ${flaggedOnly ? "on" : ""}`} onClick={() => setFlaggedOnly((v) => !v)}>
+                  Flagged only
                 </button>
               )}
             </div>
@@ -359,7 +471,9 @@ export default function TestResultPage() {
                       <td key={s.id} className="num sm">{r.bySection[s.id] !== undefined ? fmt(r.bySection[s.id]) : "—"}</td>
                     ))}
                     <td className="num sm">{duration(r.time)}</td>
-                    <td>{r.autoSubmitted && <span className="badge b-grey">Auto-submitted</span>}</td>
+                    <td>
+                      <Flags exits={flagOf.get(r.studentId)?.fullscreenExits} threshold={threshold} auto={flagOf.get(r.studentId)?.autoSubmitted ?? r.autoSubmitted} />
+                    </td>
                   </tr>
                 ))}
                 {!pageRows.length && (

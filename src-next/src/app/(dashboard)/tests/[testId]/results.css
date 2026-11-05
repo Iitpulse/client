@@ -15,3 +15,5 @@
 .rs-qc.on { outline: 2px solid var(--navy); outline-offset: 1px }
 .rs-ob { height: 26px; flex: none; border-radius: 6px; transform-origin: left; animation: iitp-grow 800ms var(--ease) both }
 @media (prefers-reduced-motion: reduce) { .rs-hist span, .rs-ob { animation: none } }
+/* Admin-Results subject averages: the previous mock's average as a tick on the bar */
+.rs-tick { position: absolute; top: -3px; width: 2px; height: 14px; border-radius: 1px; background: var(--ink); margin-left: -1px; box-shadow: 0 0 0 1.5px #fff }
