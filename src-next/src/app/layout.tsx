@@ -4,6 +4,7 @@ import { devanagari, mono, sans, serif } from "./fonts";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
+import { KitToaster } from "@/components/kit/Toast";
 
 export const metadata: Metadata = {
   title: "IITP Admin Dashboard",
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body>
         <Providers>{children}</Providers>
         <Toaster />
+        <KitToaster />
       </body>
     </html>
   );
