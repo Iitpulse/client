@@ -1,0 +1,27 @@
+/* Admin-Roles board: role list, the permissions matrix (grid rows), the dark save bar. */
+.rl-wrap { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start }
+.rl-aside { flex: 1 1 240px; max-width: 280px; padding: 8px }
+.rl-list { display: flex; flex-direction: column; gap: 2px }
+.rl-ri { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-radius: 10px; cursor: pointer; border: 0; background: none; width: 100%; text-align: left; font-family: inherit; color: inherit }
+.rl-ri:hover { background: var(--ground) } .rl-ri.on { background: var(--navy-50) }
+.rl-main { flex: 999 1 560px; min-width: 0; overflow: clip }
+.rl-mx .tr { display: grid; grid-template-columns: minmax(150px, 1.3fr) minmax(110px, 1fr) 70px 70px 70px minmax(220px, 2fr); align-items: center; border-bottom: 1px solid var(--line-2); min-width: 760px }
+.rl-mx .tr.h { background: #FAFBFD }
+.rl-mx .th { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; white-space: nowrap }
+.rl-mx .td { padding: 10px 14px; min-width: 0; font-size: 13px }
+.rl-mx .tr.chg { background: #FFFBEA }
+.rl-area { font-weight: 600 } .rl-area span { display: block; font-weight: 400; font-size: 12px; color: var(--muted) }
+.rl-ck { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); white-space: nowrap; min-height: 28px; cursor: pointer; position: relative }
+.rl-ck input { position: absolute; opacity: 0; width: 1px; height: 1px }
+.rl-ck input:focus-visible + .k-cbx { outline: 3px solid var(--navy-200); outline-offset: 2px }
+.rl-ck.dis { cursor: not-allowed; color: var(--muted) }
+.rl-dash { color: #A9ACC0 }
+.rl-extras { display: flex; flex-wrap: wrap; gap: 4px 14px }
+.rl-save { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 20px; background: var(--ink); color: #fff; border-radius: 0 0 12px 12px; flex-wrap: wrap; z-index: 3 }
+.rl-save .btn-ghost { color: #D6D8FA } .rl-save .btn-ghost:hover { background: rgba(255,255,255,.1); color: #fff }
+.rl-save .btn-white { background: #fff; color: var(--navy); border-color: #fff }
+@media (max-width: 1179px) {
+  .rl-aside { max-width: none; flex-basis: 100% }
+  .rl-list { flex-direction: row; overflow-x: auto }
+  .rl-ri { width: auto; flex: none }
+}
