@@ -23,6 +23,11 @@ export type Difficulty = "easy" | "medium" | "hard";
 export type TestState = "draft" | "scheduled" | "live" | "ended";
 export type TestKind = "full" | "sectional" | "custom";
 export type AiStatus = "ready" | "generating" | "not_applicable";
+/**
+ * Unit of a "vs previous mock" delta: `marks` when both tests have the same maximum ("+9 vs Mock 10"), else
+ * `percentPoints` = percentage points of each test's own maximum ("+1.8 pts vs Mock 10"; added 5 Nov, see Changes).
+ */
+export type DeltaUnit = "marks" | "percentPoints";
 
 export interface TestRef {
   testId: string;
@@ -54,8 +59,10 @@ export interface AdminOverview {
         average: number;
         maxScore: number;
         previous: PreviousMock | null;
-        /** average − previous.average, rounded to 1 decimal; null without a previous mock */
+        /** average − previous.average (marks) when both have the same maxScore, else in percentage points of each maximum; 1 decimal; null without a previous mock */
         averageDelta: number | null;
+        /** Unit of averageDelta; null when averageDelta is null (added 5 Nov) */
+        averageDeltaUnit: DeltaUnit | null;
       })
     | null;
 }
@@ -98,6 +105,8 @@ export interface ResultInsights {
   average: number;
   previous: PreviousMock | null;
   averageDelta: number | null;
+  /** Unit of averageDelta; null when averageDelta is null (added 5 Nov) */
+  averageDeltaUnit: DeltaUnit | null;
   /** Per section subject, paper order */
   subjects: Array<{
     subject: string;
@@ -105,7 +114,12 @@ export interface ResultInsights {
     maxScore: number;
     /** Previous mock's average for the same subject name; null if none */
     previousAverage: number | null;
+    /** That subject's maximum in the previous mock (place its tick at previousAverage / previousMaxScore; added 5 Nov) */
+    previousMaxScore: number | null;
+    /** Marks when the subject's maximum is the same in both, else percentage points (deltaUnit) */
     delta: number | null;
+    /** Unit of delta; null when delta is null (added 5 Nov) */
+    deltaUnit: DeltaUnit | null;
   }>;
   integrity: IntegrityInsights;
 }
@@ -514,7 +528,7 @@ export interface KeyCheckFlag {
 export interface QuestionInsightResponse {
   now: IsoDateTime;
   status: AiStatus;
-  /** not_applicable: "NO_COMMON_WRONG_OPTION" | "TOO_FEW_SUBMISSIONS" | "UNSUPPORTED_TYPE" */
+  /** not_applicable: "NO_COMMON_WRONG_OPTION" | "TOO_FEW_SUBMISSIONS" | "UNSUPPORTED_TYPE" | "KEY_UNDER_QUESTION" (the answer-key check says "Key looks wrong" for this question; added 5 Nov) */
   reason: string | null;
   insight: {
     n: number;

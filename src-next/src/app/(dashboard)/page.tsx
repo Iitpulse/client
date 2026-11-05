@@ -12,7 +12,7 @@ import { useAuthStore, usePermissionsStore } from "@/stores";
 import { Topbar } from "@/components/admin/Topbar";
 import LegacyDashboard from "@/components/student-dashboard-legacy";
 import { type AdminTest, testState, useAllTests } from "@/lib/queries";
-import { deltaTone, signed, useAdminOverview, useBankCounts, useBatchSummary, useLiveTests } from "@/lib/queries-tests-admin";
+import { deltaTone, useAdminOverview, vsPrevious, useBankCounts, useBatchSummary, useLiveTests } from "@/lib/queries-tests-admin";
 import { BulkPreviewDialog } from "@/components/questions-admin/bulk-ai";
 import type { AdminOverview, DraftKind, LiveTest, TestKind } from "@/lib/m5-contract";
 
@@ -200,13 +200,13 @@ function AdminDashboard({
             sub={
               latest
                 ? latest.previous && latest.averageDelta !== null
-                  ? `${signed(latest.averageDelta)} vs ${latest.previous.name}`
+                  ? vsPrevious(latest.averageDelta, latest.averageDeltaUnit, latest.previous.name)
                   : `${plural(latest.appeared, "student")} wrote it`
                 : ov
                   ? "No results yet"
                   : undefined
             }
-            subTone={latest?.previous && latest.averageDelta !== null ? deltaTone(latest.averageDelta, latest.maxScore) : undefined}
+            subTone={latest?.previous && latest.averageDelta !== null ? deltaTone(latest.averageDelta, latest.maxScore, latest.averageDeltaUnit) : undefined}
           />
           <Stat
             i={2}

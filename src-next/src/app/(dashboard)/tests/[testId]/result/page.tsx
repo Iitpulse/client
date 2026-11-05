@@ -21,9 +21,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenu
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores";
 import { buildRows, duration, fmt, quantile, sectionMax, type Paper, type RawSubmission, type Row } from "@/lib/results";
-import { deltaTone, m5ErrorCode, signed, useBatchSummary, useResultInsights } from "@/lib/queries-tests-admin";
+import { deltaTone, m5ErrorCode, useBatchSummary, useResultInsights, vsPrevious } from "@/lib/queries-tests-admin";
 import { toast } from "@/hooks/use-toast";
-import type { BatchSummaryResponse, IntegrityInsights, ResultInsights } from "@/lib/m5-contract";
+import type { BatchSummaryResponse, DeltaUnit, IntegrityInsights, ResultInsights } from "@/lib/m5-contract";
 import "../results.css";
 
 interface StudentInfo { id?: string; _id?: string; name: string; email?: string; batch?: string }
@@ -218,10 +218,10 @@ export default function TestResultPage() {
 
   // Subject averages: the insights' (merged by subject, with the previous mock), else per section from the submissions.
   const subjectRows = React.useMemo(() => {
-    if (insights?.subjects.length) return insights.subjects.map((x) => ({ key: x.subject, name: x.subject, average: x.average, max: x.maxScore, previous: x.previousAverage, delta: x.delta }));
+    if (insights?.subjects.length) return insights.subjects.map((x) => ({ key: x.subject, name: x.subject, average: x.average, max: x.maxScore, previous: x.previousAverage, previousMax: x.previousMaxScore ?? x.maxScore, delta: x.delta, unit: x.deltaUnit ?? null }));
     return sections.map((s) => {
       const vals = rows.map((r) => r.bySection[s.id]).filter((v) => typeof v === "number");
-      return { key: s.id, name: s.name, average: vals.length ? vals.reduce((x, y) => x + y, 0) / vals.length : 0, max: sectionMax(s) || 1, previous: null as number | null, delta: null as number | null };
+      return { key: s.id, name: s.name, average: vals.length ? vals.reduce((x, y) => x + y, 0) / vals.length : 0, max: sectionMax(s) || 1, previous: null as number | null, previousMax: 1, delta: null as number | null, unit: null as DeltaUnit | null };
     });
   }, [insights, sections, rows]);
 
@@ -342,8 +342,8 @@ export default function TestResultPage() {
                   testId="results-average"
                   label="Average"
                   value={rows.length || insights?.appeared ? fmt(average) : "—"}
-                  sub={prev && delta !== null ? `${signed(delta)} vs ${prev.name}` : rows.length ? `${((average / maxMarks) * 100).toFixed(0)}% of the paper` : undefined}
-                  tone={prev && delta !== null ? deltaTone(delta, insights?.test.maxScore ?? maxMarks) : undefined}
+                  sub={prev && delta !== null ? vsPrevious(delta, insights?.averageDeltaUnit, prev.name) : rows.length ? `${((average / maxMarks) * 100).toFixed(0)}% of the paper` : undefined}
+                  tone={prev && delta !== null ? deltaTone(delta, insights?.test.maxScore ?? maxMarks, insights?.averageDeltaUnit) : undefined}
                 />
                 <Stat i={2} label="Highest" value={top ? fmt(top.marks) : "—"} sub={top?.name} />
                 <Stat i={3} label="Median" value={rows.length ? fmt(quantile(marks, 0.5)) : "—"} sub={rows.length ? `Middle half: ${fmt(quantile(marks, 0.25), 0)}–${fmt(quantile(marks, 0.75), 0)}` : undefined} />
@@ -367,7 +367,7 @@ export default function TestResultPage() {
               <span className="h3">Subject averages</span>
               {subjectRows.map((x, i) => {
                 const mx = x.max || 1;
-                const tone = x.delta !== null ? deltaTone(x.delta, mx) : null;
+                const tone = x.delta !== null ? deltaTone(x.delta, mx, x.unit) : null;
                 return (
                   <div key={x.key} className="col gap-1.5">
                     <div className="row between sm">
@@ -383,14 +383,14 @@ export default function TestResultPage() {
                       {x.previous !== null && insights?.previous && (
                         <span
                           className="rs-tick"
-                          style={{ left: `${Math.max(0, Math.min(100, (x.previous / mx) * 100))}%` }}
-                          title={`${insights.previous.name} average: ${fmt(x.previous)}`}
+                          style={{ left: `${Math.max(0, Math.min(100, (x.previous / (x.previousMax || mx)) * 100))}%` }}
+                          title={`${insights.previous.name} average: ${fmt(x.previous)}${x.previousMax !== mx ? ` / ${fmt(x.previousMax)}` : ""}`}
                         />
                       )}
                     </div>
                     {x.delta !== null && insights?.previous && (
                       <span className={`xs ${tone === "good" ? "font-semibold text-success" : tone === "bad" ? "font-semibold text-warning" : "text-ink-2"}`}>
-                        {signed(x.delta)} vs {insights.previous.name}
+                        {vsPrevious(x.delta, x.unit, insights.previous.name)}
                       </span>
                     )}
                   </div>

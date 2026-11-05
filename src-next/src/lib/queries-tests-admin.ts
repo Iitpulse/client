@@ -10,6 +10,7 @@ import { apiQuestions, apiTests } from "@/lib/api";
 import type {
   AdminOverview,
   BatchSummaryResponse,
+  DeltaUnit,
   KeyCheckResponse,
   LiveTestsResponse,
   QuestionFilter,
@@ -171,8 +172,15 @@ export function signed(n: number): string {
   return r > 0 ? `+${s}` : r < 0 ? `−${s}` : "0";
 }
 
-/** Tone of a "vs previous" delta: green up, amber down, muted when within 2 % of the paper (board: +1 is muted). */
-export function deltaTone(delta: number, maxScore: number): "good" | "bad" | "flat" {
-  if (Math.abs(delta) < Math.max(0.5, maxScore * 0.02)) return "flat";
+/** Tone of a "vs previous" delta: green up, amber down, muted when within 2 % of the paper (board: +1 is muted).
+ *  A delta in percentage points (previous mock out of another maximum) is judged against 100. */
+export function deltaTone(delta: number, maxScore: number, unit: DeltaUnit | null = "marks"): "good" | "bad" | "flat" {
+  const scale = unit === "percentPoints" ? 100 : maxScore;
+  if (Math.abs(delta) < Math.max(0.5, scale * 0.02)) return "flat";
   return delta > 0 ? "good" : "bad";
+}
+
+/** "+9 vs Mock 10" (same maximum) or "+1.8 pts vs Mock 10" (percentage points, another maximum). */
+export function vsPrevious(delta: number, unit: DeltaUnit | null | undefined, previousName: string): string {
+  return `${signed(delta)}${unit === "percentPoints" ? " pts" : ""} vs ${previousName}`;
 }
