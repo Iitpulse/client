@@ -12,6 +12,8 @@
 @import 'katex/dist/katex.min.css';
 @import 'tw-animate-css';
 @import './legacy.css';
+/* the admin kit (components/kit, Kit-* boards) */
+@import '../components/kit/kit.css';
 
 /* Light mode only (round one). Keeps any `dark:` class inert instead of following the OS setting. */
 @custom-variant dark (&:is(.dark *));
