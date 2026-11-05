@@ -40,7 +40,9 @@ function createApiClient(
     (response) => response,
     (error: AxiosError) => {
       // Only redirect to login on 401 if not a public endpoint
-      if (error.response?.status === 401 && !options?.skipAuthRedirect) {
+      // A wrong password on the re-auth dialog is 401 WRONG_PASSWORD, not an expired session.
+      const isReauth = (error.config?.url ?? "").includes("/auth/reauth");
+      if (error.response?.status === 401 && !options?.skipAuthRedirect && !isReauth) {
         // Token expired or invalid
         if (typeof window !== "undefined") {
           localStorage.removeItem(AUTH_TOKEN_KEY);
