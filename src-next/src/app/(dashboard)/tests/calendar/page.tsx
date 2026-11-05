@@ -557,8 +557,20 @@ function WeekGrid({
       .map((t) => {
         const a = Math.max(Date.parse(t.opensAt), start);
         const b = Math.min(Date.parse(t.closesAt), end);
-        return { t, from: (a - start) / 60_000, to: (b - start) / 60_000 };
-      });
+        return { t, from: (a - start) / 60_000, to: (b - start) / 60_000, lane: 0, lanes: 1 };
+      })
+      .sort((x, y) => x.from - y.from)
+      .reduce<Array<{ t: CalTest; from: number; to: number; lane: number; lanes: number }>>((acc, seg) => {
+        // side by side when windows overlap: first free lane
+        const ends: number[] = [];
+        for (const p of acc) if (p.to > seg.from) ends[p.lane] = Math.max(ends[p.lane] ?? 0, p.to);
+        let lane = 0;
+        while (ends[lane] !== undefined) lane++;
+        acc.push({ ...seg, lane });
+        const n = Math.max(...acc.filter((p) => p.to > seg.from || p === acc[acc.length - 1]).map((p) => p.lane)) + 1;
+        for (const p of acc) if (p.to > seg.from) p.lanes = Math.max(p.lanes, n);
+        return acc;
+      }, []);
   });
   let minH = 8;
   let maxH = 22;
@@ -568,6 +580,13 @@ function WeekGrid({
   });
   const hours = Array.from({ length: maxH - minH }, (_, i) => minH + i);
   const grab = useRef(0);
+  const scroller = useRef<HTMLDivElement>(null);
+  const first = Math.min(8 * 60, ...segs.flat().map((x) => x.from));
+  useEffect(() => {
+    // open the day at 8 AM (or the first test, when earlier)
+    if (scroller.current) scroller.current.scrollTop = Math.max(0, ((first - minH * 60) / 60) * HOUR_PX - 8);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days[0]]);
 
   return (
     <div>
@@ -580,7 +599,7 @@ function WeekGrid({
           </span>
         ))}
       </div>
-      <div className="max-h-[640px] overflow-y-auto">
+      <div ref={scroller} className="max-h-[640px] overflow-y-auto">
         <div className="cal-wk">
           <div>
             {hours.map((h) => (
@@ -610,12 +629,18 @@ function WeekGrid({
               {hours.map((h) => (
                 <div key={h} className="slot" />
               ))}
-              {segs[i].map(({ t, from, to }) => (
+              {segs[i].map(({ t, from, to, lane, lanes }) => (
                 <button
                   key={t.testId}
                   type="button"
                   className={`blk ${kind(t)} ${openId === t.testId ? "on" : ""} ${t.movable ? "movable" : ""}`}
-                  style={{ top: ((from - minH * 60) / 60) * HOUR_PX + 2, height: Math.max(22, ((to - from) / 60) * HOUR_PX - 4) }}
+                  style={{
+                    top: ((from - minH * 60) / 60) * HOUR_PX + 2,
+                    height: Math.max(22, ((to - from) / 60) * HOUR_PX - 4),
+                    left: `calc(${(lane * 100) / lanes}% + 4px)`,
+                    right: "auto",
+                    width: `calc(${100 / lanes}% - 8px)`,
+                  }}
                   draggable={t.movable}
                   onDragStart={(e) => {
                     grab.current = e.clientY - (e.currentTarget as HTMLElement).getBoundingClientRect().top;

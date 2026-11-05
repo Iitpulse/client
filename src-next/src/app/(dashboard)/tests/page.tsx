@@ -240,7 +240,7 @@ function Tests() {
       notify.success(`Moved ${t.name} back to drafts`);
     } catch (e) {
       const a = apiError(e);
-      if (a.code === "TEST_LOCKED") notify.error("Couldn't move it back to drafts", { description: "It has opened, so it stays published." });
+      if (a.code === "TEST_LOCKED" || a.code === "NOT_PUBLISHED") notify.error("Couldn't move it back to drafts", { description: a.code === "NOT_PUBLISHED" ? "It's already a draft." : "It has opened, so it stays published." });
       else errorToast("Couldn't move it back to drafts", e);
     } finally {
       setBusy(null);
@@ -356,6 +356,7 @@ function Tests() {
       key: "status",
       header: "Status",
       width: 170,
+      tabletWidth: 140,
       render: (t) => {
         const st = statusOf(t);
         const sub = subLabel(t);
@@ -374,6 +375,7 @@ function Tests() {
       key: "batches",
       header: "Batches",
       width: 180,
+      tabletWidth: 130,
       render: (t) =>
         t.batches.length ? (
           <span className="sm [overflow-wrap:anywhere]" title={t.batches.map((b) => b.name).join(", ")}>
@@ -383,12 +385,13 @@ function Tests() {
           <span className="sm muted">No batch yet</span>
         ),
     },
-    { key: "window", header: "Window", width: 200, render: (t) => <span className="sm num whitespace-nowrap">{windowCell(t)}</span> },
+    { key: "window", header: "Window", width: 200, tabletWidth: 150, render: (t) => <span className="sm num">{windowCell(t)}</span> },
     {
       key: "attempts",
       header: "Attempts",
       align: "num",
       width: 110,
+      tabletWidth: 96,
       render: (t) => {
         const a = t.attempts;
         if (!a) return <span className="sm muted">—</span>;
@@ -410,7 +413,7 @@ function Tests() {
       },
     },
     { key: "results", header: "Results", width: 140, tablet: "hide", render: (t) => <ResultCell t={t} /> },
-    { key: "act", header: <span className="sr-only">Action</span>, width: 112, render: (t) => <div className="row justify-end">{primaryAction(t)}</div> },
+    { key: "act", header: <span className="sr-only">Action</span>, width: 112, tabletWidth: 92, render: (t) => <div className="row justify-end">{primaryAction(t)}</div> },
   ];
 
   const tabs = (
@@ -474,7 +477,7 @@ function Tests() {
               rowMenu={menu}
               rowMenuLabel={(t) => `More for ${t.name}`}
               scrollX
-              minWidth={920}
+              minWidth={860}
               skeletonRows={3}
               filtered={anyFilter}
               empty={
@@ -571,8 +574,9 @@ function Tests() {
         onConfirm={async (token) => {
           if (dialog?.kind !== "delete") return;
           const t = dialog.t;
+          let r;
           try {
-            await testsActions.remove(t.testId, token);
+            r = await testsActions.remove(t.testId, token);
           } catch (e) {
             if (apiError(e).code === "TEST_LIVE") {
               blockFrom(t, e);
@@ -581,7 +585,18 @@ function Tests() {
             throw e;
           }
           invalidate();
-          notify.success(`Deleted ${t.name}`);
+          const undo = r.undo;
+          if (undo)
+            notify.undo(`Deleted ${t.name}`, async () => {
+              try {
+                await testsActions.undo(undo.path, t.testId);
+                invalidate();
+                notify.success(`Restored ${t.name}`);
+              } catch (e) {
+                errorToast("Couldn't restore the test", e);
+              }
+            });
+          else notify.success(`Deleted ${t.name}`);
         }}
       />
       <ConfirmDialog
