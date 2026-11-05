@@ -1,0 +1,120 @@
+/*
+  Admin-Patterns and Admin-Templates page parts (boards' local styles; kit pieces come from components/kit).
+  Colours from @iitpulse/ui tokens; no drop shadows (focus/error rings only, as the boards).
+*/
+@layer components {
+  .m6-srch { position: relative; width: 260px; flex: none }
+  .m6-srch svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none }
+  .m6-srch input { height: 36px; padding-left: 34px; font-size: 13px; border-radius: 8px; width: 100% }
+
+  /* data table (Kit-Data K07 layout) */
+  .m6-dt .tr { display: grid; grid-template-columns: var(--cols); align-items: center; border-bottom: 1px solid #EEF0F5; min-width: var(--minw, 0) }
+  .m6-dt .tr:last-child { border-bottom: 0 }
+  .m6-dt .tr.h { background: #FAFBFD; border-bottom: 1px solid #EEF0F5 }
+  .m6-dt .th { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; white-space: nowrap }
+  .m6-dt .td { padding: 10px 14px; min-width: 0; font-size: 13px }
+  .m6-dt .num { text-align: right; font-variant-numeric: tabular-nums }
+  .m6-dt .tr.click { cursor: pointer }
+  .m6-dt .tr.click:hover { background: #F8F9FC }
+  .m6-rm { width: 30px; height: 30px; border: 0; background: none; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; flex: none }
+  .m6-rm:hover, .m6-rm[data-state="open"] { background: var(--navy-100); color: var(--navy) }
+  .m6-rm:disabled { opacity: .45; cursor: not-allowed }
+
+  /* states */
+  .m6-st { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 64px 20px }
+  .m6-st-ic { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center }
+  .m6-st-ic.err { background: var(--red-50); color: var(--red-600) }
+  .m6-st-ic.lock { background: #EEF0F5; color: var(--muted) }
+  .m6-st-ic.empty { background: var(--navy-50); color: var(--navy) }
+  .m6-pill { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 999px; background: #FFF4E2; color: #7A4A00; font-size: 11px; font-weight: 600; white-space: nowrap }
+
+  /* editor */
+  .m6-ed { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; padding: 20px 28px 40px; align-items: start }
+  .m6-outline { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 2px; padding: 8px }
+  .m6-oi { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); border: 0; background: none; width: 100%; text-align: left; font-family: inherit; cursor: pointer }
+  .m6-oi:hover { background: var(--ground) }
+  .m6-oi.on { background: var(--navy-50); color: var(--navy); font-weight: 600 }
+  .m6-oi.drop { box-shadow: inset 0 2px 0 var(--navy) }
+  .m6-oi .n { margin-left: auto; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 400 }
+  .m6-oi.m6-add { color: var(--navy); font-weight: 600 }
+  .m6-grip { color: #A9ACC0; flex: none; cursor: grab }
+  .m6-totals { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; padding: 12px 18px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-size: 13px }
+  .m6-totals b { font-size: 18px; font-weight: 650; font-variant-numeric: tabular-nums; margin-right: 4px }
+  .m6-g3 { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 150px; gap: 12px }
+  .m6-ss { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; background: var(--surface) }
+  fieldset.m6-ss { margin: 0; min-width: 0 }
+  .m6-locked .k-affix, .m6-locked .k-input { background: var(--ground) }
+  .m6-ss.bad { border-color: #F2B1B1; background: #FFFBFB }
+  .m6-ssg { display: grid; grid-template-columns: minmax(0, 1fr) 116px 116px 96px 96px; gap: 10px; align-items: end }
+  .m6-mini { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .02em }
+  .m6-pt { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 6px 12px; align-items: center; font-size: 13px; padding: 10px 12px; border-radius: 10px; background: #FAFBFD; border: 1px solid #EEF0F5 }
+  .m6-rule { font: 500 12px var(--mono, "Geist Mono", monospace); color: var(--navy); background: var(--navy-50); border-radius: 6px; padding: 4px 8px }
+  .m6-bn { display: flex; align-items: center; gap: 12px; padding: 10px 16px; font-size: 13px; line-height: 1.45; border-radius: 12px; border: 1px solid }
+  .m6-bn.warn { background: #FFF4E2; color: #5C3600; border-color: #F1D29A }
+  .m6-bn.info { background: #E8F1FD; color: #0D2E57; border-color: #BBD5F5 }
+  .m6-bn .t { flex: 1; min-width: 0 }
+  .m6-bn svg { flex: none }
+  .m6-err-t { display: flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 600; color: var(--red-600) }
+  .m6-step { display: flex; align-items: stretch; height: 36px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); overflow: hidden; font-size: 13px }
+  .m6-step.e { border-color: var(--red-600); box-shadow: 0 0 0 4px var(--red-50) }
+  .m6-step.lock { background: var(--ground) }
+  .m6-step input { border: 0; outline: 0; flex: 1; min-width: 0; width: 40px; padding: 0 4px; font: inherit; background: none; color: var(--ink); text-align: center; font-variant-numeric: tabular-nums }
+  .m6-step button { width: 30px; border: 0; background: var(--ground); color: var(--ink-2); font-size: 15px; cursor: pointer; flex: none }
+  .m6-step button:disabled { color: #A9ACC0; cursor: not-allowed }
+  .m6-step:focus-within { border-color: var(--navy); box-shadow: 0 0 0 4px var(--navy-100) }
+  .m6-collapsed { cursor: pointer }
+  .m6-collapsed:hover { border-color: #CDD0DE }
+
+  /* tablet (1024): one column, outline hidden, sub-section grid in 2 columns (boards' `.tab` rules) */
+  @media (max-width: 1180px) {
+    .m6-ed { grid-template-columns: minmax(0, 1fr); padding: 20px 20px 40px }
+    .m6-ed .m6-outline-wrap { display: none }
+    .m6-ssg { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+    .m6-ssg .wide { grid-column: 1 / -1 }
+    .m6-g3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) }
+    .m6-g3 > :first-child { grid-column: 1 / -1 }
+  }
+
+  /* templates */
+  .m6-wt { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 64px; gap: 8px 12px; align-items: center; font-size: 13px }
+  .m6-wt .h { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+  .m6-chipv { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: var(--navy-50); color: var(--navy); font: 500 12px var(--mono, "Geist Mono", monospace); border: 0; cursor: pointer }
+  .m6-chipv:hover { background: var(--navy-100) }
+  .m6-ta { width: 100%; min-height: 118px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 13px; line-height: 1.6; color: var(--ink); resize: vertical; background: var(--surface) }
+  .m6-ta:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 4px var(--navy-100) }
+  .m6-hi { font-family: "Noto Sans Devanagari", var(--font-sans, "Geist"), sans-serif }
+  .m6-tg { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); gap: 18px; padding: 20px 28px 40px; align-items: start }
+  .m6-tg > aside { position: sticky; top: 84px }
+  .m6-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px }
+  .m6-defs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) }
+  .m6-defs > div { padding: 14px 20px; border-right: 1px solid #EEF0F5; border-bottom: 1px solid #EEF0F5; display: flex; flex-direction: column; gap: 4px }
+  .m6-frame { border: 1.5px dashed #C3C6EF; border-radius: 16px; padding: 10px; background: #FAFBFD }
+  @media (max-width: 1180px) {
+    .m6-tg { grid-template-columns: minmax(0, 1fr); padding: 20px 20px 40px }
+    .m6-tg > aside { position: static }
+    .m6-defs { grid-template-columns: minmax(0, 1fr) }
+    .m6-cards { grid-template-columns: minmax(0, 1fr) }
+  }
+  @media (max-width: 1100px) {
+    .m6-g2t { grid-template-columns: minmax(0, 1fr) !important }
+  }
+
+  /* the frozen NTA replica: its own system font and colours, never the brand */
+  .m6-nta { font-family: Inter, "Segoe UI", system-ui, sans-serif; color: #374151; background: #fff; border: 1px solid #D3D6E2; border-radius: 12px; overflow: hidden }
+  .m6-nta .hd { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; border-bottom: 1px solid #E5E7EB }
+  .m6-nta .lg { color: #1D63E8; font-weight: 700; font-size: 19px; letter-spacing: -.01em }
+  .m6-nta .bar { background: #F3F4F6; padding: 8px 22px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #111827; border-bottom: 1px solid #E5E7EB }
+  .m6-nta .sel { border: 1px solid #D1D5DB; border-radius: 5px; background: #fff; padding: 3px 8px; font-size: 11px }
+  .m6-nta .bd { padding: 14px 22px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 11.5px; line-height: 1.55 }
+  .m6-nta .t { text-align: center; color: #111827; font-size: 13.5px; margin: 4px 0 }
+  .m6-nta u { color: #111827; font-size: 12.5px }
+  .m6-nta ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 3px; list-style: decimal }
+  .m6-nta .red { color: #E11D48; border-top: 1px solid #E5E7EB; border-bottom: 1px solid #E5E7EB; padding: 8px 0 }
+  .m6-nta .go { background: #D1D5DB; color: #4B5563; text-align: center; padding: 9px; border-radius: 3px; font-weight: 600; letter-spacing: .04em }
+  .m6-nta .b { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 3px; font-size: 11px; white-space: nowrap }
+  .m6-nta .pal { display: grid; grid-template-columns: repeat(8, 26px); gap: 5px }
+  .m6-nta .pal span { height: 24px; border: 1px solid #9CA3AF; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px }
+  .m6-nta.big .bd { font-size: 13px; gap: 10px; padding: 18px 32px 24px }
+  .m6-nta.big .t { font-size: 16px }
+  .m6-edited { background: #FFF4C2; border-radius: 3px; box-shadow: 0 0 0 2px #FFF4C2 }
+}

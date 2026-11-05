@@ -56,7 +56,7 @@ export const NAV: NavGroup[] = [
       { key: "questions", label: "Question bank", href: "/questions", icon: FileQuestionMark, permission: "question", keywords: ["questions"] },
       { key: "tests", label: "Tests", href: "/tests", icon: SquareCheck, permission: "test", keywords: ["exams", "mocks", "results"] },
       { key: "patterns", label: "Patterns", href: "/patterns", icon: Layers, permission: "pattern" },
-      { key: "templates", label: "Exam UI templates", href: "/ui-templates", icon: PanelTop, permission: "test", keywords: ["ui templates", "theme"], staffOnly: true },
+      { key: "templates", label: "Exam UI templates", href: "/templates", icon: PanelTop, permission: "test", keywords: ["ui templates", "wording", "instructions", "calculator"], staffOnly: true },
     ],
   },
   {
