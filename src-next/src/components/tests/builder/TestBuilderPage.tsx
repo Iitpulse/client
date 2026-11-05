@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Lock, TriangleAlert } from "lucide-react";
+import { CalendarDays, Lock, TriangleAlert } from "lucide-react";
 import type { FullscreenPolicy, PaperView, ResultMode, TestBuild, TestSettings, TestSettingsPatch } from "@/lib/m6-contract";
 import { apiError, errCode, fieldErrors, useM6Source } from "@/lib/m6/client";
 import { builderKeys, createTest, patchTest, publishTest, RESULT_MODES, useExamPatterns, useExamTemplates, usePatternFull, useReadiness, useTestSettings } from "@/lib/m6/builder";
@@ -709,7 +709,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
                         <span className="num">{istDateTime(test!.opensAt)}</span>
                       </ReadOnlyValue>
                     ) : (
-                      <DateTimeField id="tb-opens" value={isNew ? null : f!.opensAt} onChange={(v) => set({ opensAt: v })} readOnly={isNew} dialogLabel="When the test opens" />
+                      isNew ? <PendingDate id="tb-opens" /> : <DateTimeField id="tb-opens" value={f!.opensAt} onChange={(v) => set({ opensAt: v })} dialogLabel="When the test opens" />
                     )}
                   </Field>
                   <Field label="Closes" htmlFor="tb-closes" error={fe("closesAt")}>
@@ -718,7 +718,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
                         <span className="num">{istDateTime(test!.closesAt)}</span>
                       </ReadOnlyValue>
                     ) : (
-                      <DateTimeField id="tb-closes" value={isNew ? null : f!.closesAt} onChange={(v) => set({ closesAt: v })} readOnly={isNew} invalid={windowBad} dialogLabel="When the test closes" />
+                      isNew ? <PendingDate id="tb-closes" /> : <DateTimeField id="tb-closes" value={f!.closesAt} onChange={(v) => set({ closesAt: v })} invalid={windowBad} dialogLabel="When the test closes" />
                     )}
                   </Field>
                 </div>
@@ -859,6 +859,17 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
 
 /** Admin-QuestionPicker page for one sub-section (same address as question-picker's pickerHref). */
 const pickerHref = (testId: string, sub: string) => `/tests/${encodeURIComponent(testId)}/pick?sub=${encodeURIComponent(sub)}`;
+
+/** A date field before the test exists (board new-empty: "Pick a date and time", IST). */
+function PendingDate({ id }: { id: string }) {
+  return (
+    <button id={id} type="button" className="k-cb dis" disabled title="Pick a pattern first">
+      <CalendarDays className="size-[15px]" aria-hidden />
+      <span className="v ph">Pick a date and time</span>
+      <span className="k-ist">IST</span>
+    </button>
+  );
+}
 
 function keyText(k: { optionIds?: string[]; range?: { from: number; to: number } }): string {
   if (k.optionIds?.length) return k.optionIds.join(", ");
