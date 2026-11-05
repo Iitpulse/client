@@ -4,14 +4,16 @@
   Admin-BulkUpload board: Upload → AI parsing → Review → Import.
   Parsing is the existing AI parser (gateway /questions/ai/parse*): files always go through the background job
   and are polled (commit 1be0517: a synchronous parse can outlive Cloudflare's 100 s proxy limit); pasted text
-  goes through /parse-text. Saving is /questions/ai/confirm. The board's duplicate check and Excel template have
-  no API yet, so they are not drawn.
+  goes through /parse-text. Saving is /questions/ai/confirm. M5: "Download Excel template" (ai
+  /admin/parse/template.xlsx); a filled template goes through the same parse call (no model, 0 credits) and lands in
+  the same Review step. Parsed rows are checked against the bank (questions /admin/duplicates, batches of 100):
+  "N duplicates" on the Ready card, and a matching row is flagged like the other rows that need a look.
 */
 
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronDown, ChevronRight, FileText, Upload, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Download, FileText, Upload, X } from "lucide-react";
 import { MathText } from "@iitpulse/ui";
 
 import { Topbar } from "@/components/admin/Topbar";
@@ -23,6 +25,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import api, { ParsedQuestion as APIParsedQuestion } from "@/lib/api";
 import { ISubject, IChapter } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { aiAdmin, questionsAdmin, saveBlob } from "@/lib/ai-admin";
 import "./bulk-upload.css";
 
 interface EditableQuestion extends APIParsedQuestion {
@@ -39,8 +42,18 @@ type Flag = { tone: "ok" | "warn" | "bad"; label: string };
 const PAGE = 25;
 const LETTERS = "ABCDEFGHIJ";
 
+type Dupes = Record<string, Array<{ questionId: string; similarity: number }>>;
+
 /** Deterministic checks on a parsed question (no AI): what an admin should look at before importing. */
-function checkQuestion(q: EditableQuestion): Flag {
+function checkQuestion(q: EditableQuestion, dupes?: Dupes): Flag {
+  const base = baseCheck(q);
+  const match = dupes?.[q.id]?.[0];
+  // A bank question with a similar stem: flagged like the board's other "needs a look" rows (problems keep priority)
+  if (base.tone === "ok" && match) return { tone: "warn", label: `Looks like ${match.questionId}` };
+  return base;
+}
+
+function baseCheck(q: EditableQuestion): Flag {
   if (!q.correctAnswers?.length) return { tone: "bad", label: "No answer in the key" };
   if ((q.en?.options?.length ?? 0) < 2) return { tone: "bad", label: "Options missing" };
   if (!(q.editedSubject || q.subject) || !(q.editedChapter || q.chapter)) return { tone: "warn", label: "Needs subject and chapter" };
@@ -115,6 +128,37 @@ export default function BulkUploadPage() {
   // Edit dialog
   const [editingQuestion, setEditingQuestion] = React.useState<EditableQuestion | null>(null);
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
+
+  // Duplicate check against the bank (null = not checked / could not be checked)
+  const [dupes, setDupes] = React.useState<Dupes | null>(null);
+  const [downloading, setDownloading] = React.useState(false);
+
+  const downloadTemplate = async () => {
+    setDownloading(true);
+    try {
+      saveBlob(await aiAdmin.template(), "iitpulse-questions-template.xlsx");
+    } catch (e) {
+      toast({ title: "Could not download the template", description: e instanceof Error ? e.message : "Please try again.", variant: "destructive" });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const checkDuplicates = async (qs: APIParsedQuestion[]) => {
+    setDupes(null);
+    const items = qs.filter((q) => q.en?.question).map((q) => ({ key: q.id, text: q.en.question.slice(0, 20000) }));
+    const out: Dupes = {};
+    try {
+      for (let i = 0; i < items.length; i += 100) {
+        const r = await questionsAdmin.duplicates({ items: items.slice(i, i + 100) });
+        for (const x of r.results) if (x.matches.length) out[x.key] = x.matches.map((m) => ({ questionId: m.questionId, similarity: m.similarity }));
+      }
+      setDupes(out);
+    } catch {
+      // The check is advisory: without it the badge is simply not shown
+      setDupes(null);
+    }
+  };
 
   React.useEffect(() => {
     const fetchSubjects = async () => {
@@ -222,6 +266,7 @@ export default function BulkUploadPage() {
       for (const q of editableQuestions) if (checkQuestion(q).tone === "bad") q.isSelected = false;
 
       setParsedQuestions(editableQuestions);
+      void checkDuplicates(editableQuestions);
       const invalidQs = data.invalidQuestions || [];
       setInvalidQuestions(invalidQs);
       setParseSeconds(Math.round((Date.now() - started) / 1000));
@@ -339,8 +384,8 @@ export default function BulkUploadPage() {
 
   // Review rows: flagged first (bad, then warn), then the rest, each in paper order.
   const rows = React.useMemo(
-    () => parsedQuestions.map((q, i) => ({ q, n: i + 1, flag: checkQuestion(q) })),
-    [parsedQuestions]
+    () => parsedQuestions.map((q, i) => ({ q, n: i + 1, flag: checkQuestion(q, dupes ?? undefined) })),
+    [parsedQuestions, dupes]
   );
   const flaggedRows = React.useMemo(
     () => rows.filter((r) => r.flag.tone !== "ok").sort((a, b) => (a.flag.tone === b.flag.tone ? a.n - b.n : a.flag.tone === "bad" ? -1 : 1)),
@@ -352,6 +397,7 @@ export default function BulkUploadPage() {
   const pageRows = visible.slice(page * PAGE, page * PAGE + PAGE);
   const selectedCount = parsedQuestions.filter((q) => q.isSelected).length;
   const skipCount = parsedQuestions.length - selectedCount;
+  const duplicateCount = dupes ? parsedQuestions.filter((q) => dupes[q.id]?.length).length : null;
   const foundSubjects = [...new Set(parsedQuestions.map((q) => subjectName(q.editedSubject || q.subject)).filter(Boolean))];
 
   const currentStep: 1 | 2 | 3 | 4 | 5 = step === "complete" ? 5 : step === "preview" ? (uploading ? 4 : 3) : parsing ? 2 : 1;
@@ -359,7 +405,16 @@ export default function BulkUploadPage() {
 
   return (
     <>
-      <Topbar title="Import questions" back={{ href: "/questions", label: "Bank" }} />
+      <Topbar
+        title="Import questions"
+        back={{ href: "/questions", label: "Bank" }}
+        actions={
+          <button type="button" className="btn btn-ghost btn-sm" onClick={downloadTemplate} disabled={downloading} aria-busy={downloading || undefined}>
+            <Download className="size-4" aria-hidden />
+            Download Excel template
+          </button>
+        }
+      />
       <main className="col gap-4 px-7 pt-5 pb-10">
         <Steps current={currentStep} />
 
@@ -375,7 +430,7 @@ export default function BulkUploadPage() {
                     Paste text
                   </button>
                 </div>
-                <span className="xs muted">PDF, images or text. Equations come back as LaTeX.</span>
+                <span className="xs muted">PDF, images, text or the Excel template. Equations come back as LaTeX.</span>
               </div>
 
               {uploadMode === "file" ? (
@@ -398,7 +453,7 @@ export default function BulkUploadPage() {
                     id="file"
                     type="file"
                     className="sr-only"
-                    accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt"
+                    accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.xlsx"
                     onChange={(e) => {
                       const f = e.target.files?.[0];
                       if (f) setFile(f);
@@ -429,7 +484,7 @@ export default function BulkUploadPage() {
                         <FileText className="size-5" aria-hidden />
                       </span>
                       <span className="sm font-semibold">Drop a question paper here, or choose a file</span>
-                      <span className="xs muted">PDF, PNG, JPG, WebP or TXT</span>
+                      <span className="xs muted">PDF, PNG, JPG, WebP, TXT or the filled Excel template</span>
                     </>
                   )}
                 </label>
@@ -547,7 +602,7 @@ export default function BulkUploadPage() {
                 </div>
                 <div className="col gap-1.5">
                   <div className="row between xs">
-                    <span className="font-semibold">Parsed with AI{parseSeconds !== null ? ` in ${parseSeconds} s` : ""}</span>
+                    <span className="font-semibold">{fileExt === "XLSX" ? "Read from the Excel template" : "Parsed with AI"}{parseSeconds !== null ? ` in ${parseSeconds} s` : ""}</span>
                     <span className="muted num">
                       {parsedQuestions.length} of {parsedQuestions.length + invalidQuestions.length}
                     </span>
@@ -567,6 +622,11 @@ export default function BulkUploadPage() {
                   {flaggedRows.length > 0 && <span className="badge b-amber">{flaggedRows.length} need a look</span>}
                   {invalidQuestions.length > 0 && <span className="badge b-red">{invalidQuestions.length} couldn&apos;t be read</span>}
                   {needsLook === 0 && <span className="badge b-green">All look good</span>}
+                  {duplicateCount !== null && (
+                    <span className={`badge ${duplicateCount > 0 ? "b-amber" : "b-grey"}`}>
+                      {duplicateCount} duplicate{duplicateCount === 1 ? "" : "s"}
+                    </span>
+                  )}
                 </div>
               </div>
             </section>

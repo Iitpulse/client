@@ -7,12 +7,17 @@
   - create and update send the same document the questions API stores: en/hi blocks with option ids,
     correctAnswers / correctAnswer, chapters with their topics, a paragraph as its passage HTML;
   - option ids are kept on edit, so tests and results that point at them stay valid.
-  The board's AI assist (tags, translation, solution drafts, duplicate check) waits for the M5 AI backend.
+  AI assist (M5, contract api-ai docs/m5-api.md): suggest tags (Apply fills the form), translate to Hindi and draft a
+  solution (both stream), the key-agreement label, a failed translation's message, "Save first?" when the form has
+  unsaved changes (AI reads the saved question), the daily limit, paragraph/matrix not supported, a link to waiting
+  drafts, and the duplicate check. Apply / Accept only move a draft into the form; Save accepts each draft in the form
+  (with the form's version of its fields when the teacher edited them), then sends the usual update for other changes.
 */
 import * as React from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { AlertCircle, Plus, Trash2 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -57,6 +62,9 @@ import {
   type QuestionKind,
 } from "@/lib/question-queries";
 import type { ISubject } from "@/types";
+import { AdminApiError, aiAdmin, apiError, editorKind, pollDraft, questionsAdmin, streamAssist } from "@/lib/ai-admin";
+import type { AiDraft, DraftKind, DraftPayload, DuplicateCheckResponse, SolutionPayload, TagsPayload, TranslationPayload } from "@/lib/m5-contract";
+import { AlertIcon, ClockIcon, CrossIcon, Note, Sparkle, TickIcon } from "@/components/questions-admin/parts";
 
 import "react-quill-new/dist/quill.snow.css";
 
@@ -125,6 +133,11 @@ const uid = (p: string) => `${p}_${Date.now()}_${Math.random().toString(36).slic
 const blankOpts = (n = 4): Opt[] => Array.from({ length: n }, () => ({ id: uid("opt"), en: "", hi: "", correct: false }));
 const grid = (r: number, c: number) => Array.from({ length: r }, () => Array<boolean>(c).fill(false));
 const KEY = (i: number) => String.fromCharCode(65 + i);
+const Spinner = () => (
+  <svg className="spin shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+    <path d="M21 12a9 9 0 1 1-6.2-8.6" strokeLinecap="round" />
+  </svg>
+);
 
 function emptyForm(kind: QuestionKind): Form {
   return {
@@ -223,6 +236,32 @@ function previewOf(f: Form): BankQuestion {
   };
 }
 
+/* ---------- AI drafts in the form ---------- */
+
+/** A draft moved into the form, with the values it put there (to tell an edited version from the draft's own). */
+interface Applied {
+  draft: AiDraft;
+  snap: { chapters?: string[]; topics?: string[]; difficulty?: string; questionHi?: string; optionsHi?: Record<string, string>; solutionHi?: string; solutionEn?: string };
+}
+type AppliedMap = Partial<Record<DraftKind, Applied>>;
+
+const escHtml = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+/** An AI solution (plain text with line breaks) as the editor's HTML: one paragraph per line. */
+const solutionHtml = (t: string) =>
+  t
+    .split(/\n/)
+    .map((l) => `<p>${l.trim() ? escHtml(l) : "<br>"}</p>`)
+    .join("");
+
+const sameList = (a: string[] = [], b: string[] = []) => a.length === b.length && a.every((x, i) => x === b[i]);
+
+const LIMIT_TEXT: Record<DraftKind, (n: number) => string> = {
+  tags: (n) => `Today's ${n.toLocaleString("en-IN")} tag suggestions are used up. Suggest again after midnight.`,
+  translation: (n) => `Today's ${n.toLocaleString("en-IN")} Hindi translations are used up. Translate again after midnight.`,
+  solution: (n) => `Today's ${n.toLocaleString("en-IN")} solution drafts are used up. Draft again after midnight.`,
+};
+const WAIT_NOUN: Record<DraftKind, string> = { tags: "tag suggestion", translation: "Hindi draft", solution: "solution draft" };
+
 function RichField({ value, onChange, label, minH = 96 }: { value: string; onChange: (v: string) => void; label: string; minH?: number }) {
   return (
     <div
@@ -250,11 +289,14 @@ export function QuestionEditor({
   id,
   typeParam,
   fromId,
+  assist,
 }: {
   mode: "create" | "edit";
   id?: string;
   typeParam?: string | null;
   fromId?: string | null;
+  /** ?assist=tags|translation|solution: start that assist once the question is loaded (the bank's "Draft solution") */
+  assist?: string | null;
 }) {
   const router = useRouter();
   const qc = useQueryClient();
@@ -284,6 +326,24 @@ export function QuestionEditor({
   const [savedAt, setSavedAt] = React.useState<string | null>(null);
   const [topicDrawer, setTopicDrawer] = React.useState(false);
 
+  // AI assist
+  const [applied, setApplied] = React.useState<AppliedMap>({});
+  const [running, setRunning] = React.useState<DraftKind | null>(null);
+  const [hiStream, setHiStream] = React.useState<string | null>(null);
+  const [hiFailed, setHiFailed] = React.useState<AiDraft | null>(null);
+  const [sol, setSol] = React.useState<{ draft: AiDraft | null; text: string; state: "streaming" | "ready" | "accepted" } | null>(null);
+  const [tagsDraft, setTagsDraft] = React.useState<AiDraft | null>(null);
+  const [aiFailed, setAiFailed] = React.useState<{ kind: DraftKind; title: string; message: string } | null>(null);
+  const [askSave, setAskSave] = React.useState<DraftKind | null>(null);
+  const [limits, setLimits] = React.useState<Partial<Record<DraftKind, number>>>({});
+  const [unsupportedByApi, setUnsupportedByApi] = React.useState(false);
+  const [waiting, setWaiting] = React.useState<AiDraft[]>([]);
+  const [dups, setDups] = React.useState<DuplicateCheckResponse["results"][number]["matches"] | null>(null);
+  const [dupBusy, setDupBusy] = React.useState(false);
+  const assistAbort = React.useRef<AbortController | null>(null);
+  const autoAssisted = React.useRef(false);
+  React.useEffect(() => () => assistAbort.current?.abort(), []);
+
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
   const dirty = !loading && JSON.stringify(form) !== saved;
   const { showDialog, confirmNavigation, cancelNavigation, navigateWithCheck } = useUnsavedChanges({ isDirty: dirty && !saving });
@@ -310,6 +370,21 @@ export function QuestionEditor({
     })();
     return () => { live = false; };
   }, [sourceId, typeParam, mode]);
+
+  // Drafts already waiting for this question (a bulk run, or an assist the teacher left)
+  React.useEffect(() => {
+    if (mode !== "edit" || !id) return;
+    let live = true;
+    aiAdmin
+      .drafts({ questionId: id, status: "ready" })
+      .then((r) => {
+        if (live) setWaiting(r.items);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [mode, id]);
 
   // Chapters and topics of the chosen subject
   const subjectData = subjects.find((s) => s.name.toLowerCase() === form.subject.toLowerCase()) ?? null;
@@ -402,10 +477,10 @@ export function QuestionEditor({
   const errorList = (e: FormErrors): string[] =>
     Object.entries(e).flatMap(([, v]) => (typeof v === "string" ? [v] : v && typeof v === "object" ? Object.values(v as Record<string, string>) : []));
 
-  const save = async () => {
+  const save = async (opts: { assistAfter?: DraftKind } = {}): Promise<boolean> => {
     if (!currentUser) {
       toast({ title: "Not signed in", description: "Sign in again to save questions.", variant: "destructive" });
-      return;
+      return false;
     }
     const f = form;
     const errs: FormErrors = {};
@@ -414,7 +489,7 @@ export function QuestionEditor({
     if (f.difficulty === "unset") errs.difficulty = "Choose a difficulty";
     if (Object.keys(errs).length) {
       setErrors(errs);
-      return;
+      return false;
     }
 
     const chapters = f.chapters.map((name) => {
@@ -454,7 +529,7 @@ export function QuestionEditor({
         const to = f.answerTo.trim() === "" ? from : parseFloat(f.answerTo);
         if (Number.isNaN(from) || Number.isNaN(to)) {
           setErrors({ correctAnswer: "Enter the answer (From, and To for a range)" });
-          return;
+          return false;
         }
         doc = generateIntegerQuestion(core, {
           en: { question: f.questionEn, solution: f.solutionEn },
@@ -480,7 +555,7 @@ export function QuestionEditor({
         });
         if (Object.keys(pe).length) {
           setErrors(pe);
-          return;
+          return false;
         }
         doc = {
           ...core,
@@ -506,7 +581,7 @@ export function QuestionEditor({
     } catch (e) {
       if (e instanceof z.ZodError) {
         setErrors(parseZodErrors(e));
-        return;
+        return false;
       }
       throw e;
     }
@@ -515,17 +590,47 @@ export function QuestionEditor({
     setSaving(true);
     try {
       if (mode === "edit" && loaded) {
-        await api.questions.update(loaded._kind, loaded._id, doc);
+        // AI drafts in the form first: accept writes their fields (and the audit row) through questions
+        const kinds = Object.keys(applied) as DraftKind[];
+        for (const k of kinds) {
+          const a = applied[k]!;
+          const payload = editedPayload(k, a, f);
+          try {
+            await aiAdmin.accept(a.draft.id, payload ? { payload } : {});
+          } catch (e) {
+            const err = apiError(e);
+            if (err.code === "DRAFT_ALREADY_DECIDED") continue;
+            toast({
+              title: "Could not save the AI draft",
+              description:
+                err.code === "DRAFT_STALE"
+                  ? "Someone changed this question after the draft was made. Reload the page to see the latest version."
+                  : err.code === "DRAFT_CHECK_FAILED"
+                    ? ((err.details?.checks as { problems?: string[] } | undefined)?.problems?.join(" ") ?? err.message)
+                    : err.message,
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
+        if (!kinds.length || otherChanges(kinds, f)) await api.questions.update(loaded._kind, loaded._id, doc);
+        setApplied({});
+        setSol((x) => (x?.state === "accepted" ? null : x));
+        setWaiting((w) => w.filter((d) => !kinds.some((k) => applied[k]?.draft.id === d.id)));
         setSaved(JSON.stringify(f));
         setSavedAt(new Date().toISOString());
         toast({ title: "Question saved" });
       } else {
-        await api.questions.create(f.kind, doc);
+        const res = await api.questions.create(f.kind, doc);
         setSaved(JSON.stringify(f));
         toast({ title: "Question created", description: "The question was added to the bank." });
-        router.push("/questions");
+        const created = (res.data as { data?: { _id?: string; id?: string } })?.data;
+        const newId = created?._id || created?.id;
+        if (opts.assistAfter && newId) router.push(`/questions/${newId}/edit?type=${f.kind}&assist=${opts.assistAfter}`);
+        else router.push("/questions");
       }
       qc.invalidateQueries({ queryKey: ["questions"] });
+      return true;
     } catch (error: unknown) {
       const ax = error as { response?: { data?: { message?: string; error?: { message?: string } } } };
       toast({
@@ -533,15 +638,222 @@ export function QuestionEditor({
         description: ax?.response?.data?.message || ax?.response?.data?.error?.message || (error instanceof Error ? error.message : "Please try again."),
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
   const discard = () => {
+    // Drafts the form had taken in are discarded too (the API marks them; nothing in the bank changes)
+    for (const a of Object.values(applied)) if (a) aiAdmin.discard(a.draft.id).catch(() => {});
+    if (sol?.draft && sol.state !== "accepted" && !applied.solution) aiAdmin.discard(sol.draft.id).catch(() => {});
+    setApplied({});
+    setSol(null);
+    setTagsDraft(null);
+    setHiFailed(null);
     setForm(JSON.parse(saved) as Form);
     setErrors({});
   };
+
+  /* ---------- AI assist ---------- */
+
+  /** The form's version of a draft's fields when the teacher changed what the draft put in; null = the draft as is. */
+  function editedPayload(kind: DraftKind, a: Applied, f: Form): DraftPayload | null {
+    const s = a.snap;
+    if (kind === "tags") {
+      if (sameList(f.chapters, s.chapters) && sameList(f.topics, s.topics) && f.difficulty === s.difficulty) return null;
+      const p = a.draft.payload as TagsPayload;
+      const chapters = f.chapters
+        .map((name) => {
+          const c = chapterList.find((x) => x.name === name) as { id?: string; _id?: string; name: string } | undefined;
+          const known = p.chapters.find((x) => x.name === name);
+          return { id: known?.id || c?.id || c?._id || "", name };
+        })
+        .filter((c) => c.id);
+      const topics = p.topics.filter((t) => f.topics.includes(t.name) && chapters.some((c) => c.id === t.chapterId));
+      return { subject: null, chapters, topics, difficulty: (f.difficulty === "unset" ? p.difficulty : f.difficulty) as TagsPayload["difficulty"] };
+    }
+    if (kind === "translation") {
+      const optsSame = f.options.every((o) => s.optionsHi?.[o.id] === undefined || s.optionsHi[o.id] === o.hi);
+      if (f.questionHi === s.questionHi && optsSame && (s.solutionHi === undefined || f.solutionHi === s.solutionHi)) return null;
+      const p = (a.draft.payload as TranslationPayload).hi;
+      return {
+        hi: {
+          question: f.questionHi,
+          ...(p.options ? { options: f.options.map((o) => ({ id: o.id, value: o.hi })) } : {}),
+          ...(p.solution !== undefined ? { solution: f.solutionHi } : {}),
+        },
+      };
+    }
+    if (f.solutionEn === s.solutionEn) return null;
+    return { solution: f.solutionEn, statedAnswer: (a.draft.payload as SolutionPayload).statedAnswer };
+  }
+
+  /** Whether the form changes anything besides the fields of the drafts it holds (then the usual update runs too). */
+  function otherChanges(kinds: DraftKind[], f: Form): boolean {
+    const base = JSON.parse(saved) as Form;
+    const merged: Form = { ...base };
+    if (kinds.includes("tags")) Object.assign(merged, { chapters: f.chapters, topics: f.topics, difficulty: f.difficulty });
+    if (kinds.includes("translation"))
+      Object.assign(merged, { questionHi: f.questionHi, solutionHi: f.solutionHi, options: base.options.map((o) => ({ ...o, hi: f.options.find((x) => x.id === o.id)?.hi ?? o.hi })) });
+    if (kinds.includes("solution")) merged.solutionEn = f.solutionEn;
+    return JSON.stringify(merged) !== JSON.stringify(f);
+  }
+
+  const applyTranslation = (d: AiDraft) => {
+    const hi = (d.payload as TranslationPayload).hi;
+    const optionsHi: Record<string, string> = {};
+    for (const o of hi.options ?? []) optionsHi[o.id] = unwrapP(o.value ?? "");
+    setForm((f) => ({
+      ...f,
+      questionHi: hi.question,
+      options: f.options.map((o) => (optionsHi[o.id] === undefined ? o : { ...o, hi: optionsHi[o.id] })),
+      solutionHi: hi.solution ?? f.solutionHi,
+    }));
+    setApplied((m) => ({ ...m, translation: { draft: d, snap: { questionHi: hi.question, optionsHi, ...(hi.solution !== undefined ? { solutionHi: hi.solution } : {}) } } }));
+  };
+
+  const applyTags = () => {
+    if (!tagsDraft) return;
+    const p = tagsDraft.payload as TagsPayload;
+    const snap = { chapters: p.chapters.map((c) => c.name), topics: p.topics.map((t) => t.name), difficulty: p.difficulty };
+    setForm((f) => ({ ...f, ...snap }));
+    setApplied((m) => ({ ...m, tags: { draft: tagsDraft, snap } }));
+    setTagsDraft(null);
+  };
+
+  const acceptSolution = () => {
+    if (!sol?.draft) return;
+    const html = solutionHtml((sol.draft.payload as SolutionPayload).solution);
+    setForm((f) => ({ ...f, solutionEn: html }));
+    setApplied((m) => ({ ...m, solution: { draft: sol.draft!, snap: { solutionEn: html } } }));
+    setSol({ ...sol, state: "accepted" });
+    setLang("en");
+  };
+
+  const discardSolution = () => {
+    if (sol?.draft) aiAdmin.discard(sol.draft.id).catch(() => {});
+    setSol(null);
+  };
+
+  const finishDraft = (kind: DraftKind, d: AiDraft) => {
+    setWaiting((w) => w.filter((x) => !(x.kind === kind && x.status === "ready")));
+    if (d.status !== "ready") {
+      const message = d.error?.message || "The AI could not make this draft. Try again.";
+      if (kind === "translation") {
+        setHiStream(null);
+        setHiFailed(d);
+      } else {
+        if (kind === "solution") setSol(null);
+        setAiFailed({
+          kind,
+          title: kind === "tags" ? (d.error?.code === "NO_VALID_TAGS" ? "No tags suggested from your chapter list" : "Couldn't suggest tags") : "Couldn't draft a solution",
+          message,
+        });
+      }
+      return;
+    }
+    if (kind === "translation") {
+      setHiStream(null);
+      applyTranslation(d);
+    } else if (kind === "solution") setSol({ draft: d, text: (d.payload as SolutionPayload).solution, state: "ready" });
+    else setTagsDraft(d);
+  };
+
+  const runAssist = async (kind: DraftKind, opts: { saved?: boolean } = {}) => {
+    if (mode !== "edit" || !loaded || (dirty && !opts.saved)) {
+      setAskSave(kind);
+      return;
+    }
+    setAskSave(null);
+    setAiFailed(null);
+    if (kind === "translation") {
+      setHiFailed(null);
+      setHiStream("");
+      setLang("hi");
+    }
+    if (kind === "solution") {
+      setSol({ draft: null, text: "", state: "streaming" });
+      setLang("en");
+    }
+    if (kind === "tags") setTagsDraft(null);
+    setRunning(kind);
+    assistAbort.current?.abort();
+    const ac = new AbortController();
+    assistAbort.current = ac;
+    const got: { start?: AiDraft; done?: AiDraft } = {};
+    try {
+      await streamAssist(
+        loaded._id,
+        kind,
+        (e) => {
+          if (e.event === "start") got.start = e.data.draft;
+          else if (e.event === "delta") {
+            const text = e.data.text;
+            if (e.data.part === "stem" && kind === "translation") setHiStream((x) => (x ?? "") + text);
+            if (e.data.part === "solution" && kind === "solution") setSol((x) => (x ? { ...x, text: x.text + text } : x));
+          } else if (e.event === "done") got.done = e.data.draft;
+        },
+        ac.signal
+      );
+      if (!got.done && got.start) got.done = await pollDraft(got.start.id, ac.signal);
+      if (!got.done) throw new AdminApiError(0, "AI_UNAVAILABLE", "The AI did not answer. Try again in a minute.");
+      finishDraft(kind, got.done);
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
+      const err = apiError(e);
+      if (kind === "translation") setHiStream(null);
+      if (kind === "solution") setSol(null);
+      if (err.code === "UNSUPPORTED_TYPE") setUnsupportedByApi(true);
+      else if (err.code === "ADMIN_AI_DAILY_LIMIT") setLimits((l) => ({ ...l, [kind]: Number(err.details?.perDay ?? 0) }));
+      else
+        toast({
+          title: "AI assist is not available",
+          description:
+            err.code === "AI_RATE_LIMITED"
+              ? `Too many AI requests this hour. Try again in ${Math.max(1, Math.ceil(Number(err.details?.retryAfterSeconds ?? 60) / 60))} min.`
+              : err.code === "AI_PAUSED"
+                ? "AI is switched off for now. Try again later."
+                : err.message,
+          variant: "destructive",
+        });
+    } finally {
+      setRunning((r) => (r === kind ? null : r));
+    }
+  };
+
+  const saveAndDraft = async () => {
+    const kind = askSave;
+    if (!kind) return;
+    setAskSave(null);
+    const ok = await save({ assistAfter: kind });
+    if (ok && mode === "edit") runAssist(kind, { saved: true });
+  };
+
+  const checkDuplicates = async () => {
+    const text = form.kind === "paragraph" ? form.passage : form.questionEn;
+    setDupBusy(true);
+    try {
+      const r = await questionsAdmin.duplicates({
+        items: [{ key: "q", text, ...(mode === "edit" && loaded ? { excludeId: loaded._id } : {}), ...(subjectData?._id ? { subjectId: subjectData._id } : {}) }],
+      });
+      setDups(r.results[0]?.matches ?? []);
+    } catch (e) {
+      toast({ title: "Could not check for duplicates", description: apiError(e).message, variant: "destructive" });
+    } finally {
+      setDupBusy(false);
+    }
+  };
+
+  // The bank's "Draft solution" opens the editor with ?assist=solution
+  React.useEffect(() => {
+    if (autoAssisted.current || loading || !loaded || mode !== "edit") return;
+    if (assist !== "tags" && assist !== "translation" && assist !== "solution") return;
+    autoAssisted.current = true;
+    runAssist(assist, { saved: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assist, loading, loaded, mode]);
 
   const errs = errorList(errors);
   const kindLocked = mode === "edit";
@@ -554,6 +866,66 @@ export function QuestionEditor({
   ];
   const q = (l: Lang) => (l === "en" ? form.questionEn : form.questionHi);
   const s = (l: Lang) => (l === "en" ? form.solutionEn : form.solutionHi);
+
+  /* ---------- AI assist: derived ---------- */
+  const aiUnsupported = form.kind === "paragraph" || form.kind === "matrix" || unsupportedByApi;
+  const offAll = aiUnsupported || !!askSave || !!running || loading;
+  const keyLabel = () =>
+    form.kind === "mcq"
+      ? form.options.map((o, i) => (o.correct ? KEY(i) : null)).filter(Boolean).join(", ")
+      : form.kind === "numerical"
+        ? form.answerTo && form.answerTo !== form.answerFrom
+          ? `${form.answerFrom} to ${form.answerTo}`
+          : form.answerFrom
+        : "";
+  const statedLabel = (p: SolutionPayload) =>
+    p.statedAnswer?.optionIds?.length
+      ? p.statedAnswer.optionIds.map((oid) => {
+          const i = form.options.findIndex((o) => o.id === oid);
+          return i >= 0 ? KEY(i) : oid;
+        }).join(", ")
+      : p.statedAnswer?.value !== undefined
+        ? String(p.statedAnswer.value)
+        : "";
+
+  const waitingNote = (() => {
+    const w = waiting.filter((d) => d.status === "ready" && d.kind !== running && !applied[d.kind] && !(d.kind === "tags" && tagsDraft) && !(d.kind === "solution" && sol));
+    if (!w.length) return null;
+    const d = w[0];
+    const when = d.jobId ? (dayjs(d.createdAt).isSame(dayjs(), "day") ? " from today's bulk run" : ` from the bulk run on ${dayjs(d.createdAt).format("D MMM")}`) : "";
+    return (
+      <Note>
+        <ClockIcon color="#00007E" />
+        <span className="sm grow">{w.length === 1 ? `A ${WAIT_NOUN[d.kind]}${when} is waiting.` : `${w.length} AI drafts for this question are waiting.`}</span>
+        <Link href={`/questions/drafts?questionId=${encodeURIComponent(id ?? "")}`} className="btn btn-ghost btn-sm">
+          Review
+        </Link>
+      </Note>
+    );
+  })();
+
+  const tagBadges = (() => {
+    if (!tagsDraft) return null;
+    const p = tagsDraft.payload as TagsPayload;
+    const ch = p.chapters.map((c) => c.name);
+    const tp = p.topics.map((t) => t.name);
+    const chDiff = !sameList(ch, form.chapters);
+    const tpDiff = !sameList(tp, form.topics);
+    const dfDiff = p.difficulty !== form.difficulty;
+    const none = !chDiff && !tpDiff && !dfDiff;
+    const lvCls = { easy: "b-green", medium: "b-amber", hard: "b-live" }[p.difficulty] ?? "b-grey";
+    const cap = p.difficulty.charAt(0).toUpperCase() + p.difficulty.slice(1);
+    return (
+      <div className="row wrap gap-1.5">
+        {(chDiff || none) && ch.length > 0 && <span className="badge b-navy pop max-w-full truncate">Chapter: {ch.join(", ")}</span>}
+        {(tpDiff || none) && tp.length > 0 && <span className="badge b-navy pop max-w-full truncate">Topic: {tp.join(", ")}</span>}
+        {(dfDiff || none) && <span className={`badge ${lvCls} pop`}>{cap}{dfDiff ? "?" : ""}</span>}
+        <button type="button" className="btn btn-primary btn-sm pop" onClick={applyTags}>
+          Apply
+        </button>
+      </div>
+    );
+  })();
 
   if (notFound) {
     return (
@@ -591,10 +963,10 @@ export function QuestionEditor({
           )}
         </div>
         <div className="row shrink-0 gap-2">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={discard} disabled={!dirty || saving}>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={discard} disabled={(!dirty && !sol) || saving}>
             Discard
           </button>
-          <button type="button" className="btn btn-primary btn-sm" onClick={save} disabled={saving || loading}>
+          <button type="button" className="btn btn-primary btn-sm" onClick={() => save()} disabled={saving || loading}>
             {saving ? "Saving…" : "Save"}
           </button>
         </div>
@@ -673,8 +1045,41 @@ export function QuestionEditor({
                     </span>
                     {lang === "en" ? (
                       <RichField key="q-en" label="Question" value={form.questionEn} onChange={(v) => set("questionEn", v)} />
+                    ) : hiStream !== null ? (
+                      <div className="fade min-h-[96px] rounded-control border border-line bg-surface px-3.5 py-3 text-[14px] leading-[1.6]" aria-live="polite" aria-busy="true">
+                        {hiStream ? <MathText html as="span" className="[&_p]:inline" text={hiStream} /> : <span className="muted">Translating…</span>}
+                        <span className="caret" />
+                      </div>
                     ) : (
                       <RichField key="q-hi" label="Question in Hindi" value={form.questionHi} onChange={(v) => set("questionHi", v)} />
+                    )}
+                    {lang === "hi" && hiFailed && (
+                      <Note tone="err" className="pop" role="alert">
+                        <CrossIcon />
+                        <span className="col grow gap-1">
+                          <span className="sm font-semibold">
+                            {(hiFailed.checks.missingMath?.length || hiFailed.checks.extraMath?.length || hiFailed.checks.latexIntact === false)
+                              ? "Translation not used: an equation came back changed"
+                              : "Translation not used"}
+                          </span>
+                          {hiFailed.checks.missingMath?.length ? (
+                            <span className="sm">
+                              Missing from the Hindi:{" "}
+                              {hiFailed.checks.missingMath.map((m, i) => (
+                                <MathText key={i} text={m} className="mx-0.5 font-serif text-[15px]" />
+                              ))}
+                              . Try again, or type the Hindi yourself.
+                            </span>
+                          ) : (
+                            <span className="sm">
+                              {(hiFailed.checks.problems?.length ? hiFailed.checks.problems.join(" ") : hiFailed.error?.message) || "The Hindi did not pass the checks."} Try again, or type the Hindi yourself.
+                            </span>
+                          )}
+                        </span>
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => runAssist("translation")} disabled={!!running}>
+                          Try again
+                        </button>
+                      </Note>
                     )}
                   </div>
                 )}
@@ -869,14 +1274,59 @@ export function QuestionEditor({
                 {form.kind !== "paragraph" && (
                   <div className="field">
                     <span className="label">Solution{lang === "hi" && <span className="xs muted font-normal"> · Hindi</span>}</span>
-                    {lang === "en" ? (
+                    {lang === "en" && sol && sol.state !== "accepted" ? (
+                      <div className="min-h-[90px] rounded-control border border-line bg-surface px-3.5 py-3 text-[14px] leading-[1.6]" aria-live="polite" aria-busy={sol.state === "streaming"}>
+                        {sol.text ? <MathText as="span" className="whitespace-pre-line" text={sol.text} /> : <span className="muted">Drafting a solution…</span>}
+                        {sol.state === "streaming" && <span className="caret" />}
+                      </div>
+                    ) : lang === "en" ? (
                       <RichField key="s-en" label="Solution" value={form.solutionEn} onChange={(v) => set("solutionEn", v)} minH={90} />
                     ) : (
                       <RichField key="s-hi" label="Solution in Hindi" value={form.solutionHi} onChange={(v) => set("solutionHi", v)} minH={90} />
                     )}
-                    {!stripHtml(s(lang)) && !/<img/i.test(s(lang)) && (
+                    {!(lang === "en" && sol) && !stripHtml(s(lang)) && !/<img/i.test(s(lang)) && (
                       <span className="hint">No solution. Students won&apos;t get an AI review for this question until one exists.</span>
                     )}
+                    {lang === "en" && sol?.state === "ready" && sol.draft && (() => {
+                      const p = sol.draft.payload as SolutionPayload;
+                      const agree = sol.draft.checks.keyAgreement;
+                      const key = keyLabel();
+                      const said = statedLabel(p);
+                      return (
+                        <>
+                          {agree === "agrees" && (
+                            <span className="badge b-green pop self-start">
+                              <TickIcon size={12} />
+                              Matches the answer key{key ? ` (${key})` : ""}
+                            </span>
+                          )}
+                          {agree === "disagrees" && (
+                            <Note tone="warn" className="pop">
+                              <AlertIcon color="#9A5800" />
+                              <span className="col gap-0.5">
+                                <span className="sm font-semibold">
+                                  Answer differs from the key{said && key ? `: draft says (${said}), key says (${key})` : ""}
+                                </span>
+                                <span className="sm">Check the working and the key before you accept.</span>
+                              </span>
+                            </Note>
+                          )}
+                          <div className="row pop gap-2">
+                            <span className="badge b-navy">
+                              <Sparkle />
+                              AI draft · check before saving
+                            </span>
+                            <button type="button" className="btn btn-primary btn-sm" onClick={acceptSolution}>
+                              Accept
+                            </button>
+                            <button type="button" className="btn btn-ghost btn-sm" onClick={discardSolution}>
+                              Discard
+                            </button>
+                          </div>
+                        </>
+                      );
+                    })()}
+                    {lang === "en" && sol?.state === "accepted" && <span className="badge b-green pop self-start">Solution accepted</span>}
                   </div>
                 )}
               </section>
@@ -994,6 +1444,90 @@ export function QuestionEditor({
         </div>
 
         <aside className="col w-full gap-3.5" style={{ flex: "1 1 340px", maxWidth: 420 }}>
+          <section className="ai pad-lg col gap-3" aria-label="AI assist">
+            <span className="ai-mark">
+              <Sparkle />
+              AI assist
+            </span>
+            <span className="xs muted">Drafts only. Nothing is saved until you accept it.</span>
+            {waitingNote}
+            {askSave && (
+              <Note tone="warn" className="pop">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9A5800" strokeWidth="2" strokeLinecap="round" aria-hidden className="mt-0.5 shrink-0">
+                  <path d="M5 4h11l3 3v13H5z" />
+                  <path d="M8 4v5h7V4M8 20v-6h8v6" />
+                </svg>
+                <span className="col grow gap-2">
+                  <span className="sm">
+                    <b>Save first?</b> AI works from the saved question, and you have unsaved changes.
+                  </span>
+                  <span className="row gap-1.5">
+                    <button type="button" className="btn btn-primary btn-sm" onClick={saveAndDraft} disabled={saving}>
+                      {saving ? "Saving…" : "Save and draft"}
+                    </button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAskSave(null)}>
+                      Cancel
+                    </button>
+                  </span>
+                </span>
+              </Note>
+            )}
+            {(Object.entries(limits) as [DraftKind, number][]).map(([k, n]) => (
+              <Note key={k} tone="warn">
+                <ClockIcon color="#9A5800" />
+                <span className="sm">{LIMIT_TEXT[k](n)}</span>
+              </Note>
+            ))}
+            {aiUnsupported && (
+              <Note>
+                <AlertIcon color="#575C75" />
+                <span className="sm">AI assist works on single, multiple and numerical questions. Paragraph and matrix come later.</span>
+              </Note>
+            )}
+            {aiFailed && (
+              <Note tone="err" className="pop" role="alert">
+                <CrossIcon />
+                <span className="col grow gap-1">
+                  <span className="sm font-semibold">{aiFailed.title}</span>
+                  <span className="sm">{aiFailed.message}</span>
+                </span>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => runAssist(aiFailed.kind)} disabled={!!running}>
+                  Try again
+                </button>
+              </Note>
+            )}
+            <button type="button" className="btn btn-secondary justify-start" disabled={offAll || !!limits.tags} onClick={() => runAssist("tags")}>
+              {running === "tags" ? <Spinner /> : <Sparkle />}
+              Suggest chapter, topic, difficulty
+            </button>
+            {tagsDraft && tagBadges}
+            <button type="button" className="btn btn-secondary justify-start" disabled={offAll || !!limits.translation} onClick={() => runAssist("translation")}>
+              {running === "translation" ? <Spinner /> : <Sparkle />}
+              Translate to Hindi
+            </button>
+            <button type="button" className="btn btn-secondary justify-start" disabled={offAll || !!limits.solution} onClick={() => runAssist("solution")}>
+              {running === "solution" ? <Spinner /> : <Sparkle />}
+              Draft a solution
+            </button>
+            <div className="col gap-2">
+              <button type="button" className="btn btn-secondary justify-start" onClick={checkDuplicates} disabled={dupBusy || loading}>
+                {dupBusy ? <Spinner /> : <Sparkle />}
+                Check for duplicates
+                {dups && <span className={`badge ml-auto ${dups.length ? "b-amber" : "b-grey"}`}>{dups.length} similar</span>}
+              </button>
+              {dups?.map((m) => (
+                <div key={m.questionId} className="row gap-2.5 rounded-[10px] border border-brand-100 bg-surface py-2 pr-2 pl-3">
+                  <span className="mono xs muted max-w-[96px] shrink-0 truncate" title={m.questionId}>
+                    {m.questionId}
+                  </span>
+                  <MathText text={m.stemPreview} className="xs min-w-0 grow truncate" />
+                  <Link href={`/questions/${m.questionId}/edit?type=${editorKind(m.type)}`} className="btn btn-ghost btn-sm" target="_blank">
+                    Open
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
           <section className="card col overflow-hidden">
             <div className="row between pad border-b border-line-2">
               <span className="h3">Student preview</span>
