@@ -28,7 +28,7 @@ import type {
   SlotSource,
   TestRef,
 } from "../../m6-contract";
-import { fixtureError } from "../client";
+import { fixtureError, scenario } from "../client";
 import type { PaperTestHead } from "../paper";
 import { samplePatterns } from "./patterns-seed";
 import { sampleWorld, type SampleTest } from "./seed";
@@ -419,8 +419,6 @@ function view(st: PaperState): PaperView {
         return slot;
       });
       const have = slots.reduce((a, b) => a + b.count, 0);
-      // empty slots still take numbers
-      n += Math.max(0, x.totalQuestions - have);
       filled += have;
       needed += x.totalQuestions;
       return {
@@ -565,7 +563,9 @@ async function subContext(testId: string, subId: string) {
 const DORDER: Record<string, number> = { easy: 0, medium: 1, hard: 2, unset: 3 };
 
 export async function pickerSearch(testId: string, req: PickerSearchRequest): Promise<PickerSearchResponse> {
-  const { st, sub, rows, slotsLeft } = await subContext(testId, req.subsectionId);
+  const { st, sub, rows: all, slotsLeft } = await subContext(testId, req.subsectionId);
+  // scenario "empty" (screenshots): the bank has nothing of this type in this subject
+  const rows = scenario() === "empty" ? [] : all;
   const q = (req.q ?? "").trim().toLowerCase();
   let list = rows.filter(
     (r) =>
