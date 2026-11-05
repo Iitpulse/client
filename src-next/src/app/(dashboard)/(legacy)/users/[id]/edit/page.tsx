@@ -109,6 +109,14 @@ const standardOptions = [
 ];
 
 // Base schema for all users (no password required for edit)
+
+/** Users on Postgres store phones as E.164 (+91XXXXXXXXXX); the form edits the 10-digit Indian number (the API adds +91 back). */
+const localPhone = (v: unknown): string => {
+  const s = String(v ?? "").replace(/[\s-]/g, "");
+  const m = /^(?:\+?91)?(\d{10})$/.exec(s);
+  return m ? m[1]! : s;
+};
+
 const baseUserSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters").max(50, "Name must be at most 50 characters"),
   email: z.string().email("Invalid email address"),
@@ -357,7 +365,7 @@ export default function EditUserPage() {
           reset({
             name: foundUser.name || "",
             email: foundUser.email || "",
-            contact: String(foundUser.contact || ""),
+            contact: localPhone(foundUser.contact),
             dob: dobDate,
             gender: foundUser.gender as "male" | "female" | "other" | undefined,
             address: foundUser.address || "",
@@ -374,7 +382,7 @@ export default function EditUserPage() {
             stream: foundUser.stream || "",
             medium: foundUser.medium || "",
             parentName: foundUser.parentDetails?.name || "",
-            parentContact: String(foundUser.parentDetails?.contact || ""),
+            parentContact: localPhone(foundUser.parentDetails?.contact),
             // Teacher-specific
             subjects: subjectIds,
           } as UserFormData);
