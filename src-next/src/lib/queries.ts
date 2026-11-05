@@ -87,9 +87,10 @@ export interface AdminTest {
 }
 
 /** Every test the admin can see (the list endpoint is paged; tests are few, so all pages are read). */
-export function useAllTests() {
+export function useAllTests(enabled = true) {
   return useQuery({
     queryKey: ["tests", "all"],
+    enabled,
     queryFn: async () => {
       const first = await api.tests.getAll({ page: 1, size: 100 });
       const out = rows<AdminTest>(first.data);

@@ -2,39 +2,32 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Plus } from "lucide-react";
-import { InkUnderline } from "@iitpulse/ui";
+import { AiMark, InkUnderline, MathText } from "@iitpulse/ui";
 import { api } from "@/lib/api";
 import { useAuthStore, usePermissionsStore } from "@/stores";
 import { Topbar } from "@/components/admin/Topbar";
 import LegacyDashboard from "@/components/student-dashboard-legacy";
-import {
-  type AdminTest,
-  assignedStudents,
-  questionCount,
-  testState,
-  useAllTests,
-  useBatches,
-  useQuestionBankTotals,
-} from "@/lib/queries";
+import { type AdminTest, testState, useAllTests } from "@/lib/queries";
+import { deltaTone, signed, useAdminOverview, useBankCounts, useBatchSummary, useLiveTests } from "@/lib/queries-tests-admin";
+import type { AdminOverview, LiveTest, TestKind } from "@/contracts/m5";
 
-/* Admin-Dashboard board, without its AI parts (summary line, Draft/Translate actions): those arrive with the M5 AI backend. */
+/*
+  Admin-Dashboard board (canvas v84). Numbers: GET /tests/admin/overview (tests this month, avg score + "vs previous",
+  scheduled + drafts, Needs attention), GET /tests/admin/live (Live now, polled every 30 s), GET /questions/admin/search
+  ?pageSize=0 (bank total, missing solutions, Hindi still in English), GET /ai/admin/tests/:id/summary (the Summary line
+  under the score spread). The score spread and "Next 7 days" stay client-side (contract).
+  Not built (no board / not M5): "Active students", "Monitor".
+  Draft / Translate: the bulk cost preview lives with Admin-Questions; until that component lands they open the question
+  bank with the matching filter.
+*/
 
 interface Submission {
   studentId?: string;
   totalMarks?: number;
-}
-interface AdminResult {
-  submissions: Submission[];
-  result?: { averageMarks?: number; totalAppeared?: number };
-}
-
-async function fetchResult(testId: string): Promise<AdminResult> {
-  const r = await api.tests.getAdminResult(testId);
-  const d = r.data?.data ?? {};
-  return { submissions: Array.isArray(d.submissions) ? d.submissions : [], result: d.result };
+  obtainedMarks?: number;
 }
 
 function greeting(now = dayjs()) {
@@ -44,16 +37,24 @@ function greeting(now = dayjs()) {
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 const plural = (n: number, one: string, many = one + "s") => `${fmt(n)} ${n === 1 ? one : many}`;
+const KIND: Record<TestKind, [string, string]> = {
+  full: ["full mock", "full mocks"],
+  sectional: ["sectional", "sectionals"],
+  custom: ["custom test", "custom tests"],
+};
 
-function Stat({ label, value, sub, subTone, i }: { label: string; value: React.ReactNode; sub?: React.ReactNode; subTone?: "good"; i: number }) {
+function Stat({ label, value, sub, subTone, i }: { label: string; value: React.ReactNode; sub?: React.ReactNode; subTone?: "good" | "bad" | "flat"; i: number }) {
+  const tone = subTone === "good" ? "font-semibold text-success" : subTone === "bad" ? "font-semibold text-warning" : "muted";
   return (
     <article className="card pad col lift rise gap-1" style={{ ["--i" as string]: i }}>
-      <span className="sm muted">{label}</span>
+      <span className="sm muted truncate">{label}</span>
       <span className="num text-[28px] font-[650]">{value}</span>
-      {sub && <span className={`xs ${subTone === "good" ? "font-semibold text-success" : "muted"}`}>{sub}</span>}
+      {sub && <span className={`xs truncate ${tone}`}>{sub}</span>}
     </article>
   );
 }
+
+const Skel = ({ w }: { w: string }) => <span className={`skel inline-block h-8 ${w}`} />;
 
 export default function DashboardPage() {
   const { currentUser, userDetails } = useAuthStore();
@@ -85,19 +86,10 @@ function AdminDashboard({
   canQuestions: boolean;
 }) {
   const now = dayjs();
+  const overview = useAdminOverview();
+  const live = useLiveTests();
+  const bank = useBankCounts(canQuestions);
   const tests = useAllTests();
-  const batches = useBatches();
-  const bank = useQuestionBankTotals(canQuestions);
-  const students = useQuery({
-    queryKey: ["students", "count"],
-    enabled: canUsers,
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const r = await api.users.getStudents();
-      const rows = Array.isArray(r.data?.data) ? r.data.data : [];
-      return rows.length as number;
-    },
-  });
   const institute = useQuery({
     queryKey: ["institute", instituteId],
     enabled: !!instituteId,
@@ -115,60 +107,39 @@ function AdminDashboard({
     },
   });
 
-  const grouped = useMemo(() => {
-    const all = tests.data ?? [];
-    const byState = { live: [] as AdminTest[], scheduled: [] as AdminTest[], draft: [] as AdminTest[], ended: [] as AdminTest[] };
-    for (const t of all) byState[testState(t, now)].push(t);
-    const thisMonth = all.filter((t) => t.status !== "draft" && t.validity?.from && dayjs(t.validity.from).isSame(now, "month"));
-    const kinds = new Map<string, number>();
-    for (const t of thisMonth) {
-      const k = (t as { kind?: string }).kind;
-      if (k) kinds.set(k, (kinds.get(k) ?? 0) + 1);
-    }
-    const ended = [...byState.ended].sort((a, b) => dayjs(b.validity?.to).valueOf() - dayjs(a.validity?.to).valueOf());
-    const nextWeek = byState.scheduled
-      .filter((t) => dayjs(t.validity?.from).isBefore(now.add(7, "day")))
-      .sort((a, b) => dayjs(a.validity?.from).valueOf() - dayjs(b.validity?.from).valueOf());
-    return { ...byState, ended, thisMonth, kinds, nextWeek };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tests.data]);
-
-  // Submissions for the live tests and the three most recently ended ones (the score spread uses the first with any).
-  const resultIds = [...grouped.live.map((t) => t._id), ...grouped.ended.slice(0, 3).map((t) => t._id)];
-  const results = useQueries({
-    queries: resultIds.map((id) => ({ queryKey: ["test-result", id], queryFn: () => fetchResult(id), staleTime: 60_000 })),
+  const ov = overview.data;
+  const latest = ov?.latestResult ?? null;
+  const spread = useQuery({
+    queryKey: ["test-result", latest?.testId],
+    enabled: !!latest,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const r = await api.tests.getAdminResult(latest!.testId);
+      const d = r.data?.data ?? {};
+      return (Array.isArray(d.submissions) ? d.submissions : []) as Submission[];
+    },
   });
-  const resultOf = (id: string) => results[resultIds.indexOf(id)]?.data;
-  const spreadTest = grouped.ended.slice(0, 3).find((t) => (resultOf(t._id)?.submissions.length ?? 0) > 0);
-  const spread = spreadTest ? resultOf(spreadTest._id) : undefined;
+  const summary = useBatchSummary(latest?.testId, !!latest);
 
-  const attention = [
-    ...grouped.draft.map((t) => {
-      const { filled, needed } = questionCount(t);
-      const short = Math.max(needed - filled, 0);
-      const opens = t.validity?.from ? `Opens ${dayjs(t.validity.from).format("D MMM")}` : "No dates yet";
-      return {
-        key: t._id,
-        title: `${t.name} is still a draft`,
-        sub: short ? `${opens} · ${plural(short, "question")} short` : opens,
-        href: `/tests/${t._id}/edit`,
-        action: "Open",
-      };
-    }),
-    ...grouped.ended
-      .filter((t) => !t.result?.isPublished && !t.result?.publishProps?.isPublished && t.result?.publishProps?.type !== "immediately")
-      .slice(0, 3)
-      .map((t) => ({
-        key: t._id,
-        title: `${t.name}: results not published`,
-        sub: `Ended ${dayjs(t.validity?.to).format("D MMM")}`,
-        href: `/tests/${t._id}/result`,
-        action: "Results",
-      })),
-  ].slice(0, 4);
+  // "Next 7 days" and the empty "Live now" hint read the test list (client-side, as before).
+  const nextWeek = useMemo(
+    () =>
+      (tests.data ?? [])
+        .filter((t) => testState(t, now) === "scheduled" && dayjs(t.validity?.from).isBefore(now.add(7, "day")))
+        .sort((a, b) => dayjs(a.validity?.from).valueOf() - dayjs(b.validity?.from).valueOf()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tests.data]
+  );
 
+  const attention = attentionRows(ov, bank.data?.counts, canQuestions);
   const first = name.split(/\s+/)[0];
-  const kindLine = [...grouped.kinds.entries()].map(([k, n]) => `${n} ${k}`).join(" · ");
+  const kindLine = ov
+    ? (Object.keys(KIND) as TestKind[])
+        .filter((k) => ov.thisMonth.byKind[k])
+        .map((k) => plural(ov.thisMonth.byKind[k], KIND[k][0], KIND[k][1]))
+        .join(" · ")
+    : "";
+  const ovMissing = overview.isError ? "—" : null;
 
   return (
     <>
@@ -203,47 +174,53 @@ function AdminDashboard({
           <span className="sm muted">{[institute.data, now.format("dddd D MMMM")].filter(Boolean).join(" · ")}</span>
         </div>
 
-        <section className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
-          <Stat
-            i={0}
-            label="Active students"
-            value={students.data !== undefined ? fmt(students.data) : canUsers ? <span className="skel inline-block h-8 w-20" /> : "—"}
-            sub={batches.data ? `in ${plural(batches.data.length, "batch", "batches")}` : undefined}
-          />
+        <section className="grid grid-cols-2 gap-3.5 lg:grid-cols-4" data-testid="dash-stats">
+          <Stat i={0} label="Tests this month" value={ov ? fmt(ov.thisMonth.tests) : ovMissing ?? <Skel w="w-12" />} sub={kindLine || undefined} />
           <Stat
             i={1}
-            label="Tests this month"
-            value={tests.data ? grouped.thisMonth.length : <span className="skel inline-block h-8 w-12" />}
-            sub={kindLine || undefined}
+            label={latest ? `Avg score · ${latest.name}` : "Avg score"}
+            value={
+              latest ? (
+                <>
+                  {fmt(Math.round(latest.average))}
+                  <span className="sm muted">/{latest.maxScore}</span>
+                </>
+              ) : ov || overview.isError ? (
+                "—"
+              ) : (
+                <Skel w="w-20" />
+              )
+            }
+            sub={
+              latest
+                ? latest.previous && latest.averageDelta !== null
+                  ? `${signed(latest.averageDelta)} vs ${latest.previous.name}`
+                  : `${plural(latest.appeared, "student")} wrote it`
+                : ov
+                  ? "No results yet"
+                  : undefined
+            }
+            subTone={latest?.previous && latest.averageDelta !== null ? deltaTone(latest.averageDelta, latest.maxScore) : undefined}
           />
           <Stat
             i={2}
-            label={spreadTest ? `Avg score · ${spreadTest.name}` : "Avg score"}
-            value={
-              spread && spreadTest ? (
-                <>
-                  {fmt(Math.round(spread.result?.averageMarks ?? 0))}
-                  {spreadTest.totalMarks ? <span className="sm muted">/{spreadTest.totalMarks}</span> : null}
-                </>
-              ) : (
-                "—"
-              )
-            }
-            sub={spread ? `${plural(spread.submissions.length, "student")} wrote it` : "No results yet"}
+            label="Scheduled tests"
+            value={ov ? fmt(ov.counts.scheduled) : ovMissing ?? <Skel w="w-12" />}
+            sub={ov && ov.counts.draft ? `${plural(ov.counts.draft, "draft")} in progress` : undefined}
           />
           <Stat
             i={3}
             label="Question bank"
-            value={bank.data ? fmt(bank.data.total) : canQuestions ? <span className="skel inline-block h-8 w-20" /> : "—"}
-            sub={bank.data ? `${fmt(bank.data.byType.mcq)} MCQ · ${fmt(bank.data.byType.numerical)} numerical` : undefined}
+            value={bank.data ? fmt(bank.data.total) : canQuestions && !bank.isError ? <Skel w="w-20" /> : "—"}
+            sub={bank.data ? `${plural(bank.data.counts.missingSolution, "missing solution")}` : undefined}
           />
         </section>
 
         <section className="grid grid-cols-1 gap-3.5 xl:grid-cols-3">
-          <article className="card col rise xl:col-span-2" style={{ ["--i" as string]: 4 }}>
+          <article className="card col rise xl:col-span-2" style={{ ["--i" as string]: 4 }} data-testid="dash-live">
             <div className="row between pad border-b border-line-2">
               <span className="h3 row gap-2">
-                {grouped.live.length > 0 && <span className="live-dot" />}
+                {!!live.data?.tests.length && <span className="live-dot" />}
                 Live now
               </span>
               <Link href="/tests" className="sm font-semibold">
@@ -251,67 +228,31 @@ function AdminDashboard({
               </Link>
             </div>
             <div className="col">
-              {tests.isLoading && <div className="skel m-4 h-14" />}
-              {!tests.isLoading && grouped.live.length === 0 && (
+              {live.isLoading && <div className="skel m-4 h-14" />}
+              {live.isError && <p className="sm muted px-4 py-6">Live attempts could not be loaded.</p>}
+              {live.data && live.data.tests.length === 0 && (
                 <p className="sm muted px-4 py-6">
                   No test is live right now.
-                  {grouped.nextWeek[0] && ` Next: ${grouped.nextWeek[0].name}, ${dayjs(grouped.nextWeek[0].validity?.from).format("ddd D MMM, h:mm A")}.`}
+                  {nextWeek[0] && ` Next: ${nextWeek[0].name}, ${dayjs(nextWeek[0].validity?.from).format("ddd D MMM, h:mm A")}.`}
                 </p>
               )}
-              {grouped.live.map((t, i) => {
-                const submitted = resultOf(t._id)?.submissions.length;
-                const assigned = assignedStudents(t, batches.data);
-                const rest = assigned !== null && submitted !== undefined ? Math.max(assigned - submitted, 0) : null;
-                return (
-                  <div key={t._id} className={`row gap-4 px-4 py-3.5 ${i < grouped.live.length - 1 ? "border-b border-line-2" : ""}`}>
-                    <div className="col grow gap-1.5">
-                      <div className="row between">
-                        <span className="sm font-semibold">{t.name}</span>
-                        {t.validity?.to && (
-                          <span className="xs muted">ends {dayjs(t.validity.to).format(dayjs(t.validity.to).isSame(now, "day") ? "h:mm A" : "ddd h:mm A")}</span>
-                        )}
-                      </div>
-                      {submitted !== undefined && rest !== null ? (
-                        <>
-                          <div className="mix" role="img" aria-label={`${submitted} submitted, ${rest} yet to submit`}>
-                            <span style={{ flex: submitted || 0.0001, background: "var(--green)" }} />
-                            <span style={{ flex: rest || 0.0001, background: "var(--line)", animationDelay: ".08s" }} />
-                          </div>
-                          <div className="row xs muted gap-3.5">
-                            <span>
-                              <b className="text-success">{fmt(submitted)}</b> submitted
-                            </span>
-                            <span>
-                              <b>{fmt(rest)}</b> yet to submit
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <span className="xs muted">
-                          {submitted !== undefined ? `${fmt(submitted)} submitted` : results[resultIds.indexOf(t._id)]?.isError ? "Attempts unavailable" : "Loading attempts…"}
-                        </span>
-                      )}
-                    </div>
-                    <Link href={`/tests/${t._id}/result`} className="btn btn-secondary btn-sm">
-                      Results
-                    </Link>
-                  </div>
-                );
-              })}
+              {live.data?.tests.map((t, i, all) => (
+                <LiveRow key={t.testId} t={t} last={i === all.length - 1} now={now} />
+              ))}
             </div>
           </article>
 
-          <article className="card pad col rise gap-2.5" style={{ ["--i" as string]: 5 }}>
+          <article className="card pad col rise gap-2.5" style={{ ["--i" as string]: 5 }} data-testid="dash-attention">
             <span className="h3">Needs attention</span>
-            {tests.isLoading && <div className="skel h-14" />}
-            {!tests.isLoading && attention.length === 0 && <p className="sm muted">Nothing waiting on you.</p>}
+            {overview.isLoading && <div className="skel h-14" />}
+            {!overview.isLoading && attention.length === 0 && <p className="sm muted">Nothing waiting on you.</p>}
             {attention.map((a) => (
-              <div key={a.key + a.action} className="row gap-2.5 rounded-control bg-ground p-2.5">
+              <div key={a.key} className={`row gap-2.5 rounded-control p-2.5 ${a.warn ? "bg-warning-50" : "bg-ground"}`}>
                 <span className="col grow gap-0.5">
                   <span className="sm font-semibold">{a.title}</span>
                   <span className="xs muted">{a.sub}</span>
                 </span>
-                <Link href={a.href} className="btn btn-ghost btn-sm">
+                <Link href={a.href} className={`btn btn-sm ${a.warn ? "btn-secondary" : "btn-ghost"}`}>
                   {a.action}
                 </Link>
               </div>
@@ -320,14 +261,29 @@ function AdminDashboard({
         </section>
 
         <section className="grid grid-cols-1 gap-3.5 xl:grid-cols-3">
-          <article className="card pad col rise gap-3.5 xl:col-span-2" style={{ ["--i" as string]: 6 }}>
-            {spreadTest && spread ? (
-              <ScoreSpread test={spreadTest} submissions={spread.submissions} average={spread.result?.averageMarks ?? 0} />
+          <article className="card pad col rise gap-3.5 xl:col-span-2" style={{ ["--i" as string]: 6 }} data-testid="dash-spread">
+            {latest && spread.data?.length ? (
+              <ScoreSpread
+                testId={latest.testId}
+                name={latest.name}
+                max={latest.maxScore}
+                publishedAt={latest.publishedAt}
+                submissions={spread.data}
+                average={latest.average}
+              />
             ) : (
               <>
                 <span className="h3">Score spread</span>
-                <p className="sm muted">{tests.isLoading || results.some((r) => r.isLoading) ? "Loading…" : "Shows here once a test has ended and students have submitted."}</p>
+                <p className="sm muted">{overview.isLoading || spread.isLoading ? "Loading…" : "Shows here once a result is published and students have submitted."}</p>
               </>
+            )}
+            {summary.data?.status === "ready" && summary.data.summary?.headline && (
+              <div className="ai row gap-2.5 px-3.5 py-3" data-testid="dash-summary">
+                <AiMark iconSize={13} className="flex-none">
+                  Summary
+                </AiMark>
+                <MathText as="span" className="sm" text={summary.data.summary.headline} />
+              </div>
             )}
           </article>
           <article className="card col rise" style={{ ["--i" as string]: 7 }}>
@@ -335,8 +291,8 @@ function AdminDashboard({
               <span className="h3">Next 7 days</span>
             </div>
             <div className="col py-1.5">
-              {!tests.isLoading && grouped.nextWeek.length === 0 && <p className="sm muted px-4 py-2.5">No tests scheduled this week.</p>}
-              {grouped.nextWeek.slice(0, 6).map((t) => (
+              {!tests.isLoading && nextWeek.length === 0 && <p className="sm muted px-4 py-2.5">No tests scheduled this week.</p>}
+              {nextWeek.slice(0, 6).map((t: AdminTest) => (
                 <Link key={t._id} href={`/tests/${t._id}/edit`} className="row gap-3 px-4 py-2.5 text-ink hover:bg-ground">
                   <span className="mono xs muted w-[52px] shrink-0 uppercase">{dayjs(t.validity?.from).format("ddd D")}</span>
                   <span className="sm grow truncate">{t.name}</span>
@@ -356,26 +312,134 @@ function AdminDashboard({
   );
 }
 
-function ScoreSpread({ test, submissions, average }: { test: AdminTest; submissions: Submission[]; average: number }) {
-  const max = test.totalMarks || Math.max(...submissions.map((s) => s.totalMarks ?? 0), 1);
+/** Live now row: submitted / writing now / not started, and the auto-submitted count. */
+function LiveRow({ t, last, now }: { t: LiveTest; last: boolean; now: dayjs.Dayjs }) {
+  const ends = dayjs(t.closesAt);
+  const parts: Array<[number, string, string]> = [
+    [t.submitted, "var(--green)", `${t.submitted} submitted`],
+    [t.writing, "var(--navy)", `${t.writing} writing`],
+    [t.notStarted ?? 0, "var(--line)", `${t.notStarted ?? "unknown"} not started`],
+  ];
+  return (
+    <div className={`row gap-4 px-4 py-3.5 ${last ? "" : "border-b border-line-2"}`} data-testid="dash-live-row">
+      <div className="col grow gap-1.5">
+        <div className="row between gap-3">
+          <Link href={`/tests/${t.testId}/result`} className="sm truncate font-semibold text-ink hover:text-brand">
+            {t.name}
+          </Link>
+          <span className="xs muted shrink-0">ends {ends.format(ends.isSame(now, "day") ? "h:mm A" : "ddd h:mm A")}</span>
+        </div>
+        <div className="mix" role="img" aria-label={parts.map((p) => p[2]).join(", ")}>
+          {parts.map(([n, bg], i) => (
+            <span key={i} style={{ flex: n || 0.0001, background: bg, animationDelay: `${i * 0.08}s` }} />
+          ))}
+        </div>
+        <div className="row wrap xs muted gap-x-3.5 gap-y-1">
+          <span>
+            <b className="text-success">{fmt(t.submitted)}</b> submitted
+          </span>
+          <span>
+            <b className="text-brand">{fmt(t.writing)}</b> writing now
+          </span>
+          <span>
+            <b>{t.notStarted === null ? "—" : fmt(t.notStarted)}</b> not started
+          </span>
+          {t.autoSubmitted > 0 && <span>{fmt(t.autoSubmitted)} auto-submitted</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface AttentionRow {
+  key: string;
+  title: string;
+  sub: string;
+  href: string;
+  action: string;
+  warn?: boolean;
+}
+
+function attentionRows(ov: AdminOverview | undefined, bank: { missingSolution: number; hindiMissing: number } | undefined, canQuestions: boolean): AttentionRow[] {
+  const rows: AttentionRow[] = [];
+  if (canQuestions && bank?.missingSolution)
+    rows.push({
+      key: "missing-solution",
+      title: `${plural(bank.missingSolution, "question")} without solutions`,
+      sub: "Students can't get AI reviews for these",
+      href: "/questions?missingSolution=1",
+      action: "Draft",
+      warn: true,
+    });
+  if (canQuestions && bank?.hindiMissing)
+    rows.push({
+      key: "hindi-missing",
+      title: `${fmt(bank.hindiMissing)} Hindi ${bank.hindiMissing === 1 ? "version" : "versions"} still in English`,
+      sub: "Hindi readers see English text",
+      href: "/questions?hindiMissing=1",
+      action: "Translate",
+      warn: true,
+    });
+  for (const t of ov?.attention.draftTests ?? []) {
+    const opens = t.opensAt ? `Opens ${dayjs(t.opensAt).format("D MMM")}` : "No dates yet";
+    rows.push({
+      key: `draft-${t.testId}`,
+      title: `${t.name} is still a draft`,
+      sub: t.short ? `${opens} · ${plural(t.short, "question")} short` : opens,
+      href: `/tests/${t.testId}/edit`,
+      action: "Open",
+    });
+  }
+  const results = (ov?.attention.unpublishedResults ?? []).map((t) => ({
+    key: `result-${t.testId}`,
+    title: `${t.name} results not published`,
+    sub: `Ended ${dayjs(t.closedAt).format("D MMM")}`,
+    href: `/tests/${t.testId}/result`,
+    action: "Open",
+  }));
+  // Keep at least one unpublished result visible when drafts are many.
+  const head = rows.slice(0, results.length ? 4 : 5);
+  return [...head, ...results].slice(0, 5);
+}
+
+function ScoreSpread({
+  testId,
+  name,
+  max: maxScore,
+  publishedAt,
+  submissions,
+  average,
+}: {
+  testId: string;
+  name: string;
+  max: number;
+  publishedAt: string;
+  submissions: Submission[];
+  average: number;
+}) {
+  const score = (s: Submission) => Number(s.obtainedMarks ?? s.totalMarks ?? 0);
+  const max = maxScore || Math.max(...submissions.map(score), 1);
   const BINS = 12;
   const width = max / BINS;
   const counts = Array.from({ length: BINS }, () => 0);
-  for (const s of submissions) counts[Math.min(BINS - 1, Math.max(0, Math.floor((s.totalMarks ?? 0) / width)))]++;
+  for (const s of submissions) counts[Math.min(BINS - 1, Math.max(0, Math.floor(score(s) / width)))]++;
   const peak = Math.max(...counts, 1);
   const avgPct = Math.min(100, Math.max(0, (average / max) * 100));
   const label = (i: number) => `${Math.round(i * width)}–${Math.round((i + 1) * width)}`;
+  // "Top 1% · 275+": the highest non-empty bin, when it holds a small share of a sizeable batch.
+  const topBin = counts.reduce((best, c, i) => (c ? i : best), -1);
+  const topShare = topBin >= 0 ? (counts[topBin] / submissions.length) * 100 : 100;
+  const showTop = submissions.length >= 10 && topShare <= 10;
   return (
     <>
       <div className="row between">
         <div className="col gap-0.5">
-          <span className="h3">{test.name} · score spread</span>
+          <span className="h3">{name} · score spread</span>
           <span className="xs muted">
-            {plural(submissions.length, "student")}
-            {test.validity?.to ? ` · ended ${dayjs(test.validity.to).format("D MMM")}` : ""}
+            {plural(submissions.length, "student")} · published {dayjs(publishedAt).format("D MMM")}
           </span>
         </div>
-        <Link href={`/tests/${test._id}/result`} className="btn btn-ghost btn-sm">
+        <Link href={`/tests/${testId}/result`} className="btn btn-ghost btn-sm">
           Full results
         </Link>
       </div>
@@ -389,7 +453,7 @@ function ScoreSpread({ test, submissions, average }: { test: AdminTest; submissi
             <span
               key={i}
               title={`${label(i)}: ${plural(c, "student")}`}
-              className="flex-1 rounded-t bg-brand-200 transition-colors hover:bg-brand"
+              className={`flex-1 rounded-t transition-colors hover:bg-brand ${showTop && i === topBin ? "bg-brand" : "bg-brand-200"}`}
               style={{ height: `${c ? Math.max((c / peak) * 100, 4) : 0}%` }}
             />
           ))}
@@ -397,6 +461,11 @@ function ScoreSpread({ test, submissions, average }: { test: AdminTest; submissi
         <span aria-hidden className="pointer-events-none absolute top-0 bottom-0 border-l border-dashed border-brand" style={{ left: `${avgPct}%` }}>
           <b className="mono absolute top-0 left-1.5 text-xs font-medium whitespace-nowrap text-brand">avg {Math.round(average)}</b>
         </span>
+        {showTop && (
+          <span aria-hidden className="absolute right-0 bottom-[30px] text-xs font-semibold whitespace-nowrap text-brand">
+            Top {Math.max(1, Math.round(topShare))}% · {Math.round(topBin * width)}+
+          </span>
+        )}
       </div>
       <div className="row between xs muted mono">
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
