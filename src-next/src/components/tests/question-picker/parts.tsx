@@ -3,8 +3,6 @@
   Small pieces of the QuestionPicker page: row ids, the preview pane and paper helpers.
 */
 import { MathText } from "@iitpulse/ui";
-import { QuestionBody } from "@/components/question-body";
-import type { BankChild, BankQuestion } from "@/lib/question-queries";
 import type { PaperView, PickerPreview } from "@/lib/m6-contract";
 import { usePickerPreview } from "@/lib/m6/paper";
 
@@ -26,26 +24,77 @@ export function Stem({ text, className = "qp-stem" }: { text: string; className?
   return <MathText html as="span" className={className} text={text} />;
 }
 
-function toBank(q: PickerPreview["question"], rowType?: string): BankQuestion {
-  const type = q.type ?? rowType ?? "single";
-  q = { ...q, type: type as PickerPreview["question"]["type"] };
-  const kind = q.type === "paragraph" ? "paragraph" : q.type === "matrix" ? "matrix" : q.type === "integer" ? "numerical" : "mcq";
-  return {
-    _id: q.id,
-    type: q.type,
-    _kind: kind,
-    en: q.en,
-    hi: q.hi ?? undefined,
-    correctAnswers: q.correctAnswers,
-    correctAnswer: q.correctAnswer,
-    passage: q.passage ? { en: q.passage.en, hi: q.passage.hi } : undefined,
-    questions: q.questions as BankChild[] | undefined,
-    matrix: q.matrix,
-  } as BankQuestion;
+const KEY = (i: number) => String.fromCharCode(65 + i);
+const M = ({ html, className = "" }: { html: string; className?: string }) => (
+  <MathText html as="span" className={`min-w-0 [&_img]:max-w-full [&_p]:inline [&_p]:m-0 ${className}`} text={html || ""} />
+);
+
+/** Answer label: "B", "A, C", "5.2–5.4" */
+function keyLabel(options: Array<{ id: string }> | undefined, correct?: string[], range?: { from: number; to: number }): string {
+  if (range) return range.to !== range.from ? `${range.from}–${range.to}` : String(range.from);
+  const ids = correct ?? [];
+  return ids.map((id) => {
+    const i = (options ?? []).findIndex((o) => o.id === id);
+    return i >= 0 ? KEY(i) : id;
+  }).join(", ");
+}
+
+/** The picked question as the board's preview: stem with options (key ✓), a paragraph set one line per child, a matrix's lists and key. KaTeX. */
+function PreviewBody({ q }: { q: PickerPreview["question"] }) {
+  const stem = "block font-serif text-[15px] leading-[1.55]";
+  if (q.passage || q.questions?.length)
+    return (
+      <div className="col gap-2">
+        <M html={q.passage?.en ?? ""} className={stem} />
+        <div className="col gap-1 text-[13px]">
+          {(q.questions ?? []).map((c, i) => (
+            <span key={c.id} className="row items-baseline gap-1.5">
+              <b>Q{i + 1}</b> ·<span className="muted">{c.type === "integer" ? "Numerical" : c.type === "multiple" ? "Multiple" : "Single"}</span> ·
+              <M html={c.en.question} className="font-serif" />
+              <span className="badge b-green ml-auto shrink-0">Answer {keyLabel(c.en.options, c.correctAnswers, c.correctAnswer) || "not set"}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  if (q.matrix)
+    return (
+      <div className="col gap-2">
+        <M html={q.en.question} className={stem} />
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[13px]">
+          <span className="xs font-semibold text-muted">List I</span>
+          <span className="xs font-semibold text-muted">List II</span>
+          {Array.from({ length: Math.max(q.matrix.listI.length, q.matrix.listII.length) }, (_, i) => (
+            <span key={i} className="contents">
+              <span className="row items-baseline gap-1.5">{q.matrix!.listI[i] && <><b className="mono">{q.matrix!.listI[i].id}</b><M html={q.matrix!.listI[i].en} className="font-serif" /></>}</span>
+              <span className="row items-baseline gap-1.5">{q.matrix!.listII[i] && <><b className="mono">{q.matrix!.listII[i].id}</b><M html={q.matrix!.listII[i].en} className="font-serif" /></>}</span>
+            </span>
+          ))}
+        </div>
+        <span className="xs font-semibold text-success">Key: {q.matrix.listI.map((r) => `${r.id}→${(q.matrix!.matches[r.id] ?? []).join(", ") || "?"}`).join(" · ")}</span>
+      </div>
+    );
+  const opts = q.en.options ?? [];
+  return (
+    <div className="col gap-2">
+      <M html={q.en.question} className={stem} />
+      {opts.length > 0 && (
+        <div className="row wrap gap-x-[22px] gap-y-1 font-serif text-[15px]">
+          {opts.map((o, i) => (
+            <span key={o.id} className={`row items-baseline gap-1 ${q.correctAnswers?.includes(o.id) ? "font-semibold text-success" : ""}`}>
+              ({KEY(i)}) <M html={o.value} />
+              {q.correctAnswers?.includes(o.id) && " ✓"}
+            </span>
+          ))}
+        </div>
+      )}
+      {q.correctAnswer && <span className="badge b-green self-start">Answer {keyLabel(undefined, undefined, q.correctAnswer)}</span>}
+    </div>
+  );
 }
 
 /** The board's preview strip under the table: "Preview · QS_44e1", question with its key (KaTeX). */
-export function PreviewPane({ testId, questionId, type, hint }: { testId: string; questionId: string | null; type?: string; hint: string }) {
+export function PreviewPane({ testId, questionId, hint }: { testId: string; questionId: string | null; type?: string; hint: string }) {
   const pv = usePickerPreview(testId, questionId);
   if (!questionId) return null;
   const q = pv.data?.question;
@@ -69,7 +118,7 @@ export function PreviewPane({ testId, questionId, type, hint }: { testId: string
               {q.matrix.listI.length} rows × {q.matrix.listII.length} columns
             </span>
           )}
-          <QuestionBody q={toBank(q, type)} showAnswers variant="pane" />
+          <PreviewBody q={q} />
         </div>
       )}
     </div>

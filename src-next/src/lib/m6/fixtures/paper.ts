@@ -592,7 +592,9 @@ export async function pickerSearch(testId: string, req: PickerSearchRequest): Pr
   const page = req.page ?? 1;
   const pageSize = req.pageSize ?? 25;
   const items = list.slice((page - 1) * pageSize, page * pageSize).map((r) => toRow(st, r, sub, slotsLeft));
-  return { now: new Date().toISOString(), items, pageInfo: { page, pageSize, total: list.length }, hiddenRecent, slotsLeft };
+  // slotsLeft counts slots (paragraph: sets), as the API
+  const per = sub.type === "paragraph" ? sub.paragraph?.setSize ?? 1 : 1;
+  return { now: new Date().toISOString(), items, pageInfo: { page, pageSize, total: list.length }, hiddenRecent, slotsLeft: Math.floor(slotsLeft / per) };
 }
 
 function lang(question: string, options?: string[], key?: string[]): LangBlock {
@@ -709,7 +711,7 @@ export async function fillPreview(testId: string, req: FillPreviewRequest): Prom
   return {
     now: new Date().toISOString(),
     matching: matching.length,
-    slotsLeft,
+    slotsLeft: slots,
     proposed: proposed.slice(0, slots).map((id) => toRow(st, bank.get(id)!, sub, slotsLeft)),
     shortfalls,
     seed,

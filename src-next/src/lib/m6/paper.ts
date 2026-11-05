@@ -42,13 +42,20 @@ export function usePaper(testId: string | undefined, enabled = true) {
   });
 }
 
-/** PUT one sub-section's whole ordered list (add, remove, replace, reorder). */
-export function putSubsection(testId: string, subsectionId: string, questionIds: string[], expectedRevision: number, where = "Question picker"): Promise<PaperWriteResponse> {
+/** PUT one sub-section's whole ordered list (add, remove, replace, reorder). `sources` marks slots "ai" | "manual" (default manual). */
+export function putSubsection(
+  testId: string,
+  subsectionId: string,
+  questionIds: string[],
+  expectedRevision: number,
+  where = "Question picker",
+  sources?: Record<string, "ai" | "manual">
+): Promise<PaperWriteResponse> {
   return m6Call<PaperWriteResponse>(
     "paper",
     async () =>
       unwrap<PaperWriteResponse>(
-        (await m6Tests.put(`${T(testId)}/paper/subsections/${encodeURIComponent(subsectionId)}`, { questionIds, expectedRevision }, source(where))).data
+        (await m6Tests.put(`${T(testId)}/paper/subsections/${encodeURIComponent(subsectionId)}`, { questionIds, expectedRevision, ...(sources ? { sources } : {}) }, source(where))).data
       ),
     () => fx.putSubsection(testId, subsectionId, questionIds, expectedRevision)
   );

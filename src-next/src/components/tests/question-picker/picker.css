@@ -22,7 +22,7 @@
   .qp-stem { font-family: var(--serif); color: var(--ink); font-size: 14.5px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
   .qp-stem p { display: inline; margin: 0 }
   .qp-stem img { display: none }
-  .qp-ell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+  .qp-ell { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
   .qp-ell p { display: inline; margin: 0 }
   .qp-ell img { display: none }
   .qp-doodle { color: rgba(0, 0, 126, .13) }
@@ -45,7 +45,9 @@
   .qp-more:hover { color: var(--navy); text-decoration: underline }
 
   /* layout */
-  .qp-body { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start }
+  .qp-body { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; min-width: 0 }
+  .qp-body > * { min-width: 0 }
+  .qp-pset .q > .qp-ell, .qp-pk > .qp-ell { flex: 1 1 auto; min-width: 0 }
   .qp-list { flex: 999 1 600px; min-width: 0; gap: 12px }
   .qp-side { flex: 1 1 320px; max-width: 380px; gap: 12px; position: sticky; top: 80px }
   .qp-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
