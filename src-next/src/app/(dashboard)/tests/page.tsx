@@ -1,463 +1,620 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import dayjs from "dayjs";
-import { CalendarClock, ChevronDown, CircleCheck, Hand, MoreHorizontal, Plus, Search, Trash2, Zap } from "lucide-react";
-import { api } from "@/lib/api";
-import { useAuthStore } from "@/stores";
-import { toast } from "@/hooks/use-toast";
-import { Topbar } from "@/components/admin/Topbar";
-import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  type AdminTest,
-  type TestState,
-  assignedStudents,
-  questionCount,
-  testState,
-  useAllTests,
-  useBatches,
-  windowLabel,
-} from "@/lib/queries";
-import { useLiveTests } from "@/lib/queries-tests-admin";
-
 /*
-  Admin-Tests board. "Calendar view" and "Monitor" are not drawn: neither page exists yet.
-  Attempts of live tests ("146 / 212" = started / assigned) come from GET /tests/admin/live (polled every 30 s);
-  ended tests show submissions / assigned from the result read.
+  Admin-Tests board (canvas v166, states list, row-menu, publish-confirm, delete-blocked, delete-published,
+  delete-draft-undo, links, links-email, links-empty, loading, empty, no-match, error; desktop and 1024px).
+  Data: GET /tests/admin/tests (AdminTestListResponse: live first, then by window; tab counts). Row menu: Edit,
+  Preview as student, Student links, Duplicate, Show in calendar, Move back to drafts, Delete (live: blocked;
+  published: password re-auth; draft: soft delete with Undo). "Publish now" on an ended test = publish results with
+  the result-publish-preview facts. Sample-data fallback while the M6 routes are not on the backend (lib/m6/client).
 */
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { CalendarClock, CalendarDays, Check, Clock, Copy, Eye, Hand, Link2, Minus, Pencil, Plus, Trash2, Zap } from "lucide-react";
+import { Topbar } from "@/components/admin/Topbar";
+import {
+  BlockedDialog,
+  ConfirmDialog,
+  DataTable,
+  FilterBar,
+  FilterChip,
+  NoAccess,
+  Pagination,
+  ReauthDialog,
+  SearchBox,
+  StateBox,
+  notify,
+  useUrlState,
+  type Column,
+  type RowMenuItem,
+} from "@/components/kit";
+import { SampleDataPill } from "@/components/tests-m6/parts";
+import { TestLinksDrawer, type LinksTest } from "@/components/tests-m6/TestLinksDrawer";
+import { apiError } from "@/lib/m6/client";
+import { examRefs, istDate, istDay, istTime, useM6Batches, useM6Exams } from "@/lib/m6/shared";
+import { testsActions, useAdminTests, useInvalidateTests } from "@/lib/m6/tests";
+import type { AdminTestListItem, ResultPublishPreview, TestState } from "@/lib/m6-contract";
+import { useAuthStore, usePermissionsStore } from "@/stores";
 
-const PAGE = 15;
-const TABS: { key: "all" | TestState; label: string }[] = [
+type Tab = "all" | TestState;
+const TABS: Array<{ key: Tab; label: string }> = [
   { key: "all", label: "All" },
   { key: "live", label: "Live" },
   { key: "scheduled", label: "Scheduled" },
   { key: "draft", label: "Drafts" },
   { key: "ended", label: "Ended" },
 ];
-const BADGE: Record<TestState, [string, string]> = {
-  live: ["b-live", "Live"],
-  scheduled: ["b-navy", "Scheduled"],
-  draft: ["b-sky", "Draft"],
-  ended: ["b-grey", "Ended"],
-};
+type WindowKey = "" | "week" | "next7" | "month" | "past30";
+const WINDOWS: Array<{ value: Exclude<WindowKey, "">; label: string }> = [
+  { value: "week", label: "This week" },
+  { value: "next7", label: "Next 7 days" },
+  { value: "month", label: "This month" },
+  { value: "past30", label: "Last 30 days" },
+];
 
-function errorMessage(e: unknown, fallback: string) {
-  const ax = e as { response?: { data?: { message?: string } } };
-  return ax?.response?.data?.message || (e instanceof Error ? e.message : fallback);
+const IST_MS = 330 * 60_000;
+/** from/to instants of a window filter (IST days) */
+function windowRange(w: WindowKey): { from?: string; to?: string } {
+  if (!w) return {};
+  const now = Date.now();
+  const ist = new Date(now + IST_MS);
+  const dayStart = (offset: number) => new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate() + offset) - IST_MS).toISOString();
+  if (w === "week") return { from: dayStart(-ist.getUTCDay()), to: dayStart(7 - ist.getUTCDay()) };
+  if (w === "next7") return { from: new Date(now).toISOString(), to: dayStart(8) };
+  if (w === "month") {
+    const from = new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), 1) - IST_MS).toISOString();
+    const to = new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth() + 1, 1) - IST_MS).toISOString();
+    return { from, to };
+  }
+  return { from: dayStart(-30), to: new Date(now).toISOString() };
+}
+
+/** "Indore A, B" from ["JEE 2027 · Indore A", "JEE 2027 · Indore B"]: the shared words once. */
+function batchesLabel(names: string[]): string {
+  if (names.length < 2) return names[0] ?? "";
+  const words = names.map((n) => n.split(" "));
+  let k = 0;
+  while (words.every((w) => k < w.length - 1 && w[k] === words[0][k])) k++;
+  if (!k) return names.join(", ");
+  return `${words[0].slice(0, k).join(" ")} ${words.map((w) => w.slice(k).join(" ")).join(", ")}`;
+}
+
+function sameDay(a: string, b: string) {
+  return istDay(a) === istDay(b);
+}
+function hm(iso: string) {
+  return istTime(iso).replace(":00", "");
+}
+/** "Today 9 AM – 9 PM" · "Sun 8 Nov, 5 – 6 PM" · ended "1 Nov" */
+function windowCell(t: AdminTestListItem): string {
+  if (!t.opensAt || !t.closesAt) return "Not set";
+  if (t.state === "ended") return istDate(t.opensAt);
+  const today = istDay(new Date());
+  const a = hm(t.opensAt);
+  const b = hm(t.closesAt);
+  const range = a.slice(-2) === b.slice(-2) ? `${a.slice(0, -3)} – ${b}` : `${a} – ${b}`;
+  if (!sameDay(t.opensAt, t.closesAt)) return `${istDate(t.opensAt)}, ${a} – ${istDate(t.closesAt)}, ${b}`;
+  if (istDay(t.opensAt) === today) return `Today ${range}`;
+  const wd = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", weekday: "short" }).format(new Date(t.opensAt));
+  return `${wd} ${istDate(t.opensAt)}, ${range}`;
+}
+
+const N = (n: number) => n.toLocaleString("en-IN");
+
+function statusOf(t: AdminTestListItem): { cls: string; label: string; live?: boolean } {
+  if (t.state === "live") return { cls: "b-live", label: "Live", live: true };
+  if (t.state === "ended") return { cls: "b-grey", label: "Ended" };
+  if (t.publishFailed) return { cls: "b-amber", label: "Not published" };
+  if (t.state === "draft") return { cls: "b-sky", label: "Draft" };
+  return { cls: "b-navy", label: "Scheduled" };
+}
+
+function subLabel(t: AdminTestListItem): { text: string; tone: "amber" | "muted" | "navy" } | null {
+  if (t.state === "live" && t.attempts) {
+    const parts = [t.attempts.autoSubmitted ? `${N(t.attempts.autoSubmitted)} auto-submitted` : null, t.attempts.flagged ? `${N(t.attempts.flagged)} flagged` : null].filter(Boolean);
+    return parts.length ? { text: parts.join(" · "), tone: "amber" } : null;
+  }
+  if (t.state === "draft" && t.publishFailed) return { text: "Publishing didn't go through", tone: "amber" };
+  if (t.state === "draft" && t.questions.filled < t.questions.needed) {
+    const left = t.questions.needed - t.questions.filled;
+    return { text: `${N(left)} ${left === 1 ? "question" : "questions"} to pick`, tone: "amber" };
+  }
+  if (t.keyCorrectedAt) return { text: `Key corrected ${istDate(t.keyCorrectedAt)} · re-scored`, tone: "navy" };
+  if (t.state === "scheduled" && t.linksMade > 0) return { text: `${N(t.linksMade)} student links made`, tone: "muted" };
+  return null;
+}
+
+function metaOf(t: AdminTestListItem): string {
+  const q = t.questions;
+  if (t.state === "draft") return [q.filled < q.needed ? `${N(q.filled)} of ${N(q.needed)} Qs` : `${N(q.needed)} Qs`, t.exam?.name, "draft"].filter(Boolean).join(" · ");
+  return [`${N(q.needed)} Qs`, `${N(t.maxMarks)} marks`, t.exam?.name].filter(Boolean).join(" · ");
 }
 
 const RM = "inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] text-ink-2 [&_svg]:shrink-0 [&_svg]:text-muted";
-
-/** How results reach students (result.publishProps). */
-function ResultMode({ t, state }: { t: AdminTest; state: TestState }) {
-  const p = t.result?.publishProps;
-  const published = t.result?.isPublished || p?.isPublished;
-  if (state === "ended" && published)
+function ResultCell({ t }: { t: AdminTestListItem }) {
+  if (t.state === "ended" && t.resultPublishedAt)
     return (
-      <span className={`${RM} font-semibold text-success`}>
-        <CircleCheck className="size-3.5" aria-hidden />
+      <span className={`${RM} font-semibold !text-success [&_svg]:!text-success`}>
+        <Check className="size-3.5" strokeWidth={2.6} aria-hidden />
         Published
       </span>
     );
-  if (p?.type === "immediately" || p?.type === "atTheEndOfTest")
-    return (
-      <span className={RM}>
-        <Zap className="size-3.5" aria-hidden />
-        {p.type === "immediately" ? "Instant" : "At the end"}
-      </span>
-    );
-  if (p?.type === "autoAfterXDays" && p.publishDate)
+  if (t.state === "ended" && t.resultMode !== "immediately" && t.resultMode !== "atTheEndOfTest")
     return (
       <span className={RM}>
         <CalendarClock className="size-3.5" aria-hidden />
-        On {dayjs(p.publishDate).format("D MMM")}
+        {t.resultDueAt ? `Due ${istDate(t.resultDueAt)}` : "Not published"}
       </span>
     );
+  const m = t.resultMode;
   return (
     <span className={RM}>
-      <Hand className="size-3.5" aria-hidden />
-      Manual
+      {m === "immediately" ? <Zap className="size-3.5" aria-hidden /> : m === "atTheEndOfTest" ? <Clock className="size-3.5" aria-hidden /> : m === "autoAfterXDays" ? <CalendarClock className="size-3.5" aria-hidden /> : <Hand className="size-3.5" aria-hidden />}
+      {m === "immediately"
+        ? "Instant"
+        : m === "atTheEndOfTest"
+          ? "At close"
+          : m === "autoAfterXDays"
+            ? t.resultDueAt && t.closesAt
+              ? `After ${Math.max(1, Math.round((Date.parse(t.resultDueAt) - Date.parse(t.closesAt)) / 86_400_000))} days`
+              : "After N days"
+            : "Manual"}
     </span>
   );
 }
 
-function FilterChip({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void }) {
+export default function TestsPage() {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button type="button" className={`chip h-9 ${value ? "on" : ""}`}>
-          {label}: {value || "any"}
-          <ChevronDown className="size-3.5" aria-hidden />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
-        <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
-          <DropdownMenuRadioItem value="">Any</DropdownMenuRadioItem>
-          {options.map((o) => (
-            <DropdownMenuRadioItem key={o} value={o}>
-              {o}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Suspense fallback={null}>
+      <Tests />
+    </Suspense>
   );
 }
 
-export default function TestsPage() {
+type Dialog =
+  | { kind: "block"; t: AdminTestListItem; writing: number | null; closesAt: string | null }
+  | { kind: "delete"; t: AdminTestListItem }
+  | { kind: "results"; t: AdminTestListItem; preview: ResultPublishPreview }
+  | null;
+
+const errorToast = (title: string, e: unknown) => notify.error(title, { description: apiError(e).message });
+
+function Tests() {
   const router = useRouter();
-  const qc = useQueryClient();
+  const params = useSearchParams();
   const isStudent = useAuthStore((s) => s.currentUser?.userType === "student");
-  const tests = useAllTests();
-  const batches = useBatches();
-  const live = useLiveTests(!isStudent);
-  const liveById = useMemo(() => new Map((live.data?.tests ?? []).map((t) => [t.testId, t])), [live.data]);
-  const exams = useQuery({
-    queryKey: ["exams"],
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const r = await api.exams.getAll();
-      const rows: Array<{ name: string }> = Array.isArray(r.data) ? r.data : r.data?.data ?? [];
-      return rows.map((e) => e.name).filter(Boolean);
-    },
-  });
-
-  const [tab, setTab] = useState<"all" | TestState>("all");
-  const [q, setQ] = useState("");
-  const [batch, setBatch] = useState("");
-  const [exam, setExam] = useState("");
-  const [page, setPage] = useState(0);
-  const [toDelete, setToDelete] = useState<AdminTest | null>(null);
+  const canTests = usePermissionsStore((s) => s.hasAccess.test);
+  const [s, set] = useUrlState({ state: "all", q: "", batch: "", exam: "", window: "", page: "1", size: "25" });
+  const tab = (TABS.some((x) => x.key === s.state) ? s.state : "all") as Tab;
+  const page = Math.max(1, Number(s.page) || 1);
+  const pageSize = [25, 50, 100].includes(Number(s.size)) ? Number(s.size) : 25;
+  const win = (WINDOWS.some((w) => w.value === s.window) ? s.window : "") as WindowKey;
+  const [dialog, setDialog] = useState<Dialog>(null);
+  const [linksFor, setLinksFor] = useState<LinksTest | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const invalidate = useInvalidateTests();
 
-  const now = dayjs();
-  const withState = useMemo(
-    () =>
-      (tests.data ?? [])
-        .map((t) => ({ t, state: testState(t, now) }))
-        .sort((a, b) => {
-          const order: Record<TestState, number> = { live: 0, scheduled: 1, draft: 2, ended: 3 };
-          if (order[a.state] !== order[b.state]) return order[a.state] - order[b.state];
-          const da = dayjs(a.t.validity?.from ?? a.t.createdAt).valueOf();
-          const db = dayjs(b.t.validity?.from ?? b.t.createdAt).valueOf();
-          return a.state === "scheduled" ? da - db : db - da;
-        }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tests.data]
+  const range = useMemo(() => windowRange(win), [win]);
+  const list = useAdminTests(
+    { state: tab, q: s.q.trim() || undefined, batchId: s.batch || undefined, examId: s.exam || undefined, ...range, page, pageSize },
+    !isStudent
   );
-  const filtered = withState.filter(
-    ({ t }) =>
-      (!q || t.name.toLowerCase().includes(q.toLowerCase())) &&
-      (!batch || t.batches?.some((b) => b.name === batch)) &&
-      (!exam || t.exam?.name === exam)
-  );
-  const counts = { all: filtered.length, live: 0, scheduled: 0, draft: 0, ended: 0 } as Record<"all" | TestState, number>;
-  for (const r of filtered) counts[r.state]++;
-  const rows = tab === "all" ? filtered : filtered.filter((r) => r.state === tab);
-  const pageRows = rows.slice(page * PAGE, page * PAGE + PAGE);
+  const batches = useM6Batches();
+  const exams = useM6Exams();
+  const data = list.data;
+  const err = list.isError ? apiError(list.error) : null;
+  const forbidden = isStudent || err?.code === "FORBIDDEN" || err?.code === "STAFF_ONLY";
 
-  // Attempts: submissions per ended row on this page (one read per test, cached); live rows use /tests/admin/live,
-  // falling back to the result read when that route is unavailable.
-  const attemptIds = pageRows.filter((r) => r.state === "ended" || (r.state === "live" && !liveById.has(r.t._id) && !live.isLoading)).map((r) => r.t._id);
-  const attempts = useQueries({
-    queries: attemptIds.map((id) => ({
-      queryKey: ["test-result", id],
-      staleTime: 60_000,
-      queryFn: async () => {
-        const r = await api.tests.getAdminResult(id);
-        const d = r.data?.data ?? {};
-        return { submissions: Array.isArray(d.submissions) ? d.submissions : [], result: d.result };
+  // ?links=<testId> opens the drawer (from the builder or a calendar link)
+  const linksParam = params.get("links");
+  useEffect(() => {
+    if (!linksParam || !data) return;
+    const t = data.items.find((x) => x.testId === linksParam);
+    if (t) setLinksFor({ testId: t.testId, name: t.name, opensAt: t.opensAt, batches: t.batches });
+  }, [linksParam, data]);
+
+  const filters = [s.batch, s.exam, win].filter(Boolean).length;
+  const anyFilter = !!(filters || s.q.trim() || tab !== "all");
+  const empty = !!data && data.counts.all === 0 && !filters && !s.q.trim();
+  const batchName = (batches.data ?? []).find((b) => b.id === s.batch)?.name;
+
+  /* actions */
+  const duplicate = async (t: AdminTestListItem) => {
+    setBusy(t.testId);
+    try {
+      const r = await testsActions.duplicate(t.testId);
+      invalidate();
+      notify.success(`Made a copy: ${r.test.name}`, { action: { label: "Open", href: `/tests/${r.test.id}/edit` } });
+    } catch (e) {
+      errorToast("Couldn't duplicate the test", e);
+    } finally {
+      setBusy(null);
+    }
+  };
+  const unpublish = async (t: AdminTestListItem) => {
+    setBusy(t.testId);
+    try {
+      await testsActions.unpublish(t.testId);
+      invalidate();
+      notify.success(`Moved ${t.name} back to drafts`);
+    } catch (e) {
+      const a = apiError(e);
+      if (a.code === "TEST_LOCKED") notify.error("Couldn't move it back to drafts", { description: "It has opened, so it stays published." });
+      else errorToast("Couldn't move it back to drafts", e);
+    } finally {
+      setBusy(null);
+    }
+  };
+  const blockFrom = (t: AdminTestListItem, e: unknown) => {
+    const d = apiError(e).details as { writing?: number; closesAt?: string } | null;
+    setDialog({ kind: "block", t, writing: d?.writing ?? null, closesAt: d?.closesAt ?? t.closesAt });
+  };
+  const askDelete = async (t: AdminTestListItem) => {
+    if (t.state === "live") {
+      const a = t.attempts;
+      return setDialog({ kind: "block", t, writing: a ? Math.max(0, a.started - a.submitted - a.autoSubmitted) : null, closesAt: t.closesAt });
+    }
+    if (t.state !== "draft") return setDialog({ kind: "delete", t });
+    setBusy(t.testId);
+    try {
+      const r = await testsActions.remove(t.testId);
+      invalidate();
+      if (r.undo)
+        notify.undo(`Deleted draft ${t.name}`, async () => {
+          try {
+            await testsActions.undo(r.undo!.path, t.testId);
+            invalidate();
+            notify.success(`Restored ${t.name}`);
+          } catch (e) {
+            errorToast("Couldn't restore the draft", e);
+          }
+        });
+      else notify.success(`Deleted draft ${t.name}`);
+    } catch (e) {
+      const a = apiError(e);
+      if (a.code === "TEST_LIVE") blockFrom(t, e);
+      else if (a.code === "REAUTH_REQUIRED") setDialog({ kind: "delete", t });
+      else errorToast("Couldn't delete the test", e);
+    } finally {
+      setBusy(null);
+    }
+  };
+  const askResults = async (t: AdminTestListItem) => {
+    setBusy(t.testId);
+    try {
+      const preview = await testsActions.resultPreview(t.testId);
+      setDialog({ kind: "results", t, preview });
+    } catch (e) {
+      errorToast("Couldn't check the results", e);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const primaryAction = (t: AdminTestListItem) => {
+    if (t.state === "live")
+      return (
+        <Link href={`/tests/${t.testId}/monitor`} className="btn btn-ghost btn-sm">
+          Monitor
+        </Link>
+      );
+    if (t.state === "ended") {
+      const auto = t.resultMode === "immediately" || t.resultMode === "atTheEndOfTest";
+      if (!t.resultPublishedAt && !auto)
+        return (
+          <button type="button" className="btn btn-ghost btn-sm" disabled={busy === t.testId} onClick={() => askResults(t)}>
+            Publish now
+          </button>
+        );
+      return (
+        <Link href={`/tests/${t.testId}/result`} className="btn btn-ghost btn-sm">
+          Results
+        </Link>
+      );
+    }
+    const label = t.state === "scheduled" ? "Edit" : t.publishFailed ? "Try again" : "Continue";
+    return (
+      <Link href={`/tests/${t.testId}/edit`} className="btn btn-ghost btn-sm">
+        {label}
+      </Link>
+    );
+  };
+
+  const menu = (t: AdminTestListItem): RowMenuItem[] => [
+    { label: "Edit", icon: <Pencil className="size-[15px]" aria-hidden />, onSelect: () => router.push(`/tests/${t.testId}/edit`) },
+    { label: "Preview as student", icon: <Eye className="size-[15px]" aria-hidden />, onSelect: () => router.push(`/tests/${t.testId}/edit?preview=student`) },
+    ...(t.state !== "ended"
+      ? [
+          {
+            label: t.linksMade > 0 ? `Student links · ${N(t.linksMade)}` : "Student links",
+            icon: <Link2 className="size-[15px]" aria-hidden />,
+            onSelect: () => setLinksFor({ testId: t.testId, name: t.name, opensAt: t.opensAt, batches: t.batches }),
+          },
+        ]
+      : []),
+    { label: "Duplicate", icon: <Copy className="size-[15px]" aria-hidden />, onSelect: () => void duplicate(t), disabled: busy === t.testId },
+    ...(t.opensAt
+      ? [{ label: "Show in calendar", icon: <CalendarDays className="size-[15px]" aria-hidden />, onSelect: () => router.push(`/tests/calendar?date=${istDay(t.opensAt!)}&test=${t.testId}`) }]
+      : []),
+    ...(t.state === "scheduled" ? [{ label: "Move back to drafts", icon: <Minus className="size-[15px]" aria-hidden />, onSelect: () => void unpublish(t) }] : []),
+    { label: "Delete test…", icon: <Trash2 className="size-[15px]" aria-hidden />, onSelect: () => void askDelete(t), danger: true, disabled: busy === t.testId },
+  ];
+
+  const columns: Array<Column<AdminTestListItem>> = [
+    {
+      key: "test",
+      header: "Test",
+      render: (t) => (
+        <span className="col min-w-0 gap-0.5">
+          <span className="sm font-semibold">{t.name}</span>
+          <span className="xs muted">{metaOf(t)}</span>
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      width: 170,
+      render: (t) => {
+        const st = statusOf(t);
+        const sub = subLabel(t);
+        return (
+          <span className="col items-start gap-1">
+            <span className={`badge ${st.cls}`}>
+              {st.live && <span className="live-dot" />}
+              {st.label}
+            </span>
+            {sub && <span className={`xs ${sub.tone === "amber" ? "font-semibold text-[#9A5800]" : sub.tone === "navy" ? "font-semibold text-brand" : "muted"}`}>{sub.text}</span>}
+          </span>
+        );
       },
-    })),
-  });
-  const submittedOf = (id: string) => attempts[attemptIds.indexOf(id)]?.data?.submissions.length;
-  const attemptsFailed = (id: string) => !!attempts[attemptIds.indexOf(id)]?.isError;
+    },
+    {
+      key: "batches",
+      header: "Batches",
+      width: 180,
+      render: (t) =>
+        t.batches.length ? (
+          <span className="sm [overflow-wrap:anywhere]" title={t.batches.map((b) => b.name).join(", ")}>
+            {batchesLabel(t.batches.map((b) => b.name))}
+          </span>
+        ) : (
+          <span className="sm muted">No batch yet</span>
+        ),
+    },
+    { key: "window", header: "Window", width: 200, render: (t) => <span className="sm num whitespace-nowrap">{windowCell(t)}</span> },
+    {
+      key: "attempts",
+      header: "Attempts",
+      align: "num",
+      width: 110,
+      render: (t) => {
+        const a = t.attempts;
+        if (!a) return <span className="sm muted">—</span>;
+        const live = t.state === "live";
+        const att = live ? a.started : a.submitted + a.autoSubmitted;
+        const pct = a.assigned ? Math.min(100, Math.round((att / a.assigned) * 100)) : 0;
+        return (
+          <span className="col items-end gap-1" title={live ? `${N(a.started)} started, ${N(a.submitted)} submitted` : undefined}>
+            <span className="xs num">
+              {N(att)} / {a.assigned != null ? N(a.assigned) : "—"}
+            </span>
+            {live && a.assigned != null && (
+              <span className="bar h-[5px] w-[90px]">
+                <i style={{ width: `${pct}%`, animation: "none" }} />
+              </span>
+            )}
+          </span>
+        );
+      },
+    },
+    { key: "results", header: "Results", width: 140, tablet: "hide", render: (t) => <ResultCell t={t} /> },
+    { key: "act", header: <span className="sr-only">Action</span>, width: 112, render: (t) => <div className="row justify-end">{primaryAction(t)}</div> },
+  ];
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["tests"] });
-
-  const publish = async (t: AdminTest) => {
-    setBusy(t._id);
-    try {
-      await api.tests.publish(t._id);
-      toast({ title: "Test published", description: `"${t.name}" is now visible to its batches within its window.` });
-      refresh();
-    } catch (e) {
-      toast({ title: "Could not publish", description: errorMessage(e, "Failed to publish test"), variant: "destructive" });
-    } finally {
-      setBusy(null);
-    }
-  };
-  const publishResults = async (t: AdminTest) => {
-    setBusy(t._id);
-    try {
-      await api.tests.publishResult(t._id);
-      toast({ title: "Results published", description: `Students can now see their results for "${t.name}".` });
-      refresh();
-    } catch (e) {
-      toast({ title: "Could not publish results", description: errorMessage(e, "Failed to publish results"), variant: "destructive" });
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const batchNames = (batches.data ?? []).map((b) => b.name).sort((a, b) => a.localeCompare(b));
+  const tabs = (
+    <div className="seg self-start" role="tablist" aria-label="Test status">
+      {TABS.map((x) => (
+        <button key={x.key} type="button" role="tab" aria-selected={tab === x.key} className={`tab ${tab === x.key ? "on" : ""}`} onClick={() => set({ state: x.key })}>
+          {x.key === "live" && <span className="live-dot" />}
+          {x.label} <span className="count">{data ? N(data.counts[x.key]) : "–"}</span>
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <>
       <Topbar
         title="Tests"
+        badge={<SampleDataPill areas={["tests", "links"]} />}
         actions={
-          !isStudent && (
-            <Link href="/tests/new" className="btn btn-primary btn-sm">
-              <Plus className="size-4" aria-hidden />
-              New test
-            </Link>
+          !forbidden && (
+            <>
+              <Link href="/tests/calendar" className="btn btn-secondary btn-sm">
+                <CalendarDays className="size-3.5" aria-hidden />
+                Calendar
+              </Link>
+              {canTests && (
+                <Link href="/tests/new" className="btn btn-primary btn-sm">
+                  <Plus className="size-3.5" aria-hidden />
+                  New test
+                </Link>
+              )}
+            </>
           )
         }
       />
-      <main className="col gap-3.5 px-7 pt-5 pb-10">
-        <div className="row between wrap gap-2.5">
-          <div className="seg" role="tablist" aria-label="Test status">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                role="tab"
-                aria-selected={tab === t.key}
-                className={`tab ${tab === t.key ? "on" : ""}`}
-                onClick={() => {
-                  setTab(t.key);
-                  setPage(0);
-                }}
-              >
-                {t.key === "live" && <span className="live-dot" />}
-                {t.label} <span className="count">{counts[t.key]}</span>
-              </button>
-            ))}
-          </div>
-          <div className="row gap-2">
-            <div className="relative w-60">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" aria-hidden />
-              <label htmlFor="tq" className="sr-only">
-                Search tests
-              </label>
-              <input
-                id="tq"
-                className="input h-9 pl-[34px] text-[13px]"
-                placeholder="Search tests"
-                value={q}
-                onChange={(e) => {
-                  setQ(e.target.value);
-                  setPage(0);
-                }}
-              />
-            </div>
-            <FilterChip label="Batch" value={batch} options={batchNames} onChange={(v) => (setBatch(v), setPage(0))} />
-            <FilterChip label="Exam" value={exam} options={exams.data ?? []} onChange={(v) => (setExam(v), setPage(0))} />
-          </div>
-        </div>
-
-        <section className="card scrollx rise">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Test</th>
-                <th>Status</th>
-                <th>Batches</th>
-                <th>Window</th>
-                <th>Attempts</th>
-                <th>Results</th>
-                <th>
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {tests.isLoading &&
-                Array.from({ length: 5 }, (_, i) => (
-                  <tr key={i}>
-                    <td colSpan={7}>
-                      <div className="skel h-8" />
-                    </td>
-                  </tr>
-                ))}
-              {tests.isError && (
-                <tr>
-                  <td colSpan={7} className="sm text-danger">
-                    Could not load tests. {errorMessage(tests.error, "")}
-                  </td>
-                </tr>
-              )}
-              {!tests.isLoading && !tests.isError && pageRows.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="sm muted py-10 text-center">
-                    {withState.length ? "No tests match these filters." : "No tests yet. Create one from a pattern with New test."}
-                  </td>
-                </tr>
-              )}
-              {pageRows.map(({ t, state }) => {
-                const { filled, needed } = questionCount(t);
-                const meta =
-                  state === "draft" && needed && filled < needed
-                    ? [`${filled} of ${needed} Qs`, "draft"]
-                    : [`${needed || filled} Qs`, t.totalMarks ? `${t.totalMarks} marks` : null, t.pattern?.name ?? null];
-                const lv = state === "live" ? liveById.get(t._id) : undefined;
-                const assigned = lv ? lv.assigned : assignedStudents(t, batches.data);
-                const submitted = lv ? lv.started : submittedOf(t._id);
-                const [cls, label] = BADGE[state];
-                const published = t.result?.isPublished || t.result?.publishProps?.isPublished;
-                const instant = t.result?.publishProps?.type === "immediately" || t.result?.publishProps?.type === "atTheEndOfTest";
-                const needsPublish = state === "ended" && !published && !instant;
-                const go = () => router.push(isStudent || state === "live" || state === "ended" ? `/tests/${t._id}/result` : `/tests/${t._id}/edit`);
-                return (
-                  <tr key={t._id} className="cursor-pointer" onClick={go}>
-                    <td className="min-w-[240px]">
-                      <span className="col">
-                        <span className="sm font-semibold">{t.name}</span>
-                        <span className="xs muted">{meta.filter(Boolean).join(" · ")}</span>
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge ${cls}`}>
-                        {state === "live" && <span className="live-dot" />}
-                        {label}
-                      </span>
-                    </td>
-                    <td className="sm max-w-[200px] [overflow-wrap:anywhere]">{t.batches?.map((b) => b.name).join(", ") || <span className="muted">—</span>}</td>
-                    <td className="sm whitespace-nowrap">{windowLabel(t, now)}</td>
-                    <td>
-                      {lv && assigned === null ? (
-                        <span className="sm num" title={`${lv.submitted} submitted, ${lv.writing} writing`}>
-                          {submitted}
-                        </span>
-                      ) : submitted === undefined ? (
-                        <span className="sm muted">
-                          {(state === "live" || state === "ended") && !attemptsFailed(t._id) ? <span className="skel inline-block h-4 w-14" /> : "—"}
-                        </span>
-                      ) : state === "live" && assigned && submitted <= assigned ? (
-                        <div className="col gap-1">
-                          <span className="xs num" title={lv ? `${lv.submitted} submitted, ${lv.writing} writing now` : undefined}>
-                            {submitted} / {assigned}
-                          </span>
-                          <div className="bar h-[5px] w-[100px]">
-                            <i style={{ width: `${Math.min(100, (submitted / assigned) * 100)}%` }} />
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="sm num">{assigned && submitted <= assigned ? `${submitted} / ${assigned}` : submitted}</span>
-                      )}
-                    </td>
-                    <td>
-                      <ResultMode t={t} state={state} />
-                    </td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <div className="row justify-end gap-1">
-                        {isStudent ? (
-                          <Link href={`/tests/${t._id}/result`} className="btn btn-ghost btn-sm primary-act">
-                            Results
-                          </Link>
-                        ) : (
-                          <>
-                            {(state === "live" || state === "ended") && (
-                              <Link href={`/tests/${t._id}/result`} className="btn btn-ghost btn-sm primary-act">
-                                Results
-                              </Link>
-                            )}
-                            {needsPublish && (
-                              <button type="button" className="btn btn-ghost btn-sm" disabled={busy === t._id} onClick={() => publishResults(t)}>
-                                Publish now
-                              </button>
-                            )}
-                            {state === "scheduled" && (
-                              <Link href={`/tests/${t._id}/edit`} className="btn btn-ghost btn-sm primary-act">
-                                Edit
-                              </Link>
-                            )}
-                            {state === "draft" && (
-                              <>
-                                <Link href={`/tests/${t._id}/edit`} className="btn btn-ghost btn-sm primary-act">
-                                  Continue
-                                </Link>
-                                <button type="button" className="btn btn-ghost btn-sm" disabled={busy === t._id} onClick={() => publish(t)}>
-                                  Publish
-                                </button>
-                              </>
-                            )}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button type="button" className="btn btn-ghost btn-sm w-8 px-0" aria-label={`More actions for ${t.name}`}>
-                                  <MoreHorizontal className="size-4" aria-hidden />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {(state === "live" || state === "ended") && (
-                                  <DropdownMenuItem onSelect={() => router.push(`/tests/${t._id}/edit`)}>Edit</DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem onSelect={() => router.push(`/tests/${t._id}/preview`)}>Preview</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem variant="destructive" onSelect={() => setToDelete(t)}>
-                                  <Trash2 aria-hidden />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {rows.length > 0 && (
-            <div className="row between px-4 py-3">
-              <span className="xs muted">
-                Showing {page * PAGE + 1}–{Math.min(rows.length, page * PAGE + PAGE)} of {rows.length}
-              </span>
-              <div className="row gap-1.5">
-                <button type="button" className="btn btn-secondary btn-sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  disabled={(page + 1) * PAGE >= rows.length}
-                  onClick={() => setPage((p) => p + 1)}
+      <main className="col gap-3.5 px-7 pt-5 pb-12">
+        {forbidden ? (
+          <NoAccess what="Tests" />
+        ) : (
+          <>
+            {!empty && (
+              <div className="col gap-2.5">
+                {tabs}
+                <FilterBar
+                  activeCount={filters}
+                  onClearAll={() => set({ batch: "", exam: "", window: "" })}
+                  search={<SearchBox id="tq" value={s.q} onChange={(q) => set({ q })} placeholder="Search tests" label="Search tests" width={240} />}
                 >
-                  Next
-                </button>
+                  <FilterChip label="Batch" noun="batch" value={s.batch || null} onChange={(v) => set({ batch: v ?? "" })} options={(batches.data ?? []).map((b) => ({ value: b.id, label: b.name }))} />
+                  <FilterChip label="Exam" noun="exam" value={s.exam || null} onChange={(v) => set({ exam: v ?? "" })} options={examRefs(exams.data).map((e) => ({ value: e.id, label: e.name }))} />
+                  <FilterChip label="Window" noun="window" anyLabel="Any time" value={win || null} onChange={(v) => set({ window: v ?? "" })} options={WINDOWS} />
+                </FilterBar>
               </div>
-            </div>
-          )}
-        </section>
+            )}
+            <DataTable
+              ariaLabel="Tests"
+              columns={columns}
+              rows={data?.items}
+              rowKey={(t) => t.testId}
+              status={list.isLoading ? "loading" : err ? "error" : "ready"}
+              rowMenu={menu}
+              rowMenuLabel={(t) => `More for ${t.name}`}
+              scrollX
+              minWidth={920}
+              skeletonRows={3}
+              filtered={anyFilter}
+              empty={
+                <StateBox
+                  doodle={
+                    <svg className="text-[rgba(0,0,126,.13)]" width="84" height="60" viewBox="0 0 84 60" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <rect x="18" y="6" width="40" height="50" rx="4" />
+                      <path d="M28 6v-2h20v2M27 24l4 4 7-8M27 40h22" />
+                      <path d="M62 46l10-10 4 4-10 10h-4z" />
+                    </svg>
+                  }
+                  title="No tests yet"
+                  body="Make your first test from a pattern. Students see it on their Tests page when it opens."
+                  action={
+                    <div className="row gap-2">
+                      <Link href="/patterns" className="btn btn-secondary">
+                        See patterns
+                      </Link>
+                      {canTests && (
+                        <Link href="/tests/new" className="btn btn-primary">
+                          New test
+                        </Link>
+                      )}
+                    </div>
+                  }
+                />
+              }
+              noMatch={
+                <StateBox
+                  title={s.q.trim() ? `No tests match "${s.q.trim()}"` : "No tests match these filters"}
+                  body={`in ${batchName ?? "any batch"}, ${tab === "all" ? "any status" : TABS.find((x) => x.key === tab)!.label.toLowerCase()}`}
+                  action={
+                    <div className="row gap-2">
+                      <button type="button" className="btn btn-secondary" onClick={() => set({ q: "", batch: "", exam: "", window: "", state: "all" })}>
+                        Clear filters
+                      </button>
+                      {s.batch && (
+                        <button type="button" className="btn btn-ghost" onClick={() => set({ batch: "" })}>
+                          Search all batches
+                        </button>
+                      )}
+                    </div>
+                  }
+                />
+              }
+              error={{ title: "Couldn't load tests", body: "Check your connection and try again.", code: err?.code ?? undefined, onRetry: () => list.refetch() }}
+              footer={
+                data && data.pageInfo.total > 0 ? (
+                  <Pagination
+                    page={data.pageInfo.page}
+                    pageSize={data.pageInfo.pageSize}
+                    total={data.pageInfo.total}
+                    onPage={(p) => set({ page: String(p) })}
+                    onPageSize={(n) => set({ size: String(n) })}
+                    sortLabel="live first, then window"
+                  />
+                ) : undefined
+              }
+            />
+          </>
+        )}
       </main>
 
-      <DeleteConfirmationDialog
-        open={!!toDelete}
-        onOpenChange={(o) => !o && setToDelete(null)}
-        title="Delete test"
-        description="Are you sure you want to delete this test? This action cannot be undone."
-        itemName={toDelete?.name}
-        requirePassword
-        onConfirm={async () => {
-          if (!toDelete) return;
-          await api.tests.delete(toDelete._id);
-          refresh();
+      <BlockedDialog
+        open={dialog?.kind === "block"}
+        onOpenChange={(o) => !o && setDialog(null)}
+        title={dialog?.kind === "block" ? `Can't delete ${dialog.t.name} yet` : ""}
+        description={
+          dialog?.kind === "block"
+            ? `${dialog.writing != null ? `${N(dialog.writing)} ${dialog.writing === 1 ? "student is" : "students are"} writing it now.` : "Students are writing it now."} You can delete it after it closes${dialog.closesAt ? ` at ${istTime(dialog.closesAt)}` : ""}.`
+            : ""
+        }
+        action={
+          dialog?.kind === "block" ? (
+            <Link href={`/tests/${dialog.t.testId}/monitor`} className="btn btn-secondary btn-sm">
+              Watch it live
+            </Link>
+          ) : undefined
+        }
+      />
+      <ReauthDialog
+        open={dialog?.kind === "delete"}
+        onOpenChange={(o) => !o && setDialog(null)}
+        title={dialog?.kind === "delete" ? `Delete ${dialog.t.name}?` : ""}
+        description={
+          dialog?.kind === "delete"
+            ? dialog.t.state === "ended"
+              ? `It has ended: ${dialog.t.attempts ? `${N(dialog.t.attempts.submitted + dialog.t.attempts.autoSubmitted)} students' ` : "students' "}scores and results go with it. This can't be undone.`
+              : `It's published: students in ${batchesLabel(dialog.t.batches.map((b) => b.name)) || "its batches"} were told it opens ${dialog.t.opensAt ? istDate(dialog.t.opensAt) : "soon"}. It disappears from their Tests page. This can't be undone.`
+            : ""
+        }
+        passwordHint="Deleting a published test needs your password."
+        confirmLabel="Delete test"
+        onConfirm={async (token) => {
+          if (dialog?.kind !== "delete") return;
+          const t = dialog.t;
+          try {
+            await testsActions.remove(t.testId, token);
+          } catch (e) {
+            if (apiError(e).code === "TEST_LIVE") {
+              blockFrom(t, e);
+              return;
+            }
+            throw e;
+          }
+          invalidate();
+          notify.success(`Deleted ${t.name}`);
         }}
       />
+      <ConfirmDialog
+        open={dialog?.kind === "results"}
+        onOpenChange={(o) => !o && setDialog(null)}
+        tone="navy"
+        title={dialog?.kind === "results" ? `Publish results for ${dialog.t.name}?` : ""}
+        description={
+          dialog?.kind === "results"
+            ? dialog.preview.test.resultDueAt
+              ? `It was set to publish on ${istDate(dialog.preview.test.resultDueAt)}. Publishing now can't be taken back.`
+              : "Publishing can't be taken back."
+            : undefined
+        }
+        facts={
+          dialog?.kind === "results"
+            ? [
+                ["Students", `${N(dialog.preview.students)} see their score and rank`],
+                ["Email", dialog.preview.emailed >= dialog.preview.students ? "Sent to them" : `Sent to ${N(dialog.preview.emailed)} of them (the rest turned result emails off)`],
+                ...(dialog.preview.aiReviewUnlocks ? ([["AI review", "Unlocks for every student"]] as Array<[string, string]>) : []),
+                ...(dialog.preview.absent > 0 ? ([[`${N(dialog.preview.absent)} absent`, 'See "Not attempted"']] as Array<[string, string]>) : []),
+              ]
+            : undefined
+        }
+        confirmLabel="Publish results"
+        onConfirm={async () => {
+          if (dialog?.kind !== "results") return;
+          await testsActions.publishResults(dialog.t.testId);
+          invalidate();
+          notify.success(`Results published · ${N(dialog.preview.emailed)} students emailed`);
+        }}
+      />
+      <TestLinksDrawer test={linksFor} onClose={() => setLinksFor(null)} />
     </>
   );
 }
