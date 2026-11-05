@@ -19,13 +19,26 @@ const MOVE: Record<Kind, string> = {
   topics: "Move them to another topic in the question bank first.",
 };
 
-function InlineAdd({ placeholder, label, onAdd, focusNonce, button = "Add" }: { placeholder: string; label: string; onAdd: (name: string) => Promise<boolean>; focusNonce?: number; button?: string }) {
+function InlineAdd({ placeholder, label, onAdd, focusNonce, button = "Add", collapsed }: { placeholder: string; label: string; onAdd: (name: string) => Promise<boolean>; focusNonce?: number; button?: string; collapsed?: string }) {
   const [v, setV] = useState("");
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(!collapsed);
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (focusNonce) ref.current?.focus();
+    if (focusNonce) {
+      setOpen(true);
+      requestAnimationFrame(() => ref.current?.focus());
+    }
   }, [focusNonce]);
+  useEffect(() => {
+    if (open && collapsed) ref.current?.focus();
+  }, [open, collapsed]);
+  if (!open)
+    return (
+      <button type="button" className="su-add" onClick={() => setOpen(true)}>
+        + {collapsed}
+      </button>
+    );
   const go = async () => {
     if (!v.trim()) return;
     setBusy(true);
@@ -47,8 +60,12 @@ function InlineAdd({ placeholder, label, onAdd, focusNonce, button = "Add" }: { 
             e.preventDefault();
             void go();
           }
-          if (e.key === "Escape") setV("");
+          if (e.key === "Escape") {
+            setV("");
+            if (collapsed) setOpen(false);
+          }
         }}
+        onBlur={() => collapsed && !v.trim() && !busy && setOpen(false)}
       />
       <button type="button" className="btn btn-secondary btn-sm" disabled={busy || !v.trim()} onClick={() => void go()}>
         {button}
@@ -203,7 +220,7 @@ export function SubjectsTab({ s, set, createNonce, can }: { s: SetupState; set: 
           )}
           {note("subjects")}
           {canSub.add && (
-            <InlineAdd focusNonce={createNonce} placeholder="New subject name" label="New subject name" button="Add" onAdd={(name) => add("subjects", () => taxonomyApi.createSubject(name), name)} />
+            <InlineAdd collapsed="Add subject" focusNonce={createNonce} placeholder="New subject name" label="New subject name" button="Add" onAdd={(name) => add("subjects", () => taxonomyApi.createSubject(name), name)} />
           )}
         </div>
         <div className="su-col">
@@ -228,7 +245,7 @@ export function SubjectsTab({ s, set, createNonce, can }: { s: SetupState; set: 
             )
           )}
           {note("chapters")}
-          {subject && canCh && <InlineAdd placeholder="New chapter name" label="New chapter name" onAdd={(name) => add("chapters", () => taxonomyApi.createChapter(subject.id, name), name)} />}
+          {subject && canCh && <InlineAdd collapsed="Add chapter" placeholder="New chapter name" label="New chapter name" onAdd={(name) => add("chapters", () => taxonomyApi.createChapter(subject.id, name), name)} />}
         </div>
         <div className="su-col">
           <div className="su-mh">
