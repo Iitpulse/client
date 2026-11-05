@@ -1,0 +1,28 @@
+/* Admin-AuditLogs board: the events grid with day rows, action pills, the detail drawer's diff table. */
+.au-dt .tr { display: grid; grid-template-columns: 90px minmax(170px, 1.2fr) 130px minmax(260px, 2.4fr) minmax(140px, 1fr); align-items: center; border-bottom: 1px solid var(--line-2) }
+.au-dt .tr.h { background: #FAFBFD; position: sticky; top: 64px; z-index: 2 }
+.au-dt .th { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; white-space: nowrap }
+.au-dt .td { padding: 10px 14px; min-width: 0; font-size: 13px; overflow-wrap: anywhere }
+.au-dt .tr.click { cursor: pointer } .au-dt .tr.click:hover, .au-dt .tr.sel { background: var(--navy-50) }
+.au-dt .tr.click:focus-visible { outline: 3px solid var(--navy-200); outline-offset: -3px }
+.au-dt .tr.day { display: block; background: var(--ground); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 14px }
+.au-act { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap }
+.au-act i { width: 7px; height: 7px; border-radius: 50%; flex: none }
+.a-add { background: var(--green-50); color: #0B5E2F } .a-add i { background: var(--green) }
+.a-chg { background: var(--navy-50); color: var(--navy) } .a-chg i { background: var(--navy) }
+.a-del { background: var(--red-50); color: #9B0000 } .a-del i { background: var(--red-600) }
+.a-res { background: var(--sky-50); color: #0D2E57 } .a-res i { background: var(--sky) }
+.a-sign { background: var(--line-2); color: var(--ink-2) } .a-sign i { background: #8A8FA8 }
+.au-diff { display: grid; grid-template-columns: 110px minmax(0, 1fr) minmax(0, 1fr); font-size: 13px; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden }
+.au-diff span { padding: 8px 10px; border-bottom: 1px solid var(--line-2); min-width: 0; overflow-wrap: anywhere }
+.au-diff .h { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: #FAFBFD }
+.au-diff .was { color: #7A1010; background: #FFF8F8; text-decoration: line-through; text-decoration-color: rgba(196, 0, 0, .4) }
+.au-diff .now { color: #0B5E2F; background: #F5FBF7 }
+.au-diff .last { border-bottom: 0 }
+.au-tech { border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; font-size: 13px }
+.au-tech summary { cursor: pointer; font-weight: 600 }
+.au-tech pre { margin: 8px 0 0; font: 12px/1.6 var(--mono); color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere }
+@media (max-width: 1179px) {
+  .au-dt .tr { grid-template-columns: 80px minmax(150px, 1.2fr) 120px minmax(220px, 2.4fr) }
+  .au-dt .hide-t { display: none }
+}
