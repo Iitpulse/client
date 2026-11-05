@@ -1,30 +1,42 @@
 "use client";
 
 /*
-  Question bank (board: Admin-Questions, canvas v85). Server-side search, filters, tab and chip counts and paging
+  Question bank (board: Admin-Questions, canvas v166). Server-side search, filters, tab and chip counts and paging
   (GET /questions/admin/search), "used in N tests" (POST /tests/admin/question-usage), a preview pane, and the bulk bar:
   AI runs with a cost preview (Auto-tag, Translate to Hindi, Draft solutions → /ai/admin/bulk/*), Add to test (with an
-  optional section), Delete. "Select all N" selects every question matching the filters (bulk AI runs on the filter).
+  optional section, up to 100 at a time), Delete. "Select all N" selects every question matching the filters.
+  M6: the "Needs LaTeX · N" chip (`needsLatex=1`, rows "· needs LaTeX"), the chapter combobox with counts (taxonomy),
+  paragraph / matrix previews, the page states (loading, empty bank, no match, search error), soft delete with Undo
+  (6 s) and "Delete 2 of 3 questions?" when some are in a live test. Filters and the page live in the URL.
 */
 import * as React from "react";
+import { Suspense } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { Download, Plus, Search, Trash2 } from "lucide-react";
+import { Download, Plus, Search } from "lucide-react";
 import { MathText } from "@iitpulse/ui";
 import { Topbar } from "@/components/admin/Topbar";
 import { QuestionBody } from "@/components/question-body";
-import { FilterChip } from "@/components/question-filter-chip";
 import { Switch } from "@/components/ui/switch";
-import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import { AddToTest } from "@/components/questions-admin/add-to-test";
 import { BulkJobStatus, BulkPreviewDialog, useBulkJob, type Selection } from "@/components/questions-admin/bulk-ai";
+import { FilterChip as KitFilterChip, notify, ToggleChip, type ComboOption } from "@/components/kit";
+import { DeleteBlockedDialog, EmptyBank, NoMatch, SearchError } from "@/components/questions-admin/bank-states";
 import { Sparkle } from "@/components/questions-admin/parts";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { apiError, editorKind, questionsAdmin, TYPE_LABEL, useQuestionSearch, useQuestionUsage, useReadyDraftCount, type SearchParams } from "@/lib/ai-admin";
 import { fetchQuestion, hasHindi, LEVEL, useSubjects } from "@/lib/question-queries";
+import { deleteQuestion, kindOfType, liveTestDetails, markSample, questionUsage, taxonomy, undoDelete, useQuestionsSource } from "@/lib/m6/questions";
 import type { BankListItem, DraftKind, QuestionFilter, QuestionType } from "@/lib/m5-contract";
+import type { QuestionInLiveTestDetails, SoftDeleteResponse } from "@/lib/m6-contract";
+
+/** M6 search: the needsLatex filter and count (rows carry `needsLatex` / `flags.needsLatex`). */
+type FilterM6 = QuestionFilter & { needsLatex?: boolean };
+type RowM6 = BankListItem & { needsLatex?: number; flags?: { needsLatex?: number } };
+const needsLatexOf = (r: RowM6) => r.flags?.needsLatex ?? r.needsLatex ?? 0;
 
 const TABS: { key: "all" | QuestionType; label: string }[] = [
   { key: "all", label: "All" },
@@ -53,32 +65,75 @@ function useDebounced<T>(v: T, ms: number): T {
   return d;
 }
 
-export default function QuestionsPage() {
+const TYPE_KEYS = new Set<string>(["single", "multiple", "integer", "paragraph", "matrix"]);
+
+/** Filters, tab and page in the URL (kit rule): ?type=&q=&subject=&chapter=&level=&missing=1&untagged=1&nohindi=1&latex=1&page= */
+function useUrlState() {
+  const sp = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const get = (k: string) => sp.get(k) || null;
+  // replace() lands a moment later: changes made before it lands build on the pending address, not the old one
+  const pending = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (pending.current !== null && sp.toString() === pending.current) pending.current = null;
+  }, [sp]);
+  const set = React.useCallback(
+    (patch: Record<string, string | number | boolean | null | undefined>) => {
+      const n = new URLSearchParams(pending.current ?? window.location.search);
+      for (const [k, v] of Object.entries(patch)) {
+        if (v === null || v === undefined || v === false || v === "" || (k === "page" && v === 1)) n.delete(k);
+        else n.set(k, v === true ? "1" : String(v));
+      }
+      const qs = n.toString();
+      pending.current = qs;
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [router, pathname]
+  );
+  return { get, set };
+}
+
+function QuestionsBank() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const subjects = useSubjects();
   const drafts = useReadyDraftCount();
+  const url = useUrlState();
+  const sampleSource = useQuestionsSource("search", "taxonomy", "delete");
 
-  const [tab, setTab] = React.useState<"all" | QuestionType>("all");
-  const [search, setSearch] = React.useState("");
+  const typeParam = url.get("type");
+  const tab: "all" | QuestionType = typeParam && TYPE_KEYS.has(typeParam) ? (typeParam as QuestionType) : "all";
+  const [search, setSearch] = React.useState(() => url.get("q") ?? "");
   const q = useDebounced(search.trim(), 300);
-  const [subjectId, setSubjectId] = React.useState<string | null>(null);
-  const [chapterId, setChapterId] = React.useState<string | null>(null);
-  const [difficulty, setDifficulty] = React.useState<string | null>(null);
-  const [missingSolution, setMissingSolution] = React.useState(false);
-  const [untagged, setUntagged] = React.useState(false);
-  const [hindiMissing, setHindiMissing] = React.useState(false);
-  const [page, setPage] = React.useState(1);
+  const subjectId = url.get("subject");
+  const chapterId = url.get("chapter");
+  const difficulty = url.get("level");
+  const missingSolution = url.get("missing") === "1";
+  const untagged = url.get("untagged") === "1";
+  const hindiMissing = url.get("nohindi") === "1";
+  const needsLatex = url.get("latex") === "1";
+  const page = Math.max(1, Number(url.get("page")) || 1);
+  const setPage = (p: number | ((p: number) => number)) => url.set({ page: typeof p === "function" ? p(page) : p });
+  const setFilter = (patch: Record<string, string | boolean | null>) => url.set({ ...patch, page: null });
+  React.useEffect(() => {
+    if ((url.get("q") ?? "") !== q) url.set({ q: q || null, page: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
+
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [selected, setSelected] = React.useState<Map<string, BankListItem>>(new Map());
   const [allMatching, setAllMatching] = React.useState(false);
-  const [toDelete, setToDelete] = React.useState<BankListItem[] | null>(null);
   const [savingProof, setSavingProof] = React.useState(false);
   const [previewKind, setPreviewKind] = React.useState<DraftKind | null>(null);
   const [picking, setPicking] = React.useState(false);
+  const [blocked, setBlocked] = React.useState<{ total: number; deletable: BankListItem[]; blocked: Array<{ id: string; live: QuestionInLiveTestDetails["test"] }> } | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
+  /** deleted on this page (until Undo): their previews are not fetched */
+  const [deletedIds, setDeletedIds] = React.useState<Set<string>>(() => new Set());
   const bulk = useBulkJob();
 
-  const filter = React.useMemo<QuestionFilter>(
+  const filter = React.useMemo<FilterM6>(
     () => ({
       q: q || undefined,
       subjectId: subjectId ?? undefined,
@@ -88,22 +143,30 @@ export default function QuestionsPage() {
       missingSolution: missingSolution || undefined,
       untagged: untagged || undefined,
       hindiMissing: hindiMissing || undefined,
+      needsLatex: needsLatex || undefined,
     }),
-    [q, subjectId, chapterId, difficulty, tab, missingSolution, untagged, hindiMissing]
+    [q, subjectId, chapterId, difficulty, tab, missingSolution, untagged, hindiMissing, needsLatex]
   );
-  const params: SearchParams = { ...filter, page, pageSize: PAGE };
+  const params = { ...filter, page, pageSize: PAGE } as SearchParams;
   const res = useQuestionSearch(params);
   const data = res.data;
-  const rows = React.useMemo(() => data?.items ?? [], [data]);
-  const total = data?.total ?? 0;
+  // A backend without the M6 search has no needsLatex count: the chip counts 0 and its filter matches nothing
+  const latexCount = (data?.counts as { needsLatex?: number } | undefined)?.needsLatex;
+  const latexMissing = !!data && latexCount === undefined;
+  React.useEffect(() => {
+    if (latexMissing) markSample("search");
+  }, [latexMissing]);
+  const rows = React.useMemo(() => (latexMissing && needsLatex ? [] : ((data?.items ?? []) as RowM6[])), [data, latexMissing, needsLatex]);
+  const total = latexMissing && needsLatex ? 0 : data?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE));
 
-  // A filter change starts again at page 1 and drops "all matching" (it meant the old filter)
+  // A filter change drops "all matching" (it meant the old filter)
   const filterKey = JSON.stringify(filter);
-  React.useEffect(() => {
-    setPage(1);
+  const [lastKey, setLastKey] = React.useState(filterKey);
+  if (lastKey !== filterKey) {
+    setLastKey(filterKey);
     setAllMatching(false);
-  }, [filterKey]);
+  }
 
   const usage = useQuestionUsage(rows.map((r) => r.id));
   const used = (id: string) => usage.data?.[id]?.tests;
@@ -111,22 +174,37 @@ export default function QuestionsPage() {
   const open: BankListItem | null = rows.find((r) => r.id === openId) || (openId && selected.get(openId)) || rows[0] || null;
   const full = useQuery({
     queryKey: ["questions", "one", open?.id],
-    enabled: !!open,
+    enabled: !!open && !deletedIds.has(open.id),
     queryFn: () => fetchQuestion(open!.id, editorKind(open!.type)),
     staleTime: 30_000,
   });
 
-  // Filter options (ids: the search filters by id)
+  // Filter options (ids: the search filters by id). Chapters come from the taxonomy tree (with question counts).
+  const tree = useQuery({ queryKey: ["questions", "taxonomy"], queryFn: () => taxonomy(), staleTime: 5 * 60_000, retry: false });
   const subjectOptions = React.useMemo(() => (subjects.data ?? []).map((s) => ({ value: s._id, label: s.name })).sort((a, b) => a.label.localeCompare(b.label)), [subjects.data]);
-  const chapterOptions = React.useMemo(() => {
-    const list = (subjects.data ?? []).filter((s) => !subjectId || s._id === subjectId).flatMap((s) => s.chapters ?? []);
-    const seen = new Map<string, string>();
-    for (const c of list) {
-      const id = (c as { id?: string; _id?: string }).id || (c as { _id?: string })._id;
-      if (id && c.name) seen.set(id, c.name);
+  const chapterChoices = React.useMemo(() => {
+    const out: Array<{ id: string; name: string; subject: string; subjectId: string; count: number | null }> = [];
+    if (tree.data) {
+      for (const s of tree.data.subjects) {
+        if (subjectId && s.id !== subjectId) continue;
+        for (const c of s.chapters) out.push({ id: c.id, name: c.name, subject: s.name, subjectId: s.id, count: c.questions || (tree.data.totals.questions ? 0 : null) });
+      }
+    } else {
+      for (const s of subjects.data ?? []) {
+        if (subjectId && s._id !== subjectId) continue;
+        for (const c of s.chapters ?? []) {
+          const id = (c as { id?: string; _id?: string }).id || (c as { _id?: string })._id;
+          if (id && c.name) out.push({ id, name: c.name, subject: s.name, subjectId: s._id, count: null });
+        }
+      }
     }
-    return [...seen].map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label));
-  }, [subjects.data, subjectId]);
+    return out.sort((a, b) => a.subject.localeCompare(b.subject) || a.name.localeCompare(b.name));
+  }, [tree.data, subjects.data, subjectId]);
+  const chapterName = chapterChoices.find((c) => c.id === chapterId)?.name;
+  const chapterOptions = React.useMemo<ComboOption[]>(
+    () => chapterChoices.map((c) => ({ value: c.id, label: c.name, group: c.subject, end: c.count == null ? undefined : fmt(c.count) })),
+    [chapterChoices]
+  );
 
   /* ---------- selection ---------- */
   const pageIds = rows.map((r) => r.id);
@@ -163,17 +241,52 @@ export default function QuestionsPage() {
     }
   };
 
-  const deleteQuestions = async () => {
-    if (!toDelete) return;
-    const gone = new Set<string>();
-    for (const r of toDelete) {
-      await api.questions.delete(editorKind(r.type), r.id);
-      gone.add(r.id);
+  /**
+   * Delete (soft, M6): no "Are you sure?" (Undo instead); questions in a live test can't be deleted until it closes,
+   * so those are left out after the board's "Delete 2 of 3 questions?" dialog.
+   */
+  const runDelete = async (list: BankListItem[]) => {
+    setDeleting(true);
+    const done: SoftDeleteResponse[] = [];
+    const lateBlocked: Array<{ id: string; live: QuestionInLiveTestDetails["test"] }> = [];
+    try {
+      for (const r of list) {
+        try {
+          done.push(await deleteQuestion(kindOfType(r.type), r.id, "Question bank"));
+        } catch (e) {
+          const live = liveTestDetails(e);
+          if (live) lateBlocked.push({ id: r.id, live: live.test });
+          else throw e;
+        }
+      }
+    } catch (e) {
+      toast({ title: "Could not delete", description: apiError(e).message, variant: "destructive" });
+    } finally {
+      setDeleting(false);
     }
+    const gone = new Set(done.map((d) => d.deleted.id));
     setSelected((s) => new Map([...s].filter(([id]) => !gone.has(id))));
     setAllMatching(false);
-    qc.invalidateQueries({ queryKey: ["questions"] });
-    toast({ title: gone.size === 1 ? "Question deleted" : `${gone.size} questions deleted` });
+    if (openId && gone.has(openId)) setOpenId(null);
+    setDeletedIds((x) => new Set([...x, ...gone]));
+    // the deleted questions' own previews would answer 404: refresh the lists only
+    qc.invalidateQueries({ predicate: (x) => x.queryKey[0] === "questions" && x.queryKey[1] !== "one" });
+    if (done.length) notify.undo(done.length === 1 ? "Deleted 1 question" : `Deleted ${fmt(done.length)} questions`, () => undoDeletes(done));
+    if (lateBlocked.length) setBlocked({ total: lateBlocked.length, deletable: [], blocked: lateBlocked });
+  };
+
+  const undoDeletes = async (done: SoftDeleteResponse[]) => {
+    try {
+      for (const d of done) {
+        if (d.undo) await undoDelete(d.undo.path, "Question bank");
+      }
+      const back = new Set(done.map((d) => d.deleted.id));
+      setDeletedIds((x) => new Set([...x].filter((id) => !back.has(id))));
+      qc.invalidateQueries({ queryKey: ["questions"] });
+      notify.success(done.length === 1 ? "Question restored" : `${fmt(done.length)} questions restored`);
+    } catch (e) {
+      notify.error("Couldn't undo the delete", { description: apiError(e).message });
+    }
   };
 
   /** Every question matching the filters (search pages of 100), for the CSV and for "Delete" on all matching. */
@@ -219,15 +332,46 @@ export default function QuestionsPage() {
   };
 
   const askDelete = async () => {
-    if (!allMatching) return setToDelete([...selected.values()]);
+    let list: BankListItem[];
     try {
-      setToDelete(await allRows());
+      list = allMatching ? await allRows() : [...selected.values()];
     } catch (e) {
       toast({ title: "Could not load the questions", description: apiError(e).message, variant: "destructive" });
+      return;
     }
+    if (!list.length) return;
+    // Questions in a live test (usage `live`, M6) can't be deleted until it closes
+    const live: Array<{ id: string; live: QuestionInLiveTestDetails["test"] }> = [];
+    try {
+      for (let k = 0; k < list.length; k += 200) {
+        const u = await questionUsage(list.slice(k, k + 200).map((r) => r.id));
+        for (const [id, x] of Object.entries(u)) if (x.live.length) live.push({ id, live: x.live[0] });
+      }
+    } catch {
+      // usage unavailable: the delete itself still refuses a question in a live test (409)
+    }
+    if (live.length) {
+      const ids = new Set(live.map((l) => l.id));
+      setBlocked({ total: list.length, deletable: list.filter((r) => !ids.has(r.id)), blocked: live });
+      return;
+    }
+    await runDelete(list);
   };
 
   const newType = tab === "integer" ? "numerical" : tab === "paragraph" ? "paragraph" : tab === "matrix" ? "matrix" : "mcq";
+  const noFilters = !q && !subjectId && !chapterId && !difficulty && tab === "all" && !missingSolution && !untagged && !hindiMissing && !needsLatex;
+  const emptyBank = noFilters && !!data && data.counts.byType.all === 0;
+  const noMatchDetail = [
+    chapterName ? `in ${chapterName}` : subjectId ? `in ${subjectOptions.find((o) => o.value === subjectId)?.label ?? "this subject"}` : "",
+    difficulty ? `${difficulty}` : "",
+    missingSolution ? "missing a solution" : "",
+    untagged ? "untagged" : "",
+    hindiMissing ? "without Hindi" : "",
+    needsLatex ? "with an equation as an image" : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   const counts = data?.counts;
   const showBar = selCount > 0 || !!bulk.job;
   const busyJob = bulk.job && bulk.active;
@@ -237,6 +381,13 @@ export default function QuestionsPage() {
     <>
       <Topbar
         title="Question bank"
+        badge={
+          sampleSource === "sample" ? (
+            <span className="badge b-amber" title="This backend doesn't have some M6 question routes yet. Parts of this page show sample data.">
+              Sample data
+            </span>
+          ) : undefined
+        }
         actions={
           <>
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => exportCsv()} disabled={!total}>
@@ -266,7 +417,7 @@ export default function QuestionsPage() {
               role="tab"
               aria-selected={tab === t.key}
               className={`utab whitespace-nowrap ${tab === t.key ? "on" : ""}`}
-              onClick={() => setTab(t.key)}
+              onClick={() => setFilter({ type: t.key === "all" ? null : t.key })}
             >
               {t.label} <span className="muted num">{counts ? fmt(counts.byType[t.key] ?? 0) : "…"}</span>
             </button>
@@ -281,27 +432,32 @@ export default function QuestionsPage() {
             </label>
             <input id="qs" className="input h-9 pl-[34px] text-[13px]" placeholder="Search text, ID or tag" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <FilterChip label="Subject" value={subjectId} options={subjectOptions} onChange={(v) => { setSubjectId(v); setChapterId(null); }} />
-          <FilterChip label="Chapter" value={chapterId} options={chapterOptions} onChange={setChapterId} />
-          <FilterChip
+          <KitFilterChip label="Subject" noun="subject" value={subjectId} options={subjectOptions} onChange={(v) => setFilter({ subject: v, chapter: null })} />
+          <KitFilterChip label="Chapter" noun="chapter" value={chapterId} options={chapterOptions} valueLabel={chapterName} onChange={(v) => setFilter({ chapter: v })} />
+          <KitFilterChip
             label="Difficulty"
+            noun="difficulty"
+            anyLabel="Any difficulty"
             value={difficulty}
             options={[
               { value: "easy", label: "Easy" },
               { value: "medium", label: "Medium" },
               { value: "hard", label: "Hard" },
             ]}
-            onChange={setDifficulty}
+            onChange={(v) => setFilter({ level: v })}
           />
-          <button type="button" className={`chip h-9 ${missingSolution ? "on" : ""}`} aria-pressed={missingSolution} onClick={() => setMissingSolution((v) => !v)}>
+          <ToggleChip on={missingSolution} onChange={(v) => setFilter({ missing: v })}>
             Missing solution · {counts ? fmt(counts.missingSolution) : "…"}
-          </button>
-          <button type="button" className={`chip h-9 ${untagged ? "on" : ""}`} aria-pressed={untagged} onClick={() => setUntagged((v) => !v)}>
+          </ToggleChip>
+          <ToggleChip on={untagged} onChange={(v) => setFilter({ untagged: v })}>
             Untagged · {counts ? fmt(counts.untagged) : "…"}
-          </button>
-          <button type="button" className={`chip h-9 ${hindiMissing ? "on" : ""}`} aria-pressed={hindiMissing} onClick={() => setHindiMissing((v) => !v)}>
+          </ToggleChip>
+          <ToggleChip on={hindiMissing} onChange={(v) => setFilter({ nohindi: v })}>
             No Hindi · {counts ? fmt(counts.hindiMissing) : "…"}
-          </button>
+          </ToggleChip>
+          <ToggleChip on={needsLatex} onChange={(v) => setFilter({ latex: v })}>
+            Needs LaTeX · {counts ? fmt(latexCount ?? 0) : "…"}
+          </ToggleChip>
         </div>
 
         <div className="flex flex-wrap items-start gap-3.5">
@@ -338,25 +494,42 @@ export default function QuestionsPage() {
               </div>
               <div role="rowgroup" className={res.isFetching && !res.isLoading ? "opacity-70 transition-opacity" : ""}>
                 {res.isLoading &&
-                  Array.from({ length: 8 }, (_, i) => (
-                    <div key={i} className={GRID}>
+                  Array.from({ length: 3 }, (_, i) => (
+                    <div key={i} className={`${GRID} py-4`}>
                       <span className="skel size-[18px]" />
                       <span className="col gap-1.5">
-                        <span className="skel h-3.5 w-4/5" />
-                        <span className="skel h-3 w-1/3" />
+                        <span className="skel h-2.5" style={{ width: ["90%", "75%", "85%"][i] }} />
+                        <span className="skel h-2 w-[120px]" />
                       </span>
-                      <span className="skel h-3.5" />
-                      <span className="skel h-5 w-16" />
-                      <span className="skel h-5 w-14" />
+                      <span className="skel h-2.5 w-[100px]" />
+                      <span className="skel h-2.5 w-[60px]" />
+                      <span className="skel h-2.5 w-[50px]" />
                     </div>
                   ))}
-                {res.isError && <p className="sm muted p-6">{apiError(res.error).code === "NOT_IMPLEMENTED" ? "Search needs the Postgres question bank." : "The question bank could not be loaded. Reload to try again."}</p>}
-                {!res.isLoading && !res.isError && !rows.length && (
-                  <div className="col items-center gap-1.5 p-12 text-center">
-                    <span className="h3">No questions match</span>
-                    <span className="sm muted">Clear a filter, or add a question.</span>
-                  </div>
-                )}
+                {res.isError &&
+                  (apiError(res.error).code === "NOT_IMPLEMENTED" ? (
+                    <p className="sm muted p-6">Search needs the Postgres question bank.</p>
+                  ) : (
+                    <SearchError
+                      code={errorCode(res.error)}
+                      onRetry={() => res.refetch()}
+                      onClear={q ? () => setSearch("") : undefined}
+                    />
+                  ))}
+                {!res.isLoading && !res.isError && !rows.length &&
+                  (emptyBank ? (
+                    <EmptyBank newHref={`/questions/new?type=${newType}`} />
+                  ) : (
+                    <NoMatch
+                      query={q}
+                      detail={noMatchDetail}
+                      onClear={() => {
+                        setSearch("");
+                        url.set({ q: null, subject: null, chapter: null, level: null, missing: null, untagged: null, nohindi: null, latex: null, page: null });
+                      }}
+                      onAllChapters={chapterId ? () => setFilter({ chapter: null }) : undefined}
+                    />
+                  ))}
                 {rows.map((r) => {
                   const lv = level(r.difficulty);
                   const isOpen = open?.id === r.id;
@@ -381,6 +554,7 @@ export default function QuestionsPage() {
                           {r.id}
                           {n !== undefined && ` · ${testsLabel(n)}`}
                           {!r.hasSolution && <span className="text-warning"> · no solution</span>}
+                          {needsLatexOf(r) > 0 && <span className="text-warning"> · needs LaTeX</span>}
                         </span>
                       </span>
                       <span role="cell" className="sm truncate" title={r.chapters.map((c) => c.name).join(", ")}>
@@ -415,7 +589,7 @@ export default function QuestionsPage() {
           </div>
 
           {open && (
-            <aside key={open.id} className="card col fade w-[340px] max-w-full shrink-0 overflow-hidden" aria-label="Question preview" style={{ flex: "0 0 340px" }}>
+            <aside key={open.id} className="card col fade min-w-0 overflow-hidden" aria-label="Question preview" style={{ flex: "1 0 300px", maxWidth: 380 }}>
               <div className="row between pad border-b border-line-2">
                 <span className="mono sm truncate">{open.id}</span>
                 <div className="row gap-1">
@@ -425,9 +599,6 @@ export default function QuestionsPage() {
                   <Link href={`/questions/new?type=${editorKind(open.type)}&from=${open.id}`} className="btn btn-ghost btn-sm">
                     Duplicate
                   </Link>
-                  <button type="button" className="btn btn-ghost btn-sm btn-icon danger-hover w-8" aria-label="Delete question" title="Delete" onClick={() => setToDelete([open])}>
-                    <Trash2 className="size-4" aria-hidden />
-                  </button>
                 </div>
               </div>
               <div className="col pad gap-3">
@@ -442,7 +613,7 @@ export default function QuestionsPage() {
                   {(open.hasHindi || (full.data && hasHindi(full.data))) && <span className="badge b-sky">EN · हि</span>}
                 </div>
                 {full.data ? (
-                  <QuestionBody q={full.data} showAnswers />
+                  <QuestionBody q={full.data} showAnswers variant="pane" />
                 ) : full.isLoading ? (
                   <div className="col gap-2">
                     <span className="skel h-4 w-full" />
@@ -469,13 +640,9 @@ export default function QuestionsPage() {
                       No solution yet
                     </span>
                     <span className="xs muted">Draft one with AI; it stays a draft until a teacher approves it.</span>
-                    {open.type === "paragraph" || open.type === "matrix" ? (
-                      <span className="xs muted">AI drafts work on single, multiple and numerical questions.</span>
-                    ) : (
-                      <Link href={`/questions/${open.id}/edit?type=${editorKind(open.type)}&assist=solution`} className="btn btn-secondary btn-sm self-start">
-                        Draft solution
-                      </Link>
-                    )}
+                    <Link href={`/questions/${open.id}/edit?type=${editorKind(open.type)}&assist=solution`} className="btn btn-secondary btn-sm self-start">
+                      Draft solution
+                    </Link>
                   </div>
                 )}
                 <label className="row between gap-3 border-t border-line-2 pt-3">
@@ -496,7 +663,15 @@ export default function QuestionsPage() {
 
         {showBar && (
           <div className="sticky bottom-5 z-10 row max-w-full animate-toast flex-wrap gap-2.5 self-center rounded-[14px] bg-ink py-2.5 pr-3 pl-[18px] text-white" role="toolbar" aria-label="Bulk actions">
-            <span className="sm font-semibold">{allMatching ? `All ${fmt(total)} matching selected` : selCount ? `${fmt(selCount)} selected` : `${fmt(bulk.job?.total ?? 0)} questions`}</span>
+            <span className="sm font-semibold">
+              {allMatching
+                ? noFilters
+                  ? `All ${fmt(total)} questions selected · AI runs and delete only`
+                  : `All ${fmt(total)} matching selected`
+                : selCount
+                  ? `${fmt(selCount)} selected`
+                  : `${fmt(bulk.job?.total ?? 0)} questions`}
+            </span>
             {offerAll && (
               <button type="button" className={`${ghost} underline`} onClick={() => setAllMatching(true)}>
                 Select all {fmt(total)}
@@ -519,11 +694,17 @@ export default function QuestionsPage() {
                   <Sparkle />
                   Draft solutions
                 </button>
-                <button type="button" className={ghost} onClick={() => { setAllMatching(false); setPicking(true); }} disabled={!selected.size}>
+                <button
+                  type="button"
+                  className={ghost}
+                  onClick={() => setPicking(true)}
+                  disabled={!selected.size || allMatching || selCount > 100}
+                  title={allMatching || selCount > 100 ? "Add to test works on up to 100 questions at a time" : undefined}
+                >
                   Add to test
                 </button>
-                <button type="button" className="btn btn-ghost h-[34px] text-[13px] text-[#FFB3B3] hover:bg-white/10 hover:text-white" onClick={askDelete}>
-                  Delete
+                <button type="button" className="btn btn-ghost h-[34px] text-[13px] text-[#FFB3B3] hover:bg-white/10 hover:text-white" onClick={askDelete} disabled={deleting}>
+                  {deleting ? "Deleting…" : "Delete"}
                 </button>
               </div>
             )}
@@ -550,16 +731,33 @@ export default function QuestionsPage() {
           clear();
         }}
       />
-      <DeleteConfirmationDialog
-        open={!!toDelete}
-        onOpenChange={(o) => {
-          if (!o) setToDelete(null);
+      <DeleteBlockedDialog
+        open={!!blocked}
+        total={blocked?.total ?? 0}
+        blocked={blocked?.blocked ?? []}
+        onCancel={() => setBlocked(null)}
+        onDelete={() => {
+          const list = blocked?.deletable ?? [];
+          setBlocked(null);
+          runDelete(list);
         }}
-        title={toDelete && toDelete.length > 1 ? `Delete ${toDelete.length} questions` : "Delete question"}
-        description={toDelete && toDelete.length > 1 ? "These questions will be removed from the bank." : "This question will be removed from the bank."}
-        onConfirm={deleteQuestions}
-        requirePassword
       />
     </>
+  );
+}
+
+/** "E-Q500I": status + first letters of the code, to read out to support. */
+function errorCode(e: unknown): string {
+  const er = apiError(e);
+  const tag = (er.code ?? "NET").split("_").map((w) => w[0]).join("");
+  return `E-Q${er.status || 0}${tag}`;
+}
+
+/** /questions */
+export default function QuestionsPage() {
+  return (
+    <Suspense>
+      <QuestionsBank />
+    </Suspense>
   );
 }

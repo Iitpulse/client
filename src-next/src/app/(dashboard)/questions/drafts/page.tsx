@@ -7,6 +7,11 @@
   Owner decision: Accept all leaves out solution drafts whose answer differs from the key and drafts whose question
   was edited since (DRAFT_STALE); those need their own "Accept" / "Accept anyway".
   Contract: api-ai docs/m5-api.md ("ai: drafts").
+  M6 (docs/m6-api.md "Image to LaTeX", "Assist on paragraph and matrix"): `latex` drafts (the image vs the LaTeX
+  read from it; Accept replaces exactly that image with $…$), paragraph translations (Hindi passage + every child)
+  and per-child solutions (Agrees / Differs each), matrix translations (stem + List I / List II rows) and solutions
+  checked against the ticked matches. Sample drafts (ids "sample-…", made while the backend lacks a feature) are
+  accepted/discarded locally only.
 */
 import * as React from "react";
 import { Suspense } from "react";
@@ -21,6 +26,9 @@ import { useToast } from "@/hooks/use-toast";
 import { aiAdmin, apiError, BULK_COPY, editorKind, KIND_LABEL, streamAssist, TYPE_LABEL, type DraftQuery } from "@/lib/ai-admin";
 import { fetchQuestion, stripHtml, type BankQuestion } from "@/lib/question-queries";
 import type { AiDraft, DraftKind, SolutionPayload, TagsPayload, TranslationPayload } from "@/lib/m5-contract";
+import type { LatexPayload, SolutionPayloadM6, TranslationPayloadM6 } from "@/lib/m6-contract";
+import { acceptDraft, assistM6, discardDraft, isSampleDraft, sampleDraft } from "@/lib/m6/questions";
+import { childKeyLabel, matrixOf } from "@/components/question-body";
 import "./drafts.css";
 
 type KindTab = "all" | DraftKind;
@@ -31,6 +39,17 @@ const KIND_TABS: [KindTab, string][] = [
   ["tags", "Tags"],
 ];
 type Local = { state: "accepted" | "discarded" | "stale"; changed?: string[] };
+
+/** M6 adds the `latex` kind ("Convert with AI": an image of an equation read as LaTeX). */
+const isLatex = (d: AiDraft) => (d.kind as string) === "latex";
+const kindLabel = (d: AiDraft) => (isLatex(d) ? "LaTeX" : KIND_LABEL[d.kind]);
+/** Paragraph per-child solutions: the worst agreement (one child differing makes the draft differ). */
+function agreementOf(d: AiDraft): "agrees" | "disagrees" | "unknown" | undefined {
+  if (d.kind !== "solution") return undefined;
+  const kids = (d.payload as SolutionPayloadM6 | null)?.children;
+  if (kids?.length) return kids.some((c) => c.keyAgreement === "disagrees") ? "disagrees" : kids.every((c) => c.keyAgreement === "agrees") ? "agrees" : "unknown";
+  return d.checks.keyAgreement;
+}
 
 const GROUP_WORDS: Record<string, string> = {
   en: "English text",
@@ -101,7 +120,7 @@ function Head({ d, q, ai = true, showStem = false }: { d: AiDraft; q?: BankQuest
     <div className="aid-head">
       <span className={`badge ${ai ? "b-navy" : "b-grey"}`}>
         {ai && <Sparkles className="size-3" aria-hidden />}
-        {KIND_LABEL[d.kind]}
+        {kindLabel(d)}
       </span>
       <span className="mono sm">{d.questionId}</span>
       {!showStem && chapter && <span className="badge b-grey max-w-[220px] truncate">{chapter}</span>}
@@ -228,6 +247,214 @@ function TagsCmp({ d }: { d: AiDraft }) {
   );
 }
 
+/* ---------- M6: paragraph, matrix and image-to-LaTeX drafts ---------- */
+
+const HI_BLOCK = "aid-sol text-[14px] [&_p]:my-0";
+
+/** The image the draft reads, from the question's HTML (the draft names its src). */
+function LatexCmp({ d }: { d: AiDraft }) {
+  const p = d.payload as unknown as LatexPayload | null;
+  return (
+    <div className="aid-cmp">
+      <div>
+        <span className="aid-cap">Now</span>
+        <span className="row wrap items-center gap-2">
+          {p?.imageSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.imageSrc} alt="Equation as an image" className="max-h-24 max-w-full rounded-lg border border-dashed border-[#E3B25C] bg-surface p-1.5" />
+          ) : (
+            <span className="sm muted">Image not found</span>
+          )}
+        </span>
+        <span className="row gap-1.5">
+          <span className="badge b-amber">Equation is an image · needs LaTeX</span>
+        </span>
+        {p?.field && <span className="xs muted">In {fieldLabel(p.field)}</span>}
+      </div>
+      <div>
+        <span className="aid-cap">Draft · read from the image</span>
+        <code className="mono self-start rounded bg-brand-50 px-1.5 py-0.5 text-[13px] text-brand">${p?.latex ?? ""}$</code>
+        <MathText as="div" className="aid-sol font-serif" text={p?.latex ? `$${p.latex}$` : ""} />
+        <span className="xs muted">Accept replaces the image with this LaTeX and removes the flag. Discard keeps the flag.</span>
+      </div>
+    </div>
+  );
+}
+
+/** "en.options.D" → "option D", "passage.en" → "the passage", "questions.2.en.solution" → "Q3 solution" … */
+function fieldLabel(f: string): string {
+  const m = /^questions\.(\d+)\.(en|hi)\.(\w+)(?:\.(\w+))?/.exec(f);
+  if (m) return `Q${Number(m[1]) + 1} ${m[3] === "options" ? `option ${m[4] ?? ""}` : m[3]}`.trim();
+  if (/^passage/.test(f)) return "the passage";
+  const r = /^matrix\.(listI|listII)\.(\w+)/.exec(f);
+  if (r) return `${r[1] === "listI" ? "List I" : "List II"} row ${r[2]}`;
+  const o = /^(en|hi)\.options\.(\w+)/.exec(f);
+  if (o) return `option ${o[2]}`;
+  if (/solution/.test(f)) return "the solution";
+  return "the question";
+}
+
+function ParagraphTranslationCmp({ d, q }: { d: AiDraft; q: BankQuestion | null | undefined }) {
+  const p = (d.payload as unknown as TranslationPayloadM6 | null)?.hi;
+  const kids = q?.questions ?? [];
+  const enPassage = q?.passage?.en || (typeof q?.paragraph === "string" ? q.paragraph : "") || d.question.stemPreview;
+  const curHi = q?.passage?.hi;
+  return (
+    <div className="aid-cmp">
+      <div>
+        <span className="aid-cap">Now</span>
+        {curHi && stripHtml(curHi) ? <MathText html as="div" className={HI_BLOCK} text={curHi} /> : (
+          <>
+            <span className="badge b-grey self-start">No Hindi passage yet</span>
+            <MathText html as="div" className={`${HI_BLOCK} muted`} text={enPassage} />
+          </>
+        )}
+        <span className="xs muted">{kids.length === 1 ? "1 question" : `${kids.length} questions`} on this passage</span>
+      </div>
+      <div lang="hi">
+        <span className="aid-cap">Draft</span>
+        {p?.passage && <MathText html as="div" className={HI_BLOCK} text={p.passage} />}
+        {(p?.children ?? []).map((c, i) => (
+          <div key={c.id} className="col gap-1 border-t border-line-2 pt-2">
+            <span className="xs mono muted">Q{i + 1}</span>
+            <MathText html as="div" className={HI_BLOCK} text={c.question} />
+            {!!c.options?.length && (
+              <div className="aid-hopts">
+                {c.options.map((o, j) => (
+                  <span key={o.id}>
+                    ({LETTER(j)}) <MathText html as="span" className="[&_p]:inline [&_p]:m-0" text={o.value} />
+                  </span>
+                ))}
+              </div>
+            )}
+            {c.solution && <span className="xs muted">Solution translated too</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MatrixTranslationCmp({ d, q }: { d: AiDraft; q: BankQuestion | null | undefined }) {
+  const p = (d.payload as unknown as TranslationPayloadM6 | null)?.hi;
+  const m = q ? matrixOf(q) : null;
+  const rows = (list: Array<{ id: string; value: string }> | undefined, label: string) =>
+    list?.length ? (
+      <div className="col gap-1">
+        <span className="xs font-semibold text-muted">{label}</span>
+        {list.map((r) => (
+          <span key={r.id} className="row items-baseline gap-1.5 text-[14px]">
+            <b className="mono">{r.id}</b>
+            <MathText html as="span" className="[&_p]:inline [&_p]:m-0" text={r.value} />
+          </span>
+        ))}
+      </div>
+    ) : null;
+  return (
+    <div className="aid-cmp">
+      <div>
+        <span className="aid-cap">Now</span>
+        {q?.hi?.question && stripHtml(q.hi.question) ? <MathText html as="div" className={HI_BLOCK} text={q.hi.question} /> : (
+          <>
+            <span className="badge b-grey self-start">No Hindi yet</span>
+            <MathText html as="div" className={`${HI_BLOCK} muted`} text={q?.en?.question || d.question.stemPreview} />
+          </>
+        )}
+        {m && (
+          <span className="xs muted">
+            List I rows {m.listI.map((r) => r.id).join(", ")} · List II rows {m.listII.map((r) => r.id).join(", ")}
+          </span>
+        )}
+      </div>
+      <div lang="hi">
+        <span className="aid-cap">Draft</span>
+        <MathText html as="div" className={HI_BLOCK} text={p?.question ?? ""} />
+        <div className="grid grid-cols-2 gap-3">
+          {rows(p?.matrix?.listI, "List I")}
+          {rows(p?.matrix?.listII, "List II")}
+        </div>
+        {p?.solution && <span className="xs muted">Solution translated too</span>}
+      </div>
+    </div>
+  );
+}
+
+function ParagraphSolutionCmp({ d, q }: { d: AiDraft; q: BankQuestion | null | undefined }) {
+  const p = d.payload as unknown as SolutionPayloadM6 | null;
+  const kids = q?.questions ?? [];
+  return (
+    <div className="aid-cmp">
+      <div>
+        <span className="aid-cap">Now</span>
+        {(p?.children ?? []).map((c) => {
+          const i = kids.findIndex((k) => (k.id || k._id) === c.childId);
+          const kid = kids[i];
+          return (
+            <span key={c.childId} className="sm">
+              <b className="mono">Q{i + 1 || "?"}</b> {kid && stripHtml(kid.en?.solution) ? "has a solution" : "No solution"} · key {kid ? childKeyLabel(kid).split(" · ")[1] : "?"}
+            </span>
+          );
+        })}
+      </div>
+      <div>
+        <span className="aid-cap">Draft</span>
+        {(p?.children ?? []).map((c) => {
+          const i = kids.findIndex((k) => (k.id || k._id) === c.childId);
+          return (
+            <div key={c.childId} className="col gap-1 border-t border-line-2 pt-2 first:border-0 first:pt-0">
+              <span className="row gap-2">
+                <span className="xs mono muted">Q{i + 1 || "?"}</span>
+                {c.keyAgreement === "agrees" && <span className="badge b-green">Agrees</span>}
+                {c.keyAgreement === "disagrees" && <span className="badge b-amber">Differs</span>}
+              </span>
+              <MathText as="div" className="aid-sol font-serif" text={c.solution} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MatrixSolutionCmp({ d, q }: { d: AiDraft; q: BankQuestion | null | undefined }) {
+  const p = d.payload as unknown as SolutionPayloadM6 | null;
+  const m = q ? matrixOf(q) : null;
+  const stated = p?.statedAnswer?.matches;
+  return (
+    <div className="aid-cmp">
+      <div>
+        <span className="aid-cap">Now</span>
+        {q?.en?.solution && stripHtml(q.en.solution) ? <MathText html as="div" className="aid-sol sm font-serif" text={q.en.solution} /> : <span className="sm muted">No solution</span>}
+        {m && (
+          <span className="sm">
+            Your matches: <b>{m.listI.map((r) => `${r.id}→${(m.matches[r.id] ?? []).join(", ") || "?"}`).join(" · ")}</b>
+          </span>
+        )}
+      </div>
+      <div>
+        <span className="aid-cap">Draft</span>
+        <MathText as="div" className="aid-sol font-serif" text={p?.solution ?? ""} />
+        {m && stated && (
+          <div className="col gap-1">
+            {m.listI.map((r) => {
+              const mine = [...(m.matches[r.id] ?? [])].sort().join(",");
+              const theirs = [...(stated[r.id] ?? [])].sort().join(",");
+              const same = mine === theirs;
+              return (
+                <span key={r.id} className="row gap-2 text-[12px]">
+                  <span className={`badge ${same ? "b-green" : "b-amber"}`}>{same ? "Agrees" : "Differs"}</span>
+                  Row {r.id}: draft says {theirs || "none"}
+                  {same ? "" : `; you ticked ${mine || "nothing"}`}
+                </span>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function DraftCard({
   d,
   i,
@@ -243,19 +470,20 @@ function DraftCard({
   onAccept: (d: AiDraft, force: boolean) => void;
   onDiscard: (d: AiDraft) => void;
 }) {
-  const q = useBankQuestion(d, d.kind !== "tags").data;
+  const q = useBankQuestion(d, d.kind !== "tags" && !isLatex(d)).data;
   if (local && local.state !== "stale") {
     return (
       <div className="aid-closed pop">
         <span className={`badge ${local.state === "accepted" ? "b-green" : "b-grey"}`}>{local.state === "accepted" ? "Accepted" : "Discarded"}</span>
         <span className="sm">
-          {KIND_LABEL[d.kind]} for <span className="mono">{d.questionId}</span>
+          {kindLabel(d)} for <span className="mono">{d.questionId}</span>
         </span>
       </div>
     );
   }
   const stale = local?.state === "stale";
-  const agreement = d.kind === "solution" ? d.checks.keyAgreement : undefined;
+  const agreement = agreementOf(d);
+  const qt = d.question.type;
   const disagrees = agreement === "disagrees";
   const key = keyText(q);
   const said = statedText(d.payload as SolutionPayload | null, q);
@@ -263,10 +491,11 @@ function DraftCard({
   const changed = local?.changed ?? [];
   const tagDiff = d.kind === "tags" && changed.includes("difficulty") ? LEVEL[(d.payload as TagsPayload | null)?.difficulty ?? ""] : null;
   return (
-    <article className="card aid-card rise" style={{ ["--i" as string]: Math.min(i, 6) }} aria-label={`${KIND_LABEL[d.kind]} draft for ${d.questionId}`}>
+    <article className="card aid-card rise" style={{ ["--i" as string]: Math.min(i, 6) }} aria-label={`${kindLabel(d)} draft for ${d.questionId}`}>
       <Head d={d} q={q} showStem={d.kind === "tags"} />
-      {d.kind === "solution" && <SolutionCmp d={d} q={q} />}
-      {d.kind === "translation" && <TranslationCmp d={d} q={q} />}
+      {isLatex(d) && <LatexCmp d={d} />}
+      {d.kind === "solution" && (qt === "paragraph" ? <ParagraphSolutionCmp d={d} q={q} /> : qt === "matrix" ? <MatrixSolutionCmp d={d} q={q} /> : <SolutionCmp d={d} q={q} />)}
+      {d.kind === "translation" && (qt === "paragraph" ? <ParagraphTranslationCmp d={d} q={q} /> : qt === "matrix" ? <MatrixTranslationCmp d={d} q={q} /> : <TranslationCmp d={d} q={q} />)}
       {d.kind === "tags" && <TagsCmp d={d} />}
       {stale ? (
         <div className="aid-stale fade">
@@ -299,7 +528,11 @@ function DraftCard({
             <>
               <span className="badge b-amber">
                 <AlertCircle className="size-3" aria-hidden />
-                Answer differs from the key{said && key ? `: draft says ${said}, key says ${key}` : ""}
+                {qt === "paragraph" || qt === "matrix"
+                  ? qt === "paragraph"
+                    ? "A question's answer differs from the key"
+                    : "Some rows differ from your matches"
+                  : `Answer differs from the key${said && key ? `: draft says ${said}, key says ${key}` : ""}`}
               </span>
               <span className="xs muted">Check the key or the working first.</span>
             </>
@@ -324,7 +557,7 @@ function DraftCard({
 }
 
 function FailedCard({ d, i, busy, onRetry }: { d: AiDraft; i: number; busy: boolean; onRetry: (d: AiDraft) => void }) {
-  const q = useBankQuestion(d, d.kind !== "tags").data;
+  const q = useBankQuestion(d, d.kind !== "tags" && !isLatex(d)).data;
   const code = d.error?.code ?? "";
   const missing = [...(d.checks.missingMath ?? [])];
   let title = "Couldn't draft this";
@@ -344,11 +577,13 @@ function FailedCard({ d, i, busy, onRetry }: { d: AiDraft; i: number; busy: bool
     ) : (
       (d.checks.problems ?? []).join(" ") || d.error?.message
     );
+  } else if (isLatex(d)) {
+    title = "Couldn't read the equation from the image";
   } else if (d.kind === "tags" && code === "NO_VALID_TAGS") {
     title = "No tags suggested from your chapter list";
   }
   return (
-    <article className="card aid-card rise" style={{ ["--i" as string]: Math.min(i + 4, 8) }} aria-label={`${KIND_LABEL[d.kind]} draft for ${d.questionId} failed`}>
+    <article className="card aid-card rise" style={{ ["--i" as string]: Math.min(i + 4, 8) }} aria-label={`${kindLabel(d)} draft for ${d.questionId} failed`}>
       <Head d={d} q={q} ai={false} />
       <div className="aid-fail">
         <XCircle className="mt-0.5 size-4 shrink-0 text-danger" aria-hidden />
@@ -431,7 +666,8 @@ function DraftsReview() {
   const accept = async (d: AiDraft, force: boolean) => {
     setBusyId(d.id, true);
     try {
-      await aiAdmin.accept(d.id, force ? { force: true } : {});
+      if (isSampleDraft(d.id)) await acceptDraft(d.id);
+      else await aiAdmin.accept(d.id, force ? { force: true } : {});
       mark(d.id, { state: "accepted" });
       afterWrite();
     } catch (e) {
@@ -450,7 +686,8 @@ function DraftsReview() {
   const discard = async (d: AiDraft) => {
     setBusyId(d.id, true);
     try {
-      await aiAdmin.discard(d.id);
+      if (isSampleDraft(d.id)) await discardDraft(d.id);
+      else await aiAdmin.discard(d.id);
       mark(d.id, { state: "discarded" });
       afterWrite();
     } catch (e) {
@@ -486,7 +723,7 @@ function DraftsReview() {
     try {
       const all = await allReady();
       const stale = all.filter((d) => local[d.id]?.state === "stale");
-      const disagree = all.filter((d) => d.kind === "solution" && d.checks.keyAgreement === "disagrees");
+      const disagree = all.filter((d) => agreementOf(d) === "disagrees");
       const eligible = all.filter((d) => !stale.includes(d) && !disagree.includes(d));
       const results = await decideAll(eligible, "accept");
       let ok = 0;
@@ -534,7 +771,14 @@ function DraftsReview() {
   const retry = async (d: AiDraft) => {
     setBusyId(d.id, true);
     try {
-      await streamAssist(d.questionId, d.kind, () => {});
+      if (isLatex(d)) {
+        // "Convert with AI" again for the same image (the failed draft names it)
+        const t = d.payload as unknown as LatexPayload | null;
+        if (!t?.imageSrc) throw new Error("This draft doesn't say which image to read. Open the question and use Convert with AI.");
+        await assistM6(d.questionId, { kind: "latex", target: { field: t.field, imageSrc: t.imageSrc } }, "latex", () =>
+          sampleDraft(d.questionId, "latex", { field: t.field, imageSrc: t.imageSrc, latex: "x" })
+        );
+      } else await streamAssist(d.questionId, d.kind, () => {});
       setRetried((s) => new Set(s).add(d.id));
     } catch (e) {
       appToast({ title: "Could not try again", description: apiError(e).message, variant: "destructive" });
