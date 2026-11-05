@@ -1,11 +1,59 @@
+/** IST midnight of "YYYY-MM-DD" plus `days`, as an instant */
+function istMidnight(date: string, days = 0): string {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days) - 330 * 60_000).toISOString();
+}
+
+/** The M6 tests list for the window (when the list route exists but the calendar route does not yet). */
+async function fromM6List(p: { from: string; to: string }): Promise<SampleTest[] | null> {
+  try {
+    const out: SampleTest[] = [];
+    for (let page = 1; page <= 5; page++) {
+      const r = unwrap<AdminTestListResponse>((await m6Tests.get("/admin/tests", { params: { from: istMidnight(p.from), to: istMidnight(p.to, 1), page, pageSize: 100 } })).data);
+      for (const t of r.items)
+        out.push({
+          testId: t.testId,
+          name: t.name,
+          shortName: t.shortName,
+          state: t.state,
+          publishFailed: t.publishFailed,
+          exam: t.exam ?? { id: "", name: "" },
+          pattern: { id: t.pattern?.id ?? "", name: t.pattern?.name ?? "", durationMinutes: 0 },
+          batches: t.batches,
+          opensAt: t.opensAt,
+          closesAt: t.closesAt,
+          questions: t.questions,
+          maxMarks: t.maxMarks,
+          resultMode: t.resultMode,
+          resultAfterDays: null,
+          resultPublishedAt: t.resultPublishedAt,
+          resultDueAt: t.resultDueAt,
+          assigned: t.attempts?.assigned ?? 0,
+          started: t.attempts?.started ?? 0,
+          submitted: t.attempts?.submitted ?? 0,
+          autoSubmitted: t.attempts?.autoSubmitted ?? 0,
+          flagged: t.attempts?.flagged ?? 0,
+          linksMade: t.linksMade,
+          keyCorrectedAt: t.keyCorrectedAt,
+        });
+      if (r.pageInfo.page * r.pageInfo.pageSize >= r.pageInfo.total) break;
+    }
+    return out;
+  } catch (e) {
+    if (isMissingRoute(e)) return null;
+    throw e;
+  }
+}
+
 /*
   Fallback answers for the calendar (GET /tests/admin/calendar, POST /tests/admin/tests/:id/reschedule) while those
-  M6 routes are not on the backend; same tests as the list fallback (fixtures/tests.ts): sample tests in fixture
-  mode "on", real tests through the legacy routes otherwise (a confirmed move then answers NOT_IMPLEMENTED: the
+  M6 routes are not on the backend: sample tests in fixture mode "on"; otherwise the real tests from the M6 list route
+  (GET /tests/admin/tests?from&to) or, without it, the legacy routes (fixtures/tests.ts) (a confirmed move then answers NOT_IMPLEMENTED: the
   legacy API has no reschedule with notices and link expiry).
 */
 import type { CalendarResponse, RescheduleRequest, RescheduleResponse } from "../../m6-contract";
-import { fixtureError, fixtureMode, scenario } from "../client";
+import type { AdminTestListResponse } from "../../m6-contract";
+import { fixtureError, fixtureMode, isMissingRoute, m6Tests, scenario, unwrap } from "../client";
 import { istDay } from "../shared";
 import { loadLegacy, sampleTests } from "./tests";
 import type { SampleTest } from "./seed";
@@ -34,8 +82,10 @@ export interface CalendarParams {
 export async function fixtureCalendar(p: CalendarParams): Promise<CalendarResponse> {
   const now = new Date().toISOString();
   if (scenario() === "empty") return { now, tests: [], resultEvents: [], clashes: [] };
-  if (fixtureMode() !== "on") await loadLegacy();
-  const all = (await sampleTests()).filter(
+  let source: SampleTest[] | null = null;
+  if (fixtureMode() !== "on") source = await fromM6List(p);
+  if (fixtureMode() !== "on" && !source) await loadLegacy();
+  const all = (source ?? (await sampleTests())).filter(
     (t) =>
       !t.deleted &&
       t.opensAt &&
