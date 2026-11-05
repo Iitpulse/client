@@ -56,6 +56,13 @@ export default function ProfilePage() {
     },
   });
 
+  // The token carries no name and userDetails loads after the first render (a full load of /profile): fill the form
+  // once it arrives, unless the admin has started typing.
+  React.useEffect(() => {
+    if (!userDetails || profileForm.formState.isDirty) return;
+    profileForm.reset({ name: userDetails.name || "", email: userDetails.email || currentUser?.email || "", phone: "" });
+  }, [userDetails, currentUser?.email, profileForm]);
+
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
   });
@@ -117,10 +124,10 @@ export default function ProfilePage() {
           <CardHeader className="text-center">
             <Avatar className="mx-auto h-24 w-24">
               <AvatarFallback className="text-2xl">
-                {getInitials(currentUser?.name)}
+                {getInitials(userDetails?.name || currentUser?.name)}
               </AvatarFallback>
             </Avatar>
-            <CardTitle className="mt-4">{currentUser?.name}</CardTitle>
+            <CardTitle className="mt-4">{userDetails?.name || currentUser?.name}</CardTitle>
             <CardDescription>{currentUser?.email}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
