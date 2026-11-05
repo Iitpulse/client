@@ -67,15 +67,11 @@ export function Note({ tone = "plain", children, className = "", role }: { tone?
 export function BoardDialog({
   open,
   onClose,
-  labelledBy,
-  title,
   description,
   children,
 }: {
   open: boolean;
   onClose: () => void;
-  labelledBy?: string;
-  title: React.ReactNode;
   description?: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -83,15 +79,18 @@ export function BoardDialog({
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent
         showCloseButton={false}
-        aria-labelledby={labelledBy}
         className="top-24 flex max-h-[calc(100vh-112px)] max-w-[540px] translate-y-0 flex-col gap-3.5 overflow-y-auto rounded-[16px] px-[22px] pt-[22px] pb-[18px]"
       >
-        <DialogTitle className="sr-only">{typeof title === "string" ? title : "Dialog"}</DialogTitle>
         {description ? <DialogDescription className="sr-only">{description}</DialogDescription> : <DialogDescription className="sr-only" />}
         {children}
       </DialogContent>
     </Dialog>
   );
+}
+
+/** The dialog's visible title (the boards' `h2.h3`), wired as the dialog's accessible name. */
+export function BoardTitle({ children }: { children: React.ReactNode }) {
+  return <DialogTitle className="m-0 text-[16px] leading-[1.3] font-semibold tracking-normal">{children}</DialogTitle>;
 }
 
 export const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString("en-IN")} ${n === 1 ? one : many}`;

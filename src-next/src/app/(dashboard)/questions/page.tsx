@@ -458,7 +458,8 @@ export default function QuestionsPage() {
                 {open.hasSolution && full.data && open.type !== "paragraph" && (
                   <div className="col gap-1.5 rounded-control bg-ground p-3">
                     <span className="eyebrow text-[11px]">Solution</span>
-                    <MathText html as="div" className="sm [&_img]:max-w-full [&_p]:my-0" text={full.data.en?.solution || ""} />
+                    {/* AI solutions are plain text with line breaks (contract "Drafts"); keep the lines */}
+                    <MathText html as="div" className={`sm [&_img]:max-w-full [&_p]:my-0 ${/<[a-z][^>]*>/i.test(full.data.en?.solution || "") ? "" : "whitespace-pre-line"}`} text={full.data.en?.solution || ""} />
                   </div>
                 )}
                 {!open.hasSolution && (

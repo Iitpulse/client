@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { aiAdmin, apiError, BULK_COPY } from "@/lib/ai-admin";
 import type { BulkJob, BulkPreview, BulkSkipReason, DraftKind, QuestionFilter } from "@/lib/m5-contract";
-import { AlertIcon, BoardDialog, ClockIcon, Note, Sparkle, TickIcon } from "./parts";
+import { AlertIcon, BoardDialog, BoardTitle, ClockIcon, Note, Sparkle, TickIcon } from "./parts";
 
 export type Selection = { questionIds: string[] } | { filter: QuestionFilter };
 
@@ -90,7 +90,9 @@ export function BulkJobStatus({ job, onCancel, onClear }: { job: BulkJob; onCanc
   const pct = job.total ? Math.round((done / job.total) * 100) : 0;
   const review = `/questions/drafts?jobId=${encodeURIComponent(job.id)}`;
   const ghost = "btn btn-ghost h-[34px] text-[13px] text-[#D6D8FA] hover:bg-white/10 hover:text-white";
-  const white = "btn btn-primary h-[34px] border-white bg-white text-[13px] text-brand hover:bg-white/90";
+  const white = "btn btn-primary h-[34px] text-[13px]";
+  const whiteStyle = { background: "#fff", color: "#00007E", borderColor: "#fff" };
+  const drafts = (n: number) => (n === 1 ? "1 draft" : `${fmt(n)} drafts`);
   if (job.status === "queued" || job.status === "running")
     return (
       <div className="row fade min-w-0 gap-2.5 md:min-w-[460px]">
@@ -117,7 +119,7 @@ export function BulkJobStatus({ job, onCancel, onClear }: { job: BulkJob; onCanc
           {fmt(done)} of {fmt(job.total)} done. Today&apos;s limit is reached; the other {fmt(job.total - done)} start after midnight.
         </span>
         <Link href={review} className={ghost}>
-          Review {fmt(ready)} drafts
+          Review {drafts(ready)}
         </Link>
         <button type="button" className={ghost} onClick={onCancel}>
           Cancel
@@ -134,7 +136,7 @@ export function BulkJobStatus({ job, onCancel, onClear }: { job: BulkJob; onCanc
           Paused at {fmt(done)} of {fmt(job.total)}. AI is switched off for now; this carries on by itself.
         </span>
         <Link href={review} className={ghost}>
-          Review {fmt(ready)} drafts
+          Review {drafts(ready)}
         </Link>
         <button type="button" className={ghost} onClick={onCancel}>
           Cancel
@@ -146,10 +148,10 @@ export function BulkJobStatus({ job, onCancel, onClear }: { job: BulkJob; onCanc
       <div className="row pop gap-2.5">
         <TickIcon color="#7BE0A6" />
         <span className="sm">
-          {fmt(ready)} drafts ready for review
+          {drafts(ready)} ready for review
           {failed > 0 && ` · ${fmt(failed)} failed`}
         </span>
-        <Link href={review} className={white}>
+        <Link href={review} className={white} style={whiteStyle}>
           Review drafts
         </Link>
         <button type="button" className={ghost} onClick={onClear}>
@@ -161,9 +163,9 @@ export function BulkJobStatus({ job, onCancel, onClear }: { job: BulkJob; onCanc
   return (
     <div className="row pop gap-2.5">
       <span className="sm">
-        Stopped at {fmt(done)} of {fmt(job.total)} · {fmt(ready)} drafts ready
+        Stopped at {fmt(done)} of {fmt(job.total)} · {drafts(ready)} ready
       </span>
-      <Link href={review} className={white}>
+      <Link href={review} className={white} style={whiteStyle}>
         Review drafts
       </Link>
       <button type="button" className={ghost} onClick={onClear}>
@@ -267,15 +269,15 @@ export function BulkPreviewDialog({
   };
 
   return (
-    <BoardDialog open onClose={onClose} labelledBy="pv-title" title={`${c.label} for ${total} questions?`}>
+    <BoardDialog open onClose={onClose}>
       <div className="col gap-1.5">
         <span className="ai-mark">
           <Sparkle size={12} />
           {c.label}
         </span>
-        <h2 id="pv-title" className="h3 m-0">
+        <BoardTitle>
           {c.label} for {fmt(total)} questions?
-        </h2>
+        </BoardTitle>
       </div>
       <div className="grid grid-cols-[120px_minmax(0,1fr)] gap-x-3.5 gap-y-3 border-y border-line-2 py-3.5">
         <span className="sm muted">Will run</span>

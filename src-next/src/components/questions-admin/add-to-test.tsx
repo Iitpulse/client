@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { questionCount, testState, useAllTests, type AdminTest } from "@/lib/queries";
 import { apiError, testsAdmin, TYPE_LABEL } from "@/lib/ai-admin";
 import type { AddToTestResponse } from "@/lib/m5-contract";
-import { AlertIcon, BoardDialog, Note, TickIcon, plural } from "./parts";
+import { AlertIcon, BoardDialog, BoardTitle, Note, TickIcon, plural } from "./parts";
 
 const SKIP_TEXT: Record<AddToTestResponse["skipped"][number]["reason"], string> = {
   ALREADY_IN_TEST: "is already in this test.",
@@ -96,12 +96,12 @@ export function AddToTest({ ids, open, onClose, onDone }: { ids: string[]; open:
     const { res, test } = result;
     const pct = res.needed ? Math.round((res.filled / res.needed) * 100) : 0;
     return (
-      <BoardDialog open={open} onClose={onDone} labelledBy="ad-title" title={`Added ${res.added.length} to ${test.name}`}>
+      <BoardDialog open={open} onClose={onDone}>
         <div className="row gap-2.5">
           <TickIcon color="#0E7A3D" size={20} />
-          <h2 id="ad-title" className="h3 m-0">
+          <BoardTitle>
             Added {res.added.length} to {test.name}
-          </h2>
+          </BoardTitle>
         </div>
         <div className="col gap-1.5">
           <div className="row between sm">
@@ -141,11 +141,11 @@ export function AddToTest({ ids, open, onClose, onDone }: { ids: string[]; open:
   }
 
   return (
-    <BoardDialog open={open} onClose={onClose} labelledBy="at-title" title={`Add ${ids.length} questions to a test`}>
+    <BoardDialog open={open} onClose={onClose}>
       <div className="col gap-1">
-        <h2 id="at-title" className="h3 m-0">
+        <BoardTitle>
           Add {plural(ids.length, "question")} to a test
-        </h2>
+        </BoardTitle>
         <span className="sm muted">Draft tests, and tests that haven&apos;t opened yet.</span>
       </div>
       <div className="relative">

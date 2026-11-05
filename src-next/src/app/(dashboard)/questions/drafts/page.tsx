@@ -548,7 +548,7 @@ function DraftsReview() {
   const jobLabel = job.data
     ? `Run: ${BULK_COPY[job.data.kind].label} · ${
         dayjs(job.data.createdAt).isSame(dayjs(), "day") ? `today ${dayjs(job.data.createdAt).format("h:mm A")}` : dayjs(job.data.createdAt).format("D MMM, h:mm A")
-      } · ${job.data.total.toLocaleString("en-IN")} questions`
+      } · ${job.data.total.toLocaleString("en-IN")} ${job.data.total === 1 ? "question" : "questions"}`
     : "Run";
 
   return (
