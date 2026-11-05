@@ -15,8 +15,8 @@ export interface FieldProps {
   htmlFor?: string;
   optional?: boolean;
   hint?: ReactNode;
-  /** Error text (≤ 6 words, says what to do). Replaces the hint. */
-  error?: string | null;
+  /** Error text (≤ 6 words, says what to do; may hold a link). Replaces the hint. */
+  error?: ReactNode;
   /** Counter top-right of the label, only where there is a limit: red past the limit. */
   counter?: { value: number; max: number };
   /** Grey label (a disabled field) */
