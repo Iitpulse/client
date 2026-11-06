@@ -217,7 +217,7 @@ export default function MonitorPage() {
       ? windowLabel(t.opensAt, t.closesAt)
       : closed
         ? `${windowLabel(t.opensAt, t.closesAt)}${d!.assigned ? ` · ${plural(d!.assigned, "student")}` : ""}`
-        : `Closes ${istTime(t.closesAt)}${d!.assigned ? ` · ${plural(d!.assigned, "student")} in ${plural(batches.length, "batch", "batches")}` : ""}`;
+          : `Closes ${istTime(t.closesAt)}${t.closesAt && istDay(t.closesAt) !== istDay(new Date()) ? ` ${istDay(t.closesAt) === istDay(new Date(Date.now() + 86_400_000)) ? "tomorrow" : `on ${istDate(t.closesAt)}`}` : ""}${d!.assigned ? ` · ${plural(d!.assigned, "student")} in ${plural(batches.length, "batch", "batches")}` : ""}`;
 
   const columns: Array<Column<MonitorRow>> = [
     {
@@ -381,7 +381,7 @@ export default function MonitorPage() {
         )}
         {d && closed && !empty && (
           <Banner tone="info" title={`Closed at ${istTime(t!.closesAt)}${t!.closesAt && istDay(t!.closesAt) !== istDay(new Date()) ? ` on ${istDate(t!.closesAt)}` : ""}.`}>
-            {d.tiles.submitted + d.tiles.autoSubmitted} submitted{d.tiles.autoSubmitted ? `, ${d.tiles.autoSubmitted} of them auto-submitted` : ""}; {d.tiles.notStarted} never started.{" "}
+            {d.tiles.submitted} submitted{d.tiles.autoSubmitted ? `, ${d.tiles.autoSubmitted} of them auto-submitted` : ""}; {d.tiles.notStarted} never started.{" "}
             {resultsLine(t!.resultMode)}
           </Banner>
         )}

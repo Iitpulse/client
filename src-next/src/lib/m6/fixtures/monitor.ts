@@ -109,7 +109,11 @@ async function build(testId: string): Promise<SampleMonitor> {
       } else reason = "neverOpened";
     } else {
       // live and ended share the history; an ended test has no one writing
-      const start = Math.min(opens + Math.floor(r(4) * 25) * 60_000, now - 12 * 60_000);
+      // live: started within the last 85% of the paper's duration (so the writing mix is still writing); ended: near the open
+      const start =
+        test.state === "live"
+          ? Math.max(opens, now - Math.floor((0.15 + r(4) * 0.7) * dur))
+          : Math.min(opens + Math.floor(r(4) * 25) * 60_000, now - 12 * 60_000);
       // shares from the sample test's own counts (started, submitted, auto-submitted of assigned)
       const A = Math.max(1, test.assigned);
       const auto = Math.max(test.autoSubmitted, test.state === "ended" ? 3 : 2) / A;
@@ -227,7 +231,11 @@ export async function fixtureMonitor(
     if (r.status === "writing") tiles.writing++;
     else if (r.status === "offline") tiles.offline++;
     else if (r.status === "submitted") tiles.submitted++;
-    else if (r.status === "autoSubmitted") tiles.autoSubmitted++;
+    else if (r.status === "autoSubmitted") {
+      // as the tests backend: "Submitted" counts the auto-submitted too
+      tiles.autoSubmitted++;
+      tiles.submitted++;
+    }
     else {
       tiles.notStarted++;
       if (r.reason === "neverOpened") tiles.neverOpened++;
@@ -241,8 +249,9 @@ export async function fixtureMonitor(
     if (q.batchId && r.student.batch?.id !== q.batchId) return false;
     if (needle && !r.student.name.toLowerCase().includes(needle) && !(digits.length >= 3 && (r.student.phone ?? "").includes(digits))) return false;
     switch (q.filter) {
-      case "writing":
       case "submitted":
+        return r.status === "submitted" || r.status === "autoSubmitted";
+      case "writing":
       case "notStarted":
       case "autoSubmitted":
       case "offline":
