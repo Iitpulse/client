@@ -1467,7 +1467,7 @@ export interface ParseDefaults {
 
 export type ParseRowFlag =
   | "EQUATION_WAS_IMAGE" // "Equation was an image · check the LaTeX" (image kept, data-needs-latex)
-  | "DIAGRAM_WMF" // "Diagram was WMF · upload it as PNG" (cannot be shown in browsers)
+  | "DIAGRAM_WMF" // "A drawing could not be kept · upload it as PNG" (Word-drawn shapes, charts; WMF/EMF drawings are drawn to PNG and kept)
   | "NO_ANSWER" // "No answer in the key"
   | "LOW_CONFIDENCE"
   | "PARTIAL";
@@ -1972,13 +1972,13 @@ export interface AdminStudentReviewResponse {
 /** Every email users sends (Email-Templates board); staffInvite is M7b */
 export type EmailKind =
   | "resultsOut" // score + rank; off with emailResults
-  | "testReminder" // 1 hour before; off with testReminders
+  | "testReminder" // 1 hour before; off with testReminders (only this kind)
   | "emailOtp" // sign-up code; account email, always
   | "passwordReset" // student and staff; account email, always
   | "testLink" // teacher-sent sign-in link; always
   | "keyCorrected" // old → new score; off with emailResults
-  | "testPublished" // off with testReminders (no board yet)
-  | "testRescheduled"; // off with testReminders (no board yet)
+  | "testPublished" // off with testPublished (added 6 Nov: own switch, StudentPreferences.testPublished)
+  | "testRescheduled"; // off with testPublished
 
 /** users ← tests: POST /internal/users/notify (changed): per-student facts for the templates */
 export interface NotifyRequestM6 {
