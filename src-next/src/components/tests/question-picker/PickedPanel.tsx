@@ -4,13 +4,29 @@
   questions in paper order (drag the grip or use ↑/↓ on it to reorder, × to remove), paragraph sets as one block
   ("Set 1 · Q21–23", the questions move and leave together), empty slots, the difficulty mix and image count.
 */
-import { useState, type DragEvent, type KeyboardEvent } from "react";
+import { useEffect, useState, type DragEvent, type KeyboardEvent } from "react";
 import { ChevronDown, ChevronUp, GripVertical, X } from "lucide-react";
 import { InlineNote } from "@/components/kit";
 import { slotNumbers } from "@/lib/m6/paper";
 import { mixLabel, shortId, Stem, type PaperSub } from "./parts";
 
 const SHOW = 5;
+
+/**
+ * Under 1280px the panel sits above the list (board tablet). Owner rule (6 Nov): the question table fills the screen
+ * and the page doesn't scroll, so there the panel starts folded to its header row ("Show picked").
+ */
+function useNarrow(): boolean {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1279px)");
+    const on = () => setNarrow(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return narrow;
+}
 
 export function PickedPanel({
   sub,
@@ -38,6 +54,9 @@ export function PickedPanel({
   const [all, setAll] = useState(false);
   const [drag, setDrag] = useState<number | null>(null);
   const [over, setOver] = useState<number | null>(null);
+  const narrow = useNarrow();
+  const [open, setOpen] = useState(false);
+  const folded = narrow && !open;
   const isSet = sub.type === "paragraph";
   const setSize = sub.paragraph?.setSize ?? 1;
   const full = sub.have >= sub.need;
@@ -90,8 +109,16 @@ export function PickedPanel({
           <span className="sm truncate font-semibold">{title}</span>
           <span className="xs muted">{rule}</span>
         </span>
-        <span className={`badge ${full ? "b-green" : "b-amber"} num shrink-0`}>
-          {sub.have} of {sub.need}
+        <span className="row shrink-0 gap-2">
+          <span className={`badge ${full ? "b-green" : "b-amber"} num`}>
+            {sub.have} of {sub.need}
+          </span>
+          {narrow && (
+            <button type="button" className="btn btn-ghost btn-sm" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+              {open ? "Hide picked" : "Show picked"}
+              {open ? <ChevronUp className="size-3.5" aria-hidden /> : <ChevronDown className="size-3.5" aria-hidden />}
+            </button>
+          )}
         </span>
       </div>
 
@@ -99,6 +126,8 @@ export function PickedPanel({
         <InlineNote tone="warn">This section is full. Remove one to add another, or use Replace on a row.</InlineNote>
       )}
 
+      {!folded && (
+        <>
       {isSet ? (
         <div className="col gap-2">
           {slots.map((s, i) => (
@@ -187,6 +216,8 @@ export function PickedPanel({
         <span className="xs muted">{mixLabel(sub)}</span>
         {images > 0 && <span className="xs muted">{images === 1 ? "1 with an equation image" : `${images} with an equation image`}</span>}
       </div>
+        </>
+      )}
     </section>
   );
 }

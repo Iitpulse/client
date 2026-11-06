@@ -53,6 +53,9 @@
   .qp-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
   @media (max-width: 1279px) {
     .qp-side { flex: 1 1 100%; max-width: none; order: -1; position: static }
+    /* one row of section cards that scrolls sideways, so the question table keeps the screen (owner rule, 6 Nov) */
+    .qp-tally { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin }
+    .qp-tl { flex: none }
   }
   @media (max-width: 760px) {
     .qp-grid2 { grid-template-columns: minmax(0, 1fr) }
