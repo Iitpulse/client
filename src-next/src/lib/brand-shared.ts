@@ -22,6 +22,8 @@ export interface BrandCookie {
   w: boolean;
   /** the host it was resolved for (sign-in footer: "sankalp.iitpulse.in · Powered by IIT-PULSE") */
   h: string;
+  /** the institute's student app host (its /terms and /privacy); absent = IIT-PULSE's */
+  sh?: string;
 }
 
 

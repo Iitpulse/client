@@ -5,7 +5,9 @@
   Deactivate… (staff), Erase everything….
 */
 import Link from "next/link";
+import { useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
+import { ResetTwoStepDialog, useIsOwner } from "@/components/m7b/invites";
 import { Drawer, InlineError, apiError, fmtDate, fmtDateTime, fmtPhone, fmtRelative, initials, notify } from "@/components/kit";
 import type { AuditDetail, UserDetail } from "@/lib/m6-contract";
 import { auditApi, useCan, useUser, usersApi } from "@/lib/m6/people";
@@ -34,6 +36,8 @@ export function UserDetailDrawer({
   const { can } = useCan();
   const removed = u ? isRemoved(u as UserDetail & { anonymisedAt?: string | null }) : false;
   const staff = u ? u.type !== "student" : false;
+  const isOwner = useIsOwner();
+  const [mfaReset, setMfaReset] = useState(false);
   return (
     <Drawer
       open={!!id}
@@ -71,6 +75,12 @@ export function UserDetailDrawer({
                   Reset password
                 </button>
               )}
+              {/* M7b: only the Owner resets someone's 2-step sign-in (re-auth) */}
+              {isOwner && staff && !removed && (
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setMfaReset(true)}>
+                  Reset 2-step sign-in…
+                </button>
+              )}
               {can("DELETE_USER") && (
                 <span className="row" style={{ gap: 2, marginLeft: "auto" }}>
                   {!removed && (
@@ -106,6 +116,7 @@ export function UserDetailDrawer({
       {q.isError && <InlineError onRetry={() => q.refetch()}>Couldn&rsquo;t load this person</InlineError>}
       {u && tab === "details" && <Details u={u} />}
       {u && tab === "history" && <History u={u} />}
+      <ResetTwoStepDialog user={u ? { id: u.id, name: u.name } : null} open={mfaReset} onOpenChange={setMfaReset} />
     </Drawer>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 /*
-  Admin-Profile board, M6 variant (2-step sign-in, passkeys and the session list are M7b): views m6, edited (Discard +
+  Admin-Profile board (M7b: 2-step sign-in, passkeys and the session list from board Admin-Security, components/m7b): views m6, edited (Discard +
   Save changes), change-password (dialog with a strength meter), password-errors (WRONG_PASSWORD / WEAK_PASSWORD /
   PASSWORD_MISMATCH under their fields), saved ("Password changed" toast), error. Data: GET/PATCH /users/me and
   POST /users/me/password. Changing the email signs out other devices: the answer carries a fresh token for this one.
@@ -30,6 +30,7 @@ import {
 import { StrengthMeter } from "@/components/people/auth/parts";
 import { auth } from "@/lib/api";
 import { meApi, useMe } from "@/lib/m6/people";
+import { SecurityCard, SessionsCard } from "@/components/m7b/security-cards";
 import type { MeResponse } from "@/lib/m6-contract";
 
 function daysAgo(iso: string | null): string {
@@ -179,6 +180,9 @@ function Profile({ data }: { data: MeResponse }) {
             Forgot it? Sign out and use &ldquo;Forgot password&rdquo; on the sign-in page.
           </span>
         </article>
+        {/* M7b (board Admin-Security): 2-step sign-in, passkeys, recovery codes, where you're signed in */}
+        <SecurityCard />
+        <SessionsCard />
       </section>
       <ChangePassword open={pwOpen} onOpenChange={setPwOpen} onDone={() => qc.invalidateQueries({ queryKey: ["m6", "me"] })} />
     </div>

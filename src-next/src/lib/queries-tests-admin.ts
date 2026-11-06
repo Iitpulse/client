@@ -19,27 +19,13 @@ import type {
   ResultInsights,
 } from "@/lib/m5-contract";
 
+import { withSession } from "./auth-axios";
+
 const API_GATEWAY = process.env.NEXT_PUBLIC_API_GATEWAY || "http://localhost:8000";
 
 /** /ai through the gateway (api.ts has no ai client yet); same auth header and 401 handling as the others. */
 const apiAiAdmin = axios.create({ baseURL: `${API_GATEWAY}/ai`, headers: { "Content-Type": "application/json" } });
-apiAiAdmin.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("auth_token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-apiAiAdmin.interceptors.response.use(
-  (r) => r,
-  (error: AxiosError) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
+withSession(apiAiAdmin); // M7b auth v2 (lib/auth-axios.ts)
 
 const unwrap = <T>(r: { data: { data?: T } }) => r.data.data as T;
 

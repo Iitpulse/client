@@ -1,6 +1,6 @@
-import axios, { AxiosInstance, AxiosError } from "axios";
-
-const AUTH_TOKEN_KEY = "auth_token";
+import axios, { AxiosInstance } from "axios";
+import { auth as session } from "./session";
+import { withSession } from "./auth-axios";
 
 // API Gateway URL
 const API_GATEWAY = process.env.NEXT_PUBLIC_API_GATEWAY || "http://localhost:8000";
@@ -21,40 +21,8 @@ function createApiClient(
     },
   });
 
-  // Request interceptor to add auth token
-  client.interceptors.request.use(
-    (config) => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-      }
-      return config;
-    },
-    (error) => Promise.reject(error)
-  );
-
-  // Response interceptor for error handling
-  client.interceptors.response.use(
-    (response) => response,
-    (error: AxiosError) => {
-      // Only redirect to login on 401 if not a public endpoint
-      // A wrong password on the re-auth dialog is 401 WRONG_PASSWORD, not an expired session.
-      const isReauth = (error.config?.url ?? "").includes("/auth/reauth");
-      if (error.response?.status === 401 && !options?.skipAuthRedirect && !isReauth) {
-        // Token expired or invalid
-        if (typeof window !== "undefined") {
-          localStorage.removeItem(AUTH_TOKEN_KEY);
-          // Admin-Auth "session-expired": the login page explains why (not on the login page itself).
-          if (!window.location.pathname.startsWith("/login")) window.location.href = "/login?expired=1";
-        }
-      }
-      return Promise.reject(error);
-    }
-  );
-
-  return client;
+  // M7b auth v2: in-memory token, background refresh, one retry on 401 (lib/auth-axios.ts)
+  return withSession(client, options);
 }
 
 // Public API client (no auth redirect on 401)
@@ -70,31 +38,15 @@ export const apiTests = createApiClient("tests");
 // Public API client for unauthenticated endpoints (signup, OTP, etc.)
 export const apiUsersPublic = createPublicApiClient("users");
 
-// Auth helpers
-export const auth = {
-  getToken: (): string | null => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(AUTH_TOKEN_KEY);
-  },
-  setToken: (token: string): void => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-  },
-  removeToken: (): void => {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-  },
-  isAuthenticated: (): boolean => {
-    return !!auth.getToken();
-  },
-};
+// Auth helpers (M7b: lib/session.ts; the token lives in memory, the refresh token in an HttpOnly cookie)
+export const auth = session;
 
 // API endpoints organized by service
 export const api = {
   auth: {
     login: (credentials: { email: string; password: string }) =>
-      apiUsers.post("/auth/login", credentials),
-    logout: () => apiUsers.post("/auth/logout"),
+      apiUsers.post("/auth/login", { ...credentials, app: "admin", session: "cookie" }, { withCredentials: true, headers: { "x-iitp-csrf": "1" } }),
+    logout: () => session.signOut(),
     verifyPassword: (password: string) =>
       apiUsers.post("/auth/verify-password", { password }),
   },

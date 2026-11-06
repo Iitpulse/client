@@ -3,6 +3,7 @@ import { Blueboard, InkUnderline, LogoMark, Paper } from "@iitpulse/ui";
 import { Check } from "lucide-react";
 import "@/components/people/auth/auth.css";
 import { BrandLogo, DefaultBrandOnly, PoweredBy } from "@/components/brand/brand-logo";
+import { useStudentPortal } from "@/lib/brand";
 
 /*
   Admin-Auth board: the staff console's sign-in shell. A blueboard on the left (logo, the pitch, "Student? Sign in at
@@ -17,6 +18,21 @@ const host = (() => {
     return "tests.iitpulse.in";
   }
 })();
+
+function LegalLinks() {
+  const portal = useStudentPortal();
+  return (
+    <p className="xs muted" style={{ margin: 0, textAlign: "center" }}>
+      <a href={`${portal}/terms`} style={{ fontWeight: 600 }}>
+        Terms of Use
+      </a>
+      <span aria-hidden="true"> · </span>
+      <a href={`${portal}/privacy`} style={{ fontWeight: 600 }}>
+        Privacy Policy
+      </a>
+    </p>
+  );
+}
 
 export default function StaffAuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -58,16 +74,8 @@ export default function StaffAuthLayout({ children }: { children: React.ReactNod
       <section className="cl-paper cl-calm" style={{ flex: "1 1 480px", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div className="col" style={{ width: "100%", maxWidth: 420, gap: 22 }}>
           {children}
-          {/* Student-Legal (batch 7): the public Terms and Privacy pages live in the student app */}
-          <p className="xs muted" style={{ margin: 0, textAlign: "center" }}>
-            <a href={`${STUDENT_PORTAL}/terms`} style={{ fontWeight: 600 }}>
-              Terms of Use
-            </a>
-            <span aria-hidden="true"> · </span>
-            <a href={`${STUDENT_PORTAL}/privacy`} style={{ fontWeight: 600 }}>
-              Privacy Policy
-            </a>
-          </p>
+          {/* Student-Legal (batch 7): the public Terms and Privacy pages live in the student app (the institute's own) */}
+          <LegalLinks />
         </div>
       </section>
     </Paper>

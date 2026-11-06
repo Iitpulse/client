@@ -12,6 +12,8 @@ export interface PublicTenant {
   displayName: string;
   status: "active" | "suspended";
   branding: { version: number; brandName: string; logoUrl: string | null; iconUrl?: string | null; primary: string; accent: string };
+  /** primary hosts (platform public tenant, 6 Nov): the staff sign-in links to the student app's /terms */
+  addresses?: { student: string | null; admin: string | null };
 }
 
 const GATEWAY = (process.env.API_GATEWAY_INTERNAL || process.env.NEXT_PUBLIC_API_GATEWAY || "http://localhost:8000").replace(/\/+$/, "");
@@ -77,6 +79,7 @@ export function brandCookieFor(t: PublicTenant | null, host: string): string | n
     c: isDefault ? null : `/brand-theme/${t.id}/${t.branding.version}.css`,
     w: whiteLabel,
     h: host,
+    ...(t.addresses?.student ? { sh: t.addresses.student.slice(0, 260) } : {}),
   };
   return JSON.stringify(c); // Next encodes cookie values (encodeURIComponent); the boot script decodes
 }

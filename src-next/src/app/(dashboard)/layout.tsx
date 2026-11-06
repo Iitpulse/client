@@ -7,6 +7,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { Paper } from "@iitpulse/ui";
 import { InstituteBanners } from "@/components/brand/InstituteBanners";
+import { StaffTermsPrompt } from "@/components/m7b/staff-terms";
 
 export default function DashboardLayout({
   children,
@@ -77,6 +78,9 @@ export default function DashboardLayout({
         {/* Every page draws its own <Topbar> (the (legacy) group with its generic one is gone since the M6 exit). */}
         {children}
       </div>
+
+      {/* M7b: changed terms are accepted before work continues (board Admin-Security, terms-changed) */}
+      <StaffTermsPrompt />
 
       {/* Onboarding wizard for students who haven't completed their profile */}
       <OnboardingWizard

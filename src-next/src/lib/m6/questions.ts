@@ -27,28 +27,11 @@ import type { AiDraft, AssistStreamEvent, DraftKind } from "../m5-contract";
 
 export { AdminApiError, apiError, source };
 
-const AUTH_TOKEN_KEY = "auth_token";
+import { withSession } from "../auth-axios";
 
 function client(base: string): AxiosInstance {
   const c = axios.create({ baseURL: base, headers: { "Content-Type": "application/json" }, paramsSerializer: { indexes: null } });
-  c.interceptors.request.use((config) => {
-    if (typeof window !== "undefined") {
-      const t = localStorage.getItem(AUTH_TOKEN_KEY);
-      if (t) config.headers.Authorization = `Bearer ${t}`;
-    }
-    return config;
-  });
-  c.interceptors.response.use(
-    (r) => r,
-    (e) => {
-      if (e?.response?.status === 401 && typeof window !== "undefined") {
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        window.location.href = "/login";
-      }
-      return Promise.reject(e);
-    }
-  );
-  return c;
+  return withSession(c); // M7b auth v2 (lib/auth-axios.ts)
 }
 
 /** /questions/* */
@@ -246,9 +229,7 @@ export function liveTestDetails(e: unknown): QuestionInLiveTestDetails | null {
 export async function questionUsage(ids: string[]): Promise<Record<string, QuestionUsageM6>> {
   if (!ids.length) return {};
   try {
-    const r = await axios.post(`${API_GATEWAY}/tests/admin/question-usage`, { questionIds: ids.slice(0, 200) }, {
-      headers: { Authorization: `Bearer ${typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : ""}` },
-    });
+    const r = await gateway.post(`/tests/admin/question-usage`, { questionIds: ids.slice(0, 200) });
     const usage = (unwrap<{ usage: Record<string, Partial<QuestionUsageM6>> }>(r.data).usage ?? {}) as Record<string, Partial<QuestionUsageM6>>;
     const out: Record<string, QuestionUsageM6> = {};
     for (const id of ids) {

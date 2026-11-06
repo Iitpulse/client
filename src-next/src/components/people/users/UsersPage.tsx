@@ -46,6 +46,7 @@ import { saveBlob, useAllBatches, useCan, useCentres, useInvalidatePeople, useLo
 import { UserDeleteDialogs, deleteToast, type DeleteKind } from "./DeleteDialogs";
 import { UserDetailDrawer } from "./UserDetailDrawer";
 import { UserFormDrawer } from "./UserFormDrawer";
+import { InviteStaffDialog, InvitesDialog } from "@/components/m7b/invites";
 import { TABS, isRemoved, isStaffType, tabOf } from "./shared";
 
 const DEFAULTS = { tab: "student", q: "", batch: "", centre: "", standard: "", status: "active", page: "1", size: "25", sort: "name", id: "", view: "details", add: "", edit: "" };
@@ -63,6 +64,7 @@ export function UsersPage() {
   const [del, setDel] = useState<{ user: UserDetail; kind: DeleteKind } | null>(null);
   const [bulk, setBulk] = useState<"move" | "extend" | "delete" | null>(null);
   const [editUser, setEditUser] = useState<UserDetail | null>(null);
+  const [invite, setInvite] = useState<"new" | "list" | null>(null);
   const invalidate = useInvalidatePeople();
 
   const allowed = can("READ_USER");
@@ -225,6 +227,17 @@ export function UsersPage() {
               <Upload className="size-3.5" aria-hidden />
               Import from Excel
             </Link>
+            {/* M7b staff invites: the person sets their own password from a 7-day link */}
+            {type !== "student" && (
+              <>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setInvite("list")}>
+                  Invites
+                </button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setInvite("new")}>
+                  Invite by email
+                </button>
+              </>
+            )}
             <button type="button" className="btn btn-primary btn-sm" onClick={() => set({ add: addHref, id: "", edit: "" })}>
               + Add {noun}
             </button>
@@ -388,6 +401,8 @@ export function UsersPage() {
         )}
       </ReauthDialog>
 
+      <InviteStaffDialog open={invite === "new"} onOpenChange={(o) => setInvite(o ? "new" : null)} defaultType={type === "teacher" ? "teacher" : type === "admin" ? "admin" : type === "manager" ? "manager" : type === "operator" ? "operator" : "teacher"} />
+      <InvitesDialog open={invite === "list"} onOpenChange={(o) => setInvite(o ? "list" : null)} />
       <UserDetailDrawer
         id={s.id && !s.edit ? s.id : null}
         tab={s.view === "history" ? "history" : "details"}

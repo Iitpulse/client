@@ -84,8 +84,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await api.auth.login({ email, password });
-          // Backend returns { success: true, data: { token: "..." } }
-          const token = response.data.data?.token || response.data.token;
+          // Backend returns { success: true, data: { token: "..." } } (v2: { status: "signed_in", token, expiresAt })
+          const token = response.data.data?.status === "signed_in" || !response.data.data?.status ? response.data.data?.token || response.data.token : null;
 
           if (!token) {
             throw new Error("No token received");
@@ -95,15 +95,12 @@ export const useAuthStore = create<AuthState>()(
 
           // Decode JWT to get user info (same as original AuthContext)
           const decoded = decodeJwtPayload(token);
-          console.log("[Auth] Decoded JWT:", decoded);
-          console.log("[Auth] Roles from JWT:", decoded?.roles);
           if (!decoded) {
             throw new Error("Invalid token");
           }
 
           // Transform roles array to Record<string, boolean> for easy lookup
           const rolesRecord = transformRoles(decoded.roles);
-          console.log("[Auth] Transformed roles:", rolesRecord);
 
           const currentUser: ICurrentUser = {
             id: decoded.id,
@@ -155,7 +152,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        authHelper.removeToken();
+        void authHelper.signOut(); // M7b: ends the cookie session on the API and in every tab
         set({
           currentUser: null,
           userDetails: null,
@@ -184,48 +181,39 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: () => {
-        const token = authHelper.getToken();
-        if (!token) {
+        // M7b: the access token lives in memory (lib/session.ts) and is refreshed from the cookie session on load.
+        // A session hint without a token yet counts as signed in; the first API call refreshes (or signs out).
+        if (!authHelper.isAuthenticated()) {
           set({ isAuthenticated: false, currentUser: null });
           return false;
         }
-
-        // Decode JWT to check expiration and restore user
-        try {
+        const restore = (token: string): boolean => {
           const decoded = decodeJwtPayload(token);
-          if (!decoded) {
-            authHelper.removeToken();
-            set({ isAuthenticated: false, currentUser: null });
-            return false;
-          }
-
-          const isExpired = decoded.exp * 1000 < Date.now();
-          if (isExpired) {
-            authHelper.removeToken();
-            set({ isAuthenticated: false, currentUser: null });
-            return false;
-          }
-
-          // Restore currentUser from token if not already set or if roles are missing
+          if (!decoded) return false;
           const { currentUser } = get();
-          if (!currentUser || !currentUser.roles || Object.keys(currentUser.roles).length === 0) {
-            const rolesRecord = transformRoles(decoded.roles);
+          const roles = transformRoles(decoded.roles);
+          // roles change at refresh (role edits apply at the next token): keep the store in step
+          if (!currentUser || currentUser.id !== decoded.id || JSON.stringify(currentUser.roles ?? {}) !== JSON.stringify(roles)) {
             set({
-              currentUser: {
-                id: decoded.id,
-                email: decoded.email,
-                userType: decoded.userType as ICurrentUser["userType"],
-                instituteId: decoded.instituteId,
-                roles: rolesRecord,
-              },
+              currentUser: { id: decoded.id, email: decoded.email, userType: decoded.userType as ICurrentUser["userType"], instituteId: decoded.instituteId, roles },
               isAuthenticated: true,
             });
           }
-
           return true;
-        } catch {
+        };
+        const token = authHelper.getToken();
+        if (!token) {
+          void authHelper.ensureToken().then((t) => {
+            if (!t || !restore(t)) set({ isAuthenticated: false, currentUser: null });
+          });
+          return true;
+        }
+        if (!restore(token)) {
+          authHelper.removeToken();
+          set({ isAuthenticated: false, currentUser: null });
           return false;
         }
+        return true;
       },
 
       clearError: () => set({ error: null }),

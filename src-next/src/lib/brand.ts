@@ -11,8 +11,9 @@
 */
 import { useSyncExternalStore } from "react";
 const API_GATEWAY = process.env.NEXT_PUBLIC_API_GATEWAY || "http://localhost:8000";
-const AUTH_TOKEN_KEY = "auth_token";
-const getToken = () => (typeof window === "undefined" ? null : localStorage.getItem(AUTH_TOKEN_KEY));
+import { auth } from "./session";
+// M7b: the token lives in memory and is refreshed in the background (lib/session.ts)
+const getToken = () => auth.ensureToken();
 
 import { BRAND_COOKIE, DEFAULT_TENANT_ID } from "./brand-shared";
 export { BRAND_COOKIE, DEFAULT_TENANT_ID };
@@ -28,11 +29,13 @@ export interface Brand {
   suspended: boolean;
   whiteLabel: boolean;
   host: string | null;
+  /** the institute's student app host (for /terms, /privacy); null = IIT-PULSE's (NEXT_PUBLIC_TEST_PORTAL_URI) */
+  studentHost: string | null;
   /** true for IIT-PULSE's own look (no cookie) */
   isDefault: boolean;
 }
 
-export const DEFAULT_BRAND: Brand = { tenantId: DEFAULT_TENANT_ID, version: 0, name: "IIT-PULSE", logoUrl: null, iconUrl: null, suspended: false, whiteLabel: false, host: null, isDefault: true };
+export const DEFAULT_BRAND: Brand = { tenantId: DEFAULT_TENANT_ID, version: 0, name: "IIT-PULSE", logoUrl: null, iconUrl: null, suspended: false, whiteLabel: false, host: null, studentHost: null, isDefault: true };
 
 const SAFE_URL = /^https?:\/\/[^\s"'<>]+$/;
 
@@ -50,6 +53,7 @@ export function brandFromCookie(raw: string | null | undefined): Brand {
       suspended: b.s === "suspended",
       whiteLabel: b.w === true,
       host: typeof b.h === "string" ? b.h.slice(0, 260) : null,
+      studentHost: typeof b.sh === "string" && /^[a-z0-9.-]+(:\d{1,5})?$/i.test(b.sh) ? b.sh.slice(0, 260) : null,
       isDefault: false,
     };
   } catch {
@@ -72,6 +76,16 @@ function snapshot(): Brand {
 const noop = () => () => {};
 
 /** The page's brand. Server render and hydration use IIT-PULSE's; the institute's follows right after. */
+const PORTAL = (process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "https://tests.iitpulse.in").replace(/\/$/, "");
+/** The student app of the institute this page belongs to (its /terms, /privacy, sign-in); IIT-PULSE's as fallback */
+export function studentPortal(brand: Brand): string {
+  if (!brand.studentHost || typeof window === "undefined") return PORTAL;
+  return `${window.location.protocol}//${brand.studentHost}`;
+}
+export function useStudentPortal(): string {
+  return studentPortal(useBrand());
+}
+
 export function useBrand(): Brand {
   return useSyncExternalStore(noop, snapshot, () => DEFAULT_BRAND);
 }
@@ -90,9 +104,9 @@ export interface InstituteState {
 let stateCache: { at: number; token: string | null; p: Promise<InstituteState | null> } | null = null;
 
 /** GET /platform/tenant/state for the signed-in staff member (cached 60 s; any failure = no notices). */
-export function fetchInstituteState(): Promise<InstituteState | null> {
-  const token = getToken();
-  if (!token) return Promise.resolve(null);
+export async function fetchInstituteState(): Promise<InstituteState | null> {
+  const token = await getToken();
+  if (!token) return null;
   if (stateCache && stateCache.token === token && Date.now() - stateCache.at < 60_000) return stateCache.p;
   const p = fetch(`${API_GATEWAY}/platform/tenant/state`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
     .then(async (r) => {

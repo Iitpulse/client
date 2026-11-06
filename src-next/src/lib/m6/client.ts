@@ -16,10 +16,10 @@ import axios, { type AxiosError, type AxiosInstance, type AxiosRequestConfig } f
 import { useSyncExternalStore } from "react";
 import { AdminApiError, API_GATEWAY, apiError } from "../ai-admin";
 import { REAUTH_HEADER, type ReauthResponse } from "../m6-contract";
+import { authFetch, withSession } from "../auth-axios";
 
 export { AdminApiError, apiError };
 
-const AUTH_TOKEN_KEY = "auth_token";
 
 function client(prefix: "tests" | "users" | "ai"): AxiosInstance {
   const c = axios.create({
@@ -27,24 +27,7 @@ function client(prefix: "tests" | "users" | "ai"): AxiosInstance {
     headers: { "Content-Type": "application/json" },
     paramsSerializer: { indexes: null },
   });
-  c.interceptors.request.use((config) => {
-    if (typeof window !== "undefined") {
-      const t = localStorage.getItem(AUTH_TOKEN_KEY);
-      if (t) config.headers.Authorization = `Bearer ${t}`;
-    }
-    return config;
-  });
-  c.interceptors.response.use(
-    (r) => r,
-    (e: AxiosError) => {
-      if (e.response?.status === 401 && typeof window !== "undefined" && !(e.config?.url ?? "").includes("/auth/reauth")) {
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        window.location.href = "/login";
-      }
-      return Promise.reject(e);
-    }
-  );
-  return c;
+  return withSession(c); // M7b auth v2 (lib/auth-axios.ts)
 }
 
 export const m6Tests = client("tests");
@@ -202,12 +185,11 @@ export async function postStream(
   onEvent: (event: string, data: unknown) => void,
   signal?: AbortSignal
 ): Promise<"done" | "dropped"> {
-  const token = readLS(AUTH_TOKEN_KEY);
   let res: Response;
   try {
-    res = await fetch(`${API_GATEWAY}${path}`, {
+    res = await authFetch(`${API_GATEWAY}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "text/event-stream", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
       body: JSON.stringify(body),
       cache: "no-store",
       signal,

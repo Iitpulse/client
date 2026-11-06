@@ -26,29 +26,12 @@ import type {
   QuestionUsageResponse,
 } from "./m5-contract";
 
-const AUTH_TOKEN_KEY = "auth_token";
+import { authFetch, toSignIn, withSession } from "./auth-axios";
 export const API_GATEWAY = process.env.NEXT_PUBLIC_API_GATEWAY || "http://localhost:8000";
 
 function client(prefix: "ai" | "questions" | "tests"): AxiosInstance {
   const c = axios.create({ baseURL: `${API_GATEWAY}/${prefix}`, headers: { "Content-Type": "application/json" } });
-  c.interceptors.request.use((config) => {
-    if (typeof window !== "undefined") {
-      const t = localStorage.getItem(AUTH_TOKEN_KEY);
-      if (t) config.headers.Authorization = `Bearer ${t}`;
-    }
-    return config;
-  });
-  c.interceptors.response.use(
-    (r) => r,
-    (e: AxiosError) => {
-      if (e.response?.status === 401 && typeof window !== "undefined") {
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        window.location.href = "/login";
-      }
-      return Promise.reject(e);
-    }
-  );
-  return c;
+  return withSession(c); // M7b auth v2 (lib/auth-axios.ts)
 }
 
 const apiAi = client("ai");
@@ -193,12 +176,11 @@ export async function streamAssist(
   onEvent: (e: AssistStreamEvent) => void,
   signal?: AbortSignal
 ): Promise<StreamEnd> {
-  const token = typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
   let res: Response;
   try {
-    res = await fetch(`${API_GATEWAY}/ai/admin/questions/${encodeURIComponent(questionId)}/assist`, {
+    res = await authFetch(`${API_GATEWAY}/ai/admin/questions/${encodeURIComponent(questionId)}/assist`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "text/event-stream", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
       body: JSON.stringify({ kind }),
       cache: "no-store",
       signal,
@@ -208,8 +190,7 @@ export async function streamAssist(
     throw new AdminApiError(0, null, "You seem to be offline. Check your connection and try again.");
   }
   if (res.status === 401) {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    window.location.href = "/login";
+    toSignIn();
     throw new AdminApiError(401, null, "Please sign in again.");
   }
   const type = res.headers.get("content-type") || "";

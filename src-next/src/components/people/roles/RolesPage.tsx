@@ -43,6 +43,8 @@ import "./roles.css";
 
 type Area = PermissionCatalog["areas"][number];
 
+import { OwnerCard, ScopeDialog, scopeLabel, type RoleScope } from "@/components/m7b/role-scopes";
+
 export function RolesPage() {
   const { can, loading, roleName } = useCan();
   const [s, set] = useUrlState({ role: "", view: "permissions", q: "", page: "1", new: "" });
@@ -122,6 +124,8 @@ export function RolesPage() {
         }
       />
       <main className="col" style={{ padding: "22px 28px 40px", gap: 16 }}>
+        {/* M7b (board Admin-RoleScopes): the institute's Owner, Transfer ownership… for the Owner */}
+        {allowed && <OwnerCard />}
         {body()}
       </main>
       <NewRoleDialog open={s.new === "1" && allowed && canCreate} roles={list} onClose={() => set({ new: "" })} onCreated={(id) => set({ new: "", role: id, view: "permissions" })} />
@@ -140,6 +144,7 @@ export function RolesPage() {
   );
 }
 
+const scopeOf = (r: RoleListItem) => (r as RoleListItem & { scope?: RoleScope | null }).scope ?? null;
 const sameSet = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every((x) => b.has(x));
 function subOf(r: RoleListItem) {
   if (r.system === "admin") return "Every permission";
@@ -195,6 +200,7 @@ function RoleCard({
   const perms = draft ?? saved;
   const [busy, setBusy] = useState(false);
   const [dlg, setDlg] = useState<"rename" | "blocked" | "delete" | "add" | null>(null);
+  const [scopeOpen, setScopeOpen] = useState(false);
   const toggle = (key: string) => {
     if (!editable) return;
     const n = new Set(perms);
@@ -231,6 +237,18 @@ function RoleCard({
             {locked && <span className="badge b-grey">Locked</span>}
           </div>
           <span className="sm muted">{descOf(role)}</span>
+          {/* M7b role scopes: whole institute / some centres / some batches / own batches */}
+          {!student && (
+            <span className="row xs" style={{ gap: 6, marginTop: 4 }} data-testid="role-scope">
+              <span className="muted">Scope:</span>
+              <span className="badge b-grey">{scopeLabel(scopeOf(role))}</span>
+              {editable && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setScopeOpen(true)}>
+                  Edit scope…
+                </button>
+              )}
+            </span>
+          )}
         </div>
         {!locked && !student && (
           <div className="row" style={{ gap: 4 }}>
@@ -355,6 +373,7 @@ function RoleCard({
         }}
       />
       <AddPeopleDialog open={dlg === "add"} role={role} members={members.data} onClose={() => setDlg(null)} />
+      <ScopeDialog open={scopeOpen} onOpenChange={setScopeOpen} role={{ id: role.id, name: role.name, scope: scopeOf(role) }} />
     </section>
   );
 }

@@ -9,11 +9,11 @@ export function openStudentPreview(testId: string): Window | null {
   const origin = new URL(PORTAL).origin;
   const win = window.open(`${origin}/preview/${encodeURIComponent(testId)}`, `iitp-preview-${testId}`);
   if (!win) return null;
-  const onMessage = (e: MessageEvent) => {
+  const onMessage = async (e: MessageEvent) => {
     if (e.origin !== origin || e.source !== win) return;
     const d = e.data as { type?: string; testId?: string } | null;
     if (d?.type !== "iitp-preview-ready" || d.testId !== testId) return;
-    const token = auth.getToken();
+    const token = await auth.ensureToken(); // a fresh 15-minute token; the preview asks again when it needs one
     if (token) win.postMessage({ type: "iitp-preview-token", testId, token }, origin);
   };
   window.addEventListener("message", onMessage);

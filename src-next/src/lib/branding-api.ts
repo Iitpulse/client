@@ -2,10 +2,10 @@
   M7b Branding (platform contract docs/m7a-api.md "Branding (M7b)"): /platform/admin/branding/* through the gateway.
   Platform answers its fields at the top level (no { data } wrapper).
 */
-import axios, { type AxiosError } from "axios";
+import axios from "axios";
 import { API_GATEWAY } from "./ai-admin";
 
-const AUTH_TOKEN_KEY = "auth_token";
+import { withSession } from "./auth-axios";
 
 export interface BrandImage {
   assetId: string;
@@ -47,23 +47,7 @@ export interface UploadedAsset extends BrandImage {
 }
 
 const http = axios.create({ baseURL: `${API_GATEWAY}/platform/admin/branding` });
-http.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const t = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (t) config.headers.Authorization = `Bearer ${t}`;
-  }
-  return config;
-});
-http.interceptors.response.use(
-  (r) => r,
-  (e: AxiosError) => {
-    if (e.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      window.location.href = "/login?expired=1";
-    }
-    return Promise.reject(e);
-  }
-);
+withSession(http); // M7b auth v2 (lib/auth-axios.ts)
 
 export const brandingApi = {
   get: () => http.get<BrandingPage>("").then((r) => r.data),
