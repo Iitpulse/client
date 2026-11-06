@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
+import { useFillHeight } from "@/components/kit";
 
 interface KeyRow {
   studentId: string;
@@ -28,6 +29,9 @@ export function StudentAccessLinks({ testId, batches, validTo }: { testId: strin
   const [generating, setGenerating] = React.useState<string | null>(null);
   const portal = process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "http://localhost:3001";
   const linkFor = (key: string) => `${portal}/auth/${key}/${testId}`;
+  // owner rule (6 Nov), table below a summary: the links table is a one-screen panel under the test header and the
+  // generate buttons (they scroll away); its header row and count stay visible, only the rows scroll
+  const [fillRef, fillH] = useFillHeight<HTMLDivElement>(rows.length > 0, 320, 0, "panel");
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -117,15 +121,16 @@ export function StudentAccessLinks({ testId, batches, validTo }: { testId: strin
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">No links yet. Generate them for a batch above.</p>
         ) : (
-          <div className="overflow-x-auto rounded-md border">
+          <div ref={fillRef} className={`rounded-md border ${fillH !== null ? "k-fill k-fill-panel" : "overflow-x-auto"}`} style={{ height: fillH ?? undefined }}>
+            <div className="k-fill-body overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-ground/50 text-left">
+              <thead className="text-left">
                 <tr>
-                  <th className="p-2">Student</th>
-                  <th className="p-2">Key</th>
-                  <th className="p-2">Link</th>
-                  <th className="p-2">Used</th>
-                  <th className="p-2"></th>
+                  <th className="bg-ground p-2">Student</th>
+                  <th className="bg-ground p-2">Key</th>
+                  <th className="bg-ground p-2">Link</th>
+                  <th className="bg-ground p-2">Used</th>
+                  <th className="bg-ground p-2"></th>
                 </tr>
               </thead>
               <tbody>
@@ -149,6 +154,10 @@ export function StudentAccessLinks({ testId, batches, validTo }: { testId: strin
                 ))}
               </tbody>
             </table>
+            </div>
+            <div className="border-t px-3 py-2 text-xs text-muted-foreground">
+              {rows.length === 1 ? "1 student link" : `${rows.length} student links`}
+            </div>
           </div>
         )}
       </CardContent>

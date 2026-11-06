@@ -213,8 +213,8 @@ export default function TestResultPage() {
   }, [rows, q, batchFilter, flaggedOnly, flagOf]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE));
   const pageRows = filtered.slice(page * PAGE, page * PAGE + PAGE);
-  // owner rule (6 Nov): the students table takes the screen height left, only its rows scroll
-  const [fillRef, fillH] = useFillHeight<HTMLElement>(rows.length > 0);
+  // owner rule (6 Nov), table below a summary: the students table is a one-screen panel (the summary scrolls away), only its rows scroll
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(rows.length > 0, 320, 0, "panel");
   React.useEffect(() => setPage(0), [q, batchFilter, flaggedOnly]);
   const maxMarks = test?.totalMarks || Math.max(1, ...marks);
   const threshold = integrity?.threshold ?? 3;
@@ -410,7 +410,7 @@ export default function TestResultPage() {
           </section>
         )}
 
-        <section ref={fillRef} className={`card rise ${fillH !== null ? "k-fill" : "scrollx"}`} style={{ ["--i" as string]: 7, height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
+        <section ref={fillRef} className={`card rise ${fillH !== null ? "k-fill k-fill-panel" : "scrollx"}`} style={{ ["--i" as string]: 7, height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
           <div className="pad row between wrap gap-2 border-b border-line-2">
             <span className="h3">Students</span>
             <div className="row wrap gap-2">

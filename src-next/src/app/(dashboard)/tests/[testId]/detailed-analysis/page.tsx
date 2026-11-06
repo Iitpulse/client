@@ -107,8 +107,8 @@ export default function DetailedAnalysisPage() {
   const flags = (keyCheck.data?.flags ?? []).filter((f) => f.aiVerdict !== "keyLooksRight");
   const hasOptions = !!current && options(current).length > 0;
   const insight = useQuestionInsight(testId, current?.id, hasOptions && submissions.length > 0);
-  // owner rule (6 Nov): the questions table takes the screen height left, only its rows scroll
-  const [fillRef, fillH] = useFillHeight<HTMLElement>(submissions.length > 0);
+  // owner rule (6 Nov), table below a summary: the questions table is a one-screen panel (the summary scrolls away), only its rows scroll
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(submissions.length > 0, 320, 0, "panel");
   const review = (n: number) => {
     setSelected(n);
     detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -295,7 +295,46 @@ export default function DetailedAnalysisPage() {
               </article>
             </section>
 
-            <section ref={fillRef} className={`card rise ${fillH !== null ? "k-fill" : "scrollx"}`} style={{ ["--i" as string]: 2, height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
+            {/* the per-section summary sits above the questions panel: the panel is the last thing on the page */}
+            {sectionRows.length > 0 && (
+              <section className="card scrollx rise" style={{ ["--i" as string]: 2 }}>
+                <div className="pad border-b border-line-2">
+                  <span className="h3">Sections</span>
+                </div>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Section</th>
+                      <th className="num">Questions</th>
+                      <th className="num">Avg score</th>
+                      <th className="num">Highest</th>
+                      <th className="num">Lowest</th>
+                      <th className="num">Avg accuracy</th>
+                      <th className="w-[160px]"><span className="sr-only">Average</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sectionRows.map((s, i) => (
+                      <tr key={s.id}>
+                        <td className="sm font-semibold">{s.name}</td>
+                        <td className="sm num">{s.questions}</td>
+                        <td className="sm num">{fmt(s.avg, 0)}%</td>
+                        <td className="sm num">{fmt(s.hi, 0)}%</td>
+                        <td className="sm num">{fmt(s.lo, 0)}%</td>
+                        <td className="sm num">{fmt(s.accuracy, 0)}%</td>
+                        <td>
+                          <div className="bar h-1.5">
+                            <i style={{ width: `${Math.max(0, Math.min(100, s.avg))}%`, animationDelay: `${i * 0.1}s` }} />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            )}
+
+            <section ref={fillRef} className={`card rise ${fillH !== null ? "k-fill k-fill-panel" : "scrollx"}`} style={{ ["--i" as string]: 3, height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
               <div className="pad row between wrap gap-2 border-b border-line-2">
                 <span className="h3">{tableView === "hardest" ? "Hardest questions" : "All questions"}</span>
                 <div className="seg">
@@ -336,44 +375,6 @@ export default function DetailedAnalysisPage() {
               </table>
               </div>
             </section>
-
-            {sectionRows.length > 0 && (
-              <section className="card scrollx rise" style={{ ["--i" as string]: 3 }}>
-                <div className="pad border-b border-line-2">
-                  <span className="h3">Sections</span>
-                </div>
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Section</th>
-                      <th className="num">Questions</th>
-                      <th className="num">Avg score</th>
-                      <th className="num">Highest</th>
-                      <th className="num">Lowest</th>
-                      <th className="num">Avg accuracy</th>
-                      <th className="w-[160px]"><span className="sr-only">Average</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sectionRows.map((s, i) => (
-                      <tr key={s.id}>
-                        <td className="sm font-semibold">{s.name}</td>
-                        <td className="sm num">{s.questions}</td>
-                        <td className="sm num">{fmt(s.avg, 0)}%</td>
-                        <td className="sm num">{fmt(s.hi, 0)}%</td>
-                        <td className="sm num">{fmt(s.lo, 0)}%</td>
-                        <td className="sm num">{fmt(s.accuracy, 0)}%</td>
-                        <td>
-                          <div className="bar h-1.5">
-                            <i style={{ width: `${Math.max(0, Math.min(100, s.avg))}%`, animationDelay: `${i * 0.1}s` }} />
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
-            )}
           </>
         )}
       </main>

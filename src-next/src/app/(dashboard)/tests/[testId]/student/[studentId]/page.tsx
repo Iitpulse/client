@@ -531,8 +531,8 @@ export default function StudentAnalysisPage() {
     </div>
   );
 
-  // owner rule (6 Nov): the chapters table takes the screen height left, only its rows scroll
-  const [fillRef, fillH] = useFillHeight<HTMLElement>(resultType === "subject-wise" && chapterStats.length > 0);
+  // owner rule (6 Nov), table below a summary: the chapters table is a one-screen panel (the report scrolls away), only its rows scroll
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(resultType === "subject-wise" && chapterStats.length > 0, 320, 0, "panel");
   if (loading || !test || !submission) {
     return (
       <>
@@ -723,7 +723,7 @@ export default function StudentAnalysisPage() {
         </div>
 
         {resultType === "subject-wise" && (
-          <section ref={fillRef} className={`card ${fillH !== null ? "k-fill" : "scrollx"}`} style={{ height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
+          <section ref={fillRef} className={`card ${fillH !== null ? "k-fill k-fill-panel" : "scrollx"}`} style={{ height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
             {chapterStats.length ? (
               <div className="k-fill-body scrollx">
               <table className="table">

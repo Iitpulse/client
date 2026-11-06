@@ -11,6 +11,8 @@
   Page header, filters, the table's header row and the pagination stay put; only the body scrolls inside the card
   (sticky header row, footer pinned under the body). Minimum 320px (about 6 rows): only on very short screens may
   the page scroll. `fill={false}` for a table inside a drawer, dialog or a section that grows with its content.
+  Below a summary (`fillMode="panel"`): the table is a one-screen panel (viewport minus the top bar), the summary
+  scrolls away and then only the body scrolls.
 */
 import { DropdownMenu as DM, Tooltip as T } from "radix-ui";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
@@ -71,11 +73,19 @@ export interface DataTableProps<R> {
   fill?: boolean;
   /** minimum height when filling (px, default 320 ≈ 6 rows) */
   minHeight?: number;
+  /** "fit" (default): the height left below the table's top. "panel": a table below a summary is a panel one
+   *  screen tall (viewport minus the sticky top bar); the summary scrolls away, then only the body scrolls */
+  fillMode?: FillMode;
 }
 
+/** How a filling table is sized: see `useFillHeight`. */
+export type FillMode = "fit" | "panel";
+
 const px = (v: string) => parseFloat(v) || 0;
-/** Height of everything laid out below `el` down to the end of the page (following siblings, paddings, gaps). */
-function spaceBelow(el: HTMLElement) {
+/** Height of everything laid out below `el` down to the end of the page (following siblings, paddings, gaps).
+ *  `stickyOnly`: count only siblings that stay on screen (position: sticky, e.g. an import bar), not the content
+ *  that scrolls by (panel mode). */
+function spaceBelow(el: HTMLElement, stickyOnly = false) {
   let below = 0;
   let n: HTMLElement = el;
   while (n.parentElement && n !== document.body) {
@@ -87,8 +97,10 @@ function spaceBelow(el: HTMLElement) {
       if (!(s instanceof HTMLElement)) continue;
       const cs = getComputedStyle(s);
       if (cs.display === "none" || cs.position === "fixed" || cs.position === "absolute") continue;
+      if (stickyOnly && cs.position !== "sticky") continue;
       const r = s.getBoundingClientRect();
-      if (r.top < bottom - 1) continue; // beside, not below (row layouts)
+      // beside, not below (row layouts); a sticky bar may be stuck over the element, so it counts anyway
+      if (r.top < bottom - 1 && !stickyOnly) continue;
       below += r.height + px(cs.marginTop) + px(cs.marginBottom) + (pcs.display.includes("flex") || pcs.display.includes("grid") ? px(pcs.rowGap) : 0);
     }
     below += px(pcs.paddingBottom) + px(pcs.borderBottomWidth);
@@ -97,12 +109,30 @@ function spaceBelow(el: HTMLElement) {
   return below;
 }
 
+/** The page's scroller (the admin main column) and the height of the sticky bars at its top (the 64px top bar). */
+function scrollerTop(el: HTMLElement) {
+  let sc: HTMLElement | null = el.parentElement;
+  while (sc && sc !== document.body && !/(auto|scroll)/.test(getComputedStyle(sc).overflowY)) sc = sc.parentElement;
+  if (!sc || sc === document.body) sc = document.scrollingElement as HTMLElement | null;
+  let bars = 0;
+  for (const c of Array.from(sc?.children ?? [])) {
+    if (!(c instanceof HTMLElement) || c.contains(el)) break; // only bars above the panel
+    const cs = getComputedStyle(c);
+    if (cs.position === "sticky" && px(cs.top) === 0) bars += c.getBoundingClientRect().height;
+  }
+  return bars;
+}
+
 /**
  * Owner rule (6 Nov): size an element to the viewport height left below its top (minus what sits under it), at
  * least `min` px, so the page itself doesn't scroll. `reserve` keeps room for a fixed bar at the bottom (the bulk bar).
+ * `mode: "panel"` (a table below a summary: results, question analysis, student report, import review): the element
+ * is one screen tall, viewport minus the sticky top bar (and any sticky bar under it), at least `min`; the summary
+ * above scrolls away normally and, once the panel is scrolled to, its header row, body and pagination fill the
+ * screen and only the body scrolls. Its `scroll-margin-top` is set to the top bar so `scrollIntoView` lands it there.
  * Returns a ref and the height (null until measured or when off).
  */
-export function useFillHeight<T extends HTMLElement>(on = true, min = 320, reserve = 0) {
+export function useFillHeight<T extends HTMLElement>(on = true, min = 320, reserve = 0, mode: FillMode = "fit") {
   const [el, ref] = useState<T | null>(null); // callback ref: works when the element mounts later
   const [h, setH] = useState<number | null>(null);
   useLayoutEffect(() => {
@@ -112,10 +142,18 @@ export function useFillHeight<T extends HTMLElement>(on = true, min = 320, reser
     const measure = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        // top as laid out with nothing scrolled (the admin main column scrolls, not the window)
-        let top = el.getBoundingClientRect().top + window.scrollY;
-        for (let a = el.parentElement; a; a = a.parentElement) top += a.scrollTop;
-        const next = Math.max(min, Math.floor(window.innerHeight - top - spaceBelow(el) - reserve));
+        let next: number;
+        if (mode === "panel") {
+          const bars = scrollerTop(el);
+          el.style.scrollMarginTop = `${bars}px`;
+          // the paddings under the panel are taken off too, so scrolled to the end the header row still clears the top bar
+          next = Math.max(min, Math.floor(window.innerHeight - bars - spaceBelow(el, true) - reserve));
+        } else {
+          // top as laid out with nothing scrolled (the admin main column scrolls, not the window)
+          let top = el.getBoundingClientRect().top + window.scrollY;
+          for (let a = el.parentElement; a; a = a.parentElement) top += a.scrollTop;
+          next = Math.max(min, Math.floor(window.innerHeight - top - spaceBelow(el) - reserve));
+        }
         setH((prev) => (prev === next ? prev : next));
       });
     };
@@ -130,7 +168,7 @@ export function useFillHeight<T extends HTMLElement>(on = true, min = 320, reser
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [el, on, min, reserve]);
+  }, [el, on, min, reserve, mode]);
   return [ref, on && el ? h : null] as const;
 }
 
@@ -139,7 +177,7 @@ export function DataTable<R>(p: DataTableProps<R>) {
   const fill = p.fill !== false;
   // while the bulk bar shows (fixed, 24px from the bottom), keep the pagination clear of it
   const bulkOn = !!p.selection && p.selection.selected.size > 0;
-  const [fillRef, fillH] = useFillHeight<HTMLElement>(fill, p.minHeight ?? 320, bulkOn ? 80 : 0);
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(fill, p.minHeight ?? 320, bulkOn ? 80 : 0, p.fillMode);
   const showSkel = useAfter(p.status === "loading", 300);
   const cols = p.columns.filter((c) => !(tablet && c.tablet === "hide"));
   const rows = p.rows ?? [];
@@ -298,7 +336,7 @@ export function DataTable<R>(p: DataTableProps<R>) {
   return (
     <section
       ref={fillRef}
-      className={cx("card k-dt", fillH !== null && "fill")}
+      className={cx("card k-dt", fillH !== null && "fill", fillH !== null && p.fillMode === "panel" && "panel")}
       style={{ overflow: p.scrollX || fillH !== null ? "hidden" : "clip", height: fillH ?? undefined }}
     >
       {p.scrollX || fill ? (

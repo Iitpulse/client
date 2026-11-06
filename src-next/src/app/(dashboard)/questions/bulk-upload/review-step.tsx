@@ -67,8 +67,8 @@ export function ReviewStep({
   const pages = Math.max(1, Math.ceil(visible.length / PAGE));
   const p = Math.min(page, pages - 1);
   const shown = visible.slice(p * PAGE, p * PAGE + PAGE);
-  // owner rule (6 Nov): the rows table takes the screen height left, only its rows scroll; the import bar stays below
-  const [fillRef, fillH] = useFillHeight<HTMLElement>();
+  // owner rule (6 Nov), table below a summary: the rows table is a one-screen panel above the sticky import bar, only its rows scroll
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(true, 320, 0, "panel");
   const t = tileOf(file.kind);
   const foundLine = [file.size ? fmtBytes(file.size) : null, total === 1 ? "1 question found" : `${total} questions found`, subjectsFound.length ? subjectsFound.join(", ") : null].filter(Boolean).join(" · ");
   const options = React.useMemo(() => [...new Set([...(sourceTag ? [sourceTag] : []), ...sourceOptions])].map((s) => ({ value: s, label: s })), [sourceOptions, sourceTag]);
@@ -126,7 +126,7 @@ export function ReviewStep({
         </div>
       )}
 
-      <section ref={fillRef} className={`card rise${fillH !== null ? " k-fill" : ""}`} style={{ ["--i" as string]: 2, overflow: "hidden", height: fillH ?? undefined }}>
+      <section ref={fillRef} className={`card rise${fillH !== null ? " k-fill k-fill-panel" : ""}`} style={{ ["--i" as string]: 2, overflow: "hidden", height: fillH ?? undefined }}>
         <div className="row between wrap pad" style={{ gap: 10, borderBottom: "1px solid var(--line-2)" }}>
           <Segmented
             ariaLabel="Rows"

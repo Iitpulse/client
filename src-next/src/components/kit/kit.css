@@ -335,6 +335,9 @@
   .k-fill > .k-fill-body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain }
   .k-fill-body thead th, .k-fill-body .k-fill-head { position: sticky; top: 0; z-index: 2 }
   .k-fill-body thead th { box-shadow: inset 0 -1px 0 var(--line) } /* collapsed borders stay behind a sticky cell */
+  /* panel mode (a table below a summary): the panel is one screen tall; at the body's top or end the wheel carries on
+     to the page, so the summary above can be scrolled back to */
+  .k-fill.k-fill-panel > .k-fill-body, .k-dt.fill.panel .k-dt-scroll { overscroll-behavior: auto }
   .k-rm { width: 30px; height: 30px; border: 0; background: none; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; flex: none }
   .k-rm:hover, .k-rm[data-state="open"] { background: var(--navy-100); color: var(--navy) }
   .k-rm:focus-visible { outline: 3px solid var(--navy-200); outline-offset: 2px }

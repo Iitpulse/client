@@ -90,7 +90,27 @@ card (sticky header row, footer pinned under it), minimum 320px (≈ 6 rows) so 
 `fill={false}` inside drawers and dialogs. A hand-made table (div grid) uses `useFillHeight(on, min, reserve)` → `[ref, height]`
 on its card with an inner `overflow-y: auto` body and a sticky header row; the classes do that: `k-fill` on the card
 (while `height !== null`), `k-fill-body` on the rows wrapper, `k-fill-head` on a div grid's header row (`<thead>` is sticky on its own). Keep page content under a table out of the
-way: whatever sits below it is measured and left visible. Page-level states:
+way: whatever sits below it is measured and left visible.
+**Table below a summary (`mode: "panel"`).** When a page puts summary content above its table (Results, question
+analysis, the student report's chapters, the import review, the legacy test preview's student links), fitting the
+height left would squash the table to its minimum. There the table is a panel one screen tall instead: the viewport
+minus the sticky top bar (and any sticky bar under it, like the import bar), minimum 320px. The summary scrolls away
+normally; once the panel is scrolled to, its header row, body and pagination fill the screen and only the body
+scrolls. At the body's top or end the wheel carries on to the page (no `overscroll-behavior: contain`), so the summary
+can be scrolled back to. The hook sets `scroll-margin-top` to the top bar, so `scrollIntoView()` lands the panel right
+under it, and takes the paddings below off, so scrolled to the very end the header row still clears the top bar.
+
+```tsx
+const [ref, h] = useFillHeight<HTMLElement>(rows.length > 0, 320, 0, "panel");
+<section ref={ref} className={`card ${h !== null ? "k-fill k-fill-panel" : "scrollx"}`} style={{ height: h ?? undefined }}>
+  <div className="pad">Students · search · filters</div>
+  <div className="k-fill-body scrollx"><table className="table">…</table></div>
+  <div className="row between">Showing 1–25 of 212 · Previous · Next</div>
+</section>
+<DataTable fillMode="panel" … />   // the same for a kit table
+```
+Use `"fit"` (the default) when the table is the page's main content (lists, setup tabs, roles, audit); use
+`"panel"` only when a summary sits above it. Page-level states:
 `PageSkeleton` (after 300 ms, "Still loading…" at 10 s), `EmptyState` (one doodle), `PageError` (`what`, `code`),
 `NoAccess` (`what`, `role`), `NotFoundState`, `OfflineBanner`, `StateBox` (inside cards/tables). Also `CopyCode`,
 `Truncate` (tooltip only when cut), `RowMenu`, `apiError(e)` → `{status, code, message, details}`, `supportCode`.
