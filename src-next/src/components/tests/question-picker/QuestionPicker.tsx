@@ -148,6 +148,11 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
   }, [paper.data]);
   const cur = flat.find((x) => x.sub.id === param("sub")) ?? flat.find((x) => x.sub.have < x.sub.need) ?? flat[0];
   const sub = cur?.sub;
+  // keep the opened sub-section in the address, so it stays put when it fills up
+  useEffect(() => {
+    if (cur && !param("sub")) setParams({ sub: cur.sub.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cur?.sub.id]);
   const isSet = sub?.type === "paragraph";
   const setSize = sub?.paragraph?.setSize ?? 1;
   const slotsLeft = sub ? Math.max(0, sub.need - sub.have) : 0;
