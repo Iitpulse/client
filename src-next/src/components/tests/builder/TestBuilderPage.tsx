@@ -480,7 +480,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
       </header>
 
       <main className="tb-main">
-        {test && locked && (
+        {test && locked && !correction && (
           <Banner
             tone="warn"
             className="tb-wide"
