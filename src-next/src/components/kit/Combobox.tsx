@@ -365,8 +365,10 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
     <P.Root open={open} onOpenChange={(o) => (o ? setOpen(true) : close(false))}>
       <P.Anchor asChild>
         <div ref={anchorRef} className="relative w-full min-w-0">
-          {open ? (
-            <div className={cx("k-cb open", sizeCls)}>
+          {/* The button stays mounted under the search box while open, so focus never drops to the page (a drawer's
+              focus trap would otherwise read that as "focus outside" and close the list). */}
+          {open && (
+            <div className={cx("k-cb open", sizeCls)} style={{ position: "absolute", inset: 0, zIndex: 1 }}>
               <Search className="size-4 shrink-0" aria-hidden style={{ color: "var(--muted)" }} />
               <input
                 ref={inputRef}
@@ -392,12 +394,16 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
               />
               {props.loading && <Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden style={{ color: "var(--muted)" }} />}
             </div>
-          ) : (
+          )}
+          {
             <button
               ref={triggerRef}
-              id={id}
+              id={open ? undefined : id}
               type="button"
               disabled={disabled}
+              tabIndex={open ? -1 : undefined}
+              aria-hidden={open || undefined}
+              style={open ? { opacity: 0, pointerEvents: "none" } : undefined}
               className={cx("k-cb", sizeCls, disabled && "dis", invalid && "e", props.className)}
               aria-haspopup="listbox"
               aria-expanded={false}
@@ -439,7 +445,7 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
               )}
               <ChevronDown className="size-4" aria-hidden />
             </button>
-          )}
+          }
         </div>
       </P.Anchor>
       <P.Portal>
@@ -453,6 +459,7 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
           onInteractOutside={(e) => {
             if (anchorRef.current?.contains(e.target as Node)) e.preventDefault();
           }}
+          onFocusOutside={(e) => e.preventDefault()}
         >
           {engine.list}
         </P.Content>
