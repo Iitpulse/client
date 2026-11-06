@@ -6,6 +6,7 @@ import { MathText } from "@iitpulse/ui";
 import { Segmented } from "@/components/kit/Segmented";
 import { Combobox } from "@/components/kit/Combobox";
 import { fmtBytes } from "@/components/kit/FileDrop";
+import { useFillHeight } from "@/components/kit/DataTable";
 import type { ISubject } from "@/types";
 import { answerLabel, BADGE, importable, needsLook, rowCheck, subjectLabel, type ReviewRow } from "./rows";
 import { tileOf, type FileInfo } from "./read-step";
@@ -66,6 +67,8 @@ export function ReviewStep({
   const pages = Math.max(1, Math.ceil(visible.length / PAGE));
   const p = Math.min(page, pages - 1);
   const shown = visible.slice(p * PAGE, p * PAGE + PAGE);
+  // owner rule (6 Nov): the rows table takes the screen height left, only its rows scroll; the import bar stays below
+  const [fillRef, fillH] = useFillHeight<HTMLElement>();
   const t = tileOf(file.kind);
   const foundLine = [file.size ? fmtBytes(file.size) : null, total === 1 ? "1 question found" : `${total} questions found`, subjectsFound.length ? subjectsFound.join(", ") : null].filter(Boolean).join(" · ");
   const options = React.useMemo(() => [...new Set([...(sourceTag ? [sourceTag] : []), ...sourceOptions])].map((s) => ({ value: s, label: s })), [sourceOptions, sourceTag]);
@@ -123,7 +126,7 @@ export function ReviewStep({
         </div>
       )}
 
-      <section className="card rise" style={{ ["--i" as string]: 2, overflow: "hidden" }}>
+      <section ref={fillRef} className={`card rise${fillH !== null ? " k-fill" : ""}`} style={{ ["--i" as string]: 2, overflow: "hidden", height: fillH ?? undefined }}>
         <div className="row between wrap pad" style={{ gap: 10, borderBottom: "1px solid var(--line-2)" }}>
           <Segmented
             ariaLabel="Rows"
@@ -140,7 +143,7 @@ export function ReviewStep({
           />
           <span className="xs muted">{tab === "look" ? "Unread and missing answers first, then the rest in paper order" : "In paper order"}</span>
         </div>
-        <div style={{ overflowX: "auto" }}>
+        <div className="k-fill-body" style={{ overflowX: "auto" }}>
           <table className="bu-table">
             <thead>
               <tr>
@@ -211,7 +214,7 @@ export function ReviewStep({
             </tbody>
           </table>
         </div>
-        <div className="row between" style={{ padding: "12px 16px" }}>
+        <div className="row between" style={{ padding: "12px 16px", borderTop: "1px solid var(--line-2)" }}>
           <span className="xs muted">
             {visible.length ? `Showing ${p * PAGE + 1}–${Math.min(visible.length, (p + 1) * PAGE)} of ${visible.length}` : "Showing 0"}
             {tab !== "all" ? ` · ${total} in the file` : ""}

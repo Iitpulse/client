@@ -22,7 +22,7 @@ import { QuestionBody } from "@/components/question-body";
 import { Switch } from "@/components/ui/switch";
 import { AddToTest } from "@/components/questions-admin/add-to-test";
 import { BulkJobStatus, BulkPreviewDialog, useBulkJob, type Selection } from "@/components/questions-admin/bulk-ai";
-import { FilterChip as KitFilterChip, notify, ToggleChip, type ComboOption } from "@/components/kit";
+import { FilterChip as KitFilterChip, notify, ToggleChip, useFillHeight, type ComboOption } from "@/components/kit";
 import { DeleteBlockedDialog, EmptyBank, NoMatch, SearchError } from "@/components/questions-admin/bank-states";
 import { Sparkle } from "@/components/questions-admin/parts";
 import { useToast } from "@/hooks/use-toast";
@@ -374,6 +374,8 @@ function QuestionsBank() {
 
   const counts = data?.counts;
   const showBar = selCount > 0 || !!bulk.job;
+  // owner rule (6 Nov): the table takes the screen height left, only its rows scroll (header row and pager stay put)
+  const [fillRef, fillH] = useFillHeight<HTMLDivElement>();
   const busyJob = bulk.job && bulk.active;
   const ghost = "btn btn-ghost h-[34px] text-[13px] text-[#D6D8FA] hover:bg-white/10 hover:text-white";
 
@@ -461,9 +463,10 @@ function QuestionsBank() {
         </div>
 
         <div className="flex flex-wrap items-start gap-3.5">
-          <div className="card scrollx min-w-0" style={{ flex: "999 1 560px" }}>
+          <div ref={fillRef} className={`card min-w-0 ${fillH !== null ? "k-fill" : "scrollx"}`} style={{ flex: "999 1 560px", height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
+            <div className="k-fill-body">
             <div role="table" aria-label="Questions" className="min-w-[560px]" aria-busy={res.isFetching}>
-              <div role="rowgroup">
+              <div role="rowgroup" className="k-fill-head">
                 <div role="row" className={`${GRID} border-b-line bg-[#FAFBFD] text-xs font-semibold tracking-[.04em] text-muted uppercase`}>
                   <span role="columnheader">
                     <input
@@ -571,8 +574,9 @@ function QuestionsBank() {
                 })}
               </div>
             </div>
+            </div>
             {total > 0 && (
-              <div className="row between px-4 py-3">
+              <div className="row between border-t border-line-2 px-4 py-3">
                 <span className="xs muted">
                   Showing {fmt((page - 1) * PAGE + 1)}–{fmt(Math.min(total, page * PAGE))} of {fmt(total)}
                 </span>
@@ -589,7 +593,7 @@ function QuestionsBank() {
           </div>
 
           {open && (
-            <aside key={open.id} className="card col fade min-w-0 overflow-hidden" aria-label="Question preview" style={{ flex: "1 0 300px", maxWidth: 380 }}>
+            <aside key={open.id} className="card col fade min-w-0 overflow-hidden" aria-label="Question preview" style={{ flex: "1 0 300px", maxWidth: 380, maxHeight: fillH ?? undefined }}>
               <div className="row between pad border-b border-line-2">
                 <span className="mono sm truncate">{open.id}</span>
                 <div className="row gap-1">
@@ -601,7 +605,7 @@ function QuestionsBank() {
                   </Link>
                 </div>
               </div>
-              <div className="col pad gap-3">
+              <div className="col pad min-h-0 gap-3 overflow-y-auto">
                 <div className="row wrap gap-1.5">
                   {open.chapters.slice(0, 2).map((c) => (
                     <span key={c.id} className="badge b-grey max-w-full truncate">

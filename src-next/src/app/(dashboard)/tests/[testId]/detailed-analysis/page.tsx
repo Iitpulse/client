@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MathText } from "@iitpulse/ui";
 
 import { Topbar } from "@/components/admin/Topbar";
+import { useFillHeight } from "@/components/kit";
 import { useKeyCheck, useQuestionInsight } from "@/lib/queries-tests-admin";
 import type { KeyCheckFlag } from "@/lib/m5-contract";
 import { api } from "@/lib/api";
@@ -106,6 +107,8 @@ export default function DetailedAnalysisPage() {
   const flags = (keyCheck.data?.flags ?? []).filter((f) => f.aiVerdict !== "keyLooksRight");
   const hasOptions = !!current && options(current).length > 0;
   const insight = useQuestionInsight(testId, current?.id, hasOptions && submissions.length > 0);
+  // owner rule (6 Nov): the questions table takes the screen height left, only its rows scroll
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(submissions.length > 0);
   const review = (n: number) => {
     setSelected(n);
     detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -292,7 +295,7 @@ export default function DetailedAnalysisPage() {
               </article>
             </section>
 
-            <section className="card scrollx rise" style={{ ["--i" as string]: 2 }}>
+            <section ref={fillRef} className={`card rise ${fillH !== null ? "k-fill" : "scrollx"}`} style={{ ["--i" as string]: 2, height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
               <div className="pad row between wrap gap-2 border-b border-line-2">
                 <span className="h3">{tableView === "hardest" ? "Hardest questions" : "All questions"}</span>
                 <div className="seg">
@@ -300,6 +303,7 @@ export default function DetailedAnalysisPage() {
                   <button type="button" className={`tab ${tableView === "all" ? "on" : ""}`} onClick={() => setTableView("all")}>All <span className="count">{stats.length}</span></button>
                 </div>
               </div>
+              <div className="k-fill-body scrollx">
               <table className="table">
                 <thead>
                   <tr>
@@ -330,6 +334,7 @@ export default function DetailedAnalysisPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </section>
 
             {sectionRows.length > 0 && (

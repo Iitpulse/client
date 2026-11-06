@@ -33,6 +33,7 @@ import {
   inr,
   notify,
   supportCode,
+  useFillHeight,
   useUrlState,
   type ComboOption,
 } from "@/components/kit";
@@ -57,6 +58,8 @@ export function RolesPage() {
   const [pending, setPending] = useState<string | null>(null);
   const dirty = !!draft && !!current && !sameSet(draft, new Set(current.permissions));
   useEffect(() => setDraft(null), [current?.id]);
+  // the role list beside the table is held to the table's height and scrolls itself (owner table rule)
+  const [asideRef, asideH] = useFillHeight<HTMLElement>();
 
   const pick = (id: string, view = "permissions") => {
     if (dirty && id !== current?.id) setPending(id);
@@ -70,7 +73,7 @@ export function RolesPage() {
       return <PageError what="roles" body="Everyone keeps the access they had. Try again in a moment." code={supportCode("ROL", roles.error ?? catalog.error)} onRetry={() => (roles.refetch(), catalog.refetch())} />;
     return (
       <div className="rl-wrap">
-        <aside className="card rl-aside" aria-label="Roles">
+        <aside ref={asideRef} className="card rl-aside" aria-label="Roles" style={asideH !== null ? { maxHeight: asideH, overflowY: "auto", overscrollBehavior: "contain" } : undefined}>
           <div className="rl-list">
             {list.map((r) => (
               <button key={r.id} type="button" className={`rl-ri${r.id === current.id ? " on" : ""}`} aria-current={r.id === current.id || undefined} onClick={() => pick(r.id)}>
@@ -215,9 +218,12 @@ function RoleCard({
     }
   };
   const members = useRoleMembers(view === "members" ? role.id : null, q, page);
+  // owner rule (6 Nov): the permissions table takes the screen height left, only its rows scroll (Members has its own DataTable)
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(view === "permissions");
+  const fills = fillH !== null;
 
   return (
-    <section className="card col rise rl-main">
+    <section ref={fillRef} className={`card col rise rl-main${fills ? " k-fill" : ""}`} style={{ height: fillH ?? undefined }}>
       <div className="pad-lg row between wrap" style={{ gap: 10, borderBottom: "1px solid var(--line-2)" }}>
         <div className="col" style={{ gap: 2, minWidth: 0 }}>
           <div className="row" style={{ gap: 8 }}>
@@ -251,7 +257,7 @@ function RoleCard({
       </div>
 
       {view === "permissions" ? (
-        <div className="col">
+        <div className="col" style={fills ? { flex: "1 1 auto", minHeight: 0 } : undefined}>
           {locked && (
             <div style={{ padding: "14px 20px 0" }}>
               <InlineNote>Admin always has every permission, so nobody can lock the institute out. Make a new role for anything narrower.</InlineNote>
@@ -262,9 +268,9 @@ function RoleCard({
               <InlineNote>Students get this role from their batch. What they can open in the student app follows these permissions.</InlineNote>
             </div>
           )}
-          <div className="scrollx">
+          <div className="scrollx k-fill-body" style={fills ? { flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain" } : undefined}>
             <div className="rl-mx" role="table" aria-label={`Permissions for ${role.name}`}>
-              <div className="tr h" role="row">
+              <div className="tr h k-fill-head" role="row">
                 {["Area", "View", "Create", "Edit", "Delete", "Also"].map((h) => (
                   <span key={h} className="th" role="columnheader">
                     {h}

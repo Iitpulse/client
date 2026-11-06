@@ -88,7 +88,8 @@ scrolls: page header, filters, the table's header row and the pagination stay pu
 card (sticky header row, footer pinned under it), minimum 320px (≈ 6 rows) so only very short screens scroll the page.
 `DataTable` does this by default (`fill`, `minHeight`; it keeps 80px clear while the bulk bar shows). Pass
 `fill={false}` inside drawers and dialogs. A hand-made table (div grid) uses `useFillHeight(on, min, reserve)` → `[ref, height]`
-on its card with an inner `overflow-y: auto` body and a sticky header row. Keep page content under a table out of the
+on its card with an inner `overflow-y: auto` body and a sticky header row; the classes do that: `k-fill` on the card
+(while `height !== null`), `k-fill-body` on the rows wrapper, `k-fill-head` on a div grid's header row (`<thead>` is sticky on its own). Keep page content under a table out of the
 way: whatever sits below it is measured and left visible. Page-level states:
 `PageSkeleton` (after 300 ms, "Still loading…" at 10 s), `EmptyState` (one doodle), `PageError` (`what`, `code`),
 `NoAccess` (`what`, `role`), `NotFoundState`, `OfflineBanner`, `StateBox` (inside cards/tables). Also `CopyCode`,

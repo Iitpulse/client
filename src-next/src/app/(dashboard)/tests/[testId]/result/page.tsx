@@ -17,6 +17,7 @@ import { ChevronDown, Search } from "lucide-react";
 import { AiMark, MathText } from "@iitpulse/ui";
 
 import { Topbar } from "@/components/admin/Topbar";
+import { useFillHeight } from "@/components/kit";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores";
@@ -212,6 +213,8 @@ export default function TestResultPage() {
   }, [rows, q, batchFilter, flaggedOnly, flagOf]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE));
   const pageRows = filtered.slice(page * PAGE, page * PAGE + PAGE);
+  // owner rule (6 Nov): the students table takes the screen height left, only its rows scroll
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(rows.length > 0);
   React.useEffect(() => setPage(0), [q, batchFilter, flaggedOnly]);
   const maxMarks = test?.totalMarks || Math.max(1, ...marks);
   const threshold = integrity?.threshold ?? 3;
@@ -407,7 +410,7 @@ export default function TestResultPage() {
           </section>
         )}
 
-        <section className="card scrollx rise" style={{ ["--i" as string]: 7 }}>
+        <section ref={fillRef} className={`card rise ${fillH !== null ? "k-fill" : "scrollx"}`} style={{ ["--i" as string]: 7, height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
           <div className="pad row between wrap gap-2 border-b border-line-2">
             <span className="h3">Students</span>
             <div className="row wrap gap-2">
@@ -441,6 +444,7 @@ export default function TestResultPage() {
             </div>
           </div>
           {rows.length ? (
+            <div className="k-fill-body scrollx">
             <table className="table">
               <thead>
                 <tr>
@@ -483,6 +487,7 @@ export default function TestResultPage() {
                 )}
               </tbody>
             </table>
+            </div>
           ) : (
             <div className="col items-center gap-1 p-12 text-center">
               <span className="h3">No submissions yet</span>
@@ -490,7 +495,7 @@ export default function TestResultPage() {
             </div>
           )}
           {rows.length > 0 && (
-            <div className="row between px-4 py-3">
+            <div className="row between border-t border-line-2 px-4 py-3">
               <span className="xs muted">
                 Showing {filtered.length ? `${page * PAGE + 1}–${Math.min(filtered.length, (page + 1) * PAGE)}` : 0} of {filtered.length}
               </span>

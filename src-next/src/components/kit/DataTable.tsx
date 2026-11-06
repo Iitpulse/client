@@ -112,7 +112,9 @@ export function useFillHeight<T extends HTMLElement>(on = true, min = 320, reser
     const measure = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        const top = el.getBoundingClientRect().top + window.scrollY;
+        // top as laid out with nothing scrolled (the admin main column scrolls, not the window)
+        let top = el.getBoundingClientRect().top + window.scrollY;
+        for (let a = el.parentElement; a; a = a.parentElement) top += a.scrollTop;
         const next = Math.max(min, Math.floor(window.innerHeight - top - spaceBelow(el) - reserve));
         setH((prev) => (prev === next ? prev : next));
       });
@@ -120,7 +122,8 @@ export function useFillHeight<T extends HTMLElement>(on = true, min = 320, reser
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(document.body);
-    if (el.parentElement) ro.observe(el.parentElement);
+    // every ancestor: something added above or below the table (a bar, a banner) resizes one of them
+    for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) ro.observe(a);
     window.addEventListener("resize", measure);
     return () => {
       cancelAnimationFrame(raf);

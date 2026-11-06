@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MathText } from "@iitpulse/ui";
 
 import { Topbar } from "@/components/admin/Topbar";
+import { useFillHeight } from "@/components/kit";
 import { api } from "@/lib/api";
 import "../../results.css";
 
@@ -530,6 +531,8 @@ export default function StudentAnalysisPage() {
     </div>
   );
 
+  // owner rule (6 Nov): the chapters table takes the screen height left, only its rows scroll
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(resultType === "subject-wise" && chapterStats.length > 0);
   if (loading || !test || !submission) {
     return (
       <>
@@ -720,8 +723,9 @@ export default function StudentAnalysisPage() {
         </div>
 
         {resultType === "subject-wise" && (
-          <section className="card scrollx">
+          <section ref={fillRef} className={`card ${fillH !== null ? "k-fill" : "scrollx"}`} style={{ height: fillH ?? undefined, overflow: fillH !== null ? "hidden" : undefined }}>
             {chapterStats.length ? (
+              <div className="k-fill-body scrollx">
               <table className="table">
                 <thead>
                   <tr>
@@ -771,6 +775,7 @@ export default function StudentAnalysisPage() {
                   })}
                 </tbody>
               </table>
+              </div>
             ) : (
               <div className="pad sm muted">The questions in this test carry no chapters.</div>
             )}
