@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Info } from "lucide-react";
 import "@/components/m6/m6-patterns.css";
 import { Topbar } from "@/components/admin/Topbar";
-import { BlockedDialog, ConfirmDialog, EmptyState, NoAccess, notify, PageError, PageSkeleton, RowMenu } from "@/components/kit";
+import { BlockedDialog, ConfirmDialog, EmptyState, NoAccess, notify, PageError, PageSkeleton, RowMenu, useFillHeight } from "@/components/kit";
 import { errorCode, isForbidden, SamplePill } from "@/components/m6/parts";
 import { apiError, errDetails } from "@/lib/m6/client";
 import { templatesApi, useInvalidateTemplates, useTemplates } from "@/lib/m6/templates";
@@ -33,6 +33,8 @@ export default function TemplatesPage() {
   const list = useTemplates();
   const invalidate = useInvalidateTemplates();
   const [makeDefault, setMakeDefault] = useState<ExamTemplate | null>(null);
+  // Owner rule (6 Nov): the page never scrolls; the defaults and the template cards scroll in the space left.
+  const [fillRef, fillH] = useFillHeight<HTMLDivElement>(true, 320);
   const [blocked, setBlocked] = useState<{ t: ExamTemplate; d: TemplateInUseDetails | null } | null>(null);
   const forbidden = list.isError && isForbidden(list.error);
   const items = list.data?.items ?? [];
@@ -133,7 +135,7 @@ export default function TemplatesPage() {
   return (
     <>
       {header(true)}
-      <main className="col" style={{ padding: "22px 28px 40px", gap: 16 }}>
+      <main className="col" style={{ padding: "22px 28px 16px", gap: 16 }}>
         <div className="m6-bn info">
           <Info className="size-4" aria-hidden />
           <span className="t">
@@ -143,7 +145,7 @@ export default function TemplatesPage() {
         {list.isLoading ? (
           <PageSkeleton rows={6} onRetry={() => list.refetch()} />
         ) : (
-          <>
+          <div ref={fillRef} className="col" style={{ gap: 16, overflowY: "auto", height: fillH ?? undefined, minHeight: 0, paddingBottom: 4 }}>
             <section className="card col rise">
               <div className="row between pad" style={{ borderBottom: "1px solid #EEF0F5" }}>
                 <span className="h3">Default for each exam</span>
@@ -201,7 +203,7 @@ export default function TemplatesPage() {
                 </article>
               ))}
             </div>
-          </>
+          </div>
         )}
       </main>
 

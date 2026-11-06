@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { AlertTriangle, Check, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { Topbar } from "@/components/admin/Topbar";
-import { ConfirmDialog, FilterChip, NoAccess, StateBox, notify, useTablet } from "@/components/kit";
+import { ConfirmDialog, FilterChip, NoAccess, StateBox, notify, useFillHeight, useTablet } from "@/components/kit";
 import { SampleDataPill } from "@/components/tests-m6/parts";
 import { TestLinksDrawer } from "@/components/tests-m6/TestLinksDrawer";
 import { reschedule, useCalendar } from "@/lib/m6/calendar";
@@ -140,6 +140,10 @@ function Calendar() {
   const [linksFor, setLinksFor] = useState<CalTest | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const cardRef = useRef<HTMLElement>(null);
+  // Owner rule (6 Nov): the page never scrolls; the month grid / week hours take the height left and scroll inside.
+  // On a tablet the month grid keeps its compact height (dots) and the picked day's list below takes the rest.
+  const [fillRef, fillH] = useFillHeight<HTMLDivElement>(!tablet || view === "week", 320);
+  const [agRef, agH] = useFillHeight<HTMLDivElement>(tablet && view === "month", 140);
   const invalidate = useInvalidateTests();
 
   const batches = useM6Batches();
@@ -370,7 +374,8 @@ function Calendar() {
               )}
 
               {ok && view === "month" && (
-                <div className="cal-mon" role="grid" aria-label={`${MONTHS[range.month]} ${range.year}`}>
+                <div ref={fillRef} className={`cal-fill ${fillH ? "fill" : ""}`} style={{ height: fillH ?? undefined }} onScroll={() => setOpen(null)}>
+                <div className="cal-mon" role="grid" aria-label={`${MONTHS[range.month]} ${range.year}`} style={{ gridTemplateRows: tablet ? `auto repeat(${range.days.length / 7}, 64px)` : `auto repeat(${range.days.length / 7}, minmax(104px, 1fr))` }}>
                   {DOW.map((d) => (
                     <span key={d} className="dw" role="columnheader">
                       {d}
@@ -435,10 +440,14 @@ function Calendar() {
                     );
                   })}
                 </div>
+                </div>
               )}
 
               {ok && view === "week" && (
                 <WeekGrid
+                  fillRef={fillRef}
+                  bodyHeight={fillH}
+                  onScroll={() => setOpen(null)}
                   days={range.days}
                   today={today}
                   tests={data?.tests ?? []}
@@ -485,7 +494,7 @@ function Calendar() {
                   {dayLabel(agendaDay)}
                   {agendaDay === today ? " · today" : ""}
                 </span>
-                <div className="col gap-2">
+                <div ref={agRef} className="col gap-2 overflow-y-auto" style={{ height: agH ?? undefined }}>
                   {(byDay.get(agendaDay) ?? []).length === 0 && <span className="xs muted">No tests on this day.</span>}
                   {(byDay.get(agendaDay) ?? []).map((t) => (
                     <button key={t.testId} type="button" className="cal-ag" onClick={(e) => openPopover(t, e.currentTarget)}>
@@ -523,6 +532,9 @@ function Calendar() {
 const HOUR_PX = 48;
 
 function WeekGrid({
+  fillRef,
+  bodyHeight,
+  onScroll,
   days,
   today,
   tests,
@@ -533,6 +545,10 @@ function WeekGrid({
   onDragEnd,
   onDropAt,
 }: {
+  /** fills the viewport height left (header row stays above, hours scroll) */
+  fillRef: (el: HTMLDivElement | null) => void;
+  bodyHeight: number | null;
+  onScroll: () => void;
   days: string[];
   today: string;
   tests: CalTest[];
@@ -599,7 +615,15 @@ function WeekGrid({
           </span>
         ))}
       </div>
-      <div ref={scroller} className="max-h-[640px] overflow-y-auto">
+      <div
+        ref={(el) => {
+          scroller.current = el;
+          fillRef(el);
+        }}
+        className="overflow-y-auto"
+        style={{ height: bodyHeight ?? 640 }}
+        onScroll={onScroll}
+      >
         <div className="cal-wk">
           <div>
             {hours.map((h) => (
@@ -804,8 +828,11 @@ const CAL_CSS = `
 .cal-lg i.ev-fail{background:var(--amber-50);border:1px solid #F1D29A}
 .cal-lg i.ev-ended{background:var(--ground);border:1px solid var(--line)}
 .cal-mon{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line);border-radius:inherit;overflow:hidden}
-.cal-mon .dw{padding:8px 10px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#FAFBFD}
-.cal-mon .day{min-height:132px;padding:6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:4px;min-width:0}
+.cal-fill{overflow-y:auto;min-height:0;border-radius:inherit}
+.cal-fill .cal-mon{min-height:100%;overflow:visible}
+.cal-fill.fill .cal-mon{height:100%}
+.cal-mon .dw{position:sticky;top:0;z-index:1;padding:8px 10px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#FAFBFD}
+.cal-mon .day{min-height:0;overflow-y:auto;scrollbar-width:thin;padding:6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:4px;min-width:0}
 .cal-mon .day.off{background:#FAFBFD}
 .cal-mon .day.off .dn{color:#A9ACC0}
 .cal-mon .day.today .dn{background:var(--navy);color:#fff}
