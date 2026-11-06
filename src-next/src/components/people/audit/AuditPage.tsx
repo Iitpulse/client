@@ -45,6 +45,7 @@ import {
   type ComboOption,
   type DateRange,
   type RangePreset,
+  useFillHeight,
 } from "@/components/kit";
 import { API_GATEWAY } from "@/lib/ai-admin";
 import { auditApi, useCan, useMe } from "@/lib/m6/people";
@@ -145,6 +146,8 @@ export function AuditPage() {
   const filtered = filterCount > 0 || !!s.q;
   const clearAll = () => set({ q: "", actor: "", actorName: "", verb: "", about: "", range: "7d", from: "", to: "", involving: "" });
   const showSkel = useAfter(list.isLoading, 300);
+  // owner rule: the table takes the screen height left, only its body scrolls (header row and footer stay put)
+  const [fillRef, fillH] = useFillHeight<HTMLElement>();
 
   const body = () => {
     if (loading) return <PageCard><div style={{ minHeight: 240 }} /></PageCard>;
@@ -214,7 +217,7 @@ export function AuditPage() {
             </PageCard>
           )
         ) : (
-          <section className="card rise" style={{ overflow: "clip" }}>
+          <section ref={fillRef} className={`card rise${fillH !== null ? " au-fill" : ""}`} style={{ overflow: fillH !== null ? "hidden" : "clip", height: fillH ?? undefined }}>
             <div className="au-dt" role="table" aria-label="Audit events" aria-busy={list.isLoading || undefined}>
               <div className="tr h" role="row">
                 <span className="th" role="columnheader">Time</span>

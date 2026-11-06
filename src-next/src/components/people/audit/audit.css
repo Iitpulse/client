@@ -1,6 +1,11 @@
 /* Admin-AuditLogs board: the events grid with day rows, action pills, the detail drawer's diff table. */
 .au-dt .tr { display: grid; grid-template-columns: 90px minmax(170px, 1.2fr) 130px minmax(260px, 2.4fr) minmax(140px, 1fr); align-items: center; border-bottom: 1px solid var(--line-2) }
 .au-dt .tr.h { background: #FAFBFD; position: sticky; top: 64px; z-index: 2 }
+/* fill rule: the card takes the screen height left; only the rows scroll, the header row and footer stay */
+.au-fill { display: flex; flex-direction: column }
+.au-fill > .au-dt { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain }
+.au-fill > .au-dt .tr.h { top: 0 }
+.au-fill > :not(.au-dt) { flex: none }
 .au-dt .th { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; white-space: nowrap }
 .au-dt .td { padding: 10px 14px; min-width: 0; font-size: 13px; overflow-wrap: anywhere }
 .au-dt .tr.click { cursor: pointer } .au-dt .tr.click:hover, .au-dt .tr.sel { background: var(--navy-50) }
