@@ -559,12 +559,15 @@ export function BirthdayField({
   invalid,
   idPrefix = "dob",
   size,
+  compact,
 }: {
   value: string | null;
   onChange: (d: string | null) => void;
   invalid?: boolean;
   idPrefix?: string;
   size?: "md" | "lg";
+  /** half-width columns (drawers): short month names, narrower day/year */
+  compact?: boolean;
 }) {
   const p = parseIsoDate(value);
   const [day, setDay] = useState(p ? String(p.d) : "");
@@ -590,10 +593,10 @@ export function BirthdayField({
     last.current = next;
     onChange(next);
   };
-  const months = useMemo(() => MONTHS_LONG.map((label, i) => ({ value: String(i), label })), []);
+  const months = useMemo(() => (compact ? MONTHS : MONTHS_LONG).map((label, i) => ({ value: String(i), label, keywords: [MONTHS_LONG[i]!] })), [compact]);
   const cls = cx("k-input num", size === "lg" && "k-lg", invalid && "e");
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "64px minmax(0, 1fr) 84px", gap: 8 }}>
+    <div style={{ display: "grid", gridTemplateColumns: compact ? "46px minmax(76px, 1fr) 62px" : "64px minmax(0, 1fr) 84px", gap: compact ? 6 : 8 }}>
       <input
         id={`${idPrefix}-d`}
         className={cls}
