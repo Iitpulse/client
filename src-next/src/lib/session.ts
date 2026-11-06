@@ -121,7 +121,9 @@ function remember(token: string, expiresAt?: string | null, broadcast = true) {
   if (broadcast) bc()?.postMessage({ type: "token", token, exp });
 }
 
-async function post(path: string, body: unknown, bearer?: string, keepalive = false): Promise<{ status: number; body: unknown }> {
+// keepalive: a refresh in flight when the page navigates away still finishes, so the browser stores the rotated cookie
+// (an aborted refresh would leave the old cookie, and presenting it later counts as reuse and ends the session).
+async function post(path: string, body: unknown, bearer?: string, keepalive = true): Promise<{ status: number; body: unknown }> {
   const headers: Record<string, string> = { "Content-Type": "application/json", "x-iitp-csrf": "1" };
   if (bearer) headers.Authorization = `Bearer ${bearer}`;
   const res = await fetch(`${API_GATEWAY}/users${path}`, { method: "POST", credentials: "include", headers, body: JSON.stringify(body), cache: "no-store", keepalive });
