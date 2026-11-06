@@ -47,6 +47,10 @@ function Login() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (locked) return;
+    if (!email.trim() || !password) {
+      setProblem({ kind: "wrong" });
+      return;
+    }
     setBusy(true);
     setProblem(null);
     try {
@@ -136,7 +140,7 @@ function Login() {
         </div>
         <EyePassword id="password" autoComplete="current-password" invalid={errCls} value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
-      <button type="submit" className="btn btn-primary btn-lg" style={{ width: "100%" }} disabled={busy || locked || !email || !password}>
+      <button type="submit" className="btn btn-primary btn-lg" style={{ width: "100%" }} disabled={busy || locked}>
         {busy ? "Signing in…" : "Sign in"}
       </button>
     </form>
