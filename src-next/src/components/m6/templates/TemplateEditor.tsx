@@ -248,8 +248,7 @@ export function TemplateEditor({ templateId }: { templateId?: string }) {
               </Field>
             </div>
             <span className="xs muted">
-              {t?.isDefault ? `Default for ${examName} · ` : ""}
-              {t ? `used by ${t.usedBy} test${t.usedBy === 1 ? "" : "s"}. ` : ""}
+              {t ? `${t.isDefault ? `Default for ${examName} · used` : "Used"} by ${t.usedBy} test${t.usedBy === 1 ? "" : "s"}. ` : ""}
               Changes apply to tests that haven&apos;t opened yet; tests already open keep the wording they started with.
             </span>
           </section>
