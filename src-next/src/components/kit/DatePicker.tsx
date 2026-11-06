@@ -614,7 +614,7 @@ export function BirthdayField({
       <Combobox
         id={`${idPrefix}-m`}
         aria-label="Month"
-        placeholder="Month"
+        placeholder={compact ? "MM" : "Month"}
         size={size}
         invalid={invalid}
         options={months}
