@@ -71,7 +71,7 @@ export default function DashboardLayout({
     <Paper surface="admin" className="admin flex h-screen overflow-hidden">
       <AdminSidebar />
       <div id="admin-main" className="col h-screen min-w-0 flex-1 overflow-y-auto">
-        {/* Rebuilt pages draw their own <Topbar>; the ones in (legacy) get the generic one from its layout. */}
+        {/* Every page draws its own <Topbar> (the (legacy) group with its generic one is gone since the M6 exit). */}
         {children}
       </div>
 
