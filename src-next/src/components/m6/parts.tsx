@@ -1,8 +1,6 @@
 "use client";
 /* Small helpers the Patterns and Templates pages share (everything else comes from @/components/kit). */
-import type { ReactNode } from "react";
 import { FlaskConical } from "lucide-react";
-import { NoAccess as KitNoAccess, notify, NumberStepper, StateBox as KitStateBox } from "@/components/kit";
 import { apiError, type M6Area, useM6Source } from "@/lib/m6/client";
 
 export function isForbidden(e: unknown): boolean {
@@ -25,29 +23,4 @@ export function SamplePill({ areas }: { areas: M6Area[] }) {
       Sample data
     </span>
   );
-}
-
-/* ───────── compatibility for other M6 pages that imported the first version of this file (use the kit directly) ───────── */
-
-/** @deprecated use StateBox from @/components/kit */
-export function StateBox({ kind, title, text, action, code }: { kind: "empty" | "error" | "lock"; icon?: ReactNode; title: string; text: ReactNode; action?: ReactNode; code?: string }) {
-  return (
-    <section className="card">
-      <KitStateBox tone={kind === "error" ? "error" : undefined} title={title} body={text} action={action} code={code} />
-    </section>
-  );
-}
-/** @deprecated use NoAccess from @/components/kit */
-export function NoAccess({ what }: { what: string }) {
-  return <KitNoAccess what={what} />;
-}
-/** @deprecated use notify.undo from @/components/kit */
-export function undoToast(title: string, onUndo: () => Promise<unknown>) {
-  notify.undo(title, () =>
-    onUndo().catch((e) => notify.error("Couldn't undo", { description: apiError(e).message }))
-  );
-}
-/** @deprecated use NumberStepper from @/components/kit */
-export function Stepper({ id, value, onChange, min = 0, max, invalid, label }: { id?: string; value: number; onChange: (n: number) => void; min?: number; max?: number; invalid?: boolean; disabled?: boolean; label: string }) {
-  return <NumberStepper id={id} value={value} onChange={(v) => onChange(v ?? min)} min={min} max={max} invalid={invalid} aria-label={label} width={104} />;
 }
