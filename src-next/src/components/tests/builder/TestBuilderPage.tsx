@@ -399,7 +399,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
     end: x.usedBy ? `${x.usedBy} test${x.usedBy === 1 ? "" : "s"}` : undefined,
   }));
   const examName = test?.exam.name ?? exams.data?.find((e) => e.id === examId)?.shortName ?? "";
-  const batchOptions = (batches.data ?? []).filter((b) => !b.archivedAt).map((b) => ({ value: b.id, label: b.name, end: b.students ? `${b.students.toLocaleString("en-IN")} students` : undefined }));
+  const batchOptions = (batches.data ?? []).filter((b) => !b.archivedAt).map((b) => ({ value: b.id, label: b.name, end: b.students ? `${b.students.toLocaleString("en-IN")} student${b.students === 1 ? "" : "s"}` : undefined }));
   const pickedStudents = f ? f.batchIds.reduce((a, id) => a + ((batches.data ?? []).find((b) => b.id === id)?.students ?? 0), 0) : 0;
   const studentsHint =
     f && f.batchIds.length
