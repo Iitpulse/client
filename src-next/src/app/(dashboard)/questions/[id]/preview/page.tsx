@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { api, apiQuestions } from "@/lib/api";
 import RenderWithLatex from "@/components/render-with-latex";
+import { Topbar } from "@/components/admin/Topbar";
 
 const typeMapping: Record<string, string> = {
   mcq: "mcq",
@@ -73,7 +74,7 @@ interface QuestionData {
   rows?: Array<{ left: string; leftHindi?: string; right: string[]; rightHindi?: string[] }>;
 }
 
-export default function QuestionPreviewPage() {
+function QuestionPreviewPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -175,12 +176,12 @@ export default function QuestionPreviewPage() {
 
         {/* MCQ Options */}
         {content.options && content.options.length > 0 && (
-          <div className="mt-4 space-y-1">
+          <div className="mt-4 flex flex-col gap-1">
             {content.options.map((option, index) => (
               <div
                 key={option.id || index}
                 className={`flex items-start gap-2 rounded px-2 py-1 ${
-                  isOptionCorrect(option.id) ? "bg-green-50 dark:bg-green-950/20" : ""
+                  isOptionCorrect(option.id) ? "bg-success/10" : ""
                 }`}
               >
                 <span className="text-sm font-medium text-muted-foreground">
@@ -189,7 +190,7 @@ export default function QuestionPreviewPage() {
                 <div className="flex-1 text-sm">
                   <RenderWithLatex quillString={option.value} />
                 </div>
-                {isOptionCorrect(option.id) && <CheckCircle className="h-4 w-4 text-green-500" />}
+                {isOptionCorrect(option.id) && <CheckCircle className="h-4 w-4 text-success" />}
               </div>
             ))}
           </div>
@@ -222,7 +223,7 @@ export default function QuestionPreviewPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -344,5 +345,17 @@ export default function QuestionPreviewPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Moved out of the (legacy) route group in M6 (same URL): own top bar, no legacy.css. */
+export default function Page() {
+  return (
+    <>
+      <Topbar title="Question preview" />
+      <main className="flex-1 p-6">
+        <QuestionPreviewPage />
+      </main>
+    </>
   );
 }

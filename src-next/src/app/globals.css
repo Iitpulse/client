@@ -4,14 +4,12 @@
     2. @iitpulse/ui: tokens, motion, base, components, classroom (the design system; boards Main and Motion)
     3. KaTeX (MathText)
     4. tw-animate-css (Radix enter/exit animations used by the shadcn primitives)
-    5. legacy.css: the quarantined Tailwind v3 look for pages not migrated yet (active only under [data-legacy])
-    6. the admin's own rules below
+    5. the admin's own rules below (legacy.css, the Tailwind v3 quarantine, was deleted at the M6 exit)
 */
 @import 'tailwindcss';
 @import '@iitpulse/ui/index.css';
 @import 'katex/dist/katex.min.css';
 @import 'tw-animate-css';
-@import './legacy.css';
 /* the admin kit (components/kit, Kit-* boards) */
 @import '../components/kit/kit.css';
 

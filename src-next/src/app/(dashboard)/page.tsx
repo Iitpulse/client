@@ -10,7 +10,7 @@ import { AiMark, InkUnderline, MathText } from "@iitpulse/ui";
 import { api } from "@/lib/api";
 import { useAuthStore, usePermissionsStore } from "@/stores";
 import { Topbar } from "@/components/admin/Topbar";
-import LegacyDashboard from "@/components/student-dashboard-legacy";
+import { EmptyState } from "@/components/kit";
 import { type AdminTest, testState, useAllTests } from "@/lib/queries";
 import { deltaTone, useAdminOverview, vsPrevious, useBankCounts, useBatchSummary, useLiveTests } from "@/lib/queries-tests-admin";
 import { BulkPreviewDialog } from "@/components/questions-admin/bulk-ai";
@@ -37,6 +37,8 @@ function greeting(now = dayjs()) {
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
 
+const STUDENT_PORTAL = process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "https://tests.iitpulse.in";
+
 const fmt = (n: number) => n.toLocaleString("en-IN");
 const plural = (n: number, one: string, many = one + "s") => `${fmt(n)} ${n === 1 ? one : many}`;
 const KIND: Record<TestKind, [string, string]> = {
@@ -61,12 +63,18 @@ const Skel = ({ w }: { w: string }) => <span className={`skel inline-block h-8 $
 export default function DashboardPage() {
   const { currentUser, userDetails } = useAuthStore();
   const { hasAccess } = usePermissionsStore();
+  // Students sign in to the student app (the staff sign-in refuses them with STUDENT_ACCOUNT); an old student session
+  // that still lands here gets a pointer there instead of the pre-M1 student dashboard.
   if (currentUser?.userType === "student") {
     return (
       <>
         <Topbar title="Dashboard" />
-        <main data-legacy="" className="flex-1 p-6">
-          <LegacyDashboard />
+        <main className="col" style={{ padding: "22px 28px 40px" }}>
+          <EmptyState
+            title="This is the staff app"
+            body="Your tests, results and progress are in the student app."
+            actions={<a href={STUDENT_PORTAL} className="btn btn-primary btn-sm">Open the student app</a>}
+          />
         </main>
       </>
     );

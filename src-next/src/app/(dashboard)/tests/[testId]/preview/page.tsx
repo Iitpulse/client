@@ -24,6 +24,7 @@ import api from "@/lib/api";
 import { ISection, ISubSection, IQuestion } from "@/types";
 import RenderWithLatex from "@/components/render-with-latex";
 import { StudentAccessLinks } from "@/components/student-access-links";
+import { Topbar } from "@/components/admin/Topbar";
 
 interface TestSection extends ISection {
   subSections: TestSubSection[];
@@ -49,7 +50,7 @@ interface TestData {
   };
 }
 
-export default function TestPreviewPage() {
+function TestPreviewPage() {
   const router = useRouter();
   const params = useParams();
   const testId = params.testId as string;
@@ -144,7 +145,7 @@ export default function TestPreviewPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -183,7 +184,7 @@ export default function TestPreviewPage() {
         </TabsList>
 
         {/* Overview Mode */}
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="flex flex-col gap-4">
           {test.description && (
             <Card>
               <CardHeader>
@@ -196,7 +197,7 @@ export default function TestPreviewPage() {
           )}
 
           {/* Sections */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {test.sections.map((section, sectionIdx) => (
               <Card key={section.id}>
                 <Collapsible
@@ -231,11 +232,11 @@ export default function TestPreviewPage() {
                     </CardHeader>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <CardContent className="space-y-4">
+                    <CardContent className="flex flex-col gap-4">
                       {section.subSections.map((subSection, ssIdx) => (
                         <div
                           key={subSection.id}
-                          className="border rounded-lg p-4 space-y-3"
+                          className="border rounded-lg p-4 flex flex-col gap-3"
                         >
                           <div className="flex items-center justify-between">
                             <div>
@@ -259,7 +260,7 @@ export default function TestPreviewPage() {
                           </div>
 
                           {/* Questions Preview */}
-                          <div className="space-y-2 mt-3">
+                          <div className="flex flex-col gap-2 mt-3">
                             {(subSection.questions || []).map((q, qIdx) => (
                               <div
                                 key={q._id}
@@ -278,7 +279,7 @@ export default function TestPreviewPage() {
                                     {/* Options for MCQ */}
                                     {(subSection.type === "single" ||
                                       subSection.type === "multiple") && (
-                                      <div className="mt-2 space-y-1 pl-4">
+                                      <div className="mt-2 flex flex-col gap-1 pl-4">
                                         {((q.en as { options?: Array<{ id: string; value: string }> })?.options ||
                                           (q as { options?: Array<{ id: string; value?: string; en?: { value: string } }> }).options ||
                                           []).map(
@@ -319,7 +320,7 @@ export default function TestPreviewPage() {
         </TabsContent>
 
         {/* Question-by-Question Mode */}
-        <TabsContent value="questions" className="space-y-4">
+        <TabsContent value="questions" className="flex flex-col gap-4">
           {allQuestions.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               {/* Question Display */}
@@ -357,7 +358,7 @@ export default function TestPreviewPage() {
                   </CardHeader>
                   <CardContent>
                     {currentQuestion && (
-                      <div className="space-y-4">
+                      <div className="flex flex-col gap-4">
                         <div className="prose max-w-none">
                           <RenderWithLatex
                             quillString={
@@ -371,7 +372,7 @@ export default function TestPreviewPage() {
                         {/* Options for MCQ */}
                         {(currentQuestion.type === "single" ||
                           currentQuestion.type === "multiple") && (
-                          <div className="space-y-2 pt-4">
+                          <div className="flex flex-col gap-2 pt-4">
                             {((currentQuestion.question.en as { options?: Array<{ id: string; value: string }> })?.options ||
                               (currentQuestion.question as { options?: Array<{ id: string; value?: string; en?: { value: string } }> }).options ||
                               []).map(
@@ -480,5 +481,17 @@ export default function TestPreviewPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+/** Moved out of the (legacy) route group in M6 (same URL): own top bar, no legacy.css. */
+export default function Page() {
+  return (
+    <>
+      <Topbar title="Test preview" />
+      <main className="flex-1 p-6">
+        <TestPreviewPage />
+      </main>
+    </>
   );
 }

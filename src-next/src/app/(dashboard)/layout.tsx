@@ -59,7 +59,7 @@ export default function DashboardLayout({
 
   if (!isAuthenticated) {
     return (
-      <div data-legacy="" className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
