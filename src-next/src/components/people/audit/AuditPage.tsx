@@ -46,7 +46,9 @@ import {
   type DateRange,
   type RangePreset,
   useFillHeight,
+  ToggleChip,
 } from "@/components/kit";
+import { SupportVisitsAudit } from "@/components/m8/SupportVisitsAudit";
 import { API_GATEWAY } from "@/lib/ai-admin";
 import { auditApi, useCan, useMe } from "@/lib/m6/people";
 import type { AuditListItem, AuditListQuery, AuditVerb } from "@/lib/m6-contract";
@@ -81,7 +83,7 @@ const ABOUT: Array<[string, string]> = [
   ["sign-in", "Sign-ins"],
 ];
 const ABOUT_OPTIONS: ComboOption[] = ABOUT.map(([value, label]) => ({ value, label }));
-const DEFAULTS = { q: "", actor: "", actorName: "", verb: "", about: "", range: "7d", from: "", to: "", involving: "", event: "" };
+const DEFAULTS = { q: "", actor: "", actorName: "", verb: "", about: "", range: "7d", from: "", to: "", involving: "", event: "", sv: "" };
 
 function rangeOf(s: typeof DEFAULTS): DateRange {
   if (s.range === "custom" && s.from && s.to) return { from: s.from, to: s.to, preset: "custom" };
@@ -118,6 +120,8 @@ export function AuditPage() {
     involving: s.involving || undefined,
     from: inst.from,
     to: inst.to,
+    // M8: only events of IIT-PULSE support visits (api-users `supportVisits=1`)
+    ...(s.sv ? ({ supportVisits: "1" } as object) : {}),
   };
   const list = useInfiniteQuery({
     queryKey: ["m6", "people", "audit", query],
@@ -142,9 +146,9 @@ export function AuditPage() {
   };
   const items = list.data?.pages.flatMap((p) => p.items) ?? [];
   const total = list.data?.pages[0]?.total;
-  const filterCount = (s.actor ? 1 : 0) + (s.verb ? 1 : 0) + (s.about ? 1 : 0) + (s.range !== "7d" ? 1 : 0) + (s.involving ? 1 : 0);
+  const filterCount = (s.actor ? 1 : 0) + (s.verb ? 1 : 0) + (s.about ? 1 : 0) + (s.range !== "7d" ? 1 : 0) + (s.involving ? 1 : 0) + (s.sv ? 1 : 0);
   const filtered = filterCount > 0 || !!s.q;
-  const clearAll = () => set({ q: "", actor: "", actorName: "", verb: "", about: "", range: "7d", from: "", to: "", involving: "" });
+  const clearAll = () => set({ q: "", actor: "", actorName: "", verb: "", about: "", range: "7d", from: "", to: "", involving: "", sv: "" });
   const showSkel = useAfter(list.isLoading, 300);
   // owner rule: the table takes the screen height left, only its body scrolls (header row and footer stay put)
   const [fillRef, fillH] = useFillHeight<HTMLElement>();
@@ -179,6 +183,9 @@ export function AuditPage() {
             onReset={() => set({ range: "7d", from: "", to: "" })}
             onChange={(r) => set(r.preset === "custom" ? { range: "custom", from: r.from, to: r.to } : { range: r.preset, from: "", to: "" })}
           />
+          <ToggleChip on={!!s.sv} onChange={(on) => set({ sv: on ? "1" : "" })}>
+            Support visits
+          </ToggleChip>
           {s.involving && (
             <span className="k-fc set">
               <span className="k">Involving:</span>
@@ -218,6 +225,9 @@ export function AuditPage() {
           )
         ) : (
           <section ref={fillRef} className={`card rise${fillH !== null ? " au-fill" : ""}`} style={{ overflow: fillH !== null ? "hidden" : "clip", height: fillH ?? undefined }}>
+            {s.sv && !list.isLoading ? (
+              <SupportVisitsAudit items={items} onOpen={(id) => set({ event: id })} />
+            ) : (
             <div className="au-dt" role="table" aria-label="Audit events" aria-busy={list.isLoading || undefined}>
               <div className="tr h" role="row">
                 <span className="th" role="columnheader">Time</span>
@@ -252,6 +262,7 @@ export function AuditPage() {
                     );
                   })}
             </div>
+            )}
             {!list.isLoading && (
               <div className="row between pad wrap" style={{ borderTop: "1px solid var(--line-2)", gap: 8 }}>
                 <span className="xs muted num">

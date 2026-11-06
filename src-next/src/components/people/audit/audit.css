@@ -31,3 +31,10 @@
   .au-dt .tr { grid-template-columns: 80px minmax(150px, 1.2fr) 120px minmax(220px, 2.4fr) }
   .au-dt .hide-t { display: none }
 }
+
+/* M8: Support visits filter (Platform-Impersonation tenant-audit-support-visits) */
+.sv-atbl { display: grid; grid-template-columns: 150px minmax(0, 1.4fr) minmax(0, 2fr) 170px; font-size: 13px; }
+.sv-atbl > span[role="columnheader"], .sv-atbl .sv-row > span { padding: 12px 16px; border-top: 1px solid var(--line-2); min-width: 0; }
+.sv-atbl > span.h { border-top: 0; font-size: 12px; font-weight: 600; color: var(--muted); background: #FAFAFD; position: sticky; top: 0; }
+.sv-atbl .sv-row { cursor: pointer; }
+.sv-atbl .sv-row:hover > span { background: var(--navy-50); }

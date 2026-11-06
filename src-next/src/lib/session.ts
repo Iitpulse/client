@@ -29,6 +29,8 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 let exchangeRetryAt = 0;
 let lastEndReason: string | null = null;
 let channel: BroadcastChannel | null = null;
+/** M8 support visit: a read-only token kept in this tab's memory only (no refresh, no storage, no other tabs) */
+let supportVisit = false;
 const signedOutListeners = new Set<() => void>();
 
 const isBrowser = () => typeof window !== "undefined";
@@ -80,6 +82,7 @@ function bc(): BroadcastChannel | null {
   if (!channel) {
     channel = new BroadcastChannel(CHANNEL);
     channel.onmessage = (e: MessageEvent) => {
+      if (supportVisit) return; // a support-visit tab never takes another tab's session (or its sign-out)
       const m = e.data as { type?: string; token?: string; exp?: number } | null;
       if (m?.type === "token" && m.token && m.exp && (!access || m.exp > access.exp)) {
         access = { token: m.token, exp: m.exp, margin: Math.min(MIN_VALIDITY_MS, Math.max(5_000, (m.exp - Date.now()) / 4)) };
@@ -97,7 +100,7 @@ function bc(): BroadcastChannel | null {
 const marginOf = (a: Access) => a.margin ?? MIN_VALIDITY_MS;
 
 function schedule() {
-  if (!isBrowser() || !access) return;
+  if (!isBrowser() || !access || supportVisit) return;
   if (timer) clearTimeout(timer);
   const wait = Math.max(5_000, access.exp - Date.now() - marginOf(access));
   timer = setTimeout(() => {
@@ -109,6 +112,7 @@ function clearLocal() {
   access = null;
   if (timer) clearTimeout(timer);
   timer = null;
+  if (supportVisit) return; // the normal session of other tabs stays
   store()?.removeItem(HINT_KEY);
   store()?.removeItem(AUTH_TOKEN_KEY);
 }
@@ -206,6 +210,7 @@ export const auth = {
   /** The current access token, if any (may be about to expire: API calls go through ensureToken) */
   getToken: (): string | null => {
     if (!isBrowser()) return null;
+    if (supportVisit) return access && access.exp > Date.now() ? access.token : null;
     bc();
     if (access && access.exp > Date.now()) return access.token;
     return legacyToken();
@@ -213,6 +218,8 @@ export const auth = {
   /** A token with at least 90 s left, refreshing if needed. null = signed out. Offline: the last token (or null). */
   ensureToken: async (opts?: { force?: boolean }): Promise<string | null> => {
     if (!isBrowser()) return null;
+    // a support visit has no refresh: its token lives until the visit ends
+    if (supportVisit) return access && access.exp > Date.now() ? access.token : null;
     bc();
     if (!opts?.force && access && access.exp - Date.now() > marginOf(access)) return access.token;
     if (!inflight) {
@@ -244,6 +251,7 @@ export const auth = {
   removeToken: (): void => {
     if (!isBrowser()) return;
     clearLocal();
+    if (supportVisit) return;
     bc()?.postMessage({ type: "signed_out" });
   },
   /** Sign out: ends the cookie session on the API, then forgets it in every tab */
@@ -252,6 +260,7 @@ export const auth = {
     // Forget it here first (callers navigate away at once), then end the cookie session; keepalive lets the request
     // finish after the page is gone. Offline: the session ends by itself (idle timeout).
     auth.removeToken();
+    if (supportVisit) return; // the visit ends through /platform/support-visit/end, never the cookie session
     try {
       await post("/auth/logout", { app: APP }, undefined, true);
     } catch {
@@ -261,6 +270,7 @@ export const auth = {
   /** True when this browser has (or may have) a session: a token in memory, the session hint, or an old token */
   isAuthenticated: (): boolean => {
     if (!isBrowser()) return false;
+    if (supportVisit) return !!(access && access.exp > Date.now());
     return !!(access && access.exp > Date.now()) || !!store()?.getItem(HINT_KEY) || !!legacyToken();
   },
   /** Stable for one sign-in (the session id; an old token's tail): "ask once per session" prompts key on it */
@@ -270,6 +280,19 @@ export const auth = {
   },
   /** Why the last refresh ended the session ("reuse", "expired", "mfa", …), for the sign-in page's message */
   lastEndReason: (): string | null => lastEndReason,
+  /**
+   * M8 support visit (POST /users/auth/support-visit): the read-only token, in this tab's memory only. Nothing is
+   * stored, nothing is shared with other tabs (their own session stays), and nothing refreshes it: it ends with the visit.
+   */
+  startSupportVisit: (token: string, expiresAt?: string | null): void => {
+    if (!isBrowser()) return;
+    supportVisit = true;
+    if (timer) clearTimeout(timer);
+    timer = null;
+    access = { token, exp: (expiresAt ? Date.parse(expiresAt) : 0) || expOf(token) || Date.now() + 30 * 60_000 };
+  },
+  /** True in a support-visit tab */
+  isSupportVisit: (): boolean => supportVisit,
   /** Called when another tab signs out */
   onSignedOut: (fn: () => void): (() => void) => {
     signedOutListeners.add(fn);

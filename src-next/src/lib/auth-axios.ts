@@ -3,11 +3,18 @@
 // their pages.
 import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { auth } from "./session";
+import { notifyReadOnly, SUPPORT_VISIT_ENDED_PATH } from "./support-visit";
 
 const PAGE_HANDLES_401 = /\/auth\/(login|reauth|refresh|logout|mfa\/)|\/public\/invites\//;
 
 export function toSignIn(): void {
   if (typeof window === "undefined") return;
+  // M8: a support-visit tab has no sign-in to go back to; its visit ended (VISIT_ENDED) or ran out
+  if (auth.isSupportVisit()) {
+    auth.removeToken();
+    window.location.href = SUPPORT_VISIT_ENDED_PATH;
+    return;
+  }
   auth.removeToken();
   // Admin-Auth "session-expired": the login page explains why (not on the login page itself).
   const reason = auth.lastEndReason();
@@ -25,6 +32,8 @@ export function withSession<T extends AxiosInstance>(client: T, options?: { skip
   client.interceptors.response.use(
     (r) => r,
     async (error: AxiosError) => {
+      // M8 support visit: every write answers 403 READ_ONLY (board Platform-Impersonation "blocked-change" toast)
+      if (error.response?.status === 403 && (error.response.data as { code?: string } | undefined)?.code === "READ_ONLY") notifyReadOnly();
       const cfg = error.config as (InternalAxiosRequestConfig & { _iitpRetried?: boolean }) | undefined;
       if (error.response?.status === 401 && typeof window !== "undefined" && !PAGE_HANDLES_401.test(cfg?.url ?? "")) {
         if (cfg && !cfg._iitpRetried) {
@@ -51,5 +60,6 @@ export async function authFetch(input: string, init: RequestInit = {}): Promise<
     const fresh = await auth.ensureToken({ force: true });
     if (fresh) res = await go(fresh);
   }
+  if (res.status === 403 && auth.isSupportVisit()) notifyReadOnly();
   return res;
 }

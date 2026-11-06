@@ -124,3 +124,10 @@ html[data-brand] .brand-default { visibility: hidden; }
 .seat-meter .bar { width: 160px; height: 8px; border-radius: 99px; background: var(--line-2); overflow: hidden; }
 .seat-meter .bar > span { display: block; height: 100%; background: var(--navy); border-radius: 99px; }
 .seat-meter .bar > span.over { background: #B4530A; }
+
+/* M8 Platform-Impersonation: the support-visit banner (striped, edge to edge) and the read-only look of primary actions */
+.sv-bnr { display: flex; align-items: center; gap: 12px; padding: 10px 28px; background: repeating-linear-gradient(135deg, #3B1A00 0 14px, #2E1400 14px 28px); color: #FFE2B8; font-size: 13px; flex-wrap: wrap; }
+.sv-bnr b { color: #fff; }
+.sv-bnr .grow { flex: 1; min-width: 240px; }
+.sv-bnr .btn { background: #fff; color: #3B1A00; border: 0; }
+html[data-support-visit] #admin-main .btn-primary { opacity: .5; }
