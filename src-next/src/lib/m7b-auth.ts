@@ -121,12 +121,16 @@ export const authV2 = {
   resendInvite: async (id: string) => data<unknown>(await apiUsers.post(`/admin/invites/${encodeURIComponent(id)}/resend`, {})),
   revokeInvite: async (id: string) => data<unknown>(await apiUsers.delete(`/admin/invites/${encodeURIComponent(id)}`)),
   publicInvite: async (token: string) => data<PublicInvite>(await signInHttp.get(`/public/invites/${encodeURIComponent(token)}`)),
-  acceptInvite: async (token: string, body: { password: string; name?: string; phone?: string; legal: { terms: string; privacy: string } }) =>
-    keepSession(
+  // Accepting runs outside /users/auth, where the refresh cookie is not sent, so api-users cannot end an earlier
+  // account's session on this browser itself (docs/m7b-auth.md §3 "Account switch"): end it first.
+  acceptInvite: async (token: string, body: { password: string; name?: string; phone?: string; legal: { terms: string; privacy: string } }) => {
+    if (auth.isAuthenticated()) await auth.signOut();
+    return keepSession(
       data<SignInAnswer & { user: { id: string; userType: string }; mfaRequired: boolean }>(
         await signInHttp.post(`/public/invites/${encodeURIComponent(token)}/accept`, { ...body, session: "cookie" })
       )
-    ),
+    );
+  },
 };
 
 /* ─────────────────────────────── WebAuthn (passkeys) ─────────────────────────────── */
