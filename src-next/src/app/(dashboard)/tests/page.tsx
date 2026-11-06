@@ -355,8 +355,8 @@ function Tests() {
     {
       key: "status",
       header: "Status",
-      width: 170,
-      tabletWidth: 140,
+      width: 150,
+      tabletWidth: 130,
       render: (t) => {
         const st = statusOf(t);
         const sub = subLabel(t);
@@ -374,8 +374,8 @@ function Tests() {
     {
       key: "batches",
       header: "Batches",
-      width: 180,
-      tabletWidth: 130,
+      width: 150,
+      tabletWidth: 120,
       render: (t) =>
         t.batches.length ? (
           <span className="sm [overflow-wrap:anywhere]" title={t.batches.map((b) => b.name).join(", ")}>
@@ -385,13 +385,13 @@ function Tests() {
           <span className="sm muted">No batch yet</span>
         ),
     },
-    { key: "window", header: "Window", width: 200, tabletWidth: 150, render: (t) => <span className="sm num">{windowCell(t)}</span> },
+    { key: "window", header: "Window", width: 170, tabletWidth: 140, render: (t) => <span className="sm num">{windowCell(t)}</span> },
     {
       key: "attempts",
       header: "Attempts",
       align: "num",
-      width: 110,
-      tabletWidth: 96,
+      width: 96,
+      tabletWidth: 90,
       render: (t) => {
         const a = t.attempts;
         if (!a) return <span className="sm muted">—</span>;
@@ -412,8 +412,8 @@ function Tests() {
         );
       },
     },
-    { key: "results", header: "Results", width: 140, tablet: "hide", render: (t) => <ResultCell t={t} /> },
-    { key: "act", header: <span className="sr-only">Action</span>, width: 112, tabletWidth: 92, render: (t) => <div className="row justify-end">{primaryAction(t)}</div> },
+    { key: "results", header: "Results", width: 118, tablet: "hide", render: (t) => <ResultCell t={t} /> },
+    { key: "act", header: <span className="sr-only">Action</span>, width: 100, tabletWidth: 92, render: (t) => <div className="row justify-end">{primaryAction(t)}</div> },
   ];
 
   const tabs = (
