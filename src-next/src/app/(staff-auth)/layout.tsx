@@ -5,8 +5,8 @@ import "@/components/people/auth/auth.css";
 
 /*
   Admin-Auth board: the staff console's sign-in shell. A blueboard on the left (logo, the pitch, "Student? Sign in at
-  tests.iitpulse.in"), the calm paper on the right with the form. Login and reset-password live here; the public
-  student /signup keeps its own layout in (auth).
+  tests.iitpulse.in"), the calm paper on the right with the form. Login and reset-password live here; /signup only
+  forwards to the student app's sign-up.
 */
 const STUDENT_PORTAL = process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "https://tests.iitpulse.in";
 const host = (() => {
