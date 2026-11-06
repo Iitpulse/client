@@ -50,9 +50,10 @@ export function AdminSidebar() {
   const liveCount = live.data?.tests.length ?? 0;
 
   const rail = useTablet();
-  const teacher = currentUser?.userType === "teacher";
-  const name = userDetails?.name || currentUser?.name || currentUser?.email || "";
   const me = useMe().data;
+  // /me is the server's view of the signed-in account; the persisted store is the fallback while it loads.
+  const teacher = (me?.user.userType ?? currentUser?.userType) === "teacher";
+  const name = me?.user.name || userDetails?.name || currentUser?.name || currentUser?.email || "";
   // Board: "Academic head · IIT-PULSE Indore" (first role name · centre or institute).
   const role = me
     ? [me.user.roles[0]?.name ?? ROLE_LABEL[me.user.userType], me.user.centre?.name ?? me.tenant.name].filter(Boolean).join(" · ")
