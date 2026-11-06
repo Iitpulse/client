@@ -207,7 +207,7 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
   }, [sub?.id]);
   useEffect(() => {
     if (!list.length) return;
-    if (!pv || !list.some((r) => r.questionId === pv)) setPv(list.find((r) => !r.inThisTest)?.questionId ?? list[0].questionId);
+    if (!pv || !list.some((r) => r.questionId === pv)) setPv((list.find((r) => !r.inThisTest && !r.blockedReason) ?? list.find((r) => !r.inThisTest) ?? list[0]).questionId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.data]);
   const tableRef = useRef<HTMLDivElement>(null);
