@@ -145,7 +145,7 @@ export default function MonitorPage() {
   const live = state === "live";
   const stale = !!d && (!online || mon.isError);
   const since = Math.max(0, Math.round((now - mon.dataUpdatedAt) / 1000));
-  const updatedAt = istTime(new Date(mon.dataUpdatedAt || Date.now()).toISOString());
+  const updatedAt = istTime(new Date(mon.dataUpdatedAt || now).toISOString());
   const updated = !d ? "" : stale ? `Not updated since ${updatedAt}` : `Updated ${since < 60 ? `${since} s` : `${Math.floor(since / 60)} min`} ago`;
 
   /** seconds left right now, on the student's own clock */
@@ -217,7 +217,7 @@ export default function MonitorPage() {
       ? windowLabel(t.opensAt, t.closesAt)
       : closed
         ? `${windowLabel(t.opensAt, t.closesAt)}${d!.assigned ? ` · ${plural(d!.assigned, "student")}` : ""}`
-          : `Closes ${istTime(t.closesAt)}${t.closesAt && istDay(t.closesAt) !== istDay(new Date()) ? ` ${istDay(t.closesAt) === istDay(new Date(Date.now() + 86_400_000)) ? "tomorrow" : `on ${istDate(t.closesAt)}`}` : ""}${d!.assigned ? ` · ${plural(d!.assigned, "student")} in ${plural(batches.length, "batch", "batches")}` : ""}`;
+          : `Closes ${istTime(t.closesAt)}${t.closesAt && istDay(t.closesAt) !== istDay(new Date(now)) ? ` ${istDay(t.closesAt) === istDay(new Date(now + 86_400_000)) ? "tomorrow" : `on ${istDate(t.closesAt)}`}` : ""}${d!.assigned ? ` · ${plural(d!.assigned, "student")} in ${plural(batches.length, "batch", "batches")}` : ""}`;
 
   const columns: Array<Column<MonitorRow>> = [
     {
@@ -367,7 +367,7 @@ export default function MonitorPage() {
             tone="info"
             title={
               t!.opensAt
-                ? `Opens at ${istTime(t!.opensAt)}${istDay(t!.opensAt) !== istDay(new Date()) ? ` on ${istDate(t!.opensAt)}` : ""}, in ${inLabel(Date.parse(t!.opensAt) - now)}.`
+                ? `Opens at ${istTime(t!.opensAt)}${istDay(t!.opensAt) !== istDay(new Date(now)) ? ` on ${istDate(t!.opensAt)}` : ""}, in ${inLabel(Date.parse(t!.opensAt) - now)}.`
                 : "Not open yet."
             }
             action={
@@ -380,7 +380,7 @@ export default function MonitorPage() {
           </Banner>
         )}
         {d && closed && !empty && (
-          <Banner tone="info" title={`Closed at ${istTime(t!.closesAt)}${t!.closesAt && istDay(t!.closesAt) !== istDay(new Date()) ? ` on ${istDate(t!.closesAt)}` : ""}.`}>
+          <Banner tone="info" title={`Closed at ${istTime(t!.closesAt)}${t!.closesAt && istDay(t!.closesAt) !== istDay(new Date(now)) ? ` on ${istDate(t!.closesAt)}` : ""}.`}>
             {d.tiles.submitted} submitted{d.tiles.autoSubmitted ? `, ${d.tiles.autoSubmitted} of them auto-submitted` : ""}; {d.tiles.notStarted} never started.{" "}
             {resultsLine(t!.resultMode)}
           </Banner>

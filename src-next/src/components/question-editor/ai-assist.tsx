@@ -337,51 +337,53 @@ export function useAiAssist(a: AiAssistArgs) {
       return n;
     });
   };
-  const latexExtra = (field: string) => (img: FieldImage) => {
-    const key = `${field}|${img.src}`;
-    const c = conv[key];
-    if (!c) return null;
-    if (c.state === "running")
+  // The AI-conversion panel under one image of a field (a render function MathField calls, not a component)
+  const latexExtra = (field: string) =>
+    function renderLatexExtra(img: FieldImage) {
+      const key = `${field}|${img.src}`;
+      const c = conv[key];
+      if (!c) return null;
+      if (c.state === "running")
+        return (
+          <div className="ai col gap-2 rounded-[12px] px-3.5 py-3 mx-3.5 mb-3" role="status">
+            <span className="ai-mark">
+              {I.spin()}Reading the image…
+            </span>
+          </div>
+        );
+      if (c.state === "failed")
+        return (
+          <Note tone="err" className="mx-3.5 mb-3" role="alert">
+            {I.err(16)}
+            <span className="sm grow">{c.error}</span>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => convert(field)(img)}>
+              Try again
+            </button>
+          </Note>
+        );
       return (
-        <div className="ai col gap-2 rounded-[12px] px-3.5 py-3 mx-3.5 mb-3" role="status">
+        <div className="ai col gap-2.5 rounded-[12px] px-3.5 py-3 mx-3.5 mb-3 pop">
           <span className="ai-mark">
-            {I.spin()}Reading the image…
+            {I.spark()}Read from the image
+            {isSampleDraft(c.draft?.id ?? "") && <span className="badge b-grey ml-2">Sample data</span>}
           </span>
+          <code className="mono sm" style={{ background: "var(--navy-50)", color: "var(--navy)", borderRadius: 4, padding: "1px 4px", alignSelf: "flex-start" }}>
+            ${c.latex}$
+          </code>
+          <MathText text={`$${c.latex}$`} as="p" className="m-0 font-serif text-[16px]" />
+          <div className="row gap-2">
+            <span className="badge b-navy">AI draft · check before saving</span>
+            <button type="button" className="btn btn-primary btn-sm ml-auto" onClick={() => acceptLatex(key)}>
+              Accept
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => discardLatex(key)}>
+              Discard
+            </button>
+          </div>
+          <span className="xs muted">Accept replaces the image with the LaTeX and removes the flag. Discard keeps the flag.</span>
         </div>
       );
-    if (c.state === "failed")
-      return (
-        <Note tone="err" className="mx-3.5 mb-3" role="alert">
-          {I.err(16)}
-          <span className="sm grow">{c.error}</span>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => convert(field)(img)}>
-            Try again
-          </button>
-        </Note>
-      );
-    return (
-      <div className="ai col gap-2.5 rounded-[12px] px-3.5 py-3 mx-3.5 mb-3 pop">
-        <span className="ai-mark">
-          {I.spark()}Read from the image
-          {isSampleDraft(c.draft?.id ?? "") && <span className="badge b-grey ml-2">Sample data</span>}
-        </span>
-        <code className="mono sm" style={{ background: "var(--navy-50)", color: "var(--navy)", borderRadius: 4, padding: "1px 4px", alignSelf: "flex-start" }}>
-          ${c.latex}$
-        </code>
-        <MathText text={`$${c.latex}$`} as="p" className="m-0 font-serif text-[16px]" />
-        <div className="row gap-2">
-          <span className="badge b-navy">AI draft · check before saving</span>
-          <button type="button" className="btn btn-primary btn-sm ml-auto" onClick={() => acceptLatex(key)}>
-            Accept
-          </button>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => discardLatex(key)}>
-            Discard
-          </button>
-        </div>
-        <span className="xs muted">Accept replaces the image with the LaTeX and removes the flag. Discard keeps the flag.</span>
-      </div>
-    );
-  };
+    };
 
   /* ---------- Save: accept the drafts the form holds ---------- */
   function editedPayload(kind: Kind, ap: Applied, f: Form): unknown | null {

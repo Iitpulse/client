@@ -94,7 +94,7 @@ export function KitSpecimen() {
   const [ms, setMs] = useState<string[]>(["a", "b", "d", "na"]);
   const [topics, setTopics] = useState<string[]>(["Torque"]);
   const [seg, setSeg] = useState<string>("medium");
-  const [opens, setOpens] = useState<string | null>(new Date(Date.now() + 86400000 * 9).toISOString());
+  const [opens, setOpens] = useState<string | null>(() => new Date(Date.now() + 86400000 * 9).toISOString());
   const [d, setD] = useState<string | null>("2027-05-31");
   const [dob, setDob] = useState<string | null>("2009-03-12");
   const [range, setRange] = useState<DateRange>(presetRange("7d"));

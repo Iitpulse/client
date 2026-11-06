@@ -64,6 +64,14 @@ function setJobParam(jobId: string | null) {
   window.history.replaceState(null, "", u.toString());
 }
 
+/** Estimated import progress while the confirm call runs: climbs towards total - 1 over ~40 ms a row. Returns a stop function. */
+function estimateProgress(total: number, onTick: (done: number) => void): () => void {
+  const t0 = Date.now();
+  const est = Math.max(1500, total * 40);
+  const iv = setInterval(() => onTick(Math.min(total - 1, Math.round(((Date.now() - t0) / est) * total))), 200);
+  return () => clearInterval(iv);
+}
+
 export default function BulkUploadPage() {
   const subjectsQ = useSubjects();
   const sourcesQ = useSources();
@@ -95,10 +103,13 @@ export default function BulkUploadPage() {
   const uploadAbort = React.useRef<AbortController | null>(null);
   const startedAt = React.useRef<number>(0);
   const fileInput = React.useRef<HTMLInputElement>(null);
+  // Latest defaults and subjects for the parse callbacks, kept out of their deps so polling does not restart
   const defaultsRef = React.useRef(defaults);
-  defaultsRef.current = defaults;
   const subjectsRef = React.useRef(subjects);
-  subjectsRef.current = subjects;
+  React.useLayoutEffect(() => {
+    defaultsRef.current = defaults;
+    subjectsRef.current = subjects;
+  }, [defaults, subjects]);
 
   /* ---------- template ---------- */
   const onTemplate = async () => {
@@ -340,9 +351,7 @@ export default function BulkUploadPage() {
     if (!take.length) return;
     setPhase("importing");
     setImportDone(0);
-    const t0 = Date.now();
-    const est = Math.max(1500, take.length * 40);
-    const iv = setInterval(() => setImportDone(Math.min(take.length - 1, Math.round(((Date.now() - t0) / est) * take.length))), 200);
+    const stopProgress = estimateProgress(take.length, setImportDone);
     const subjectName = (id: string) => subjects.find((s) => s._id === id)?.name ?? "";
     const chapterName = (id: string) => {
       for (const s of subjects) for (const c of s.chapters ?? []) if ((c.id || c._id) === id) return c.name;
@@ -357,7 +366,7 @@ export default function BulkUploadPage() {
         },
         { subjectName, chapterName }
       );
-      clearInterval(iv);
+      stopProgress();
       if (out.rowErrors) {
         const byId = new Map(Object.entries(out.rowErrors).map(([i, m]) => [take[Number(i)]?.data.id, m]));
         setRows((cur) => cur.map((r) => (byId.has(r.data.id) ? { ...r, serverError: byId.get(r.data.id) ?? "Check this row", checked: false } : r)));
@@ -378,7 +387,7 @@ export default function BulkUploadPage() {
       setJobParam(null);
       setPhase("done");
     } catch (e) {
-      clearInterval(iv);
+      stopProgress();
       setPhase("review");
       notify.error("Couldn't import the questions", { description: e instanceof Error ? e.message : "Nothing was imported. Try again.", retry: doImport });
     }

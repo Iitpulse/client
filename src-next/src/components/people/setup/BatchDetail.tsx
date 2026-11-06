@@ -1,5 +1,6 @@
 "use client";
 /* Admin-Setup `batch-detail`: counts, promo codes, teachers, next tests, and "Open N students in Users". */
+import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { CopyCode, Drawer, InlineError, RowMenu, fmtDateTime, inr, initials, istParts } from "@/components/kit";
@@ -39,7 +40,7 @@ export function BatchDetail({
   const b = useBatch(batchId);
   const tests = useBatchTests(batchId);
   const batch = b.data;
-  const now = istParts(Date.now());
+  const [now] = useState(() => istParts(Date.now()));
   const items = tests.data?.items ?? [];
   const thisMonth = items.filter((t) => {
     if (!t.opensAt) return false;

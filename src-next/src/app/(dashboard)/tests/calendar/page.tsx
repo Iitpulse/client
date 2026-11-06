@@ -128,7 +128,7 @@ function Calendar() {
   const router = useRouter();
   const params = useSearchParams();
   const tablet = useTablet();
-  const today = dayOf(Date.now());
+  const [today] = useState(() => dayOf(Date.now()));
   const [view, setView] = useState<View>(params.get("view") === "week" ? "week" : "month");
   const [anchor, setAnchor] = useState<string>(params.get("date") ?? today);
   const [batchId, setBatchId] = useState<string>("");

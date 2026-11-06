@@ -3,7 +3,7 @@
   Kit helpers: India time (IST, UTC+5:30, no daylight saving), the boards' number/phone formats, and small hooks.
   Times are stored as UTC ISO strings and dates as "YYYY-MM-DD" (an IST calendar date); the UI always shows IST.
 */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 export const cx = (...c: unknown[]) => c.filter((x): x is string => typeof x === "string" && x !== "").join(" ");
 
@@ -164,12 +164,10 @@ export function useAfter(active: boolean, ms: number): boolean {
   return on;
 }
 
-let idSeq = 0;
 /** A stable id for label/aria wiring when the caller gives none. */
 export function useKitId(given?: string): string {
-  const ref = useRef<string | null>(null);
-  if (!ref.current) ref.current = given ?? `k${++idSeq}`;
-  return given ?? ref.current;
+  const auto = useId();
+  return given ?? auto;
 }
 
 /** A short support code from an error (status + request id or a hash), e.g. "USR-503". */

@@ -192,6 +192,15 @@ export function QuestionEditor({
   const [saving, setSaving] = React.useState(false);
   const [savedAt, setSavedAt] = React.useState<string | null>(null);
   const [justSaved, setJustSaved] = React.useState(false);
+  // "Saved just now" for 90 s after savedAt: the clock moves once, when that window ends
+  const [clock, setClock] = React.useState(() => Date.now());
+  React.useEffect(() => {
+    if (!savedAt) return;
+    const left = new Date(savedAt).getTime() + 90_000 - Date.now();
+    if (left <= 0) return;
+    const t = setTimeout(() => setClock(Date.now()), left);
+    return () => clearTimeout(t);
+  }, [savedAt]);
   const [usage, setUsage] = React.useState<QuestionUsageM6 | null>(null);
   const [live, setLive] = React.useState<Live | null>(null);
   const [deleted, setDeleted] = React.useState<Deleted | null>(null);
@@ -200,8 +209,6 @@ export function QuestionEditor({
   const [dupOk, setDupOk] = React.useState<string | null>(null);
   const [counts, setCounts] = React.useState<Record<string, number>>({});
   const [extraSources, setExtraSources] = React.useState<string[]>([]);
-  const savedRef = React.useRef(saved);
-  savedRef.current = saved;
 
   const isNew = mode === "create";
   const questionId = !isNew && loaded ? loaded._id : null;
@@ -366,7 +373,7 @@ export function QuestionEditor({
 
   const discard = () => {
     ai.discardAll();
-    setForm(savedRef.current);
+    setForm(saved);
     setShowErrors(false);
     setSrvIssues([]);
     setSrvErr(false);
@@ -483,7 +490,7 @@ export function QuestionEditor({
     );
   }
 
-  const recent = savedAt ? Date.now() - new Date(savedAt).getTime() < 90_000 : false;
+  const recent = savedAt ? clock - new Date(savedAt).getTime() < 90_000 : false;
   const status = saving
     ? "Saving…"
     : deleted

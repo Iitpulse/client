@@ -7,7 +7,7 @@
 */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, GripVertical, Trash2, TriangleAlert, X } from "lucide-react";
 import "@/components/m6/m6-patterns.css";
 import { Topbar } from "@/components/admin/Topbar";
@@ -69,7 +69,7 @@ export function PatternEditor({ mode, patternId }: { mode: Mode; patternId?: str
   const exams = useM6Exams();
   const subjects = useM6Subjects();
   const invalidate = useInvalidatePatterns();
-  const keys = useRef(new WeakMap<object, string>()).current;
+  const [keys] = useState(() => new WeakMap<object, string>());
 
   const [draft, setDraft] = useState<Draft | null>(mode === "new" ? { name: "", examId: "", durationMinutes: 60, sections: [] } : null);
   const [orig, setOrig] = useState<string>(mode === "new" ? JSON.stringify({ name: "", examId: "", durationMinutes: 60, sections: [] }) : "");

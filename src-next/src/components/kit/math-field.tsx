@@ -221,7 +221,7 @@ function Palette({ items, onPick, label }: { items: Array<[string, string, strin
             </button>
           </li>
         ))}
-        {!list.length && <li className="xs muted px-2 py-1.5">Nothing matches "{q}"</li>}
+        {!list.length && <li className="xs muted px-2 py-1.5">Nothing matches &quot;{q}&quot;</li>}
       </ul>
     </div>
   );
@@ -269,12 +269,13 @@ export function MathField(props: MathFieldProps) {
   const inline = variant === "inline";
   const hi = lang === "hi";
 
-  const [doc, setDoc] = React.useState(() => htmlToSource(value));
+  // doc.html is the html the field last took in or sent out (the preview shows it); emitted mirrors it for the sync effect
+  const [doc, setDoc] = React.useState(() => ({ ...htmlToSource(value), html: value }));
   const emitted = React.useRef(value);
   React.useEffect(() => {
     if (value !== emitted.current) {
       emitted.current = value;
-      setDoc(htmlToSource(value));
+      setDoc({ ...htmlToSource(value), html: value });
     }
   }, [value]);
 
@@ -292,8 +293,8 @@ export function MathField(props: MathFieldProps) {
 
   const commit = React.useCallback(
     (source: string, images: FieldImage[], caret?: number) => {
-      setDoc({ source, images });
       const html = sourceToHtml(source, images, inline);
+      setDoc({ source, images, html });
       emitted.current = html;
       onChange(html);
       if (caret !== undefined) pendingSel.current = caret;
@@ -359,7 +360,7 @@ export function MathField(props: MathFieldProps) {
           const html = sourceToHtml(next.source, next.images, inline);
           emitted.current = html;
           queueMicrotask(() => onChange(html));
-          return next;
+          return { ...next, html };
         });
       })
       .catch((e: unknown) => {
@@ -386,20 +387,26 @@ export function MathField(props: MathFieldProps) {
   };
 
   /* ---------- toolbar ---------- */
-  type Tool = { k: string; label: string; text: React.ReactNode; cls?: string; run?: () => void; pal?: "greek" | "chem" | "help" };
+  type Tool = { k: string; label: string; text: React.ReactNode; cls?: string; tex?: string; math?: boolean; pal?: "greek" | "chem" | "help" };
   const tools: Tool[] = [
-    { k: "b", label: "Bold", text: "B", run: () => insert("<b>▮</b>", false) },
-    { k: "i", label: "Italic", text: <i>I</i>, run: () => insert("<i>▮</i>", false) },
-    { k: "x", label: "Insert inline maths", text: "$x$", cls: "w", run: () => (inMath(source, taRef.current?.selectionStart ?? 0) ? undefined : insert("$▮$", false)) },
-    { k: "frac", label: "Fraction", text: "a⁄b", cls: "m", run: () => insert("\\dfrac{▮}{}", true) },
-    { k: "sqrt", label: "Square root", text: "√x", cls: "m", run: () => insert("\\sqrt{▮}", true) },
-    { k: "pow", label: "Power", text: "x²", cls: "m", run: () => insert("^{▮}", true) },
-    { k: "sub", label: "Subscript", text: "x₂", cls: "m", run: () => insert("_{▮}", true) },
-    { k: "int", label: "Integral", text: "∫", cls: "m", run: () => insert("\\int_{▮}^{}", true) },
-    { k: "sum", label: "Sum", text: "Σ", cls: "m", run: () => insert("\\sum_{▮}^{}", true) },
+    { k: "b", label: "Bold", text: "B", tex: "<b>▮</b>" },
+    { k: "i", label: "Italic", text: <i>I</i>, tex: "<i>▮</i>" },
+    { k: "x", label: "Insert inline maths", text: "$x$", cls: "w", tex: "$▮$" },
+    { k: "frac", label: "Fraction", text: "a⁄b", cls: "m", tex: "\\dfrac{▮}{}", math: true },
+    { k: "sqrt", label: "Square root", text: "√x", cls: "m", tex: "\\sqrt{▮}", math: true },
+    { k: "pow", label: "Power", text: "x²", cls: "m", tex: "^{▮}", math: true },
+    { k: "sub", label: "Subscript", text: "x₂", cls: "m", tex: "_{▮}", math: true },
+    { k: "int", label: "Integral", text: "∫", cls: "m", tex: "\\int_{▮}^{}", math: true },
+    { k: "sum", label: "Sum", text: "Σ", cls: "m", tex: "\\sum_{▮}^{}", math: true },
     { k: "greek", label: "Greek letters", text: "αβ", cls: "m", pal: "greek" },
     { k: "chem", label: "Chemistry", text: "⇌", cls: "m", pal: "chem" },
   ];
+  const runTool = (t: Tool) => {
+    if (!t.tex) return;
+    // inline maths inside maths would nest the dollars
+    if (t.k === "x" && inMath(source, taRef.current?.selectionStart ?? 0)) return;
+    insert(t.tex, !!t.math);
+  };
   const [openPal, setOpenPal] = React.useState<string | null>(null);
   const shown = narrow ? tools.slice(0, 8) : tools;
   const more = narrow ? tools.slice(8) : [];
@@ -431,7 +438,7 @@ export function MathField(props: MathFieldProps) {
       );
     }
     return (
-      <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={t.label} title={t.label} onMouseDown={(e) => e.preventDefault()} onClick={t.run} disabled={disabled}>
+      <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={t.label} title={t.label} onMouseDown={(e) => e.preventDefault()} onClick={() => runTool(t)} disabled={disabled}>
         {t.text}
       </button>
     );
@@ -464,7 +471,7 @@ export function MathField(props: MathFieldProps) {
                     {t.text}
                   </button>
                 ) : (
-                  <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={t.label} onMouseDown={(e) => e.preventDefault()} onClick={() => { setOpenPal(null); t.run?.(); }}>
+                  <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={t.label} onMouseDown={(e) => e.preventDefault()} onClick={() => { setOpenPal(null); runTool(t); }}>
                     {t.text}
                   </button>
                 )
@@ -527,7 +534,7 @@ export function MathField(props: MathFieldProps) {
     files.forEach((f) => startUpload(f, false, null));
   };
 
-  const debounced = useDebouncedValue(emitted.current, 300);
+  const debounced = useDebouncedValue(doc.html, 300);
   const previewHtml = debounced;
   const errId = `${id ?? label}-err`;
   const latexErr = issues[0] ? issueText(issues[0]) : null;
