@@ -43,7 +43,7 @@ export function useMonitor(testId: string, query: MonitorQuery) {
     retry: 1,
     queryFn: () => {
       const params = {
-        filter: query.filter === "all" ? undefined : query.filter,
+        filter: query.filter === "all" ? undefined : query.filter === "flagged" ? "exitsFlagged" : query.filter,
         q: query.q || undefined,
         batchId: query.batchId || undefined,
         page: query.page,

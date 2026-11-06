@@ -222,6 +222,7 @@ export default function MonitorPage() {
   const columns: Array<Column<MonitorRow>> = [
     {
       key: "student",
+      width: "24%",
       header: "Student",
       render: (r) => (
         <span className="mo-who">
@@ -235,6 +236,7 @@ export default function MonitorPage() {
     },
     {
       key: "status",
+      width: "19%",
       header: "Status",
       render: (r) => {
         const why = reasonText(r, d!.exitsLimit);
@@ -249,9 +251,10 @@ export default function MonitorPage() {
         );
       },
     },
-    { key: "started", header: "Started", tablet: "hide", render: (r) => <span className="sm num">{r.startedAt ? istTime(r.startedAt) : "—"}</span> },
+    { key: "started", width: 96, header: "Started", tablet: "hide", render: (r) => <span className="sm num">{r.startedAt ? istTime(r.startedAt) : "—"}</span> },
     {
       key: "answered",
+      width: 150,
       header: "Answered",
       render: (r) =>
         r.answered > 0 ? (
@@ -269,6 +272,7 @@ export default function MonitorPage() {
     },
     {
       key: "left",
+      width: 110,
       header: "Time left",
       align: "num",
       tablet: "hide",
@@ -276,6 +280,7 @@ export default function MonitorPage() {
     },
     {
       key: "exits",
+      width: 130,
       header: "Fullscreen exits",
       align: "num",
       render: (r) => {
@@ -285,6 +290,7 @@ export default function MonitorPage() {
     },
     {
       key: "seen",
+      width: 120,
       header: "Last seen",
       render: (r) => (
         <span className={cx("sm mo-seen whitespace-nowrap", r.status === "offline" && "off")}>{seenLabel(r.lastSeenAt, now, r.status === "writing" || r.status === "offline")}</span>

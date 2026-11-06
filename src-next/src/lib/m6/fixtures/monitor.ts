@@ -248,6 +248,7 @@ export async function fixtureMonitor(
       case "offline":
         return r.status === q.filter;
       case "flagged":
+      case "exitsFlagged":
         return r.fullscreenExits >= m.exitsFlagAt;
       default:
         return true;
