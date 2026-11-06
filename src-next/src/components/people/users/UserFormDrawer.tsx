@@ -16,6 +16,7 @@ import {
   MultiSelect,
   PasswordInput,
   PhoneInput,
+  ReadOnlyValue,
   Segmented,
   ServerErrorBanner,
   TextInput,
@@ -130,6 +131,15 @@ const LABELS: Record<string, string> = {
   city: "City",
   parentPhone: "Parent's phone",
   dob: "Date of birth",
+  roleIds: "Roles",
+  gender: "Gender",
+  address: "Address",
+  state: "State",
+  stream: "Stream",
+  medium: "Medium",
+  school: "School",
+  parentName: "Parent's name",
+  validFrom: "Valid from",
 };
 /** server field path → form field */
 const SERVER_FIELD: Record<string, string> = {
@@ -229,7 +239,7 @@ export function UserFormDrawer({
       centreId: f.centreId === ALL_CENTRES ? null : f.centreId,
       validFrom: f.validFrom,
       validTill: f.validTill,
-      roleIds: f.roleIds,
+      ...(k === "student" ? {} : { roleIds: f.roleIds }),
     };
     if (!edit) {
       b.password = f.password;
@@ -343,7 +353,7 @@ export function UserFormDrawer({
           <PhoneInput id="uf-phone" value={f.phone} invalid={!!err("phone")} onChange={(v) => set("phone", v)} />
         </Field>
         <Field label="Date of birth" optional={optional} group>
-          <BirthdayField idPrefix="uf-dob" value={f.dob} onChange={(v) => set("dob", v)} />
+          <BirthdayField compact idPrefix="uf-dob" value={f.dob} onChange={(v) => set("dob", v)} />
         </Field>
       </div>
       <Field label="Gender" optional={optional} group>
@@ -462,9 +472,15 @@ export function UserFormDrawer({
       )}
 
       <span className="k-sec">Access</span>
-      <Field label="Roles" optional htmlFor="uf-roleIds" hint={<>What they can open. <Link href="/roles">See roles</Link></>}>
-        <MultiSelect id="uf-roleIds" aria-label="Roles" options={roleOpts} value={f.roleIds} onChange={(v) => set("roleIds", v)} placeholder={`${k === "student" ? "Student" : k === "teacher" ? "Teacher" : "Their type's"} role is given automatically`} noun="role" valueLabels={Object.fromEntries((user?.roles ?? []).map((r) => [r.id, r.name]))} />
-      </Field>
+      {k === "student" ? (
+        <Field label="Roles" group hint={<>Students get their access from their batch. <Link href="/roles">See roles</Link></>}>
+          <ReadOnlyValue>Student</ReadOnlyValue>
+        </Field>
+      ) : (
+        <Field label="Roles" optional htmlFor="uf-roleIds" error={err("roleIds")} hint={<>What they can open. <Link href="/roles">See roles</Link></>}>
+          <MultiSelect id="uf-roleIds" aria-label="Roles" options={roleOpts} value={f.roleIds} onChange={(v) => set("roleIds", v)} placeholder={`${k === "teacher" ? "Teacher" : "Their type's"} role is given automatically`} noun="role" valueLabels={Object.fromEntries((user?.roles ?? []).map((r) => [r.id, r.name]))} />
+        </Field>
+      )}
       <Field label="Valid" optional group error={err("validTill")} hint="After this date they can't sign in. Leave empty for no end date.">
         <div className="row" style={{ gap: 8 }}>
           <DateField aria-label="Valid from" value={f.validFrom} onChange={(v) => set("validFrom", v)} clearable placeholder="From" />
