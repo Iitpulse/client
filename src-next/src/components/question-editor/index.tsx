@@ -747,7 +747,7 @@ export function QuestionEditor({
           dup && (
             <>
               <Link href={`/questions/${encodeURIComponent(dup.match.questionId)}/edit`} target="_blank" className="btn btn-secondary btn-sm">
-                Open {dup.match.questionId}
+                Open {shortId(dup.match.questionId)}
               </Link>
               <span className="row gap-2">
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDup(null)}>
@@ -818,6 +818,9 @@ export function QuestionEditor({
     </EditorProvider>
   );
 }
+
+/** "QS_0ffc516c…" for long bank ids on buttons */
+const shortId = (id: string) => (id.length > 14 ? `${id.slice(0, 11)}…` : id);
 
 /** One summary entry per field id (a field with two problems links once). */
 function dedupe(list: FieldIssue[]): FieldIssue[] {

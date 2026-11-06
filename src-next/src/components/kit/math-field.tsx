@@ -27,7 +27,7 @@ import {
   token,
   TOKEN_RE,
 } from "@/lib/latex-source";
-import { cx } from "./utils";
+import { cx, useTablet } from "./utils";
 
 export type { FieldImage } from "@/lib/latex-source";
 
@@ -286,7 +286,9 @@ export function MathField(props: MathFieldProps) {
   const [focused, setFocused] = React.useState(false);
   const [dragging, setDragging] = React.useState(false);
   const [uploads, setUploads] = React.useState<Upload[]>([]);
-  const narrow = useNarrow(boxRef);
+  // tablet (1024) or a narrow field: the first 8 tools, the rest under More (Kit-Math)
+  const tablet = useTablet();
+  const narrow = useNarrow(boxRef) || tablet;
 
   const commit = React.useCallback(
     (source: string, images: FieldImage[], caret?: number) => {
