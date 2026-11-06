@@ -9,15 +9,28 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Field, KitDialog, ReauthDialog, Segmented, TextInput, apiError, notify } from "@/components/kit";
 import { authV2, type InviteRow } from "@/lib/m7b-auth";
 import { useMe } from "@/lib/m6/people";
+import { auth } from "@/lib/session";
 
 type StaffType = "teacher" | "admin" | "operator" | "manager";
 const TYPE_LABEL: Record<StaffType, string> = { teacher: "Teacher", admin: "Admin", operator: "Operator", manager: "Manager" };
 
-/** The signed-in user is the institute's Owner (`isOwner` on /users/me, claim `own`) */
+/** The signed-in user is the institute's Owner (`isOwner` on /users/me when sent, else the session claim `own`) */
 export function useIsOwner(): boolean {
+  return useOwner().owner;
+}
+
+/** M9 Billing & usage in the nav: the Owner, or a support visit (read-only Owner view; the platform decides what it reads) */
+export function useBillingVisible(): boolean {
+  const { owner } = useOwner();
+  return owner || auth.isSupportVisit();
+}
+
+/** Owner flag plus whether it is known yet (pages that only the Owner opens wait for it) */
+export function useOwner(): { owner: boolean; loading: boolean } {
   const me = useMe();
+  const claim = useQuery({ queryKey: ["session-claim", "own"], staleTime: 5 * 60_000, queryFn: async () => (await auth.claim("own")) === true });
   const u = me.data?.user as (NonNullable<typeof me.data>["user"] & { isOwner?: boolean; access?: { owner?: boolean } }) | undefined;
-  return !!(u?.isOwner || u?.access?.owner);
+  return { owner: !!(u?.isOwner || u?.access?.owner || claim.data), loading: claim.isLoading };
 }
 
 export function InviteStaffDialog({ open, onOpenChange, defaultType = "teacher" }: { open: boolean; onOpenChange: (o: boolean) => void; defaultType?: StaffType }) {

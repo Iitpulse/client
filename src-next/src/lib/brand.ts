@@ -94,20 +94,27 @@ export function useBrand(): Brand {
 
 export interface InstituteState {
   suspended: boolean;
-  aiPaused: { features: string[]; labels: string[]; reason?: string; until: string | null } | null;
-  /** M9 billing: an unpaid invoice past its due date (staff only) */
-  pastDue: { invoiceNumber: string; dueDate: string; payUrl?: string | null } | null;
-  /** Seats this month (staff only; null until student_activity and plans exist) */
-  seats: { month: string; used: number; plan: number; extra: number; extraPricePaise: number } | null;
+  /** reason: "switchedOff" (M7b feature switches), "credits" (used up, overage off) or "cap" (monthly cap) (M9) */
+  aiPaused: { features: string[]; labels: string[]; reason?: "switchedOff" | "credits" | "cap" | string; until: string | null } | null;
+  /** M9 billing: an unpaid invoice past its due date or with a failed charge (staff only) */
+  pastDue: { invoiceId?: string; invoiceNumber: string; amountDuePaise?: number; dueDate: string; pastDueSince?: string; suspendOn?: string; failed?: boolean; payUrl?: string | null } | null;
+  /** Seats this month (staff only; null for IIT-PULSE's own institute and while activity is unknown) */
+  seats: { month: string; used: number; plan: number; extra: number; extraPricePaise: number | null } | null;
 }
 
 let stateCache: { at: number; token: string | null; p: Promise<InstituteState | null> } | null = null;
 
+/** Drop the cached state and tell mounted banners to ask again (after a payment or a top-up). */
+export function refreshInstituteState(): void {
+  stateCache = null;
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("iitp:institute-state"));
+}
+
 /** GET /platform/tenant/state for the signed-in staff member (cached 60 s; any failure = no notices). */
-export async function fetchInstituteState(): Promise<InstituteState | null> {
+export async function fetchInstituteState(fresh = false): Promise<InstituteState | null> {
   const token = await getToken();
   if (!token) return null;
-  if (stateCache && stateCache.token === token && Date.now() - stateCache.at < 60_000) return stateCache.p;
+  if (!fresh && stateCache && stateCache.token === token && Date.now() - stateCache.at < 60_000) return stateCache.p;
   const p = fetch(`${API_GATEWAY}/platform/tenant/state`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
     .then(async (r) => {
       const j = (await r.json().catch(() => null)) as { success?: boolean; code?: string; notices?: { suspended?: boolean; aiPaused?: InstituteState["aiPaused"]; pastDue?: InstituteState["pastDue"] }; seats?: InstituteState["seats"] } | null;

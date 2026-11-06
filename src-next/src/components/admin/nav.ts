@@ -2,9 +2,11 @@
   The admin route map, shared by the AdminSidebar, the ⌘K palette and the topbar titles of pages that are
   not migrated yet. Boards: AdminSidebar `nav="m6"` (groups Overview, Content, People, System; "Batches & setup" is
   one page with tabs since M6) and `nav="teacher"` (no setup, roles, audit or templates; Users reads "My students").
-  The board's Institute group: Branding since M7b (admins or MANAGE_BRANDING); Billing & usage arrives with M9.
+  The board's Institute group: Branding since M7b (admins or MANAGE_BRANDING); Billing & usage since M9 (the Owner
+  only: `ownerOnly`; a support visit sees it read-only).
 */
 import {
+  CreditCard,
   FileQuestionMark,
   Palette,
   History,
@@ -39,6 +41,8 @@ export interface NavItem extends NavLink {
   children?: NavLink[];
   /** Hidden from teachers (board AdminSidebar `nav="teacher"`: no setup, roles, audit or templates). */
   staffOnly?: boolean;
+  /** Only the institute's Owner (M9 Billing & usage; route access is owner-only server side) */
+  ownerOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -79,7 +83,10 @@ export const NAV: NavGroup[] = [
   },
   {
     label: "Institute",
-    items: [{ key: "branding", label: "Branding", href: "/branding", icon: Palette, permission: "branding", keywords: ["logo", "colour", "color", "theme", "white label"], staffOnly: true }],
+    items: [
+      { key: "branding", label: "Branding", href: "/branding", icon: Palette, permission: "branding", keywords: ["logo", "colour", "color", "theme", "white label"], staffOnly: true },
+      { key: "billing", label: "Billing & usage", href: "/billing", icon: CreditCard, keywords: ["invoices", "plan", "ai credits", "top-up", "gst", "payment"], staffOnly: true, ownerOnly: true },
+    ],
   },
   {
     label: "System",
@@ -102,8 +109,9 @@ export function allowed(link: NavLink, hasAccess: Record<Access, boolean>): bool
 }
 
 /** Visible children of an item; an item with children is shown when any child is, and opens the first one. */
-export function visibleItem(item: NavItem, hasAccess: Record<Access, boolean>, teacher = false): NavItem | null {
+export function visibleItem(item: NavItem, hasAccess: Record<Access, boolean>, teacher = false, owner = false): NavItem | null {
   if (teacher && item.staffOnly) return null;
+  if (item.ownerOnly && !owner) return null;
   if (teacher && item.key === "users") return { ...item, label: "My students" };
   if (!item.children) return allowed(item, hasAccess) ? item : null;
   const children = item.children.filter((c) => allowed(c, hasAccess));

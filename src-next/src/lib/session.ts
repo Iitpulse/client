@@ -233,6 +233,11 @@ export const auth = {
       return auth.getToken();
     }
   },
+  /** A claim of the current session token (unverified; for showing or hiding UI only, e.g. `own` = the Owner) */
+  claim: async (name: string): Promise<unknown> => {
+    const t = await auth.ensureToken();
+    return t ? claimOf(t, name) : undefined;
+  },
   /** After a v2 sign-in (password, 2-step, invite): the token and its expiry. A legacy token is traded at the next call. */
   setToken: (token: string, expiresAt?: string | null): void => {
     if (!isBrowser()) return;

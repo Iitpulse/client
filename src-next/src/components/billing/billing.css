@@ -1,0 +1,37 @@
+/* Admin-Billing + Admin-BillingStates (canvas v196): the pieces each board draws in its own <style> over @iitpulse/ui. */
+.bl-page { padding: 22px 28px 40px; gap: 16px; display: flex; flex-direction: column; min-width: 0 }
+.bl-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px }
+.bl-packs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px }
+@media (max-width: 1179px) {
+  .bl-grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .bl-packs { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+}
+.bl-pack { border: 1px solid #E4E6EF; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; background: #fff; cursor: pointer; text-align: left; font: inherit; color: inherit; transition: border-color 160ms, transform 160ms }
+.bl-pack:hover:not(:disabled) { border-color: var(--navy, #00007E); transform: translateY(-2px) }
+.bl-pack:disabled { cursor: not-allowed; opacity: .6 }
+.bl-pack:focus-visible { outline: 3px solid #C3C6EF; outline-offset: 2px }
+.bl-panel { max-width: 900px }
+.bl-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
+.bl-frow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid #EEF0F5; flex-wrap: wrap }
+.bl-frow:last-of-type { border-bottom: 0 }
+.bl-kv { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 6px 0 }
+.bl-kv.t { border-top: 1px solid #EEF0F5; padding-top: 10px; font-weight: 600 }
+.bl-hero-sub { color: #D6D8FA }
+.bl-hero-xs { color: #C3C6EF }
+.bl-hero-link { color: #fff; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; padding: 0; font: inherit; cursor: pointer }
+.bl-ok-t { color: #0E7A3D; font-weight: 600 }
+.bl-err-t { font-size: 12px; font-weight: 600; color: #C40000 }
+
+/* checkout dialog */
+.co-line { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 6px 0 }
+.co-line.t { border-top: 1px solid #EEF0F5; padding-top: 10px; font-weight: 600 }
+.co-big { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 10px 0 }
+.co-ic { width: 52px; height: 52px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center }
+
+/* messages (same as the boards' .msg) */
+.msg { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45 }
+.msg svg { flex: none; margin-top: 1px }
+.msg.bad { background: #FFF5F5; border: 1px solid #F2B1B1; color: #7A1010 }
+.msg.warn { background: #FFF4E2; border: 1px solid #F1D29A; color: #5C3600 }
+.msg.info { background: #E8F1FD; border: 1px solid #BBD5F5; color: #0D2E57 }
+.msg.ok { background: #E9F6EE; border: 1px solid #BFE3CC; color: #0B5E2F }

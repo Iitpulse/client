@@ -16,6 +16,7 @@ import { usePermissionsStore, useAuthStore } from "@/stores";
 import { useAllTests } from "@/lib/queries";
 import { useQuestionQuickSearch } from "@/lib/queries-tests-admin";
 import { ACTIONS, NAV, allowed, visibleItem, type Access } from "./nav";
+import { useBillingVisible } from "@/components/m7b/invites";
 
 /**
  * ⌘K palette (AdminSidebar board: "Search"). M5 contract: search only, no "Ask AI". Pages and create actions, questions
@@ -27,6 +28,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   const logout = useAuthStore((s) => s.logout);
   const isStaff = useAuthStore((s) => !!s.currentUser && s.currentUser.userType !== "student");
   const currentUserIsTeacher = useAuthStore((s) => s.currentUser?.userType === "teacher");
+  const billing = useBillingVisible();
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
   useEffect(() => {
@@ -92,7 +94,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
           </CommandGroup>
         )}
         {NAV.map((g) => {
-          const items = g.items.map((i) => visibleItem(i, hasAccess, currentUserIsTeacher)).filter((i) => i !== null);
+          const items = g.items.map((i) => visibleItem(i, hasAccess, currentUserIsTeacher, billing)).filter((i) => i !== null);
           if (!items.length) return null;
           return (
             <CommandGroup key={g.label} heading={g.label}>
