@@ -324,6 +324,11 @@
   .k-table td.chk, .k-table td.act { overflow: visible }
   .k-table .skr td { padding-top: 14px; padding-bottom: 14px }
   .k-wrap-scroll { overflow-x: auto }
+  /* fill rule: the card takes the viewport height left (useFillHeight), only the body scrolls */
+  .k-dt.fill { display: flex; flex-direction: column }
+  .k-dt-scroll { overflow-x: auto }
+  .k-dt.fill .k-dt-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain }
+  .k-dt.fill > .k-tfoot, .k-dt.fill > :not(.k-dt-scroll) { flex: none }
   .k-rm { width: 30px; height: 30px; border: 0; background: none; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; flex: none }
   .k-rm:hover, .k-rm[data-state="open"] { background: var(--navy-100); color: var(--navy) }
   .k-rm:focus-visible { outline: 3px solid var(--navy-200); outline-offset: 2px }
@@ -339,7 +344,7 @@
   .k-pg .p:disabled { color: #A9ACC0; cursor: not-allowed; background: none }
   .k-bulk {
     position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px; z-index: 15; display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 16px;
-    background: var(--ink); color: #fff; border-radius: 14px; white-space: nowrap; flex-wrap: wrap; max-width: calc(100vw - 48px); animation: k-rise 220ms var(--ease)
+    background: var(--ink); color: #fff; border-radius: 14px; white-space: nowrap; flex-wrap: wrap; width: max-content; max-width: calc(100vw - 48px); animation: k-rise 220ms var(--ease)
   }
   .k-bulk .btn { height: 32px; font-size: 13px }
   .k-bulk .btn-ghost { color: #D6D8FA }

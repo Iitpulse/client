@@ -82,7 +82,14 @@ const [s, set] = useUrlState({ q: "", batch: "", status: "active", page: "1", si
   footer={<Pagination page total pageSize onPage onPageSize sortLabel />} />
 <BulkBar count={selected.size} onClear={…}>{…ghost buttons…}</BulkBar>
 ```
-Changing a filter resets `page`; under 1180px the bar folds into "Filters · N" + a drawer. Page-level states:
+Changing a filter resets `page`; under 1180px the bar folds into "Filters · N" + a drawer.
+**Tables fill the screen (owner rule, 6 Nov).** A page table takes the viewport height left below it and the page never
+scrolls: page header, filters, the table's header row and the pagination stay put; only the body scrolls inside the
+card (sticky header row, footer pinned under it), minimum 320px (≈ 6 rows) so only very short screens scroll the page.
+`DataTable` does this by default (`fill`, `minHeight`; it keeps 80px clear while the bulk bar shows). Pass
+`fill={false}` inside drawers and dialogs. A hand-made table (div grid) uses `useFillHeight(on, min, reserve)` → `[ref, height]`
+on its card with an inner `overflow-y: auto` body and a sticky header row. Keep page content under a table out of the
+way: whatever sits below it is measured and left visible. Page-level states:
 `PageSkeleton` (after 300 ms, "Still loading…" at 10 s), `EmptyState` (one doodle), `PageError` (`what`, `code`),
 `NoAccess` (`what`, `role`), `NotFoundState`, `OfflineBanner`, `StateBox` (inside cards/tables). Also `CopyCode`,
 `Truncate` (tooltip only when cut), `RowMenu`, `apiError(e)` → `{status, code, message, details}`, `supportCode`.

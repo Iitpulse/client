@@ -7,9 +7,13 @@
   at the bottom). Pages: 25 by default, 25 / 50 / 100 segmented. States: loading (header stays, skeleton rows after
   300 ms), empty (teaches, first action), no match (names the search, offers Clear), error (inside the table, Try
   again and a short code). Tablet 1024: columns marked `tablet: "hide"` fold away.
+  Fill (owner rule, 6 Nov): a page table fills the viewport height left below it and never makes the page scroll.
+  Page header, filters, the table's header row and the pagination stay put; only the body scrolls inside the card
+  (sticky header row, footer pinned under the body). Minimum 320px (about 6 rows): only on very short screens may
+  the page scroll. `fill={false}` for a table inside a drawer, dialog or a section that grows with its content.
 */
 import { DropdownMenu as DM, Tooltip as T } from "radix-ui";
-import { useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, CircleAlert, MoreHorizontal, X } from "lucide-react";
 import { CheckBox } from "./Field";
 import { Segmented } from "./Segmented";
@@ -60,13 +64,79 @@ export interface DataTableProps<R> {
   error?: { title: string; body?: ReactNode; code?: string; onRetry?: () => void };
   footer?: ReactNode;
   skeletonRows?: number;
-  /** horizontal scroll for wide grids (disables the sticky header) */
+  /** horizontal scroll for wide grids */
   scrollX?: boolean;
   minWidth?: number;
+  /** fill the viewport height left below the table, body scrolls inside (default true; false in drawers/dialogs) */
+  fill?: boolean;
+  /** minimum height when filling (px, default 320 ≈ 6 rows) */
+  minHeight?: number;
+}
+
+const px = (v: string) => parseFloat(v) || 0;
+/** Height of everything laid out below `el` down to the end of the page (following siblings, paddings, gaps). */
+function spaceBelow(el: HTMLElement) {
+  let below = 0;
+  let n: HTMLElement = el;
+  while (n.parentElement && n !== document.body) {
+    const parent: HTMLElement = n.parentElement;
+    const pcs = getComputedStyle(parent);
+    const bottom = n.getBoundingClientRect().bottom;
+    below += px(getComputedStyle(n).marginBottom);
+    for (let s = n.nextElementSibling; s; s = s.nextElementSibling) {
+      if (!(s instanceof HTMLElement)) continue;
+      const cs = getComputedStyle(s);
+      if (cs.display === "none" || cs.position === "fixed" || cs.position === "absolute") continue;
+      const r = s.getBoundingClientRect();
+      if (r.top < bottom - 1) continue; // beside, not below (row layouts)
+      below += r.height + px(cs.marginTop) + px(cs.marginBottom) + (pcs.display.includes("flex") || pcs.display.includes("grid") ? px(pcs.rowGap) : 0);
+    }
+    below += px(pcs.paddingBottom) + px(pcs.borderBottomWidth);
+    n = parent;
+  }
+  return below;
+}
+
+/**
+ * Owner rule (6 Nov): size an element to the viewport height left below its top (minus what sits under it), at
+ * least `min` px, so the page itself doesn't scroll. `reserve` keeps room for a fixed bar at the bottom (the bulk bar).
+ * Returns a ref and the height (null until measured or when off).
+ */
+export function useFillHeight<T extends HTMLElement>(on = true, min = 320, reserve = 0) {
+  const [el, ref] = useState<T | null>(null); // callback ref: works when the element mounts later
+  const [h, setH] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    // inside a drawer or dialog the table grows with its content (the overlay scrolls)
+    if (!on || !el || el.closest('[role="dialog"], [role="alertdialog"]')) return;
+    let raf = 0;
+    const measure = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        const next = Math.max(min, Math.floor(window.innerHeight - top - spaceBelow(el) - reserve));
+        setH((prev) => (prev === next ? prev : next));
+      });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(document.body);
+    if (el.parentElement) ro.observe(el.parentElement);
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [el, on, min, reserve]);
+  return [ref, on && el ? h : null] as const;
 }
 
 export function DataTable<R>(p: DataTableProps<R>) {
   const tablet = useTablet();
+  const fill = p.fill !== false;
+  // while the bulk bar shows (fixed, 24px from the bottom), keep the pagination clear of it
+  const bulkOn = !!p.selection && p.selection.selected.size > 0;
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(fill, p.minHeight ?? 320, bulkOn ? 80 : 0);
   const showSkel = useAfter(p.status === "loading", 300);
   const cols = p.columns.filter((c) => !(tablet && c.tablet === "hide"));
   const rows = p.rows ?? [];
@@ -223,9 +293,13 @@ export function DataTable<R>(p: DataTableProps<R>) {
     </table>
   );
   return (
-    <section className="card" style={{ overflow: p.scrollX ? "hidden" : "clip" }}>
-      {p.scrollX ? (
-        <div className="k-wrap-scroll" style={{ ["--k-sticky-top" as string]: "0px" }}>
+    <section
+      ref={fillRef}
+      className={cx("card k-dt", fillH !== null && "fill")}
+      style={{ overflow: p.scrollX || fillH !== null ? "hidden" : "clip", height: fillH ?? undefined }}
+    >
+      {p.scrollX || fill ? (
+        <div className="k-dt-scroll" style={{ ["--k-sticky-top" as string]: "0px", overflowX: p.scrollX ? "auto" : "hidden" }}>
           {table}
         </div>
       ) : (
