@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Upload } from "lucide-react";
 import { Topbar } from "@/components/admin/Topbar";
+import { SeatMeter } from "@/components/brand/InstituteBanners";
 import {
   BulkBar,
   Combobox,
@@ -219,6 +220,7 @@ export function UsersPage() {
       actions={
         allowed && canAdd ? (
           <>
+            {!teacherView && type === "student" && <SeatMeter />}
             <Link href={`/users/import${type === "teacher" ? "?kind=teachers" : ""}`} className="btn btn-secondary btn-sm">
               <Upload className="size-3.5" aria-hidden />
               Import from Excel

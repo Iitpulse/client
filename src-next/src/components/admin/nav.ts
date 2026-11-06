@@ -2,10 +2,11 @@
   The admin route map, shared by the AdminSidebar, the ⌘K palette and the topbar titles of pages that are
   not migrated yet. Boards: AdminSidebar `nav="m6"` (groups Overview, Content, People, System; "Batches & setup" is
   one page with tabs since M6) and `nav="teacher"` (no setup, roles, audit or templates; Users reads "My students").
-  The board's Institute group (Billing & usage, Branding) has no routes before M7/M9, so it is not drawn.
+  The board's Institute group: Branding since M7b (admins or MANAGE_BRANDING); Billing & usage arrives with M9.
 */
 import {
   FileQuestionMark,
+  Palette,
   History,
   House,
   LayoutDashboard,
@@ -20,7 +21,7 @@ import {
 } from "lucide-react";
 
 /** Feature flags from the permissions store (stores/permissions.store.ts `hasAccess`). */
-export type Access = "question" | "user" | "test" | "pattern" | "batch" | "role" | "subject";
+export type Access = "question" | "user" | "test" | "pattern" | "batch" | "role" | "subject" | "branding";
 
 export interface NavLink {
   label: string;
@@ -75,6 +76,10 @@ export const NAV: NavGroup[] = [
       },
       { key: "roles", label: "Roles & access", href: "/roles", icon: Shield, permission: "role", keywords: ["permissions"], staffOnly: true },
     ],
+  },
+  {
+    label: "Institute",
+    items: [{ key: "branding", label: "Branding", href: "/branding", icon: Palette, permission: "branding", keywords: ["logo", "colour", "color", "theme", "white label"], staffOnly: true }],
   },
   {
     label: "System",

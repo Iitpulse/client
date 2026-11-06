@@ -2,6 +2,7 @@
 import { Blueboard, InkUnderline, LogoMark, Paper } from "@iitpulse/ui";
 import { Check } from "lucide-react";
 import "@/components/people/auth/auth.css";
+import { BrandLogo, DefaultBrandOnly, PoweredBy } from "@/components/brand/brand-logo";
 
 /*
   Admin-Auth board: the staff console's sign-in shell. A blueboard on the left (logo, the pitch, "Student? Sign in at
@@ -28,7 +29,7 @@ export default function StaffAuthLayout({ children }: { children: React.ReactNod
         style={{ flex: "1 1 420px", maxWidth: 560, minHeight: "100vh", padding: 40, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 32 }}
       >
         <span style={{ background: "#fff", borderRadius: 10, padding: "8px 12px", display: "inline-flex", alignSelf: "flex-start" }}>
-          <LogoMark />
+          <BrandLogo fallback={<LogoMark />} />
         </span>
         <div className="col au-pitch" style={{ gap: 14 }}>
           <span className="eyebrow" style={{ color: "#C3C6EF" }}>
@@ -46,9 +47,13 @@ export default function StaffAuthLayout({ children }: { children: React.ReactNod
             ))}
           </div>
         </div>
-        <a href={STUDENT_PORTAL} className="xs row au-stu" style={{ gap: 6, fontWeight: 600, alignSelf: "flex-start" }}>
-          Student? Sign in at {host} →
-        </a>
+        {/* IIT-PULSE's student portal; another institute's students sign in at that institute's own address */}
+        <DefaultBrandOnly>
+          <a href={STUDENT_PORTAL} className="xs row au-stu" style={{ gap: 6, fontWeight: 600, alignSelf: "flex-start" }}>
+            Student? Sign in at {host} →
+          </a>
+        </DefaultBrandOnly>
+        <PoweredBy className="xs" />
       </Blueboard>
       <section className="cl-paper cl-calm" style={{ flex: "1 1 480px", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div className="col" style={{ width: "100%", maxWidth: 420, gap: 22 }}>

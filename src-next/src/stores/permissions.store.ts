@@ -29,6 +29,7 @@ export interface PermissionsState {
     batch: boolean;
     role: boolean;
     subject: boolean;
+    branding: boolean;
   };
 
   // Actions
@@ -50,6 +51,8 @@ function getDefaultAccess() {
     batch: false,
     role: false,
     subject: false,
+    /** M7b Branding page: admins, or a role with MANAGE_BRANDING (platform contract docs/m7a-api.md) */
+    branding: false,
   };
 }
 
@@ -117,10 +120,14 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
             if (rolePerms.includes(PERMISSIONS.SUBJECT.READ)) {
               hasAccess.subject = true;
             }
+            if (rolePerms.includes("MANAGE_BRANDING")) {
+              hasAccess.branding = true;
+            }
           }
         });
       }
 
+      if (currentUser?.userType === "admin") hasAccess.branding = true;
       console.log("[Permissions] Final hasAccess:", hasAccess);
       set({ allRoles: roles, permissions, hasAccess, isLoading: false });
     } catch (error: unknown) {
@@ -128,7 +135,8 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
       const message =
         (error as { response?: { data?: { message?: string } } })?.response?.data
           ?.message || "Failed to fetch roles";
-      set({ error: message, isLoading: false, hasAccess: getDefaultAccess() });
+      // Branding needs no role list: admins always have it (M7b)
+      set({ error: message, isLoading: false, hasAccess: { ...getDefaultAccess(), branding: useAuthStore.getState().currentUser?.userType === "admin" } });
     }
   },
 

@@ -7,6 +7,7 @@ import { useTablet } from "@/components/kit/utils";
 import { useMe } from "@/lib/m6/people";
 import { LogOut, Search } from "lucide-react";
 import { LogoMark } from "@iitpulse/ui";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { useAuthStore, usePermissionsStore } from "@/stores";
 import { getInitials } from "@/lib/utils";
 import { useQuestionBankTotals } from "@/lib/queries";
@@ -64,9 +65,9 @@ export function AdminSidebar() {
       aria-label="Admin navigation"
       className={`cl-margin-edge col sticky top-0 h-screen shrink-0 gap-1.5 overflow-y-auto bg-surface pt-5 pb-2 ${rail ? "admin-rail w-[72px] px-2.5" : "w-[264px] px-3.5"}`}
     >
-      <Link href="/" className={`flex pt-1 pb-2.5 ${rail ? "justify-center overflow-hidden px-0" : "px-2"}`} aria-label="IIT-PULSE dashboard">
+      <Link href="/" className={`flex pt-1 pb-2.5 ${rail ? "justify-center overflow-hidden px-0" : "px-2"}`} aria-label="Dashboard">
         <span className={rail ? "block w-[28px] overflow-hidden" : undefined}>
-          <LogoMark />
+          <BrandLogo fallback={<LogoMark />} />
         </span>
       </Link>
       <button

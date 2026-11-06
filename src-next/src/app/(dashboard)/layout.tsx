@@ -6,6 +6,7 @@ import { useAuthStore, usePermissionsStore } from "@/stores";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { Paper } from "@iitpulse/ui";
+import { InstituteBanners } from "@/components/brand/InstituteBanners";
 
 export default function DashboardLayout({
   children,
@@ -71,6 +72,8 @@ export default function DashboardLayout({
     <Paper surface="admin" className="admin flex h-screen overflow-hidden">
       <AdminSidebar />
       <div id="admin-main" className="col h-screen min-w-0 flex-1 overflow-y-auto">
+        {/* Admin-SeatsBanners: past due / paused / AI paused, above the page's own top bar (nothing in good standing) */}
+        <InstituteBanners />
         {/* Every page draws its own <Topbar> (the (legacy) group with its generic one is gone since the M6 exit). */}
         {children}
       </div>
