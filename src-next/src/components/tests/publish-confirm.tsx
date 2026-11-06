@@ -120,7 +120,7 @@ export function PublishConfirmDialog({
       title={title}
       description={lead}
       facts={facts}
-      confirmLabel={blocked ? "Fix the checks first" : opensNow ? "Publish and open now" : `Publish for ${p ? istDateTime(p.test.opensAt) : "its date"}`}
+      confirmLabel={blocked ? "Fix the checks first" : !p ? "Publish" : opensNow ? "Publish and open now" : `Publish for ${istDateTime(p.test.opensAt)}`}
       onConfirm={async () => {
         if (blocked) throw new Error("This test isn't ready: fix the checks marked ! in the builder.");
         await onConfirm();
