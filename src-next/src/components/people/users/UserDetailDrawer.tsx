@@ -9,6 +9,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { Drawer, InlineError, apiError, fmtDate, fmtDateTime, fmtPhone, fmtRelative, initials, notify } from "@/components/kit";
 import type { AuditDetail, UserDetail } from "@/lib/m6-contract";
 import { auditApi, useCan, useUser, usersApi } from "@/lib/m6/people";
+import type { AdminGuardianConsent } from "@/lib/m6-contract";
 import { cap, isRemoved, isStaffType } from "./shared";
 
 export function UserDetailDrawer({
@@ -145,6 +146,8 @@ function Details({ u }: { u: UserDetail }) {
             <dd>{dash(u.parentName)}</dd>
             <dt>Phone</dt>
             <dd className="num">{u.parentPhone ? `+91 ${fmtPhone(u.parentPhone)}` : "—"}</dd>
+            {/* Batch 7: under-18 parent or guardian confirmation (never blocks the student) */}
+            <GuardianRow g={(u as UserDetail & { guardianConsent?: AdminGuardianConsent | null }).guardianConsent ?? null} />
           </dl>
         </>
       ) : u.type === "teacher" ? (
@@ -262,4 +265,26 @@ const VERB: Record<string, string> = { added: "added", changed: "changed", delet
 function sentence(verb: string, kind: string, what: string, details: string) {
   if (verb === "signedIn" || verb === "signInFailed") return `${verb === "signedIn" ? "signed in" : "couldn't sign in"}${details ? ` · ${details}` : ""}`;
   return `${VERB[verb] ?? "updated"} ${kind.toLowerCase()} ${what}${details ? ` · ${details}` : ""}`;
+}
+
+const GC_LABEL: Record<AdminGuardianConsent["status"], [string, string]> = {
+  notRequired: ["b-grey", "Not needed (18 or older)"],
+  needsDob: ["b-grey", "Unknown: no date of birth"],
+  missing: ["b-amber", "Not asked yet"],
+  waiting: ["b-amber", "Waiting for the parent"],
+  expired: ["b-amber", "Link expired"],
+  confirmed: ["b-green", "Confirmed"],
+};
+function GuardianRow({ g }: { g: AdminGuardianConsent | null }) {
+  if (!g) return null;
+  const [cls, label] = GC_LABEL[g.status] ?? ["b-grey", g.status];
+  return (
+    <>
+      <dt>Consent</dt>
+      <dd className="row wrap" style={{ gap: 6 }}>
+        <span className={`badge ${cls}`}>{label}</span>
+        {g.status === "confirmed" && g.confirmedAt && <span className="xs muted">{fmtDate(g.confirmedAt)}</span>}
+      </dd>
+    </>
+  );
 }

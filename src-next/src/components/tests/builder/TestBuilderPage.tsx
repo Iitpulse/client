@@ -45,6 +45,8 @@ import {
 import { SampleDataPill } from "@/components/tests-m6/parts";
 import { AiCard, type AiBlock } from "./AiCard";
 import { Checks, checksLeft, type CheckFix } from "./Checks";
+import { openStudentPreview } from "@/lib/student-preview";
+import { PublishConfirmDialog } from "@/components/tests/publish-confirm";
 import { Sections } from "./Sections";
 
 type BuilderTest = TestSettings & { publishFailed?: { at: string; code: string } | null };
@@ -298,9 +300,15 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
     }
   };
 
+  // Batch 7: Publish opens the confirm (Admin-PublishConfirm); confirming runs doPublish.
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const publish = async () => {
     if (!testId) return;
     if (dirty && !(await save({ quiet: true }))) return;
+    setConfirmOpen(true);
+  };
+  const doPublish = async () => {
+    if (!testId) return;
     setPublishing(true);
     try {
       const r = await publishTest(testId);
@@ -320,6 +328,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
       } else {
         setPublishFailed(true);
         invalidate();
+        throw new Error("Not published. The server didn't answer, so nothing was sent to students and the test is still a draft. Try again in a moment.");
       }
     } finally {
       setPublishing(false);
@@ -434,9 +443,9 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
     <>
       <SampleDataPill areas={["tests", "paper", "aiBuild", "patterns", "templates"]} />
       {!isNew && (
-        <a href={`/tests/${testId}/preview`} target="_blank" rel="noopener" className="btn btn-ghost btn-sm" aria-disabled={loading || !hasQuestions}>
+        <button type="button" className="btn btn-ghost btn-sm" disabled={loading || !hasQuestions} onClick={() => testId && openStudentPreview(testId)}>
           Preview as student
-        </a>
+        </button>
       )}
       {!locked && !scheduled && (
         <button type="button" className="btn btn-secondary btn-sm" disabled={isNew || loading || saving || (!dirty && !isNew)} onClick={() => void save()}>
@@ -465,6 +474,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
 
   return (
     <>
+      {testId && <PublishConfirmDialog testId={testId} open={confirmOpen} onOpenChange={setConfirmOpen} onConfirm={doPublish} fixHref={`/tests/${testId}/edit`} />}
       <header className="topbar row between wrap" style={{ minHeight: 64, height: "auto", padding: "10px 28px", gap: 10, position: "sticky", top: 0, zIndex: 5 }}>
         <div className="row wrap min-w-0" style={{ gap: 10 }}>
           <Link href="/tests" className="btn btn-ghost btn-sm">

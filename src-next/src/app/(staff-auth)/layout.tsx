@@ -53,6 +53,16 @@ export default function StaffAuthLayout({ children }: { children: React.ReactNod
       <section className="cl-paper cl-calm" style={{ flex: "1 1 480px", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div className="col" style={{ width: "100%", maxWidth: 420, gap: 22 }}>
           {children}
+          {/* Student-Legal (batch 7): the public Terms and Privacy pages live in the student app */}
+          <p className="xs muted" style={{ margin: 0, textAlign: "center" }}>
+            <a href={`${STUDENT_PORTAL}/terms`} style={{ fontWeight: 600 }}>
+              Terms of Use
+            </a>
+            <span aria-hidden="true"> · </span>
+            <a href={`${STUDENT_PORTAL}/privacy`} style={{ fontWeight: 600 }}>
+              Privacy Policy
+            </a>
+          </p>
         </div>
       </section>
     </Paper>

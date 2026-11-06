@@ -36,6 +36,9 @@ import { examRefs, istDate, istDay, istTime, useM6Batches, useM6Exams } from "@/
 import { testsActions, useAdminTests, useInvalidateTests } from "@/lib/m6/tests";
 import type { AdminTestListItem, ResultPublishPreview, TestState } from "@/lib/m6-contract";
 import { useAuthStore, usePermissionsStore } from "@/stores";
+import { openStudentPreview } from "@/lib/student-preview";
+import { publishTest } from "@/lib/m6/builder";
+import { PublishConfirmDialog } from "@/components/tests/publish-confirm";
 
 type Tab = "all" | TestState;
 const TABS: Array<{ key: Tab; label: string }> = [
@@ -193,6 +196,8 @@ function Tests() {
   const [dialog, setDialog] = useState<Dialog>(null);
   const [linksFor, setLinksFor] = useState<LinksTest | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  // Batch 7: "Publish…" on a draft opens the confirm (Admin-PublishConfirm, from-tests-list)
+  const [publishFor, setPublishFor] = useState<AdminTestListItem | null>(null);
   const invalidate = useInvalidateTests();
 
   const range = useMemo(() => windowRange(win), [win]);
@@ -323,7 +328,8 @@ function Tests() {
 
   const menu = (t: AdminTestListItem): RowMenuItem[] => [
     { label: "Edit", icon: <Pencil className="size-[15px]" aria-hidden />, onSelect: () => router.push(`/tests/${t.testId}/edit`) },
-    { label: "Preview as student", icon: <Eye className="size-[15px]" aria-hidden />, onSelect: () => router.push(`/tests/${t.testId}/edit?preview=student`) },
+    ...(t.state === "draft" ? [{ label: "Publish…", icon: <Zap className="size-[15px]" aria-hidden />, onSelect: () => setPublishFor(t) }] : []),
+    { label: "Preview as student", icon: <Eye className="size-[15px]" aria-hidden />, onSelect: () => void openStudentPreview(t.testId) },
     ...(t.state !== "ended"
       ? [
           {
@@ -630,6 +636,26 @@ function Tests() {
         }}
       />
       <TestLinksDrawer test={linksFor} onClose={() => setLinksFor(null)} />
+      {publishFor && (
+        <PublishConfirmDialog
+          testId={publishFor.testId}
+          open
+          onOpenChange={(o) => !o && setPublishFor(null)}
+          fixHref={`/tests/${publishFor.testId}/edit`}
+          onConfirm={async () => {
+            try {
+              const r = await publishTest(publishFor.testId, "Tests list");
+              notify.success(`Published ${r.test.name}`, r.notified > 0 ? { description: `${r.notified.toLocaleString("en-IN")} students were told` } : undefined);
+            } catch (e) {
+              const a = apiError(e);
+              if (a.code === "NOT_READY") throw new Error("Not ready to publish: open it and fix the checks marked !.");
+              throw new Error(a.code === "NOT_DRAFT" ? "It's already published." : "Not published. The server didn't answer, so nothing was sent to students and the test is still a draft. Try again in a moment.");
+            } finally {
+              invalidate();
+            }
+          }}
+        />
+      )}
     </>
   );
 }

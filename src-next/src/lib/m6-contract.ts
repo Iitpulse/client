@@ -2016,3 +2016,197 @@ export type M6B45ErrorCode =
   | "LINK_EXPIRED" // 410
   | "LINK_REVOKED" // 410
   | "LINK_USED"; // 409: a test link signs in once
+
+/* ═══════════════════ M6 review additions (owner, 6 Nov 2026: staging review, design-gaps E2) ═══════════════════ */
+
+export type PublishWarningCode = "NEEDS_LATEX" | "WITHOUT_SOLUTION" | "EMPTY_KEY" | "MISSING_HINDI" | "OVERLAP" | "TEMPLATE_MISSING";
+
+/** GET /tests/admin/tests/:id/publish-preview [UPDATE_TEST]: the "Publish <test>?" confirm. Publishing stays POST …/publish. */
+export interface PublishPreview {
+  now: IsoDateTime;
+  /** false when a readiness check blocks (the confirm then lists `blocking` and offers "Fix") */
+  canPublish: boolean;
+  test: {
+    testId: string;
+    name: string;
+    shortName: string;
+    exam: { id: string; name: string } | null;
+    opensAt: IsoDateTime | null;
+    closesAt: IsoDateTime | null;
+    durationMinutes: number;
+    /** gradable items (paragraph children count) */
+    questions: number;
+    totalMarks: number;
+  };
+  template: { id: string; name: string; languageSwitch: boolean; calculator: boolean; roughSheet: boolean };
+  /** students = active students of that batch (null when users can't be reached) */
+  batches: Array<{ id: string; name: string; students: number | null }>;
+  /** distinct students across the batches; null when users can't be reached */
+  students: number | null;
+  /** students told = `students`; emailed = those whose "Test published" switch is on (null = unknown) */
+  notify: { students: number | null; emailed: number | null; emailOff: number | null; removed: number | null };
+  /** readiness checks at level "blocking" (ReadinessResponse.checks shape) */
+  blocking: ReadinessResponse["checks"];
+  warnings: Array<{
+    code: PublishWarningCode;
+    count: number;
+    /** "Physics Q7" style labels, at most 20 */
+    where: string[];
+    /** OVERLAP: the other tests of the same batches whose window overlaps */
+    tests?: Array<{ testId: string; name: string; opensAt: IsoDateTime | null; closesAt: IsoDateTime | null; batch: { id: string; name: string } }>;
+  }>;
+}
+
+/** users ← tests: POST /internal/users/notify/preview {kind, studentIds ≤ 1000}: notify's rules, nothing sent */
+export interface NotifyPreviewResponse {
+  willSend: number;
+  skippedByPreference: number;
+  skippedRemoved: number;
+  /** no usable email address */
+  noEmail: number;
+  notFound: number;
+}
+
+/** Added to M4 PracticeQuestion / PracticeCheck for redo and revision sets (all 5 types) */
+export interface PracticeQuestionExtrasM6 {
+  /** a paragraph child: its set's passage */
+  passage?: { en: RichText; hi: RichText | null } | null;
+  /** a matrix question: the grid (answer with check body { matrix: { A: ["P"] } }) */
+  matrix?: { rows: Array<{ id: string; en: RichText; hi: RichText | null }>; columns: Array<{ id: string; en: RichText; hi: RichText | null }> } | null;
+}
+export interface PracticeCheckExtrasM6 {
+  yourAnswer: { optionIds?: string[]; value?: number; matrix?: Record<string, string[]> };
+  correctAnswer: { optionIds?: string[]; range?: { min: number; max: number }; matches?: Record<string, string[]> };
+}
+
+/** POST /tests/student/results/:testId/redo */
+export interface RedoRequest {
+  /** "wrong" (default) = wrong or partial; "wrongAndSkipped" adds skipped */
+  include?: "wrong" | "wrongAndSkipped";
+  /** Batch 7: time from the source test (⌈duration × n ÷ question count⌉ minutes); default untimed. `minutes` is ignored. */
+  timed?: boolean;
+}
+
+/** Batch 7: the source test's rule for one question (redo/revision sets; null for bank practice) */
+export interface PracticeMarking {
+  correct: number;
+  incorrect: number;
+  /** partial marks by count (multiple-correct options / matrix rows right), as the pattern says */
+  partial: Array<{ count: number; marks: number }>;
+}
+/** Batch 7 additions: PracticeQuestion.marking, PracticeCheck.marks / maxMarks, PracticeSet.timed / score */
+export interface PracticeScoreM6 {
+  question: { marking: PracticeMarking | null };
+  check: { marks: number | null; maxMarks: number | null };
+  set: { timed: boolean; score: { marks: number; maxMarks: number; checked: number; total: number } | null };
+}
+export interface RedoResponse {
+  now: IsoDateTime;
+  /** false: the set made earlier for this test + include came back */
+  created: boolean;
+  /** M4 PracticeSet; questions carry PracticeQuestionExtrasM6 */
+  set: { id: string; title: string; createdAt: IsoDateTime; minutes: number | null; questions: Array<Record<string, unknown>> };
+}
+
+export interface RevisionItem {
+  id: string;
+  questionId: string;
+  testId: string;
+  test: { name: string; shortName: string };
+  /** paper number in that test */
+  n: number;
+  type: "single" | "multiple" | "integer" | "matrix";
+  subject: string | null;
+  chapter: string | null;
+  topic: string | null;
+  /** the student's outcome in that test */
+  outcome: "correct" | "partial" | "wrong" | "skipped";
+  /** plain text, ≤ 140 chars */
+  stemPreview: string;
+  note: string | null;
+  addedAt: IsoDateTime;
+  /** Batch 7: the source test's rule for this question */
+  marking: PracticeMarking | null;
+}
+/** GET /tests/student/revision?subject=&chapter=&testId=&q=&page=&pageSize= */
+export interface RevisionList {
+  now: IsoDateTime;
+  items: RevisionItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  facets: { subjects: Array<{ subject: string; count: number }>; chapters: Array<{ subject: string; chapter: string; count: number }> };
+}
+/** POST /tests/student/revision */
+export interface RevisionAddRequest {
+  items: Array<{ testId: string; questionId: string; note?: string | null }>;
+}
+export interface RevisionAddResponse {
+  now: IsoDateTime;
+  added: number;
+  /** already in the list (from this or another test) */
+  already: number;
+  items: RevisionItem[];
+}
+/** POST /tests/student/revision/practice: ids, or a filter (newest 100) */
+export interface RevisionPracticeRequest {
+  ids?: string[];
+  subject?: string;
+  chapter?: string;
+  /** Batch 7: ⌈sum of the items' seconds per question ÷ 60⌉ minutes; default untimed. `minutes` is ignored. */
+  timed?: boolean;
+}
+
+export type M6ReviewErrorCode =
+  | "NOTHING_TO_REDO" // 404: no question qualifies
+  | "NOTHING_TO_PRACTISE" // 404: no revision item matches the ids / filter
+  | "REVISION_FULL" // 409 details { limit: 2000 }
+  | "REVISION_ITEM_NOT_FOUND"; // 404
+
+/* ═══════════════════ Under-18 guardian consent (owner, 6 Nov 2026: build, don't block) — users ═══════════════════ */
+
+export type GuardianConsentState = "notRequired" | "needsDob" | "missing" | "waiting" | "expired" | "confirmed";
+
+/** GET/POST /users/student/me/guardian-consent, POST …/resend */
+export interface GuardianConsentStatus {
+  now: IsoDateTime;
+  /** null when the date of birth is unknown */
+  required: boolean | null;
+  status: GuardianConsentState;
+  guardian: { name: string | null; emailMasked: string } | null;
+  requestedAt: IsoDateTime | null;
+  expiresAt: IsoDateTime | null;
+  confirmedAt: IsoDateTime | null;
+  lastSentAt: IsoDateTime | null;
+  /** when "Send again" works (one a minute, 5 a day) */
+  resendAvailableAt: IsoDateTime | null;
+}
+/** POST /users/student/me/guardian-consent */
+export interface GuardianConsentRequest {
+  guardianEmail: string;
+  guardianName?: string | null;
+}
+/** GET /users/public/guardian-consent/:token, POST …/confirm { agree: true, guardianName? } */
+export interface GuardianConsentPublic {
+  now: IsoDateTime;
+  status: "pending" | "confirmed";
+  student: { firstName: string };
+  institute: { name: string };
+  guardian: { name: string | null; emailMasked: string };
+  expiresAt: IsoDateTime;
+  confirmedAt: IsoDateTime | null;
+  versions: { terms: string; privacy: string };
+}
+/** Admin user rows and detail (students; null for staff) */
+export interface AdminGuardianConsent {
+  required: boolean | null;
+  status: GuardianConsentState;
+  confirmedAt: IsoDateTime | null;
+}
+export type GuardianConsentErrorCode =
+  | "CONSENT_NOT_REQUIRED" // 409
+  | "DOB_REQUIRED" // 409
+  | "NOTHING_TO_RESEND" // 409
+  | "CONSENT_LINK_INVALID" // 404
+  | "CONSENT_LINK_EXPIRED" // 410
+  | "CONSENT_ALREADY_CONFIRMED"; // 409
