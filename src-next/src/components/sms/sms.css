@@ -36,7 +36,7 @@
 .ms-tile.wide { grid-column: span 2 }
 .ms-tile .l { font-size: 13px; color: #575C75 }
 .ms-tile b { font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums }
-.ms-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start }
+.ms-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; margin: 0 }
 @media (max-width: 1179px) {
   .ms-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)) }
   .ms-2 { grid-template-columns: minmax(0, 1fr) }
