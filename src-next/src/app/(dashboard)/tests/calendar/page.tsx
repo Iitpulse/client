@@ -431,8 +431,8 @@ function Calendar() {
                             ))}
                           </span>
                         )}
-                        {res.map((r) => (
-                          <span key={`${r.kind}-${r.test.testId}`} className="res">
+                        {res.map((r, ri) => (
+                          <span key={`${r.kind}-${r.test.testId}-${ri}`} className="res">
                             <Check className="size-[11px] shrink-0" strokeWidth={2.8} aria-hidden />
                             <span className="ell">{r.kind === "published" ? `Results: ${r.test.shortName ?? r.test.name}` : `${r.test.shortName ?? r.test.name} key corrected`}</span>
                           </span>
