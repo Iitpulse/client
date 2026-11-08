@@ -61,7 +61,12 @@ function show(v: unknown): string {
     const r = o.range as { from: number; to: number };
     return r.from === r.to ? String(r.from) : `${r.from}–${r.to}`;
   }
-  if (Array.isArray(o.optionIds)) return `${o.optionIds.length} option${o.optionIds.length === 1 ? "" : "s"}`;
+  if (Array.isArray(o.optionIds)) {
+    // option ids end in their letter (OP_…_B); otherwise say how many
+    const letters = (o.optionIds as unknown[]).map((id) => /[_-]([A-H])$/.exec(String(id))?.[1] ?? null);
+    return letters.every(Boolean) ? letters.join(", ") : `${o.optionIds.length} option${o.optionIds.length === 1 ? "" : "s"}`;
+  }
+  if (o.matches && typeof o.matches === "object") return Object.entries(o.matches as Record<string, string[]>).map(([r, c]) => `${r}→${c.join("")}`).join(", ");
   if (o.dropped) return "dropped";
   return JSON.stringify(v).slice(0, 80);
 }
@@ -142,9 +147,9 @@ export function HistoryPanel({ type, id, label, open, onClose }: { type: History
       footer={<span className="xs muted">From the audit log. Names, not IDs; IP addresses stay in the audit log.</span>}
     >
       <div className="col gap-3" data-testid="history-panel">
-        <div className="seg" role="radiogroup" aria-label="Show">
+        <div className="row wrap gap-1.5" role="radiogroup" aria-label="Show">
           {FILTERS[type].map(([k, l]) => (
-            <button key={k} type="button" role="radio" aria-checked={filter === k} className={`tab ${filter === k ? "on" : ""}`} onClick={() => setFilter(k)}>
+            <button key={k} type="button" role="radio" aria-checked={filter === k} className={`btn btn-sm ${filter === k ? "btn-secondary" : "btn-ghost"}`} onClick={() => setFilter(k)}>
               {l}
               {counts[k] !== undefined && k !== "all" ? <span className="muted"> {counts[k]}</span> : null}
             </button>
