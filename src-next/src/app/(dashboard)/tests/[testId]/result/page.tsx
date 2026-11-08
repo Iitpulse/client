@@ -16,6 +16,7 @@
 */
 
 import * as React from "react";
+import { timelineText } from "../monitor/format";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -249,20 +250,17 @@ function TimelineLine({ ev, nth }: { ev: MonitorStudentDetail["timeline"][number
     case "noContact":
       text = "No contact since";
       break;
-    case "extraTime":
-      text = `${d.minutes} more minutes${d.by ? ` from ${d.by}` : ""}${d.reason ? ` · ${d.reason}` : ""}`;
-      cls = "x";
-      break;
     case "submitted":
       text = "Submitted";
       cls = "s";
       break;
     case "autoSubmitted":
-      text = d.reason === "exitLimit" ? "Auto-submitted at the fullscreen exit limit" : "Auto-submitted · time ran out";
-      cls = d.reason === "exitLimit" ? "r" : "s";
+      text = d.reason === "exitLimit" ? "Auto-submitted at the fullscreen exit limit" : d.reason === "reentryDenied" ? "Saved answers submitted · re-entry denied" : "Auto-submitted · time ran out";
+      cls = d.reason === "exitLimit" || d.reason === "reentryDenied" ? "r" : "s";
       break;
     default:
-      text = String(ev.kind);
+      // extra time and the re-entry kinds (cameBack, signedOut, reentryRequested / Allowed / Denied), as in the Monitor
+      ({ text, cls } = timelineText(String(ev.kind), d));
   }
   return (
     <span className={`ev ${cls}`}>

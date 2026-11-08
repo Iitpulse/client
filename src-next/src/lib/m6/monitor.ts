@@ -3,6 +3,7 @@
     GET  /tests/admin/tests/:id/monitor?filter=&q=&batchId=&page=&pageSize=   [READ_TEST], polled every 15 s
     GET  /tests/admin/tests/:id/monitor/students/:sid                          [READ_TEST]
     POST /tests/admin/tests/:id/monitor/students/:sid/extra-time {minutes, reason}  [UPDATE_TEST]; reason required
+    POST /tests/admin/tests/:id/reentry/allow | deny (re-entry, batch 8; api-tests docs/reentry-api.md)  [UPDATE_TEST]
     GET  /tests/admin/tests/:id/monitor.csv
   "Copy their sign-in link" reads GET /users/admin/test-links?testId&batchId (the student's row).
   Sample data (area "monitor") while the routes are not on the backend: ./fixtures/monitor.ts.
@@ -15,10 +16,14 @@ import {
   type MonitorResponse,
   type MonitorStatus,
   type MonitorStudentDetail,
+  type ReentryAllowRequest,
+  type ReentryAllowResponse,
+  type ReentryDenyRequest,
+  type ReentryDenyResponse,
   type TestLinksResponse,
 } from "../m6-contract";
 import { m6Call, m6Tests, m6Users, scenario, source, unwrap } from "./client";
-import { fixtureExtraTime, fixtureMonitor, fixtureMonitorStudent, fixtureStudentLink } from "./fixtures/monitor";
+import { fixtureExtraTime, fixtureMonitor, fixtureMonitorStudent, fixtureReentry, fixtureStudentLink } from "./fixtures/monitor";
 
 /** Tile filters: a status, or "flagged" (fullscreen exits ≥ the flag line). */
 export type MonitorFilter = "all" | MonitorStatus | "flagged";
@@ -89,6 +94,26 @@ export function useGiveExtraTime(testId: string) {
     onSuccess: (_r, v) => {
       qc.invalidateQueries({ queryKey: ["m6", "monitor", testId] });
       qc.invalidateQueries({ queryKey: ["m6", "monitor-student", testId, v.studentId] });
+    },
+  });
+}
+
+/** Re-entry: Let back in (reason, optional extra time) or Deny (reason + note; submits the saved answers). */
+export function useReentryDecision(testId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { action: "allow"; body: ReentryAllowRequest } | { action: "deny"; body: ReentryDenyRequest }) =>
+      m6Call<ReentryAllowResponse & ReentryDenyResponse>(
+        "monitor",
+        async () =>
+          unwrap<ReentryAllowResponse & ReentryDenyResponse>(
+            (await m6Tests.post(`/admin/tests/${enc(testId)}/reentry/${v.action}`, v.body, source(v.action === "allow" ? "Monitor · Let back in" : "Monitor · Deny re-entry"))).data
+          ),
+        () => fixtureReentry(testId, v.action, v.body)
+      ),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["m6", "monitor", testId] });
+      qc.invalidateQueries({ queryKey: ["m6", "monitor-student", testId] });
     },
   });
 }

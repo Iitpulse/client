@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Lock, TriangleAlert } from "lucide-react";
-import type { FullscreenPolicy, PaperView, ResultMode, TestBuild, TestSettings, TestSettingsPatch } from "@/lib/m6-contract";
+import type { FullscreenPolicy, PaperView, ReentrySetting, ResultMode, TestBuild, TestSettings, TestSettingsPatch } from "@/lib/m6-contract";
 import { apiError, errCode, fieldErrors, useM6Source } from "@/lib/m6/client";
 import { builderKeys, createTest, patchTest, publishTest, RESULT_MODES, useExamPatterns, useExamTemplates, usePatternFull, useReadiness, useTestSettings } from "@/lib/m6/builder";
 import { paperKey, restorePaper, usePaper } from "@/lib/m6/paper";
@@ -49,6 +49,7 @@ import { Checks, checksLeft, type CheckFix } from "./Checks";
 import { openStudentPreview } from "@/lib/student-preview";
 import { PublishConfirmDialog } from "@/components/tests/publish-confirm";
 import { Sections } from "./Sections";
+import { ReEntryExplainer, ReEntrySetting, reentryMinutesError, reentryOf } from "./ReEntrySetting";
 
 type BuilderTest = TestSettings & { publishFailed?: { at: string; code: string } | null };
 
@@ -63,6 +64,7 @@ interface Form {
   resultMode: ResultMode;
   resultAfterDays: number;
   fullscreen: FullscreenPolicy;
+  reentry: ReentrySetting;
 }
 
 function formOf(t: TestSettings): Form {
@@ -77,6 +79,7 @@ function formOf(t: TestSettings): Form {
     resultMode: t.resultMode,
     resultAfterDays: t.resultAfterDays ?? 2,
     fullscreen: t.fullscreenPolicy,
+    reentry: reentryOf(t.reentry),
   };
 }
 
@@ -97,6 +100,7 @@ function diff(f: Form, t: TestSettings, names?: Map<string, string>): TestSettin
   if (f.resultMode !== base.resultMode) p.resultMode = f.resultMode;
   if (f.resultMode === "autoAfterXDays" && (f.resultAfterDays !== (t.resultAfterDays ?? 2) || p.resultMode)) p.resultAfterDays = f.resultAfterDays;
   if (JSON.stringify(f.fullscreen) !== JSON.stringify(base.fullscreen)) p.fullscreenPolicy = f.fullscreen;
+  if (f.reentry.policy !== base.reentry.policy || (f.reentry.policy === "crash" && f.reentry.minutes !== base.reentry.minutes)) p.reentry = f.reentry.policy === "crash" ? f.reentry : { policy: f.reentry.policy, minutes: base.reentry.minutes };
   return p;
 }
 
@@ -117,6 +121,7 @@ function changeSummary(p: TestSettingsPatch, t: TestSettings): string {
   if (p.templateId) parts.push("picked another exam screen");
   if (p.resultMode || p.resultAfterDays !== undefined) parts.push("changed when results come out");
   if (p.fullscreenPolicy) parts.push("changed the exam controls");
+  if (p.reentry) parts.push("changed re-entry");
   if (!parts.length) return "";
   const last = parts.pop();
   return `You ${parts.length ? `${parts.join(", ")} and ${last}` : last} to ${t.name}.`;
@@ -206,6 +211,9 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
   const patch = useMemo(() => (form && test ? diff(form, test, batchNames) : {}), [form, test, batchNames]);
   const dirty = Object.keys(patch).length > 0;
   const windowBad = !!form?.opensAt && !!form?.closesAt && Date.parse(form.closesAt) <= Date.parse(form.opensAt);
+  // re-entry stays editable while live (and after submissions) until the test ends
+  const reentryBad = !!form && !!reentryMinutesError(form.reentry);
+  const [explainReentry, setExplainReentry] = useState(false);
 
   const invalidate = useCallback(() => {
     if (!testId) return;
@@ -218,7 +226,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
   const save = useCallback(
     async (opts?: { quiet?: boolean }) => {
       if (!testId || !test || !form || !dirty) return true;
-      if (windowBad) {
+      if (windowBad || reentryBad) {
         setShowErrors(true);
         return false;
       }
@@ -249,15 +257,15 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [testId, test, form, dirty, patch, windowBad, qc, invalidate]
+    [testId, test, form, dirty, patch, windowBad, reentryBad, qc, invalidate]
   );
 
   // drafts save on their own a moment after each change
   useEffect(() => {
-    if (!dirty || state !== "draft" || locked || windowBad || saving || Object.keys(errors).length) return;
+    if (!dirty || state !== "draft" || locked || windowBad || reentryBad || saving || Object.keys(errors).length) return;
     const t = setTimeout(() => void save({ quiet: true }), 1200);
     return () => clearTimeout(t);
-  }, [dirty, state, locked, windowBad, saving, errors, save, form]);
+  }, [dirty, state, locked, windowBad, reentryBad, saving, errors, save, form]);
 
   /* leave guard: browser close and in-app links */
   useEffect(() => {
@@ -455,7 +463,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
         </button>
       )}
       {scheduled || locked ? (
-        <button type="button" className="btn btn-primary btn-sm" disabled={!dirty || saving || windowBad} onClick={() => void save()}>
+        <button type="button" className="btn btn-primary btn-sm" disabled={!dirty || saving || windowBad || reentryBad} onClick={() => void save()}>
           Save changes
         </button>
       ) : (
@@ -496,14 +504,16 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
           <Banner
             tone="warn"
             className="tb-wide"
-            title={live && !test.lockedBySubmissions ? "Students are writing this test now." : "Students have submitted this test."}
+            title={live ? "This test is live." : "Students have submitted this test."}
             action={
               <Link href={live ? `/tests/${test.id}/monitor` : `/tests/${test.id}/result`} className="btn btn-secondary">
                 {live ? "Open monitor" : "Open results"}
               </Link>
             }
           >
-            {live && !test.lockedBySubmissions ? "Only its name and note can change." : "Its questions, batches and window can't change now. Results settings live on the Results page."}
+            {live
+              ? `You can still change re-entry. It applies the next time a student comes back${test.reentryWaiting ? `; the ${test.reentryWaiting === 1 ? "student" : `${test.reentryWaiting} students`} waiting in the Monitor now keep${test.reentryWaiting === 1 ? "s" : ""} their request` : ""}. Name and note can change too; the rest is locked.`
+              : "Its questions, batches and window can't change now. Results settings live on the Results page."}
           </Banner>
         )}
         {test && correction && (
@@ -542,6 +552,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
           </div>
         )}
 
+        {form && explainReentry && <ReEntryExplainer value={form.reentry} onHide={() => setExplainReentry(false)} />}
         <div className="tb-left">
           {/* exam and pattern */}
           <section className="card pad-lg col" style={{ gap: 12 }} aria-labelledby="tb-ep">
@@ -838,6 +849,17 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
                       </span>
                     </>
                   )}
+                </div>
+                <div style={{ paddingTop: 12, borderTop: "1px solid var(--line-2)" }}>
+                  <ReEntrySetting
+                    value={isNew ? reentryOf(null) : f!.reentry}
+                    onChange={(v) => set({ reentry: v })}
+                    disabled={isNew || ended_}
+                    closesAt={isNew || !f!.closesAt ? null : istDateTime(f!.closesAt)}
+                    serverError={fe("reentry.minutes") ?? fe("reentry.policy")}
+                    explain={explainReentry}
+                    onToggleExplain={() => setExplainReentry((x) => !x)}
+                  />
                 </div>
               </>
             )}

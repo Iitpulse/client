@@ -11,7 +11,7 @@ import type { MonitorRow, MonitorStudentDetail } from "@/lib/m6-contract";
 import { apiError } from "@/lib/m6/client";
 import { useGiveExtraTime, useMonitorStudent } from "@/lib/m6/monitor";
 import { istTime } from "@/lib/m6/shared";
-import { clock, reasonText, seenLabel, STATUS_LABEL } from "./format";
+import { clock, reasonText, seenLabel, STATUS_LABEL, timelineText } from "./format";
 
 function TimelineLine({ ev }: { ev: MonitorStudentDetail["timeline"][number] }) {
   const d = ev.data as Record<string, unknown>;
@@ -38,20 +38,16 @@ function TimelineLine({ ev }: { ev: MonitorStudentDetail["timeline"][number] }) 
     case "noContact":
       text = "No contact since";
       break;
-    case "extraTime":
-      text = `${d.minutes} more minutes${d.by ? ` from ${d.by}` : ""}${d.reason ? ` · ${d.reason}` : ""}`;
-      cls = "x";
-      break;
     case "submitted":
       text = "Submitted";
       cls = "s";
       break;
     case "autoSubmitted":
-      text = d.reason === "exitLimit" ? "Auto-submitted at the fullscreen exit limit" : "Auto-submitted · time ran out";
+      text = d.reason === "exitLimit" ? "Auto-submitted at the fullscreen exit limit" : d.reason === "reentryDenied" ? "Saved answers submitted · re-entry denied" : "Auto-submitted · time ran out";
       cls = "s";
       break;
     default:
-      text = String(ev.kind);
+      ({ text, cls } = timelineText(String(ev.kind), d));
   }
   return (
     <span className={cx("ev", cls)}>
@@ -88,7 +84,7 @@ export function StudentDrawer({
   const q = useMonitorStudent(testId, open ? studentId : null);
   const d = q.data && q.data.row.student.id === studentId ? q.data : null;
   const row = d?.row ?? fallbackRow;
-  const running = row?.status === "writing" || row?.status === "offline";
+  const running = row?.status === "writing" || row?.status === "offline" || row?.status === "wantsBackIn";
   const left = row?.secondsLeft == null ? null : row.secondsLeft - Math.max(0, (now - q.dataUpdatedAt) / 1000);
   const allowed = d?.exitsAllowed ?? exitsLimit;
   const why = row ? reasonText(row, exitsLimit) : null;

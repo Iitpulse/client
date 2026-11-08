@@ -28,6 +28,7 @@ interface Extra {
   graceMinutes: number;
   template: Ref;
   fullscreenPolicy: TestSettings["fullscreenPolicy"];
+  reentry: NonNullable<TestSettings["reentry"]>;
 }
 const extras = new Map<string, Extra>();
 
@@ -80,6 +81,7 @@ async function extra(t: SampleTest): Promise<Extra> {
       graceMinutes: 2,
       template: await defaultTemplate(t.exam.id),
       fullscreenPolicy: { enabled: true, maxExits: 3, action: "warn" },
+      reentry: { policy: "crash", minutes: 5 },
     };
     extras.set(t.testId, e);
   }
@@ -135,6 +137,8 @@ async function toSettings(t: SampleTest): Promise<TestSettings> {
     resultMode: t.resultMode,
     resultAfterDays: t.resultAfterDays,
     fullscreenPolicy: e.fullscreenPolicy,
+    reentry: e.reentry,
+    reentryWaiting: t.state === "live" ? 2 : 0,
     lockedBySubmissions: t.submitted > 0,
     keyCorrections: corrections,
     updatedAt: now(),
@@ -186,13 +190,15 @@ export async function patchTest(id: string, patch: TestSettingsPatch): Promise<T
   const t = await find(id);
   const w = await sampleWorld();
   const e = await extra(t);
-  const onlyText = Object.keys(patch).every((k) => ["name", "shortName", "noteForStudents"].includes(k));
+  const onlyText = Object.keys(patch).every((k) => ["name", "shortName", "noteForStudents", "reentry"].includes(k));
   if ((t.state === "live" || t.submitted > 0) && !onlyText) throw fixtureError(409, "TEST_LOCKED", "Students have started this test, so only its name and note can change.");
   const fields: Record<string, { code: string; message: string }> = {};
   if (patch.name !== undefined && !patch.name.trim()) fields.name = { code: "REQUIRED", message: "Name the test" };
   if (patch.graceMinutes !== undefined && (patch.graceMinutes < 0 || patch.graceMinutes > 15)) fields.graceMinutes = { code: "RANGE", message: "Grace is 0 to 15 minutes" };
   const fp = patch.fullscreenPolicy;
   if (fp && (fp.maxExits < 1 || fp.maxExits > 10)) fields["fullscreenPolicy.maxExits"] = { code: "RANGE", message: "Allow 1 to 10 exits" };
+  const re = patch.reentry;
+  if (re && (!Number.isInteger(re.minutes) || re.minutes < 1 || re.minutes > 30)) fields["reentry.minutes"] = { code: "INVALID", message: "Pick 1 to 30 minutes" };
   if (Object.keys(fields).length) throw fixtureError(400, "VALIDATION_ERROR", "Check the highlighted fields.", { fields });
 
   const before = { opensAt: t.opensAt, closesAt: t.closesAt, batches: t.batches.map((b) => b.id).join() };
@@ -205,6 +211,7 @@ export async function patchTest(id: string, patch: TestSettingsPatch): Promise<T
   if (patch.resultMode !== undefined) t.resultMode = patch.resultMode;
   if (patch.resultAfterDays !== undefined) t.resultAfterDays = patch.resultAfterDays;
   if (fp) e.fullscreenPolicy = fp;
+  if (re) e.reentry = re;
   if (patch.batchIds) t.batches = patch.batchIds.map((id) => w.batches.find((b) => b.id === id) ?? { id, name: id });
   if (patch.templateId) {
     const tl = await templates(t.exam.id);

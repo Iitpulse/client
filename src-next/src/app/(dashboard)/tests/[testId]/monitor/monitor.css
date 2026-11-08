@@ -1,5 +1,7 @@
 /* Admin-Monitor board pieces: status tiles, status dots, exits colours, the timeline. Tokens from @iitpulse/ui. */
 .mo-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px }
+.mo-tiles:has(> :nth-child(7)) { grid-template-columns: repeat(7, minmax(0, 1fr)) }
+@media (max-width: 1179px) { .mo-tiles:has(> :nth-child(7)) { grid-template-columns: repeat(4, minmax(0, 1fr)) } }
 @media (max-width: 1179px) { .mo-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)) } }
 .mo-tile { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: left; font: inherit; color: inherit; cursor: pointer; transition: border-color 120ms var(--ease) }
 .mo-tile:hover { border-color: var(--navy-200) }
@@ -14,6 +16,9 @@
 .mo-dot.autoSubmitted { background: var(--amber) }
 .mo-dot.offline { background: var(--red-600) }
 .mo-dot.flagged { background: #E3B25C }
+.mo-dot.wantsBackIn { background: var(--amber) }
+.mo-stat.ask { color: #9A5800 }
+.mo-code { font: 600 12px var(--font-mono, ui-monospace, monospace); letter-spacing: .04em; padding: 1px 6px; border-radius: 6px; background: var(--amber-50); color: #9A5800; border: 1px solid #F1D3A0 }
 .mo-stat { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; white-space: nowrap }
 .mo-ex { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-variant-numeric: tabular-nums }
 .mo-ex.warn { color: var(--amber); font-weight: 600 }
@@ -29,3 +34,4 @@
 .mo-tl .ev.x::before { border-color: var(--navy); background: var(--navy-50) }
 .mo-facts { display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: 8px; column-gap: 12px; font-size: 13px }
 tr.hov > td { background: var(--navy-50) }
+.mo-why { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }

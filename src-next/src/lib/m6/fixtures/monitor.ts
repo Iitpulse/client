@@ -10,7 +10,12 @@ import type {
   MonitorResponse,
   MonitorRow,
   MonitorStatus,
+  MonitorReentryRow,
   MonitorStudentDetail,
+  ReentryAllowRequest,
+  ReentryAllowResponse,
+  ReentryDenyRequest,
+  ReentryDenyResponse,
   Ref,
 } from "../../m6-contract";
 import { fixtureError } from "../client";
@@ -215,7 +220,45 @@ function liveRow(s: SampleStudent, now: number): MonitorRow {
   return row;
 }
 
-const ORDER: Record<MonitorStatus, number> = { offline: 0, writing: 2, notStarted: 3, submitted: 4, autoSubmitted: 4 };
+const ORDER: Record<MonitorStatus, number> = { wantsBackIn: -1, offline: 0, writing: 2, notStarted: 3, submitted: 4, autoSubmitted: 4 };
+
+/* Re-entry sample (Admin-MonitorResume): on a live test the first two offline students ask to come back in. */
+const REENTRY_WHY: Array<Pick<MonitorReentryRow, "why" | "facts" | "deviceKind">> = [
+  { why: "tooLate", deviceKind: "desktop", facts: { policy: "crash", minutes: 5, minutesSinceSave: 18, endReason: null, deviceKind: "desktop", previousDeviceKind: "desktop" } },
+  { why: "signedOut", deviceKind: "desktop", facts: { policy: "crash", minutes: 5, minutesSinceSave: 35, endReason: "signout", deviceKind: "desktop", previousDeviceKind: "desktop" } },
+];
+const reentryDone = new Map<string, "allowed" | "denied">();
+function withReentry(m: SampleMonitor, rows: MonitorRow[], now: number): MonitorRow[] {
+  if (m.test.state !== "live") return rows;
+  let n = 0;
+  return rows.map((r) => {
+    if (r.status !== "offline" || n >= REENTRY_WHY.length) return r;
+    const w = REENTRY_WHY[n++]!;
+    const done = reentryDone.get(r.student.id);
+    if (done === "denied") return { ...r, status: "autoSubmitted", reason: "reentryDenied", reasonAt: new Date(now).toISOString(), secondsLeft: null };
+    const leftAt = r.lastSeenAt ?? new Date(now - 10 * 60_000).toISOString();
+    const code = ["R7K-42", "M3P-08"][n - 1]!;
+    return {
+      ...r,
+      status: done === "allowed" ? "offline" : "wantsBackIn",
+      reentry: {
+        requestId: `sample-req-${r.student.id}`,
+        code,
+        status: done === "allowed" ? "allowed" : "waiting",
+        why: w.why,
+        facts: { ...w.facts, lastSaveAt: leftAt, leftAt },
+        deviceKind: w.deviceKind,
+        since: new Date(now - (4 + n) * 60_000).toISOString(),
+        decidedAt: done ? new Date(now).toISOString() : null,
+        decidedBy: done ? { id: "sample-me", name: "You" } : null,
+        reason: done ? "deviceCrashed" : null,
+        note: null,
+        extraMinutes: 0,
+        allowUntil: done ? new Date(now + 15 * 60_000).toISOString() : null,
+      },
+    };
+  });
+}
 
 export async function fixtureMonitor(
   testId: string,
@@ -224,11 +267,12 @@ export async function fixtureMonitor(
 ): Promise<MonitorResponse> {
   const m = await store(testId);
   const now = Date.now();
-  const all = empty ? [] : m.students.map((s) => liveRow(s, now));
+  const all = empty ? [] : withReentry(m, m.students.map((s) => liveRow(s, now)), now);
   const t = m.test;
-  const tiles: MonitorResponse["tiles"] = { writing: 0, submitted: 0, notStarted: 0, waiting: 0, neverOpened: 0, autoSubmitted: 0, offline: 0, exitsFlagged: 0 };
+  const tiles: MonitorResponse["tiles"] = { writing: 0, submitted: 0, notStarted: 0, waiting: 0, neverOpened: 0, autoSubmitted: 0, offline: 0, exitsFlagged: 0, wantsBackIn: 0 };
   for (const r of all) {
-    if (r.status === "writing") tiles.writing++;
+    if (r.status === "wantsBackIn") tiles.wantsBackIn!++;
+    else if (r.status === "writing") tiles.writing++;
     else if (r.status === "offline") tiles.offline++;
     else if (r.status === "submitted") tiles.submitted++;
     else if (r.status === "autoSubmitted") {
@@ -252,6 +296,7 @@ export async function fixtureMonitor(
       case "submitted":
         return r.status === "submitted" || r.status === "autoSubmitted";
       case "writing":
+      case "wantsBackIn":
       case "notStarted":
       case "autoSubmitted":
       case "offline":
@@ -264,7 +309,7 @@ export async function fixtureMonitor(
     }
   });
   const rank = (r: MonitorRow) =>
-    r.status === "offline" ? 0 : r.fullscreenExits >= m.exitsFlagAt && r.status !== "submitted" ? 1 : r.status === "notStarted" && r.reason !== "neverOpened" ? 2.5 : ORDER[r.status];
+    r.status === "wantsBackIn" ? -1 : r.status === "offline" ? 0 : r.fullscreenExits >= m.exitsFlagAt && r.status !== "submitted" ? 1 : r.status === "notStarted" && r.reason !== "neverOpened" ? 2.5 : ORDER[r.status];
   items = items.sort((a, b) => rank(a) - rank(b) || b.fullscreenExits - a.fullscreenExits || (a.secondsLeft ?? 1e9) - (b.secondsLeft ?? 1e9) || a.student.name.localeCompare(b.student.name));
   const page = q.page ?? 1;
   const pageSize = q.pageSize ?? 25;
@@ -285,6 +330,7 @@ export async function fixtureMonitor(
     tiles,
     exitsFlagAt: m.exitsFlagAt,
     exitsLimit: m.exitsLimit,
+    reentry: { policy: "crash", minutes: 5, waiting: tiles.wantsBackIn ?? 0, cameBackByThemselves: 2 },
     items: items.slice((page - 1) * pageSize, page * pageSize),
     pageInfo: { page, pageSize, total: items.length },
   };
@@ -294,7 +340,7 @@ export async function fixtureMonitorStudent(testId: string, studentId: string): 
   const m = await store(testId);
   const s = m.students.find((x) => x.row.student.id === studentId);
   if (!s) throw fixtureError(404, "NOT_FOUND", "This student isn't in this test's batches.");
-  const row = liveRow(s, Date.now());
+  const row = withReentry(m, m.students.map((x) => liveRow(x, Date.now())), Date.now()).find((x) => x.student.id === studentId) ?? liveRow(s, Date.now());
   const per = m.sections.map((section, i) => ({ section, answered: Math.floor(row.answered / m.sections.length) + (i < row.answered % m.sections.length ? 1 : 0) }));
   return {
     now: new Date().toISOString(),
@@ -342,4 +388,26 @@ export function fixtureStudentLink(testId: string, studentId: string): string {
   }
   const base = process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "http://localhost:3001";
   return `${base.replace(/\/$/, "")}/auth/${key}/${testId}`;
+}
+
+/** POST …/reentry/allow and …/reentry/deny in sample mode. */
+export async function fixtureReentry(testId: string, action: "allow" | "deny", body: ReentryAllowRequest | ReentryDenyRequest): Promise<ReentryAllowResponse & ReentryDenyResponse> {
+  const m = await store(testId);
+  const now = Date.now();
+  const rows = withReentry(m, m.students.map((x) => liveRow(x, now)), now);
+  if (!body.reason) throw fixtureError(400, "VALIDATION_ERROR", "Check the highlighted fields", { fields: { reason: { code: "REQUIRED", message: "Pick a reason" } } });
+  if (action === "deny" && (body.note ?? "").trim().length < 3)
+    throw fixtureError(400, "VALIDATION_ERROR", "Check the highlighted fields", { fields: { note: { code: "REQUIRED", message: "Write what happened. It goes in the audit log and the report." } } });
+  const results = body.studentIds.map((id) => {
+    const r = rows.find((x) => x.student.id === id);
+    if (!r?.reentry || r.reentry.status !== "waiting") return { studentId: id, ok: false as const, error: { code: "NO_REQUEST", message: "This student is not waiting to come back in" } };
+    reentryDone.set(id, action === "allow" ? "allowed" : "denied");
+    const s = m.students.find((x) => x.row.student.id === id)!;
+    s.timeline.push({ at: new Date(now).toISOString(), kind: action === "allow" ? "reentryAllowed" : "reentryDenied", data: { code: r.reentry.code, reason: body.reason, by: { name: "You" } } });
+    return { studentId: id, ok: true as const, code: r.reentry.code, answered: r.answered };
+  });
+  if (body.studentIds.length === 1 && !results[0]!.ok) throw fixtureError(409, "NO_REQUEST", "This student is not waiting to come back in");
+  const n = results.filter((r) => r.ok).length;
+  const extra = "extraMinutes" in body ? (body.extraMinutes ?? 0) : 0;
+  return { now: new Date(now).toISOString(), allowUntil: new Date(now + 15 * 60_000).toISOString(), extraMinutes: extra, allowed: n, denied: n, results };
 }

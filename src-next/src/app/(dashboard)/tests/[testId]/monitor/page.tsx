@@ -5,6 +5,8 @@
   offline, loading, empty, error; desktop + tablet) + Kit-States "No permission" / not found.
   Data: src/lib/m6/monitor.ts (GET …/monitor every 15 s; the time left ticks locally between polls on each student's
   own clock). Extra time: 5/10/15/30 min, reason required (owner; the board's "optional" label is wrong). No force-submit.
+  Re-entry (Admin-MonitorResume, batch 8): "Wants back in" rows first with the code on the student's screen, Let back in /
+  Deny (UPDATE_TEST), several at once; the tile shows only while someone waits.
   Filters (tile, search, batch, page) live in the URL (kit useUrlState).
 */
 
@@ -15,6 +17,8 @@ import { Clock, CircleUserRound, Link2, Phone } from "lucide-react";
 import { Topbar } from "@/components/admin/Topbar";
 import {
   Banner,
+  BulkBar,
+  CheckBox,
   cx,
   DataTable,
   FilterBar,
@@ -35,8 +39,10 @@ import type { MonitorResponse, MonitorRow, ResultMode } from "@/lib/m6-contract"
 import { apiError, useM6Source } from "@/lib/m6/client";
 import { fetchMonitorCsv, fetchStudentLink, useMonitor, type MonitorFilter } from "@/lib/m6/monitor";
 import { istDate, istDay, istTime, plural } from "@/lib/m6/shared";
-import { clock, reasonText, seenLabel, STATUS_LABEL } from "./format";
+import { clock, policyLine, reasonText, seenLabel, STATUS_LABEL, waitingLabel } from "./format";
 import { ExtraTimeDialog, StudentDrawer } from "./parts";
+import { AllowDialog, DenyDialog } from "./reentry-dialogs";
+import { useCan } from "@/lib/m6/people";
 import "./monitor.css";
 
 const PAGE_SIZE = 100;
@@ -102,6 +108,8 @@ type Tile = { key: MonitorFilter; label: string; n: number; sub: string };
 function tilesOf(d: MonitorResponse, before: boolean): Tile[] {
   const t = d.tiles;
   return [
+    // re-entry: only while someone waits for staff
+    ...(t.wantsBackIn ? [{ key: "wantsBackIn" as MonitorFilter, label: "Wants back in", n: t.wantsBackIn, sub: "waiting for staff" }] : []),
     { key: "writing", label: "Writing", n: t.writing, sub: "now" },
     { key: "submitted", label: "Submitted", n: t.submitted, sub: d.assigned != null ? `of ${d.assigned.toLocaleString("en-IN")}` : "" },
     { key: "notStarted", label: "Not started", n: t.notStarted, sub: before ? `${t.waiting} waiting` : `${t.neverOpened} never opened` },
@@ -113,6 +121,7 @@ function tilesOf(d: MonitorResponse, before: boolean): Tile[] {
 
 const DOT: Record<MonitorFilter, string> = {
   all: "",
+  wantsBackIn: "wantsBackIn",
   writing: "writing",
   submitted: "submitted",
   notStarted: "notStarted",
@@ -121,7 +130,7 @@ const DOT: Record<MonitorFilter, string> = {
   flagged: "flagged",
 };
 
-const FILTERS: MonitorFilter[] = ["all", "writing", "submitted", "notStarted", "autoSubmitted", "offline", "flagged"];
+const FILTERS: MonitorFilter[] = ["all", "wantsBackIn", "writing", "submitted", "notStarted", "autoSubmitted", "offline", "flagged"];
 
 export default function MonitorPage() {
   const { testId } = useParams<{ testId: string }>();
@@ -131,6 +140,10 @@ export default function MonitorPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [extraFor, setExtraFor] = useState<MonitorRow | null>(null);
   const [csvBusy, setCsvBusy] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [decide, setDecide] = useState<{ action: "allow" | "deny"; ids: string[] } | null>(null);
+  const { can } = useCan();
+  const mayDecide = can("UPDATE_TEST");
 
   const mon = useMonitor(testId, { filter, q: u.q, batchId: u.batch, page, pageSize: PAGE_SIZE });
   const sample = useM6Source("monitor") === "sample";
@@ -152,6 +165,10 @@ export default function MonitorPage() {
   const leftNow = (r: MonitorRow) => (r.secondsLeft == null ? null : r.secondsLeft - Math.max(0, (now - mon.dataUpdatedAt) / 1000));
   const rows = d?.items ?? [];
   const detailRow = rows.find((r) => r.student.id === detailId) ?? null;
+  const waitingRows = rows.filter((r) => r.status === "wantsBackIn" && r.reentry?.status === "waiting");
+  const pickedRows = waitingRows.filter((r) => picked.has(r.student.id));
+  const showDecide = mayDecide && waitingRows.length > 0;
+  const wantN = d?.tiles.wantsBackIn ?? 0;
 
   const exportCsv = async () => {
     setCsvBusy(true);
@@ -219,7 +236,30 @@ export default function MonitorPage() {
         ? `${windowLabel(t.opensAt, t.closesAt)}${d!.assigned ? ` · ${plural(d!.assigned, "student")}` : ""}`
           : `Closes ${istTime(t.closesAt)}${t.closesAt && istDay(t.closesAt) !== istDay(new Date(now)) ? ` ${istDay(t.closesAt) === istDay(new Date(now + 86_400_000)) ? "tomorrow" : `on ${istDate(t.closesAt)}`}` : ""}${d!.assigned ? ` · ${plural(d!.assigned, "student")} in ${plural(batches.length, "batch", "batches")}` : ""}`;
 
+  const selectCol: Column<MonitorRow> = {
+    key: "pick",
+    width: 44,
+    header: <span className="sr-only">Select</span>,
+    render: (r) =>
+      r.status === "wantsBackIn" && r.reentry?.status === "waiting" ? (
+        <label className="k-check" style={{ minHeight: 0 }} onClick={(e) => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={picked.has(r.student.id)}
+            aria-label={`Select ${r.student.name}`}
+            onChange={() => {
+              const n = new Set(picked);
+              if (n.has(r.student.id)) n.delete(r.student.id);
+              else n.add(r.student.id);
+              setPicked(n);
+            }}
+          />
+          <CheckBox on={picked.has(r.student.id)} />
+        </label>
+      ) : null,
+  };
   const columns: Array<Column<MonitorRow>> = [
+    ...(showDecide ? [selectCol] : []),
     {
       key: "student",
       width: "24%",
@@ -240,13 +280,22 @@ export default function MonitorPage() {
       header: "Status",
       render: (r) => {
         const why = reasonText(r, d!.exitsLimit);
+        const q = r.status === "wantsBackIn" ? r.reentry : null;
         return (
           <span className="col gap-0.5">
-            <span className="mo-stat">
+            <span className={cx("mo-stat", q && "ask")}>
               <span className={cx("mo-dot", r.status)} />
               {STATUS_LABEL[r.status]}
             </span>
-            {why && <span className="xs muted">{why}</span>}
+            {q && (
+              <span className="row gap-1.5 xs muted num">
+                <span className="mo-code" title="The code on the student's waiting screen">
+                  {q.code}
+                </span>
+                {waitingLabel(q.since, now)}
+              </span>
+            )}
+            {why && <span className={cx("xs muted", q && "mo-why")}>{why}</span>}
           </span>
         );
       },
@@ -276,7 +325,7 @@ export default function MonitorPage() {
       header: "Time left",
       align: "num",
       tablet: "hide",
-      render: (r) => <span className="sm num">{r.status === "writing" || r.status === "offline" ? clock(leftNow(r)) : "—"}</span>,
+      render: (r) => <span className="sm num">{r.status === "writing" || r.status === "offline" || r.status === "wantsBackIn" ? clock(leftNow(r)) : "—"}</span>,
     },
     {
       key: "exits",
@@ -296,7 +345,34 @@ export default function MonitorPage() {
         <span className={cx("sm mo-seen whitespace-nowrap", r.status === "offline" && "off")}>{seenLabel(r.lastSeenAt, now, r.status === "writing" || r.status === "offline")}</span>
       ),
     },
+    ...(showDecide
+      ? [
+          {
+            key: "decide",
+            width: 196,
+            header: <span className="sr-only">Re-entry</span>,
+            render: (r: MonitorRow) =>
+              r.status === "wantsBackIn" && r.reentry?.status === "waiting" ? (
+                <span className="row gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDecide({ action: "deny", ids: [r.student.id] })}>
+                    Deny
+                  </button>
+                  <button type="button" className="btn btn-primary btn-sm" onClick={() => setDecide({ action: "allow", ids: [r.student.id] })}>
+                    Let back in
+                  </button>
+                </span>
+              ) : null,
+          } satisfies Column<MonitorRow>,
+        ]
+      : []),
   ];
+
+  // someone waits to come back in: room for the reasons and the buttons (Started and Last seen fold away)
+  const shownColumns = showDecide
+    ? columns
+        .filter((c) => c.key !== "started" && c.key !== "seen")
+        .map((c) => (c.key === "student" ? { ...c, width: "20%" } : c.key === "status" ? { ...c, width: "30%" } : c.key === "answered" ? { ...c, width: 120 } : c.key === "exits" ? { ...c, width: 96, header: "Exits" } : c))
+    : columns;
 
   const menu = (r: MonitorRow): RowMenuItem[] => {
     const items: RowMenuItem[] = [
@@ -311,7 +387,11 @@ export default function MonitorPage() {
           window.location.href = `tel:+91${r.student.phone!.replace(/\D/g, "").slice(-10)}`;
         },
       });
-    if (r.status === "writing" || r.status === "offline")
+    if (r.status === "wantsBackIn" && r.reentry?.status === "waiting" && mayDecide) {
+      items.push({ label: "Let back in…", onSelect: () => setDecide({ action: "allow", ids: [r.student.id] }) });
+      items.push({ label: "Deny and submit…", danger: true, onSelect: () => setDecide({ action: "deny", ids: [r.student.id] }) });
+    }
+    if (r.status === "writing" || r.status === "offline" || r.status === "wantsBackIn")
       items.push({ label: "Give extra time…", icon: <Clock className="size-[15px]" aria-hidden />, onSelect: () => setExtraFor(r) });
     return items;
   };
@@ -361,6 +441,24 @@ export default function MonitorPage() {
           <Banner tone="warn" title="Couldn't refresh.">
             Showing what we had at {updatedAt}. We&apos;ll keep trying every 15 s.
           </Banner>
+        )}
+        {d && live && wantN > 0 && (
+          <Banner
+            tone="warn"
+            title={wantN === 1 ? "1 student wants to come back in." : `${wantN} students want to come back in.`}
+            action={
+              <Link href={`/tests/${testId}/edit`} className="btn btn-secondary">
+                Re-entry setting
+              </Link>
+            }
+          >
+            {policyLine(d.reentry)} Their clock is still running.
+          </Banner>
+        )}
+        {d && live && wantN === 0 && !!d.reentry?.cameBackByThemselves && (
+          <span className="xs muted">
+            No one is waiting to come back in. {d.reentry.cameBackByThemselves === 1 ? "1 student came" : `${d.reentry.cameBackByThemselves} students came`} back by themselves; it&apos;s in their timeline.
+          </span>
         )}
         {d && before && !empty && (
           <Banner
@@ -455,7 +553,7 @@ export default function MonitorPage() {
         ) : (
           <DataTable<MonitorRow>
             ariaLabel="Students in this test"
-            columns={columns}
+            columns={shownColumns}
             rows={d ? rows : undefined}
             rowKey={(r) => r.student.id}
             status={d ? "ready" : loading ? "loading" : "error"}
@@ -484,6 +582,7 @@ export default function MonitorPage() {
             }}
             footer={
               <div className="col">
+                {showDecide && <span className="xs muted px-3.5 pt-2">The code is on the student&apos;s waiting screen. Check it matches before letting someone back in.</span>}
                 {d && d.pageInfo.total > PAGE_SIZE && (
                   <Pagination page={page} pageSize={PAGE_SIZE} total={d.pageInfo.total} sizes={[PAGE_SIZE]} onPage={(p) => setU({ page: String(p) })} />
                 )}
@@ -514,6 +613,40 @@ export default function MonitorPage() {
           onExtraTime={(r) => {
             setDetailId(null);
             setExtraFor(r);
+          }}
+        />
+      )}
+      {showDecide && !decide && (
+        <BulkBar count={pickedRows.length} onClear={() => setPicked(new Set())}>
+          <button type="button" className="btn btn-ghost" onClick={() => setDecide({ action: "deny", ids: pickedRows.map((r) => r.student.id) })}>
+            Deny {pickedRows.length}
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => setDecide({ action: "allow", ids: pickedRows.map((r) => r.student.id) })}>
+            Let {pickedRows.length} back in
+          </button>
+        </BulkBar>
+      )}
+      {d && decide && decide.action === "allow" && (
+        <AllowDialog
+          testId={testId}
+          rows={rows.filter((r) => decide.ids.includes(r.student.id)).map((r) => ({ ...r, secondsLeft: leftNow(r) }))}
+          total={total}
+          exitsAllowed={d.exitsLimit}
+          now={now}
+          policy={d.reentry}
+          onClose={() => {
+            setDecide(null);
+            setPicked(new Set());
+          }}
+        />
+      )}
+      {d && decide && decide.action === "deny" && (
+        <DenyDialog
+          testId={testId}
+          rows={rows.filter((r) => decide.ids.includes(r.student.id))}
+          onClose={() => {
+            setDecide(null);
+            setPicked(new Set());
           }}
         />
       )}

@@ -989,12 +989,16 @@ export interface TestSettings {
   resultMode: ResultMode;
   resultAfterDays: number | null;
   fullscreenPolicy: FullscreenPolicy;
+  /** re-entry (batch 8, api-tests docs/reentry-api.md); editable while live; absent on older backends = crash / 5 */
+  reentry?: ReentrySetting;
+  /** re-entry requests waiting in the Monitor now */
+  reentryWaiting?: number;
   /** someone submitted: only name, note, hideResult change (TEST_LOCKED) */
   lockedBySubmissions: boolean;
   keyCorrections: KeyCorrection[];
   updatedAt: IsoDateTime;
 }
-export type TestSettingsPatch = Partial<Pick<TestSettings, "name" | "shortName" | "noteForStudents" | "opensAt" | "closesAt" | "graceMinutes" | "resultMode" | "resultAfterDays" | "fullscreenPolicy">> & {
+export type TestSettingsPatch = Partial<Pick<TestSettings, "name" | "shortName" | "noteForStudents" | "opensAt" | "closesAt" | "graceMinutes" | "resultMode" | "resultAfterDays" | "fullscreenPolicy" | "reentry">> & {
   batchIds?: string[];
   templateId?: string;
 };
@@ -1149,7 +1153,77 @@ export interface FillPreviewResponse {
 
 /* ═══════════════════════════════ tests: live Monitor + extra time ═══════════════════════════════ */
 
-export type MonitorStatus = "writing" | "submitted" | "notStarted" | "autoSubmitted" | "offline";
+export type MonitorStatus = "writing" | "submitted" | "notStarted" | "autoSubmitted" | "offline" | "wantsBackIn";
+
+/* re-entry (batch 8; api-tests docs/reentry-api.md) */
+export type ReentryPolicy = "once" | "crash" | "any";
+export interface ReentrySetting {
+  policy: ReentryPolicy;
+  /** N for "Resume after a crash" (1–30) */
+  minutes: number;
+}
+export type ReentryWhy = "signedOut" | "tooLate" | "newDevice" | "otherDevice" | "onceOnly";
+export type DeviceKind = "desktop" | "phone" | "tablet";
+export interface ReentryFacts {
+  policy?: ReentryPolicy;
+  minutes?: number;
+  lastSaveAt?: IsoDateTime | null;
+  minutesSinceSave?: number | null;
+  endReason?: "signout" | "submit" | "replaced" | "denied" | null;
+  leftAt?: IsoDateTime | null;
+  deviceKind?: DeviceKind | null;
+  previousDeviceKind?: DeviceKind | null;
+}
+export interface MonitorReentryRow {
+  requestId: string;
+  /** "R7K-42", shown on the student's waiting screen */
+  code: string;
+  status: "waiting" | "allowed";
+  why: ReentryWhy;
+  facts: ReentryFacts;
+  deviceKind: DeviceKind | null;
+  since: IsoDateTime;
+  decidedAt: IsoDateTime | null;
+  decidedBy: { id: string; name: string | null } | null;
+  reason: string | null;
+  note: string | null;
+  extraMinutes: number;
+  allowUntil: IsoDateTime | null;
+}
+export interface MonitorCameBack {
+  at: IsoDateTime;
+  how: "auto" | "takeover" | "approved";
+  newDevice: boolean;
+  deviceKind: DeviceKind | null;
+}
+export type ReentryAllowReason = "powerCut" | "deviceCrashed" | "internetDropped" | "other";
+export type ReentryDenyReason = "leftWithoutAsking" | "suspectedCopying" | "other";
+/** POST /tests/admin/tests/:id/reentry/allow */
+export interface ReentryAllowRequest {
+  studentIds: string[];
+  reason: ReentryAllowReason;
+  note?: string;
+  extraMinutes?: number;
+}
+/** POST /tests/admin/tests/:id/reentry/deny */
+export interface ReentryDenyRequest {
+  studentIds: string[];
+  reason: ReentryDenyReason;
+  note: string;
+}
+export type ReentryOutcome = { studentId: string; ok: true; code: string; answered?: number } | { studentId: string; ok: false; error: { code: string; message: string } };
+export interface ReentryAllowResponse {
+  now: IsoDateTime;
+  allowUntil: IsoDateTime;
+  extraMinutes: number;
+  allowed: number;
+  results: ReentryOutcome[];
+}
+export interface ReentryDenyResponse {
+  now: IsoDateTime;
+  denied: number;
+  results: ReentryOutcome[];
+}
 
 /** GET /tests/admin/tests/:id/monitor?filter=&q=&batchId=&page=&pageSize= (poll every 15 s) */
 export interface MonitorResponse {
@@ -1168,7 +1242,11 @@ export interface MonitorResponse {
     offline: number;
     /** fullscreen exits ≥ exitsFlagAt */
     exitsFlagged: number;
+    /** re-entry: waiting for staff (batch 8) */
+    wantsBackIn?: number;
   };
+  /** re-entry setting and counts (batch 8) */
+  reentry?: ReentrySetting & { waiting: number; cameBackByThemselves: number };
   /** "2+ fullscreen exits · limit is 3": policy maxExits − 1 when the policy is on, else 3 (M5 threshold) */
   exitsFlagAt: number;
   exitsLimit: number | null;
@@ -1179,7 +1257,7 @@ export interface MonitorRow {
   student: { id: string; name: string; batch: Ref | null; phone: string | null };
   status: MonitorStatus;
   /** "3rd fullscreen exit" / "Time ran out" / "Opened the link at 9:40 AM" / "Never opened the link" */
-  reason: "exitLimit" | "timeUp" | "openedLink" | "neverOpened" | "waitingOnInstructions" | null;
+  reason: "exitLimit" | "timeUp" | "reentryDenied" | "openedLink" | "neverOpened" | "waitingOnInstructions" | null;
   reasonAt: IsoDateTime | null;
   startedAt: IsoDateTime | null;
   answered: number;
@@ -1189,6 +1267,10 @@ export interface MonitorRow {
   /** last autosave (or link open / submit) */
   lastSeenAt: IsoDateTime | null;
   extraMinutes: number;
+  /** re-entry: the open request (waiting, or allowed and not used yet) */
+  reentry?: MonitorReentryRow | null;
+  /** re-entry: the latest return (not the first sitting) */
+  cameBack?: MonitorCameBack | null;
 }
 /** GET /tests/admin/tests/:id/monitor/students/:studentId */
 export interface MonitorStudentDetail {
@@ -1199,7 +1281,7 @@ export interface MonitorStudentDetail {
   exitsAllowed: number | null;
   timeline: Array<{
     at: IsoDateTime;
-    kind: "linkOpened" | "started" | "fullscreenExit" | "answerSaved" | "noContact" | "extraTime" | "submitted" | "autoSubmitted";
+    kind: "linkOpened" | "started" | "fullscreenExit" | "answerSaved" | "noContact" | "extraTime" | "submitted" | "autoSubmitted" | "cameBack" | "signedOut" | "reentryRequested" | "reentryAllowed" | "reentryDenied";
     /** fullscreenExit: { durationSeconds|null, action: "warned"|"submitted" }; answerSaved: { question: "Maths Q9" }; extraTime: { minutes, by, reason } */
     data: Record<string, unknown>;
   }>;
