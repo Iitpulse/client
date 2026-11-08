@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Field, KitDialog, ReauthDialog, Segmented, TextInput, apiError, notify } from "@/components/kit";
 import { authV2, type InviteRow } from "@/lib/m7b-auth";
-import { useMe } from "@/lib/m6/people";
+import { isAdminUser, useMe } from "@/lib/m6/people";
 import { auth } from "@/lib/session";
 
 type StaffType = "teacher" | "admin" | "operator" | "manager";
@@ -36,7 +36,7 @@ export function useOwner(): { owner: boolean; loading: boolean } {
 export function InviteStaffDialog({ open, onOpenChange, defaultType = "teacher" }: { open: boolean; onOpenChange: (o: boolean) => void; defaultType?: StaffType }) {
   const qc = useQueryClient();
   const me = useMe();
-  const isAdmin = me.data?.user.userType === "admin";
+  const isAdmin = isAdminUser(me.data?.user);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [type, setType] = useState<StaffType>(defaultType);

@@ -127,7 +127,7 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         });
       }
 
-      if (currentUser?.userType === "admin") hasAccess.branding = true;
+      if (currentUser?.roles?.ROLE_ADMIN) hasAccess.branding = true; // admin = the Admin role (users 0013)
       console.log("[Permissions] Final hasAccess:", hasAccess);
       set({ allRoles: roles, permissions, hasAccess, isLoading: false });
     } catch (error: unknown) {
@@ -136,7 +136,7 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         (error as { response?: { data?: { message?: string } } })?.response?.data
           ?.message || "Failed to fetch roles";
       // Branding needs no role list: admins always have it (M7b)
-      set({ error: message, isLoading: false, hasAccess: { ...getDefaultAccess(), branding: useAuthStore.getState().currentUser?.userType === "admin" } });
+      set({ error: message, isLoading: false, hasAccess: { ...getDefaultAccess(), branding: !!useAuthStore.getState().currentUser?.roles?.ROLE_ADMIN } });
     }
   },
 

@@ -436,6 +436,15 @@ export interface PermissionCatalog {
     delete: string | null;
     also: Array<{ label: string; key: string }>;
   }>;
+  /** M7b role templates (users docs/m7b-permissions.md §2): starting points for "New role" (POST … { templateKey }) */
+  templates?: RoleTemplate[];
+}
+export interface RoleTemplate {
+  key: string;
+  name: string;
+  description: string;
+  scopeKind: string;
+  permissions: string[];
 }
 
 /** New permission key (M6): run AI generation (assist, bulk drafts, AI test builder, paper parse with a model, image-to-LaTeX) */
@@ -462,6 +471,8 @@ export interface RoleWriteRequest {
   name?: string;
   description?: string | null;
   copyFromRoleId?: string | null;
+  /** M7b: start from a role template (teacher | content_editor | operator | manager); explicit permissions still win */
+  templateKey?: string | null;
   permissions?: string[];
 }
 export interface RoleWriteResponse {

@@ -7,7 +7,7 @@
 import { Suspense, useState } from "react";
 import { Topbar } from "@/components/admin/Topbar";
 import { NoAccess, PageSkeleton, useUrlState } from "@/components/kit";
-import { useCan } from "@/lib/m6/people";
+import { isAdminUser, useCan } from "@/lib/m6/people";
 import { BatchesTab } from "@/components/people/setup/BatchesTab";
 import { CentresTab } from "@/components/people/setup/CentresTab";
 import { ExamsTab } from "@/components/people/setup/ExamsTab";
@@ -27,7 +27,7 @@ function SetupInner() {
   const [s, set] = useUrlState(SETUP_DEFAULTS);
   const { can, me, loading, roleName } = useCan();
   const [nonce, setNonce] = useState<Record<Tab, number>>({ batches: 0, exams: 0, subjects: 0, centres: 0 });
-  const admin = me?.userType === "admin";
+  const admin = isAdminUser(me);
   // Centres are admin only (catalog: "Admin only · not part of a role")
   const visible = TABS.filter((t) => (t.key === "centres" ? admin : can(...t.keys)));
   const noAccess = !loading && (!me || me.userType === "teacher" || visible.length === 0);

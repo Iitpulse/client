@@ -64,10 +64,17 @@ export function useMe() {
   return useQuery({ queryKey: ["m6", "me"], staleTime: 60_000, queryFn: () => get<MeResponse>("/me") });
 }
 /** Effective permission check: admins always pass (contract). Undefined while loading. */
+/** The admin role id (users m7b-permissions §1: admin is a role, ROLE_ADMIN, never the userType). */
+export const ADMIN_ROLE_ID = "ROLE_ADMIN";
+/** An admin: holds the Admin role, or is the institute's Owner. `userType: "admin"` alone no longer counts (users 0013). */
+export function isAdminUser(u: { roles?: Array<{ id: string }> | null; isOwner?: boolean; access?: { owner?: boolean } } | null | undefined): boolean {
+  return !!u && (!!u.roles?.some((r) => r.id === ADMIN_ROLE_ID) || u.isOwner === true || u.access?.owner === true);
+}
+
 export function useCan() {
   const me = useMe();
   const u = me.data?.user;
-  const can = (...keys: string[]) => !!u && (u.userType === "admin" || keys.some((k) => u.permissions.includes(k)));
+  const can = (...keys: string[]) => !!u && (isAdminUser(u) || keys.some((k) => u.permissions.includes(k)));
   return { can, me: u ?? null, loading: me.isLoading, roleName: u?.roles[0]?.name ?? (u ? USER_TYPE_LABEL[u.userType] : null) };
 }
 export const meApi = {

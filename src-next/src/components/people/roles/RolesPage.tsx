@@ -38,7 +38,7 @@ import {
   type ComboOption,
 } from "@/components/kit";
 import { USER_TYPE_LABEL, auditApi, rolesApi, useCan, useCatalog, useRoleMembers, useRoles } from "@/lib/m6/people";
-import type { PermissionCatalog, RoleListItem, RoleMembersResponse } from "@/lib/m6-contract";
+import type { PermissionCatalog, RoleListItem, RoleMembersResponse, RoleTemplate } from "@/lib/m6-contract";
 import "./roles.css";
 
 type Area = PermissionCatalog["areas"][number];
@@ -128,7 +128,7 @@ export function RolesPage() {
         {allowed && <OwnerCard />}
         {body()}
       </main>
-      <NewRoleDialog open={s.new === "1" && allowed && canCreate} roles={list} onClose={() => set({ new: "" })} onCreated={(id) => set({ new: "", role: id, view: "permissions" })} />
+      <NewRoleDialog open={s.new === "1" && allowed && canCreate} roles={list} templates={catalog.data?.templates ?? []} onClose={() => set({ new: "" })} onCreated={(id) => set({ new: "", role: id, view: "permissions" })} />
       <UnsavedChangesDialog
         open={!!pending}
         onOpenChange={(o) => !o && setPending(null)}
@@ -565,7 +565,9 @@ function Members({
   );
 }
 
-function NewRoleDialog({ open, roles, onClose, onCreated }: { open: boolean; roles: RoleListItem[]; onClose: () => void; onCreated: (id: string) => void }) {
+const TEMPLATE = "template:";
+
+function NewRoleDialog({ open, roles, templates, onClose, onCreated }: { open: boolean; roles: RoleListItem[]; templates: RoleTemplate[]; onClose: () => void; onCreated: (id: string) => void }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
@@ -580,13 +582,18 @@ function NewRoleDialog({ open, roles, onClose, onCreated }: { open: boolean; rol
       setErr(null);
     }
   }, [open]);
-  const opts: ComboOption[] = roles.filter((r) => r.system !== "student").map((r) => ({ value: r.id, label: r.name, end: `${r.permissions.length} permissions` }));
+  // "Start from" (board new-role): the institute's role templates (users m7b-permissions §2, `templateKey`) and its roles
+  const opts: ComboOption[] = [
+    ...templates.map((t) => ({ value: `${TEMPLATE}${t.key}`, label: t.name, sub: t.description, end: `${t.permissions.length} permissions`, group: "Templates", keywords: [t.key] })),
+    ...roles.filter((r) => r.system !== "student").map((r) => ({ value: r.id, label: r.name, end: `${r.permissions.length} permissions`, group: templates.length ? "Your roles" : undefined })),
+  ];
   const create = async () => {
     if (!name.trim()) return setErr("Type a name");
     if (roles.some((r) => r.name.toLowerCase() === name.trim().toLowerCase())) return setErr("A role with this name exists");
     setBusy(true);
     try {
-      const r = await rolesApi.create({ name: name.trim(), description: desc.trim() || null, copyFromRoleId: from });
+      const tpl = from?.startsWith(TEMPLATE) ? from.slice(TEMPLATE.length) : null;
+      const r = await rolesApi.create({ name: name.trim(), description: desc.trim() || null, ...(tpl ? { templateKey: tpl } : { copyFromRoleId: from }) });
       await qc.invalidateQueries({ queryKey: ["m6", "people", "roles"] });
       notify.success(`Role ${r.role.name} created`);
       onCreated(r.role.id);

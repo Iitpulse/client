@@ -29,7 +29,7 @@ import {
 } from "@/components/kit";
 import { StrengthMeter } from "@/components/people/auth/parts";
 import { auth } from "@/lib/api";
-import { meApi, useMe } from "@/lib/m6/people";
+import { isAdminUser, meApi, useMe } from "@/lib/m6/people";
 import { SecurityCard, SessionsCard } from "@/components/m7b/security-cards";
 import type { MeResponse } from "@/lib/m6-contract";
 
@@ -142,7 +142,7 @@ function Profile({ data }: { data: MeResponse }) {
         <Field label="Roles" group>
           <ReadOnlyValue>
             {roleNames.join(", ") || "—"} ·{" "}
-            {u.userType === "admin" ? (
+            {isAdminUser(u) ? (
               <Link href="/roles" style={{ marginLeft: 4 }}>
                 set on Roles &amp; access
               </Link>
