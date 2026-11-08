@@ -408,7 +408,9 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
               aria-haspopup="listbox"
               aria-expanded={false}
               aria-invalid={invalid || undefined}
-              aria-label={props["aria-label"]}
+              // the name carries what the trigger shows ("Month: November"), so it matches the visible text (axe
+              // label-content-name-mismatch); without an aria-label the visible text (or the field's <label>) names it
+              aria-label={props["aria-label"] ? `${props["aria-label"]}: ${disabled && disabledText ? disabledText : label ?? placeholder ?? ""}`.replace(/: $/, "") : undefined}
               aria-describedby={props["aria-describedby"] ?? (invalid && id ? `${id}-e` : undefined)}
               title={label && label.length > 32 ? label : undefined}
               onClick={() => setOpen(true)}
@@ -422,30 +424,25 @@ export function Combobox<V extends string = string>(props: ComboboxProps<V>) {
             >
               {props.icon}
               <span className={cx("v", !label && "ph")}>{disabled && disabledText ? disabledText : label ?? placeholder}</span>
-              {clearable && value && !disabled && (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  className="k-x"
-                  aria-label={`Clear ${props["aria-label"] ?? "value"}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onChange(null, null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onChange(null, null);
-                    }
-                  }}
-                >
-                  <X className="size-3.5" aria-hidden />
-                </span>
-              )}
+              {/* room for the clear button, which sits over this spot outside the trigger (no button in a button) */}
+              {clearable && value && !disabled && <span className="k-x" aria-hidden style={{ visibility: "hidden" }} />}
               <ChevronDown className="size-4" aria-hidden />
             </button>
           }
+          {clearable && value && !disabled && !open && (
+            <button
+              type="button"
+              className="k-x"
+              aria-label={`Clear ${props["aria-label"] ?? "value"}`}
+              style={{ position: "absolute", top: "50%", right: size === "lg" ? 34 : 32, transform: "translateY(-50%)" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(null, null);
+              }}
+            >
+              <X className="size-3.5" aria-hidden />
+            </button>
+          )}
         </div>
       </P.Anchor>
       <P.Portal>

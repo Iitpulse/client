@@ -211,8 +211,10 @@ export function SubjectsTab({ s, set, createNonce, can }: { s: SetupState; set: 
             renaming?.kind === "subjects" && renaming.id === x.id ? (
               <Rename key={x.id} value={x.name} label="Rename subject" onCancel={() => setRenaming(null)} onSave={(v) => rename("subjects", () => taxonomyApi.renameSubject(x.id, v), v)} />
             ) : (
-              <div key={x.id} role="button" tabIndex={0} className={`su-node ${subject?.id === x.id ? "on" : ""}`} onClick={() => set({ subject: x.id, chapter: "" })} onKeyDown={(e) => e.key === "Enter" && set({ subject: x.id, chapter: "" })}>
-                <span className="nm">{x.name}</span>
+              <div key={x.id} className={`su-node ${subject?.id === x.id ? "on" : ""}`} onClick={() => set({ subject: x.id, chapter: "" })}>
+                <button type="button" className="nm su-pick" aria-current={subject?.id === x.id ? "true" : undefined}>
+                  {x.name}
+                </button>
                 <span className="n">{x.chapters.length} ch</span>
                 {menu("subjects", x.id, x.name, canSub.edit, canSub.del)}
               </div>
@@ -235,10 +237,10 @@ export function SubjectsTab({ s, set, createNonce, can }: { s: SetupState; set: 
             renaming?.kind === "chapters" && renaming.id === c.id ? (
               <Rename key={c.id} value={c.name} label="Rename chapter" onCancel={() => setRenaming(null)} onSave={(v) => rename("chapters", () => taxonomyApi.renameChapter(subject.id, c.id, v), v)} />
             ) : (
-              <div key={c.id} role="button" tabIndex={0} className={`su-node ${chapter?.id === c.id ? "on" : ""}`} onClick={() => set({ subject: subject.id, chapter: c.id })} onKeyDown={(e) => e.key === "Enter" && set({ subject: subject.id, chapter: c.id })}>
-                <span className="nm" title={c.name}>
+              <div key={c.id} className={`su-node ${chapter?.id === c.id ? "on" : ""}`} onClick={() => set({ subject: subject.id, chapter: c.id })}>
+                <button type="button" className="nm su-pick" title={c.name} aria-current={chapter?.id === c.id ? "true" : undefined}>
                   {c.name}
-                </span>
+                </button>
                 <span className="n">{inr(c.questions)}</span>
                 {menu("chapters", c.id, c.name, canCh, canCh)}
               </div>

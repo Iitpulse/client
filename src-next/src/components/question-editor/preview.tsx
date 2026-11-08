@@ -1,7 +1,7 @@
 "use client";
 /* Student preview (board): the question as students see it in a test, Desktop or Phone width, in the language shown. */
 import * as React from "react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { Segmented } from "@/components/kit/Segmented";
 import { isBlankHtml, isMathsOnly } from "@/lib/latex-source";
 import { KEY, PREVIEW_TYPE, type Form, type OptionF } from "./form";

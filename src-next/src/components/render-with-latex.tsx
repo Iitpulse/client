@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo } from "react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { cn } from "@/lib/utils";
 
 interface Props {

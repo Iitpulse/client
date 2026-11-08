@@ -14,7 +14,8 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useQueries } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Info, Lock, Printer, TriangleAlert, UserX } from "lucide-react";
-import { AiMark, MathText } from "@iitpulse/ui";
+import { AiMark } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 
 import { Topbar } from "@/components/admin/Topbar";
 import { FilterChip, NotFoundState, apiError, fmtDate, fmtPhone, fmtTime, initials, istParts, MONTHS, supportCode, useFillHeight, useTablet } from "@/components/kit";

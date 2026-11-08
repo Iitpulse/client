@@ -2,7 +2,8 @@
 // Kitchen sink, part 3: the admin's shadcn primitives (new-york, restyled through @iitpulse/ui tokens) on the
 // admin surface, for review next to the Main board. No legacy scope here: this is what migrated pages get.
 import { useState, type ReactNode } from "react";
-import { MathText, Paper } from "@iitpulse/ui";
+import { Paper } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { ArrowRight, Plus, Search, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

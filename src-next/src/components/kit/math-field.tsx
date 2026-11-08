@@ -13,7 +13,7 @@
 */
 import "./math-field.css";
 import * as React from "react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   type FieldImage,
@@ -244,6 +244,9 @@ function Help() {
   );
 }
 
+/** A toolbar button's name starts with the glyph it shows ("a⁄b Fraction"), so the visible text is part of it (axe). */
+const toolName = (t: { label: string; text?: unknown }) => (typeof t.text === "string" && t.text ? `${t.text} ${t.label}` : t.label);
+
 export function MathField(props: MathFieldProps) {
   const {
     id,
@@ -416,7 +419,7 @@ export function MathField(props: MathFieldProps) {
       return (
         <Popover key={t.k} open={openPal === t.k} onOpenChange={(o) => setOpenPal(o ? t.k : null)}>
           <PopoverTrigger asChild>
-            <button type="button" className={cx("k-mf-tool", t.cls)} aria-label={t.label} title={t.label} onMouseDown={(e) => e.preventDefault()}>
+            <button type="button" className={cx("k-mf-tool", t.cls)} aria-label={toolName(t)} title={t.label} onMouseDown={(e) => e.preventDefault()}>
               {t.text}
             </button>
           </PopoverTrigger>
@@ -438,7 +441,7 @@ export function MathField(props: MathFieldProps) {
       );
     }
     return (
-      <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={t.label} title={t.label} onMouseDown={(e) => e.preventDefault()} onClick={() => runTool(t)} disabled={disabled}>
+      <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={toolName(t)} title={t.label} onMouseDown={(e) => e.preventDefault()} onClick={() => runTool(t)} disabled={disabled}>
         {t.text}
       </button>
     );
@@ -467,11 +470,11 @@ export function MathField(props: MathFieldProps) {
             <div className="row wrap gap-1">
               {more.map((t) =>
                 t.pal ? (
-                  <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={t.label} onClick={() => setOpenPal(t.k)}>
+                  <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={toolName(t)} onClick={() => setOpenPal(t.k)}>
                     {t.text}
                   </button>
                 ) : (
-                  <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={t.label} onMouseDown={(e) => e.preventDefault()} onClick={() => { setOpenPal(null); runTool(t); }}>
+                  <button key={t.k} type="button" className={cx("k-mf-tool", t.cls)} aria-label={toolName(t)} onMouseDown={(e) => e.preventDefault()} onClick={() => { setOpenPal(null); runTool(t); }}>
                     {t.text}
                   </button>
                 )

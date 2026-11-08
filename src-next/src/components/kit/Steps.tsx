@@ -49,11 +49,14 @@ export function Steps({
               className={cx("k-st", state)}
               disabled={!clickable}
               aria-current={cur ? "step" : undefined}
-              aria-label={`Step ${i + 1}, ${s.label}${done ? ", done" : ""}`}
               onClick={() => clickable && onGo!(i)}
             >
-              <span className="n">{s.bad && (cur || done) ? "!" : done ? <Check className="size-3.5" strokeWidth={3} aria-hidden /> : i + 1}</span>
+              <span className="sr-only">Step {i + 1}, </span>
+              <span className="n" aria-hidden>
+                {s.bad && (cur || done) ? "!" : done ? <Check className="size-3.5" strokeWidth={3} aria-hidden /> : i + 1}
+              </span>
               <span className="t">{s.label}</span>
+              {done && <span className="sr-only">, done</span>}
             </button>
           </Fragment>
         );

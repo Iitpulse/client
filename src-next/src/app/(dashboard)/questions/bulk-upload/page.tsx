@@ -17,7 +17,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Download } from "lucide-react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { Steps } from "@/components/kit/Steps";
 import { KitDialog } from "@/components/kit/Overlay";
 import { notify } from "@/components/kit/Toast";

@@ -2,7 +2,7 @@
 /*
   Small pieces of the QuestionPicker page: row ids, the preview pane and paper helpers.
 */
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import type { PaperView, PickerPreview } from "@/lib/m6-contract";
 import { usePickerPreview } from "@/lib/m6/paper";
 

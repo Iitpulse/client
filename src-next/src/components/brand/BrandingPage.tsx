@@ -384,7 +384,7 @@ function BrandPreview({ view, onView, primary, accent, logoUrl, name, isIitp, ho
             {host && <span className="xs mono muted ml-auto">{host}</span>}
           </div>
           {view === "home" ? (
-            <div className="col fade gap-3.5" style={{ padding: 18 }}>
+            <div className="col fade gap-3.5" style={{ padding: 18 }} data-classroom-preview="student">
               <Blueboard smudge={{ right: -90, top: 6, width: 300, height: 100 }} className="col gap-3" style={{ borderRadius: 18, padding: 22, color: "#fff" }}>
                 <span className="xs" style={{ opacity: 0.85 }}>
                   ● Live now · ends in 02:14:36

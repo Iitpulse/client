@@ -407,33 +407,30 @@ export function DateField({
   }, [open, value, minDate]);
   return (
     <P.Root open={open} onOpenChange={setOpen}>
+      <div className="relative w-full min-w-0">
       <P.Trigger asChild>
         <button id={id} type="button" className={cx("k-cb", invalid && "e", open && "open")} aria-invalid={invalid || undefined} aria-label={ariaLabel} aria-describedby={invalid && id ? `${id}-e` : undefined}>
           <span className={cx("v num", !value && "ph")}>{value ? fmtDate(value) : placeholder}</span>
-          {clearable && value && (
-            <span
-              role="button"
-              tabIndex={0}
-              className="k-x"
-              aria-label={`Clear ${ariaLabel ?? "date"}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange(null);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onChange(null);
-                }
-              }}
-            >
-              <X className="size-3.5" aria-hidden />
-            </span>
-          )}
+          {/* room for the clear button, which sits over this spot outside the trigger (no button in a button) */}
+          {clearable && value && <span className="k-x" aria-hidden style={{ visibility: "hidden" }} />}
           {ist ? <span className="k-ist">IST</span> : <ChevronDown className="size-4" aria-hidden />}
         </button>
       </P.Trigger>
+        {clearable && value && !open && (
+          <button
+            type="button"
+            className="k-x"
+            aria-label={`Clear ${ariaLabel ?? "date"}`}
+            style={{ position: "absolute", top: "50%", right: ist ? 44 : 32, transform: "translateY(-50%)" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange(null);
+            }}
+          >
+            <X className="size-3.5" aria-hidden />
+          </button>
+        )}
+      </div>
       <P.Portal>
         <P.Content className="k-pop" style={{ padding: "14px 16px" }} align="start" sideOffset={6} collisionPadding={12}>
           <Calendar

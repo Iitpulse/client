@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CornerDownLeft, FileQuestionMark, LogOut, SquareCheck, User } from "lucide-react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import {
   CommandDialog,
   CommandEmpty,

@@ -16,7 +16,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Download, Plus, Search } from "lucide-react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { Topbar } from "@/components/admin/Topbar";
 import { QuestionBody } from "@/components/question-body";
 import { Switch } from "@/components/ui/switch";

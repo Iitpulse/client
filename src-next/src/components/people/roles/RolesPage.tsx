@@ -286,7 +286,7 @@ function RoleCard({
               <InlineNote>Students get this role from their batch. What they can open in the student app follows these permissions.</InlineNote>
             </div>
           )}
-          <div className="scrollx k-fill-body" style={fills ? { flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain" } : undefined}>
+          <div className="scrollx k-fill-body" tabIndex={0} role="region" aria-label="Permissions" style={fills ? { flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain" } : undefined}>
             <div className="rl-mx" role="table" aria-label={`Permissions for ${role.name}`}>
               <div className="tr h k-fill-head" role="row">
                 {["Area", "View", "Create", "Edit", "Delete", "Also"].map((h) => (

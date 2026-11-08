@@ -27,7 +27,7 @@ import { KitDialog } from "@/components/kit/Overlay";
 import { notify } from "@/components/kit/Toast";
 import { NotFoundState } from "@/components/kit/PageState";
 import { fmtDateTime, fmtRelative, fmtTime } from "@/components/kit/utils";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { useAuthStore } from "@/stores/auth.store";
 import { api } from "@/lib/api";

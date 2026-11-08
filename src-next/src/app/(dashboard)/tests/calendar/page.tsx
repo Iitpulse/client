@@ -376,12 +376,17 @@ function Calendar() {
               {ok && view === "month" && (
                 <div ref={fillRef} className={`cal-fill ${fillH ? "fill" : ""}`} style={{ height: fillH ?? undefined }} onScroll={() => setOpen(null)}>
                 <div className="cal-mon" role="grid" aria-label={`${MONTHS[range.month]} ${range.year}`} style={{ gridTemplateRows: tablet ? `auto repeat(${range.days.length / 7}, 64px)` : `auto repeat(${range.days.length / 7}, minmax(104px, 1fr))` }}>
-                  {DOW.map((d) => (
-                    <span key={d} className="dw" role="columnheader">
-                      {d}
-                    </span>
-                  ))}
-                  {range.days.map((date) => {
+                  <div role="row" style={{ display: "contents" }}>
+                    {DOW.map((d) => (
+                      <span key={d} className="dw" role="columnheader">
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                  {/* weeks are ARIA rows (display: contents keeps the CSS grid): axe aria-required-children */}
+                  {Array.from({ length: range.days.length / 7 }, (_, w) => (
+                    <div key={w} role="row" style={{ display: "contents" }}>
+                      {range.days.slice(w * 7, w * 7 + 7).map((date) => {
                     const [, m, d] = date.split("-").map(Number);
                     const off = m - 1 !== range.month;
                     const evs = byDay.get(date) ?? [];
@@ -393,14 +398,16 @@ function Calendar() {
                         key={date}
                         className={cls}
                         role="gridcell"
-                        aria-label={`${d} ${MONTHS[m - 1]}${evs.length ? `, ${evs.length} ${evs.length === 1 ? "test" : "tests"}` : ""}`}
                         onDragOver={(e) => {
                           if (dragId) e.preventDefault();
                         }}
                         onDrop={dropOnDay(date)}
                         onClick={tablet ? () => setPicked(date) : undefined}
                       >
-                        <span className="dn">{d}</span>
+                        <span className="dn">
+                          {d}
+                          <span className="sr-only"> {MONTHS[m - 1]}{evs.length ? `, ${evs.length} ${evs.length === 1 ? "test" : "tests"}` : ""}</span>
+                        </span>
                         {!tablet &&
                           evs.map((t) => (
                             <button
@@ -438,7 +445,9 @@ function Calendar() {
                         ))}
                       </div>
                     );
-                  })}
+                      })}
+                    </div>
+                  ))}
                 </div>
                 </div>
               )}

@@ -762,7 +762,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
                   error={fe("templateId")}
                   hint={
                     <>
-                      Wording, instructions and tools students see. <Link href="/templates">Manage templates</Link>
+                      Wording, instructions and tools students see. <Link href="/templates" className="underline">Manage templates</Link>
                     </>
                   }
                 >

@@ -20,7 +20,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, CircleCheck, Lock, SearchX } from "lucide-react";
-import { AiMark, MathText } from "@iitpulse/ui";
+import { AiMark } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 
 import { Topbar } from "@/components/admin/Topbar";
 import {

@@ -2,7 +2,7 @@
 /* Step 3 of Admin-BulkUpload: what was read, what needs a look, duplicates, the source tag and Import. */
 import * as React from "react";
 import { AlertTriangle } from "lucide-react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { Segmented } from "@/components/kit/Segmented";
 import { Combobox } from "@/components/kit/Combobox";
 import { fmtBytes } from "@/components/kit/FileDrop";

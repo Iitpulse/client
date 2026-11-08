@@ -10,6 +10,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { BRAND_COOKIE, brandCookieFor, instituteNotFoundResponse, isInstituteHost, knownUnknown, lookupHost, normaliseHost } from "@/lib/brand-server";
 
 export async function proxy(request: NextRequest) {
+  // The old student sign-up (app/(staff-auth)/signup): a plain redirect to the student app, no page in between (axe:
+  // the in-page redirect served a document without lang or title)
+  if (request.nextUrl.pathname === "/signup") return NextResponse.redirect(`${process.env.NEXT_PUBLIC_TEST_PORTAL_URI || "https://tests.iitpulse.in"}/signup`, 307);
   const res = NextResponse.next();
   const host = normaliseHost(request.headers.get("x-forwarded-host") ?? request.headers.get("host"));
   const institute = !!host && isInstituteHost(host);

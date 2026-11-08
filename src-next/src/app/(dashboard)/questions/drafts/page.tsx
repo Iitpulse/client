@@ -20,7 +20,7 @@ import { useSearchParams } from "next/navigation";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Check, Sparkles, X, AlertCircle, XCircle } from "lucide-react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { Topbar } from "@/components/admin/Topbar";
 import { useToast } from "@/hooks/use-toast";
 import { aiAdmin, apiError, BULK_COPY, editorKind, KIND_LABEL, streamAssist, TYPE_LABEL, type DraftQuery } from "@/lib/ai-admin";

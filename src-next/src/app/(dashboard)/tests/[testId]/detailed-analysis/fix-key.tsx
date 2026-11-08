@@ -6,7 +6,7 @@
   re-score (POST …/key-fix, 202). The page polls the correction and shows fix-progress / fix-done.
 */
 import * as React from "react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { ConfirmDialog, Drawer, RangeFields } from "@/components/kit";
 import type { AnswerKey, KeyCorrection, KeyFixPreview, KeyFixPreviewRequest } from "@/lib/m6-contract";
 import { previewKeyFix, startKeyFix } from "@/lib/m6/keyfix";

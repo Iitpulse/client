@@ -8,7 +8,7 @@
 import * as React from "react";
 import { MathField } from "@/components/kit/math-field";
 import { isBlankHtml, isMathsOnly } from "@/lib/latex-source";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { KEY, uid, type OptionF } from "./form";
 import { useEditor, useFieldProps } from "./context";
 import { FieldErr, HindiMissing, I } from "./ui";

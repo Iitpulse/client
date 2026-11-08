@@ -14,7 +14,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleCheck, Info, LoaderCircle, TriangleAlert, X } from "lucide-react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 
 import { Topbar } from "@/components/admin/Topbar";
 import { FilterChip, NoAccess, notify, PageError, Segmented, supportCode, useFillHeight, fmtDate, fmtDateTime } from "@/components/kit";
@@ -617,7 +617,7 @@ export default function DetailedAnalysisPage() {
                           boxShadow: on ? "0 0 0 2px var(--navy), inset 0 0 0 1.5px #fff" : flagged ? "inset 0 0 0 2px #9A5800" : undefined,
                         }}
                         title={`Q${q.item.n} · ${q.total ? `${q.accuracy}%` : "no responses"}`}
-                        aria-label={`Q${q.item.n}, ${q.total ? `${q.accuracy}% ${rightWord(q.item.type)}` : "no responses"}${flagged ? ", key looks wrong" : fixed ? ", key corrected" : ""}`}
+                        aria-label={`Question ${q.item.n}, ${q.total ? `${q.accuracy}% ${rightWord(q.item.type)}` : "no responses"}${flagged ? ", key looks wrong" : fixed ? ", key corrected" : ""}`}
                         aria-pressed={on}
                         onClick={() => setSelected(q.item.n)}
                       >

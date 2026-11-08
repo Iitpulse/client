@@ -75,13 +75,18 @@ export function AdminSidebar() {
       <button
         type="button"
         onClick={() => setPaletteOpen(true)}
-        aria-label="Search (⌘K)"
+        // the visible "Search" is the name (axe label-content-name-mismatch); the shortcut is announced, not spoken twice
+        aria-keyshortcuts="Meta+K Control+K"
         title={rail ? "Search (⌘K)" : undefined}
         className={`row mb-2.5 gap-2.5 rounded-control border border-line bg-ground text-muted transition-colors hover:border-brand-200 ${rail ? "h-11 justify-center px-0" : "h-10 px-3"}`}
       >
         <Search className="size-4" strokeWidth={2} aria-hidden />
         <span className={rail ? "sr-only" : "sm grow truncate text-left"}>Search</span>
-        {!rail && <span className="kbd">⌘K</span>}
+        {!rail && (
+          <span className="kbd" aria-hidden>
+            ⌘K
+          </span>
+        )}
       </button>
 
       <nav className="col gap-1.5" aria-label="Sections">

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { MathText } from "@iitpulse/ui";
+import { MathText } from "@/components/math-text";
 import { paragraphHtml, stripHtml, type BankChild, type BankQuestion } from "@/lib/question-queries";
 
 const KEY = (i: number) => String.fromCharCode(65 + i);
