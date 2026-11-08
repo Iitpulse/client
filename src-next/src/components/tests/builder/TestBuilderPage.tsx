@@ -10,6 +10,7 @@
   AI builder (each write is a revision; Undo restores one). Exam and pattern are fixed once the test exists.
   Contract: api-ai docs/m6-api.md "Admin tests list, builder settings, publish", "Paper, picker", "AI test builder".
 */
+import { HistoryButton } from "@/components/history/HistoryPanel";
 import "./builder.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -442,6 +443,7 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
   const headerActions = (
     <>
       <SampleDataPill areas={["tests", "paper", "aiBuild", "patterns", "templates"]} />
+      {!isNew && testId && <HistoryButton type="test" id={testId} label={test?.name ?? testId} />}
       {!isNew && (
         <button type="button" className="btn btn-ghost btn-sm" disabled={loading || !hasQuestions} onClick={() => testId && openStudentPreview(testId)}>
           Preview as student

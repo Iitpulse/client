@@ -65,6 +65,7 @@ import {
   type Lang,
 } from "./form";
 import { EditorProvider, useFieldProps, type EditorCtx } from "./context";
+import { HistoryButton } from "@/components/history/HistoryPanel";
 import { OptionsEditor } from "./options";
 import { NumericalAnswer } from "./numerical";
 import { ParagraphChildren } from "./paragraph";
@@ -537,6 +538,7 @@ export function QuestionEditor({
             </button>
           ) : (
             <>
+              {!isNew && loaded?._id && <HistoryButton type="question" id={loaded._id} label={loaded._id} />}
               {!isNew && !ro && (
                 <>
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => unsaved.navigateWithCheck(`/questions/new?from=${encodeURIComponent(loaded?._id ?? "")}&type=${kindOf(form.type)}`)}>

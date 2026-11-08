@@ -2078,6 +2078,23 @@ export interface AdminStudentReviewResponse {
   leaks: Array<{ title: string; marksLost: number; note: string; questionNs: number[]; kind: "concept" | "time" | "skip" | "careless" }>;
   other: { marksLost: number; note: string } | null;
   generatedAt: IsoDateTime | null;
+  /** Batch 8 Review-NotGenerated (api-ai): the card the student sees (read only); null when not applicable / not submitted */
+  review?: ReviewCardM3 | null;
+  /** Batch 8 "Remind to check result" (POST /ai/admin/tests/:id/students/:sid/review/remind): the last reminder (null = never) */
+  reminder?: { lastRemindedAt: IsoDateTime; outcome: "sent" | "skippedByPreference" | "skippedDuplicate" | "failed" } | null;
+}
+/** api-ai m3-ai.ts ReviewCard (batch 8) */
+export interface ReviewCardM3 {
+  state: "not_opened" | "queued" | "generating" | "failed" | "failed_final" | "stale_after_key_fix" | "ready";
+  triesPerDay: number;
+  triesLeft: number;
+  nextAutomaticRetryAt: IsoDateTime | null;
+  supportCode: string | null;
+  lastFailedAt: IsoDateTime | null;
+  queuedAt: IsoDateTime | null;
+  queueAhead: number | null;
+  stale: { scoreBefore: number | null; scoreAfter: number } | null;
+  generatedAt: IsoDateTime | null;
 }
 
 /* ── emails ── */

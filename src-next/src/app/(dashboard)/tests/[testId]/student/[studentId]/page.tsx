@@ -22,7 +22,7 @@ import { FilterChip, NotFoundState, apiError, fmtDate, fmtPhone, fmtTime, initia
 import { useBrand } from "@/lib/brand";
 import { useCan } from "@/lib/m6/people";
 import { useQuestionInsight } from "@/lib/queries-tests-admin";
-import { m6Tests, unwrap } from "@/lib/m6/client";
+import { m6Ai, m6Tests, unwrap } from "@/lib/m6/client";
 import type { StudentReportResponse } from "@/lib/m6-contract";
 import {
   TYPE_LABEL,
@@ -432,7 +432,7 @@ function Overview({ r, sub, testId, studentId, questions }: { r: Report; sub: Su
       </div>
       <div className="sr-grid3">
         <LastTests r={r} />
-        <AiReview testId={testId} studentId={studentId} name={f} />
+        <AiReview testId={testId} studentId={studentId} name={f} submitted={!!r.submission} />
       </div>
       {/* Integrity first in the DOM so the chapters panel ends the page (owner table rule); the grid puts it back on the
           right on desktop as the board draws it, and above the chapters on tablet */}
@@ -571,8 +571,49 @@ function LastTests({ r }: { r: Report }) {
   );
 }
 
-function AiReview({ testId, studentId, name }: { testId: string; studentId: string; name: string }) {
+/** "Remind <name> to check the result" (batch 8, Review-NotGenerated staff side; api-ai): once a day, the results-out email again. */
+function RemindButton({ testId, studentId, name, last }: { testId: string; studentId: string; name: string; last: { at: string } | null }) {
+  const [sent, setSent] = React.useState<{ at: string } | null>(last);
+  const [busy, setBusy] = React.useState(false);
+  const [err, setErr] = React.useState<string | null>(null);
+  const today = sent && dayMonth(sent.at) === dayMonth(new Date().toISOString());
+  const send = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const d = unwrap<{ outcome: string; reminder: { lastRemindedAt: string } | null }>(
+        (await m6Ai.post(`/admin/tests/${encodeURIComponent(testId)}/students/${encodeURIComponent(studentId)}/review/remind`, {})).data
+      );
+      if (d.reminder) setSent({ at: d.reminder.lastRemindedAt });
+      if (d.outcome === "skippedByPreference") setErr(`${name} has turned off result emails, so no email went out.`);
+      else if (d.outcome === "skippedDuplicate") setErr(`${name} was reminded today already.`);
+      else if (d.outcome === "failed") setErr("The reminder couldn't be sent. Try again in a moment.");
+    } catch (e) {
+      const a = apiError(e);
+      setErr(a.code === "ALREADY_REMINDED_TODAY" ? `${name} was reminded today already.` : a.code === "RESULT_NOT_OUT" ? `${name} can't see this result yet.` : a.message || "Couldn't send the reminder. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="col gap-1" data-testid="sr-remind">
+      <button type="button" className="btn btn-secondary btn-sm self-start" onClick={send} disabled={busy || !!today}>
+        {busy ? "Sending…" : today ? "Reminded today" : `Remind ${name} to check the result`}
+      </button>
+      <span className="xs muted">Last reminded: {sent ? `${dayMonth(sent.at)}, ${fmtTime(sent.at)}` : "never"}</span>
+      {err && (
+        <span className="xs text-warning" role="status">
+          {err}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function AiReview({ testId, studentId, name, submitted }: { testId: string; studentId: string; name: string; submitted: boolean }) {
   const q = useStudentAiReview(testId, studentId, true);
+  const card = q.data?.review ?? null;
+  const lastReminder = q.data?.reminder ? { at: q.data.reminder.lastRemindedAt } : null;
   const { name: institute } = useBrand();
   const d = q.data;
   const kindLabel: Record<string, string> = { concept: "Concept", time: "Time", skip: "Skip", careless: "Careless" };
@@ -613,6 +654,26 @@ function AiReview({ testId, studentId, name }: { testId: string; studentId: stri
           ))}
           {d.other && <MathText as="span" className="xs muted" text={d.other.note} />}
         </div>
+      ) : card?.state === "queued" ? (
+        <div className="col gap-1.5" role="status" data-testid="sr-ai-queued">
+          <span className="sm font-semibold">In the queue{card.queuedAt ? ` since ${fmtTime(card.queuedAt)}` : ""}</span>
+          <span className="sm text-ink-2">{name} opened the result, so the review is waiting to be written. It appears here by itself; nothing for you to do.</span>
+        </div>
+      ) : card?.state === "stale_after_key_fix" ? (
+        <div className="col gap-1.5" role="status" data-testid="sr-ai-stale">
+          <span className="sm font-semibold">Out of date after a key fix</span>
+          <span className="sm text-ink-2">The review from before the fix is hidden. A new one is written the next time {name} opens the result.</span>
+        </div>
+      ) : card?.state === "failed" || card?.state === "failed_final" ? (
+        <div className="col gap-1.5" role="status" data-testid="sr-ai-failed">
+          <span className="sm font-semibold">{card.state === "failed_final" ? `${card.triesPerDay} tries failed today` : `Last try failed${card.lastFailedAt ? ` at ${fmtTime(card.lastFailedAt)}` : ""}`}</span>
+          <span className="sm text-ink-2">
+            {card.state === "failed_final"
+              ? `It's tried again automatically overnight. Until then, the question-by-question section shows where ${name} lost marks.`
+              : `${name} sees a Try again button on the result. Staff can't start a review from here; if many fail, check AI status on the dashboard.`}
+          </span>
+          {card.supportCode && <span className="xs muted mono">Code {card.supportCode}</span>}
+        </div>
       ) : d?.status === "generating" ? (
         <div className="col gap-2.5" role="status">
           <span className="sm">Writing {name}&rsquo;s review. It&rsquo;s usually ready in under a minute.</span>
@@ -623,6 +684,12 @@ function AiReview({ testId, studentId, name }: { testId: string; studentId: stri
         <div className="col gap-1.5">
           <span className="sm font-semibold">No AI review for this test</span>
           <span className="sm text-ink-2">AI is paused for {institute}, so no reviews are being written. Scores, ranks and everything else on this page are unaffected.</span>
+        </div>
+      ) : (card?.state === "not_opened" || (!card && d?.reason === "NOT_GENERATED")) && submitted ? (
+        <div className="col gap-1.5" data-testid="sr-ai-not-generated">
+          <span className="sm font-semibold">{name} hasn&rsquo;t opened the result yet</span>
+          <span className="sm text-ink-2">The review is written the first time {name} opens it, so no AI is spent on students who never look. Everything else on this report is complete.</span>
+          <RemindButton testId={testId} studentId={studentId} name={name} last={lastReminder} />
         </div>
       ) : (
         <div className="col gap-1.5">
