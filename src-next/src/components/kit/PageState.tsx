@@ -69,7 +69,13 @@ export function NoAccess({ what, role, who }: { what: string; role?: string | nu
   );
 }
 
-export function NotFoundState({ deleted }: { deleted?: string }) {
+/** Opens the ⌘K palette (components/admin/CommandPalette listens for the shortcut on window). */
+function openSearch() {
+  window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true, bubbles: true }));
+}
+
+/** `search`: the admin 404 also offers "Search ⌘K" (Kit-States), next to the way home. */
+export function NotFoundState({ deleted, search }: { deleted?: string; search?: boolean }) {
   return (
     <PageCard>
       <div className="k-st-box">
@@ -78,9 +84,16 @@ export function NotFoundState({ deleted }: { deleted?: string }) {
         </span>
         <span className="h3">{deleted ?? "Page not found"}</span>
         <span className="sm muted">The link may be old or mistyped.</span>
-        <Link href="/" className="btn btn-primary btn-sm">
-          Go to dashboard
-        </Link>
+        <div className="row" style={{ gap: 8 }}>
+          {search && (
+            <button type="button" className="btn btn-secondary btn-sm" onClick={openSearch}>
+              Search <kbd className="mono xs muted">⌘K</kbd>
+            </button>
+          )}
+          <Link href="/" className="btn btn-primary btn-sm">
+            Go to dashboard
+          </Link>
+        </div>
       </div>
     </PageCard>
   );

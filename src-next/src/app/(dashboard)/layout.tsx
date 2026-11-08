@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore, usePermissionsStore } from "@/stores";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
 import { Paper } from "@iitpulse/ui";
 import { InstituteBanners } from "@/components/brand/InstituteBanners";
 import { StaffTermsPrompt } from "@/components/m7b/staff-terms";
 import { SupportVisitBanner } from "@/components/m8/SupportVisitBanner";
 import { auth } from "@/lib/session";
+import { OfflineBanner } from "@/components/kit";
 
 export default function DashboardLayout({
   children,
@@ -17,9 +17,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, checkAuth, currentUser, userDetails, fetchUserDetails } = useAuthStore();
+  const { isAuthenticated, checkAuth, currentUser, fetchUserDetails } = useAuthStore();
   const { fetchRoles } = usePermissionsStore();
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     const isValid = checkAuth();
@@ -30,7 +29,7 @@ export default function DashboardLayout({
 
     // Fetch roles/permissions on mount
     fetchRoles();
-    // Fetch user details to check onboarding status
+    // Profile details (name, institute) for the sidebar and the dashboard greeting
     fetchUserDetails();
   }, [checkAuth, router, fetchRoles, fetchUserDetails]);
 
@@ -48,18 +47,6 @@ export default function DashboardLayout({
       document.title = titleMap[currentUser.userType] || "IITP Dashboard";
     }
   }, [currentUser?.userType]);
-
-  // Check if student needs to complete onboarding
-  useEffect(() => {
-    if (
-      currentUser?.userType === "student" &&
-      userDetails &&
-      // @ts-expect-error - onboardingCompleted may not exist in older records
-      userDetails.onboardingCompleted === false
-    ) {
-      setShowOnboarding(true);
-    }
-  }, [currentUser, userDetails]);
 
   if (!isAuthenticated) {
     return (
@@ -79,19 +66,14 @@ export default function DashboardLayout({
         <SupportVisitBanner />
         {/* Admin-SeatsBanners: past due / paused / AI paused, above the page's own top bar (nothing in good standing) */}
         <InstituteBanners />
+        {/* Kit-States "Offline": a banner, not a page, on every route; the page keeps what it loaded */}
+        <OfflineBanner />
         {/* Every page draws its own <Topbar> (the (legacy) group with its generic one is gone since the M6 exit). */}
         {children}
       </div>
 
       {/* M7b: changed terms are accepted before work continues (board Admin-Security, terms-changed); not during a support visit */}
       {!auth.isSupportVisit() && <StaffTermsPrompt />}
-
-      {/* Onboarding wizard for students who haven't completed their profile */}
-      <OnboardingWizard
-        open={showOnboarding}
-        onOpenChange={setShowOnboarding}
-        onComplete={() => setShowOnboarding(false)}
-      />
     </Paper>
   );
 }
