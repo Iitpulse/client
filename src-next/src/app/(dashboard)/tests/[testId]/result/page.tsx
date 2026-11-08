@@ -9,7 +9,10 @@
   mode only: the backend has no early publish for "After N days" / "At close"), the Monitor student detail for the flag
   drawer. M5: result-insights (appeared / assigned, average vs the previous mock, subject averages, integrity),
   ai batch summary and key check.
-  Not built (owner decision pending): "Send to parents", the summary's "Add to schedule" / "Assign practice".
+  Not built yet: "Send to parents", "Add to schedule", "Assign practice". Owner, 8 Nov: they ship before release, from
+  design batch 8 boards. Slots kept for them: `pageActions` (top bar, before Export) for page-wide actions such as
+  Send to parents, and BatchSummaryCard's `suggestionAction` (the end of each suggestion row) and `headerActions`
+  (next to Copy for WhatsApp) for Add to schedule / Assign practice. Place them where the batch 8 boards draw them.
 */
 
 import * as React from "react";
@@ -106,6 +109,8 @@ function BatchSummaryCard({
   appeared,
   onRetry,
   rewrittenAfterFix,
+  headerActions,
+  suggestionAction,
 }: {
   data?: BatchSummaryResponse;
   error: unknown;
@@ -113,6 +118,10 @@ function BatchSummaryCard({
   appeared: number;
   onRetry: () => void;
   rewrittenAfterFix: boolean;
+  /** slot (design batch 8): summary-wide actions next to Copy for WhatsApp */
+  headerActions?: React.ReactNode;
+  /** slot (design batch 8): an action at the end of one suggestion row (Add to schedule, Assign practice) */
+  suggestionAction?: (suggestion: { text: string }, index: number) => React.ReactNode;
 }) {
   const s = data?.status === "ready" ? data.summary : null;
   const code = data?.status === "not_applicable" ? data.reason : error ? m5ErrorCode(error) : null;
@@ -137,6 +146,7 @@ function BatchSummaryCard({
             {s.suggestions.map((g, i) => (
               <div key={i} className="row gap-2.5 rounded-control border border-brand-100 bg-surface px-3 py-2.5">
                 <MathText as="span" className="sm grow" text={g.text} />
+                {suggestionAction?.(g, i)}
               </div>
             ))}
           </div>
@@ -194,9 +204,12 @@ function BatchSummaryCard({
       <div className="row between">
         <AiMark iconSize={13}>Batch summary for teachers</AiMark>
         {s && (
-          <button type="button" className="btn btn-ghost btn-sm" onClick={copy}>
-            Copy for WhatsApp
-          </button>
+          <div className="row gap-1.5">
+            {headerActions}
+            <button type="button" className="btn btn-ghost btn-sm" onClick={copy}>
+              Copy for WhatsApp
+            </button>
+          </div>
         )}
       </div>
       {body}
@@ -499,8 +512,11 @@ export default function TestResultPage() {
 
   const err = res.error ? apiError(res.error) : null;
   const title = `${testName} · results`;
+  // slot (design batch 8): page-wide actions such as "Send to parents" go first, once their board is approved
+  const pageActions: React.ReactNode = null;
   const actions = (
     <>
+      {pageActions}
       <button type="button" className="btn btn-ghost btn-sm" onClick={exportCsv} disabled={!items.length} data-testid="results-export">
         Export .csv
       </button>
