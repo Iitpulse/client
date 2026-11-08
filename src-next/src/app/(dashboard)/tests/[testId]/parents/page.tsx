@@ -14,11 +14,11 @@ import { useParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Topbar } from "@/components/admin/Topbar";
 import { ConfirmDialog, FilterChip, SearchBox, StateBox, inr, notify, supportCode, useFillHeight } from "@/components/kit";
-import { apiError } from "@/lib/m6/client";
+import { apiError, fieldErrors } from "@/lib/m6/client";
 import { istDate, istDateTime } from "@/lib/m6/shared";
 import { useBrand } from "@/lib/brand";
 import { useCan } from "@/lib/m6/people";
-import { parentTestCopy, sendParents, useParentRecipients, useParentSends, type ParentRecipient } from "@/lib/m6/batch8";
+import { addParentEmail, parentTestCopy, resendParentLinks, sendParents, useParentRecipients, useParentSends, type ParentRecipient } from "@/lib/m6/batch8";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   willSend: { label: "Will get it", cls: "badge b-navy self-start" },
@@ -41,7 +41,7 @@ const why = (r: ParentRecipient) =>
   r.parent.status === "noEmail"
     ? "18 or older, or joined before sign-up asked for it"
     : r.parent.status === "notConfirmed"
-      ? "Under 18; the parent hasn't opened the confirmation link"
+      ? "The parent hasn't opened the confirmation link yet"
       : r.parent.status === "stopped"
         ? "The parent stopped result emails"
         : r.last?.status === "bounced"
@@ -58,6 +58,16 @@ export default function SendToParentsPage() {
   const { can } = useCan();
   const brand = useBrand();
   const canSend = can("PUBLISH_RESULT");
+  // batch 8: "+ Add parent email" (UPDATE_USER) and "Resend link to N" (UPDATE_USER or PUBLISH_RESULT), through users
+  const canAddParent = can("UPDATE_USER");
+  const canResend = can("UPDATE_USER", "PUBLISH_RESULT");
+  const [adding, setAdding] = React.useState<string | null>(null);
+  const [addEmail, setAddEmail] = React.useState("");
+  const [addName, setAddName] = React.useState("");
+  const [addErr, setAddErr] = React.useState<string | null>(null);
+  const [addBusy, setAddBusy] = React.useState(false);
+  const [resending, setResending] = React.useState(false);
+  const [resendNote, setResendNote] = React.useState<string | null>(null);
   const [batchIds, setBatchIds] = React.useState<string[]>([]);
   const rec = useParentRecipients(testId, batchIds);
   const hist = useParentSends(testId);
@@ -98,6 +108,43 @@ export default function SendToParentsPage() {
       throw new Error(a.code === "NOTHING_TO_SEND" ? "Every confirmed parent here already has this result." : a.code === "SEND_IN_PROGRESS" ? "Another send for this test is still going. Try again in a minute." : a.code === "RESULTS_NOT_PUBLISHED" ? "Publish the results first." : `Nothing was sent. Try again (${supportCode("E-P", e)}).`);
     } finally {
       setSending(false);
+    }
+  };
+
+  const saveParent = async (studentId: string) => {
+    setAddErr(null);
+    setAddBusy(true);
+    try {
+      await addParentEmail(studentId, { guardianEmail: addEmail.trim(), guardianName: addName.trim() || null });
+      notify.success(`Confirmation link sent to ${addEmail.trim()}`, { description: "Results go to this parent once they confirm." });
+      setAdding(null);
+      setAddEmail("");
+      setAddName("");
+      await refresh();
+    } catch (e) {
+      const a = apiError(e);
+      const f = fieldErrors(e);
+      setAddErr(f.guardianEmail ?? f.guardianName ?? (a.code === "TOO_MANY_ATTEMPTS" ? "A link went to this student's parent less than a minute ago (5 a day at most). Try again later." : (a.message ?? "Not saved. Try again.")));
+    } finally {
+      setAddBusy(false);
+    }
+  };
+
+  const resendLinks = async () => {
+    const ids = items.filter((r) => r.parent.status === "notConfirmed").map((r) => r.student.id);
+    if (!ids.length) return;
+    setResending(true);
+    try {
+      const r = await resendParentLinks(ids);
+      const held = r.limited ? `${r.limited} got one less than a minute ago or 5 today already; try ${r.limited === 1 ? "it" : "them"} later.` : null;
+      // said next to the button (a sticky toast would sit over the send bar)
+      setResendNote(r.sent ? `Link sent again to ${r.sent} parent${r.sent === 1 ? "" : "s"}.${held ? ` ${held}` : ""}` : `No link sent now. ${held ?? "Nobody here is waiting to confirm."}`);
+      await refresh();
+    } catch (e) {
+      const a = apiError(e);
+      notify.error("Links not sent", { description: a.code === "TOO_MANY_ATTEMPTS" ? "You've resent links several times. Try again in a few minutes." : (a.message ?? "Try again in a moment.") });
+    } finally {
+      setResending(false);
     }
   };
 
@@ -259,8 +306,20 @@ export default function SendToParentsPage() {
                     </span>
                   )}
                   {!!c?.notConfirmed && (
-                    <span className="xs">
-                      <b>{c.notConfirmed === 1 ? "1 parent hasn\u2019t" : `${c.notConfirmed} parents haven\u2019t`} confirmed yet.</b> These students are under 18; their parent got a confirmation link at sign-up and hasn&rsquo;t opened it. Results go only to confirmed parents.
+                    <span className="row wrap items-center gap-2 xs" data-testid="parents-not-confirmed">
+                      <span className="grow">
+                        <b>{c.notConfirmed === 1 ? "1 parent hasn\u2019t" : `${c.notConfirmed} parents haven\u2019t`} confirmed yet.</b> Their parent got a confirmation link (at sign-up, or when you added the email) and hasn&rsquo;t opened it. Results go only to confirmed parents.
+                      </span>
+                      {canResend && (
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={resendLinks} disabled={resending} data-testid="parents-resend-links">
+                          {resending ? "Sending…" : `Resend link to ${c.notConfirmed}`}
+                        </button>
+                      )}
+                      {resendNote && (
+                        <span className="basis-full xs muted" role="status" data-testid="parents-resend-note">
+                          {resendNote}
+                        </span>
+                      )}
                     </span>
                   )}
                 </div>
@@ -287,10 +346,46 @@ export default function SendToParentsPage() {
                               </span>
                             </td>
                             <td>
-                              <span className="col">
-                                <span>{r.parent.name ?? (r.parent.emailMasked ? "Parent" : "—")}</span>
-                                <span className="xs muted mono">{r.parent.emailMasked ?? "No email"}</span>
-                              </span>
+                              {adding === r.student.id ? (
+                                <span className="col gap-1.5" data-testid="parents-add-form">
+                                  <input className="input input-sm" type="email" placeholder="Parent's email" value={addEmail} maxLength={254} onChange={(e) => setAddEmail(e.target.value)} aria-label="Parent's email" autoFocus />
+                                  <input className="input input-sm" placeholder="Name (optional)" value={addName} maxLength={120} onChange={(e) => setAddName(e.target.value)} aria-label="Parent's name" />
+                                  {addErr && (
+                                    <span className="xs text-danger" role="alert">
+                                      {addErr}
+                                    </span>
+                                  )}
+                                  <span className="row gap-1.5">
+                                    <button type="button" className="btn btn-primary btn-sm" onClick={() => saveParent(r.student.id)} disabled={addBusy || !addEmail.trim()} data-testid="parents-add-save">
+                                      {addBusy ? "Sending…" : "Save and send link"}
+                                    </button>
+                                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAdding(null)} disabled={addBusy}>
+                                      Cancel
+                                    </button>
+                                  </span>
+                                  <span className="xs muted">The parent confirms by email before they get results.</span>
+                                </span>
+                              ) : (
+                                <span className="col">
+                                  <span>{r.parent.name ?? (r.parent.emailMasked ? "Parent" : "—")}</span>
+                                  <span className="xs muted mono">{r.parent.emailMasked ?? "No email"}</span>
+                                  {r.parent.status === "noEmail" && canAddParent && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-ghost btn-sm self-start px-0"
+                                      onClick={() => {
+                                        setAdding(r.student.id);
+                                        setAddEmail("");
+                                        setAddName("");
+                                        setAddErr(null);
+                                      }}
+                                      data-testid="parents-add"
+                                    >
+                                      + Add parent email
+                                    </button>
+                                  )}
+                                </span>
+                              )}
                             </td>
                             <td className="num whitespace-nowrap">
                               {r.score} / {r.maxScore}
@@ -462,11 +557,13 @@ export default function SendToParentsPage() {
       {!noEmails && canSend && (
         <div className="sticky bottom-0 z-10 row between wrap gap-2 border-t border-line-2 bg-surface px-7 py-3" data-testid="parents-bar">
           <span className="sm">
-            <b>{inr(willSend.length)} parents selected</b>
+            <b>
+              {inr(willSend.length)} parent{willSend.length === 1 ? "" : "s"} selected
+            </b>
             {skipText ? <span className="muted"> · {skipText}</span> : null}
           </span>
           <button type="button" className="btn btn-primary" onClick={() => setConfirm("all")} disabled={!willSend.length || sending} data-testid="parents-send">
-            {sending ? "Sending…" : `Send to ${inr(willSend.length)} parents`}
+            {sending ? "Sending…" : `Send to ${inr(willSend.length)} parent${willSend.length === 1 ? "" : "s"}`}
           </button>
         </div>
       )}

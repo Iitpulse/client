@@ -7,7 +7,7 @@
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { API_GATEWAY } from "../ai-admin";
-import { apiError, m6Tests, source, unwrap } from "./client";
+import { apiError, m6Tests, m6Users, source, unwrap } from "./client";
 
 const enc = encodeURIComponent;
 const wrap = async <T>(p: Promise<{ data: unknown }>): Promise<T> => {
@@ -145,6 +145,12 @@ export const sendParents = (testId: string, b: { note?: string | null; batchIds?
   wrap<{ send: ParentSend }>(m6Tests.post(`/admin/tests/${enc(testId)}/parent-sends`, b, PAR));
 export const parentTestCopy = (testId: string, b: { studentId?: string; note?: string | null }) =>
   wrap<{ copy: { sent: boolean; emailMasked: string; studentId: string } }>(m6Tests.post(`/admin/tests/${enc(testId)}/parent-sends/test-copy`, b, PAR));
+
+/** users (batch 8): "+ Add parent email" (sends the confirmation link) and "Resend link to N" */
+export const addParentEmail = (studentId: string, b: { guardianEmail: string; guardianName?: string | null }) =>
+  wrap<{ status: string }>(m6Users.post(`/admin/users/${enc(studentId)}/guardian-consent`, b, PAR));
+export const resendParentLinks = (studentIds: string[]) =>
+  wrap<{ sent: number; limited: number; confirmed: number; noRequest: number; notFound: number; failed: number }>(m6Users.post("/admin/guardian-consent/resend", { studentIds }, PAR));
 
 /* ─────────────── the parent's page (public) ─────────────── */
 
