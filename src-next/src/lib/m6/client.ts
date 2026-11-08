@@ -3,8 +3,9 @@
   Routes go through the gateway: /tests/admin/*, /users/admin/*, /users/auth/reauth, /ai/admin/*.
 
   Sample-data fallback (the tests and ai backends land M6 routes in stages): every read and write goes through
-  `m6Call(area, real, fixture)`. Mode from NEXT_PUBLIC_M6_FIXTURES (default "auto"), overridable per browser with
-  localStorage "iitp.m6.fixtures" = "auto" | "on" | "off":
+  `m6Call(area, real, fixture)`. Mode from NEXT_PUBLIC_M6_FIXTURES; when unset, "auto" under `next dev` (local dev
+  stack) and "off" in every build (staging, release): a missing route there shows the page's error state, never sample
+  personas. Overridable per browser with localStorage "iitp.m6.fixtures" = "auto" | "on" | "off" (QA screenshots):
     - auto: call the real route; when the route does not exist yet (Fastify's route-not-found 404, or 501
       NOT_IMPLEMENTED on a Mongo engine) the area switches to its typed fixture for this page load and the page
       shows a "Sample data" pill (useM6Source). Contract errors (TEST_NOT_FOUND, FORBIDDEN, …) pass through.
@@ -60,10 +61,13 @@ function readLS(key: string): string | null {
   }
 }
 
+/** No env value: sample data only on the local dev server (next dev); builds default to real routes only. */
+const DEFAULT_MODE: Mode = process.env.NODE_ENV === "development" ? "auto" : "off";
+
 export function fixtureMode(): Mode {
   const ls = readLS("iitp.m6.fixtures");
-  const v = (ls || process.env.NEXT_PUBLIC_M6_FIXTURES || "auto") as Mode;
-  return v === "on" || v === "off" ? v : "auto";
+  const v = (ls || process.env.NEXT_PUBLIC_M6_FIXTURES || DEFAULT_MODE) as Mode;
+  return v === "on" || v === "auto" ? v : "off";
 }
 
 export function scenario(): Scenario {
