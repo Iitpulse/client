@@ -389,7 +389,7 @@ function BrandPreview({ view, onView, primary, accent, logoUrl, name, isIitp, ho
                 <span className="xs" style={{ opacity: 0.85 }}>
                   ● Live now · ends in 02:14:36
                 </span>
-                <span style={{ fontSize: 26, fontWeight: 650, letterSpacing: "-.02em" }}>JEE Main Mock 12</span>
+                <span style={{ fontSize: 26, fontWeight: 650, letterSpacing: "-.02em" }}>{examRefs(exams.data)[0]?.name ? `${examRefs(exams.data)[0].name} Mock 12` : "Mock test 12"}</span>
                 <div className="row gap-3">
                   <span className="btn btn-sm" style={{ background: "#fff", color: "var(--navy)" }}>
                     Start test →
