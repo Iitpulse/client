@@ -2,8 +2,10 @@
 
 /*
   Admin-Analysis fix-key → fix-impact → fix-confirm (owner D6). Step 1 picks the new key (change / accept another
-  answer as well / drop), step 2 shows what the re-score changes (POST …/key-fix/preview), then a navy confirm starts the
-  re-score (POST …/key-fix, 202). The page polls the correction and shows fix-progress / fix-done.
+  answer as well / drop; options, a number or range, or the matrix grid) and the reason (required, 8 Nov: saved in
+  the audit log and shown in the "key corrected" notes), step 2 shows what the re-score changes (POST
+  …/key-fix/preview: scores, ranks, batch and section average, top 10), then a navy confirm starts the re-score (POST
+  …/key-fix, 202). The page polls the correction and shows fix-progress / fix-done.
 */
 import * as React from "react";
 import { MathText } from "@/components/math-text";
@@ -41,12 +43,16 @@ function errorText(e: unknown): { field: string | null; text: string } {
 export function FixKeyDrawer({ open, onClose, testId, testName, stat, submissions, onStarted }: Props) {
   const item = stat.item;
   const isNum = item.type === "integer";
+  const isMatrix = item.type === "matrix";
   const current = item.key.optionIds ?? [];
+  const currentMatches = item.key.matches ?? {};
   const [step, setStep] = React.useState<1 | 2>(1);
   const [mode, setMode] = React.useState<Mode>("changeKey");
   const [picked, setPicked] = React.useState<string[]>([]);
   const [from, setFrom] = React.useState("");
   const [to, setTo] = React.useState("");
+  const [matches, setMatches] = React.useState<Record<string, string[]>>({});
+  const [reason, setReason] = React.useState("");
   const [updateBank, setUpdateBank] = React.useState(true);
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<{ field: string | null; text: string } | null>(null);
@@ -54,13 +60,23 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
   const [confirm, setConfirm] = React.useState(false);
 
   const currentLabel = keyLabel(item, item.key);
+  const rows = item.matrix?.rows ?? [];
+  const columns = item.matrix?.columns ?? [];
+  const matrixDone = isMatrix && rows.length > 0 && rows.every((r) => (matches[r.id] ?? []).length > 0);
+  const sameMatrix = isMatrix && rows.every((r) => sameIds(matches[r.id], currentMatches[r.id]));
   const typedKey: AnswerKey | null = isNum
     ? from.trim() !== "" && Number.isFinite(Number(from))
       ? { range: { from: Number(from), to: to.trim() === "" ? Number(from) : Number(to) } }
       : null
-    : picked.length
-      ? { optionIds: [...picked].sort() }
-      : null;
+    : isMatrix
+      ? matrixDone
+        ? { matches: Object.fromEntries(rows.map((r) => [r.id, [...(matches[r.id] ?? [])].sort()])) }
+        : null
+      : picked.length
+        ? { optionIds: [...picked].sort() }
+        : null;
+  const reasonText = reason.replace(/\s+/g, " ").trim();
+  const reasonOk = reasonText.length >= 3 && reasonText.length <= 500;
   const typedLabel = typedKey ? keyLabel(item, typedKey) : "";
 
   const pick = (id: string) => {
@@ -70,19 +86,35 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
     else if (!current.includes(id)) setPicked([id]);
   };
 
-  const ready = mode === "drop" || (!!typedKey && !(mode === "changeKey" && !isNum && sameIds(picked, current)));
+  const toggleCell = (row: string, col: string) => {
+    if (mode === "drop") setMode("changeKey");
+    setErr(null);
+    setMatches((m) => {
+      const cur = m[row] ?? [];
+      return { ...m, [row]: cur.includes(col) ? cur.filter((c) => c !== col) : [...cur, col] };
+    });
+  };
+
+  const ready = mode === "drop" || (!!typedKey && !(mode === "changeKey" && !isNum && (isMatrix ? sameMatrix : sameIds(picked, current))));
 
   const check = async () => {
     if (!ready) {
-      setErr({ field: "newKey", text: isNum ? "Enter the answer (a number, or a range from–to)" : "Pick the correct option" });
+      setErr({
+        field: "newKey",
+        text: isNum ? "Enter the answer (a number, or a range from–to)" : isMatrix ? (matrixDone ? "That is the key already" : "Pick at least one item for every row") : "Pick the correct option",
+      });
+      return;
+    }
+    if (!reasonOk) {
+      setErr({ field: "reason", text: reasonText.length > 500 ? "Keep the reason under 500 characters" : "Say why the key changes (saved in the audit log)" });
       return;
     }
     const body: KeyFixPreviewRequest =
       mode === "drop"
-        ? { questionId: item.questionId, mode, newKey: item.key }
+        ? { questionId: item.questionId, mode, newKey: item.key, reason: reasonText }
         : mode === "acceptAlso"
-          ? { questionId: item.questionId, mode, newKey: item.key, acceptKeys: [typedKey!] }
-          : { questionId: item.questionId, mode, newKey: typedKey!, updateBank };
+          ? { questionId: item.questionId, mode, newKey: item.key, acceptKeys: [typedKey!], reason: reasonText }
+          : { questionId: item.questionId, mode, newKey: typedKey!, updateBank, reason: reasonText };
     setBusy(true);
     setErr(null);
     try {
@@ -97,7 +129,7 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
 
   const run = async () => {
     if (!preview) return;
-    const c = await startKeyFix(testId, preview.previewId);
+    const c = await startKeyFix(testId, preview.previewId, reasonText);
     setConfirm(false);
     onStarted(c);
     onClose();
@@ -108,6 +140,9 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
     mode === "drop" ? `${n} is dropped` : mode === "acceptAlso" ? `${n} accepts ${typedLabel} as well as ${currentLabel}` : `Key for ${n} goes from ${currentLabel} to ${typedLabel}`;
   const total = preview?.submissions ?? submissions;
   const biggest = preview?.examples.reduce((m, x) => Math.max(m, Math.abs(x.rank.after - x.rank.before)), 0) ?? 0;
+  const top10 = preview?.top10 ?? null;
+  const top10Main = top10 ? (top10.in || top10.out ? `${top10.in} in, ${top10.out} out` : "No change") : null;
+  const top10Names = top10 ? [...top10.entered.map((x) => `${x.name} comes in`), ...top10.left.map((x) => `${x.name} drops out`)].slice(0, 3).join(" · ") : "";
 
   return (
     <>
@@ -184,6 +219,8 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
                         }}
                       />
                     </span>
+                  ) : isMatrix ? (
+                    <MatrixKeyEditor rows={rows} columns={columns} picked={matches} current={currentMatches} onToggle={toggleCell} currentLabel={currentLabel} />
                   ) : (
                     <span className="an-keys">
                       {item.options.map((o, i) => {
@@ -225,6 +262,28 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
                   </span>
                 </span>
               </label>
+            </div>
+            <div className="col gap-1.5">
+              <label className="sm font-semibold" htmlFor="fx-reason">
+                Reason
+              </label>
+              <input
+                id="fx-reason"
+                className="input"
+                value={reason}
+                maxLength={500}
+                placeholder="Worked solution gives B; the key had a typo"
+                aria-invalid={err?.field === "reason" || undefined}
+                aria-describedby="fx-reason-hint"
+                onChange={(e) => {
+                  setReason(e.target.value);
+                  if (err?.field === "reason") setErr(null);
+                }}
+                data-testid="fix-reason"
+              />
+              <span id="fx-reason-hint" className="xs muted">
+                Saved in the audit log with your name, and shown to staff with the &ldquo;key corrected&rdquo; note.
+              </span>
             </div>
             {err && (
               <span className="sm text-danger" role="alert" data-testid="fix-error">
@@ -269,7 +328,20 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
                 <b>
                   {fmt(preview.averageBefore)} → {fmt(preview.averageAfter)}
                 </b>
+                {preview.sectionAverage && preview.sectionAverage.name && (
+                  <span className="xs muted">
+                    {preview.sectionAverage.name} {fmt(preview.sectionAverage.before)} → {fmt(preview.sectionAverage.after)}
+                  </span>
+                )}
               </div>
+              {top10 && (
+                <div className="an-tile" data-testid="fix-top10">
+                  <span className="xs muted">Top 10</span>
+                  <b>{top10Main}</b>
+                  <span className="xs muted">{top10.topperChanged ? "The topper changes" : "Topper unchanged"}</span>
+                  {top10Names && <span className="xs muted">{top10Names}</span>}
+                </div>
+              )}
             </div>
             {preview.examples.length > 0 && (
               <div className="col gap-1.5">
@@ -327,6 +399,7 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
           facts={[
             ["Scores", `${preview.submissions} recalculated, ranks too`],
             ["Students", `${preview.studentsNotified} see a "key corrected" note`],
+            ["Reason", reasonText],
             ["Record", "Saved to the audit log"],
           ]}
           confirmLabel={`Re-score ${preview.submissions} student${preview.submissions === 1 ? "" : "s"}`}
@@ -334,5 +407,58 @@ export function FixKeyDrawer({ open, onClose, testId, testName, stat, submission
         />
       )}
     </>
+  );
+}
+
+/** The matrix key: one row per List I item, a toggle per List II item; the current key's cells are dashed ("now"). */
+function MatrixKeyEditor({
+  rows,
+  columns,
+  picked,
+  current,
+  onToggle,
+  currentLabel,
+}: {
+  rows: Array<{ id: string; en: string }>;
+  columns: Array<{ id: string; en: string }>;
+  picked: Record<string, string[]>;
+  current: Record<string, string[]>;
+  onToggle: (row: string, col: string) => void;
+  currentLabel: string;
+}) {
+  return (
+    <span className="col gap-1.5" data-testid="fix-matrix">
+      <span className="xs muted">Now {currentLabel}. Pick every List II item that matches each row (dashed = the key now).</span>
+      <span className="an-mxk" role="group" aria-label="New matrix key">
+        {rows.map((r) => (
+          <span key={r.id} className="row wrap gap-1.5" role="group" aria-label={`Row ${r.id}`}>
+            <span className="an-mxk-row">
+              <b className="mono">{r.id}</b>
+              {r.en ? <MathText html as="span" className="font-serif" text={r.en} /> : null}
+            </span>
+            {columns.map((c) => {
+              const on = (picked[r.id] ?? []).includes(c.id);
+              const cur = (current[r.id] ?? []).includes(c.id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`an-kb ${on ? "on" : ""} ${cur ? "cur" : ""}`}
+                  aria-pressed={on}
+                  aria-label={`${r.id} matches ${c.id}${cur ? " (key now)" : ""}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onToggle(r.id, c.id);
+                  }}
+                  data-testid={`fix-mx-${r.id}-${c.id}`}
+                >
+                  {c.id}
+                </button>
+              );
+            })}
+          </span>
+        ))}
+      </span>
+    </span>
   );
 }

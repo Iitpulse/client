@@ -6,7 +6,8 @@
     GET /tests/admin/tests/:id/students/:sid/report/questions/:n    one question opened
     GET /tests/admin/tests/:id/results?sort=rank                    previous / next student by rank
     GET /ai/admin/tests/:id/students/:sid/review                    the AI review the student sees (never generates)
-    GET /tests/admin/tests/:id/student-preview                      option order (A, B, C…) for the answer columns
+  Option letters (A, B, C… in paper order) and "A, C" labels come with the question rows (VIEW_RESULT, 8 Nov), so the
+  report needs no UPDATE_TEST route.
 */
 import { useQuery } from "@tanstack/react-query";
 import type {
@@ -32,10 +33,10 @@ export type ReportQuestion = StudentReportQuestionsResponse["items"][number] & {
   rowOutcomes?: Record<string, "right" | "wrong" | "blank"> | null;
   dropped?: boolean;
   overLimit?: boolean;
-  /** future: server-side labels ("B", "A, C"); preferred when present */
-  yoursLabel?: string | null;
-  keyLabel?: string | null;
 };
+
+/** The question's option ids in paper order (letters A, B, C…), from the row itself. */
+export const orderOf = (q: Pick<ReportQuestion, "options">): string[] | undefined => (q.options?.length ? q.options.map((o) => o.id) : undefined);
 export type ReportQuestionDetail = StudentReportQuestionDetail & { outcome?: ReportQuestion["outcome"]; keyCorrected?: boolean };
 
 export function useStudentReport(testId: string, sid: string) {
@@ -115,32 +116,6 @@ export function useRankNeighbours(testId: string, sid: string, rank: number | nu
   });
 }
 
-/** questionId → option ids in paper order (letters A, B, C…). Needs UPDATE_TEST; without it the labels fall back. */
-export function useOptionOrder(testId: string) {
-  return useQuery({
-    queryKey: ["m6", "report-option-order", testId],
-    retry: false,
-    staleTime: 10 * 60_000,
-    queryFn: async () => {
-      const d = unwrap<{ test: { sections?: Array<{ subSections?: Array<{ questions?: unknown }> }> } }>((await m6Tests.get(`/admin/tests/${enc(testId)}/student-preview`)).data);
-      const map = new Map<string, string[]>();
-      type Q = { _id?: string; id?: string; en?: { options?: Array<{ id: string }> }; options?: Array<{ id: string }>; questions?: Q[] };
-      const visit = (q: Q) => {
-        const id = q._id ?? q.id;
-        const opts = q.en?.options ?? q.options;
-        if (id && opts?.length) map.set(id, opts.map((o) => String(o.id)));
-        for (const c of q.questions ?? []) visit(c);
-      };
-      for (const s of d.test?.sections ?? [])
-        for (const ss of s.subSections ?? []) {
-          const qs = ss.questions;
-          for (const q of (Array.isArray(qs) ? qs : Object.values((qs ?? {}) as Record<string, Q>)) as Q[]) visit(q);
-        }
-      return map;
-    },
-  });
-}
-
 /* ───────────── labels ───────────── */
 
 const LETTER = (i: number) => String.fromCharCode(65 + i);
@@ -159,7 +134,8 @@ export function optionLetters(ids: string[] | undefined, order: string[] | undef
 
 const num = (v: number) => (Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100));
 
-export function keyText(type: string, key: AnswerKey, order?: string[]): string {
+export function keyText(type: string, key: AnswerKey, order?: string[], label?: string | null): string {
+  if (label) return label;
   if (key.range) return key.range.from === key.range.to ? num(key.range.from) : `${num(key.range.from)} to ${num(key.range.to)}`;
   if (key.matches) return matrixText(key.matches);
   if (key.optionIds) return optionLetters(key.optionIds, order) || "—";

@@ -505,7 +505,7 @@ export default function DetailedAnalysisPage() {
       ? `${set.length} questions · avg ${clock(Math.round(set.reduce((a, s) => a + s.avgTime, 0) / set.length))} each`
       : `avg ${clock(current.avgTime)} · ${current.accuracy}% ${rightWord(current.item.type)}`
     : "";
-  const canFixCurrent = canFix && !!current && current.total > 0 && current.item.type !== "matrix" && !busy;
+  const canFixCurrent = canFix && !!current && current.total > 0 && !busy;
 
   return (
     <>
@@ -544,6 +544,7 @@ export default function DetailedAnalysisPage() {
                 {latest.averageAfter !== null ? `; the average is now ${fmt(latest.averageAfter)}` : ""}.{" "}
                 {latest.studentsNotified ? `Those students see a "key corrected" note on their result${latest.emailed ? ` and ${latest.emailed} got a short email` : ""}. ` : ""}
                 Saved to the audit log with your name.
+                {latest.reason ? <span className="mt-0.5 block" data-testid="key-corrected-reason">Reason: {latest.reason}</span> : null}
               </AnBanner>
             ) : kc?.status === "generating" ? (
               <AnBanner tone="quiet" icon={<LoaderCircle className="size-4 animate-spin" aria-hidden />}>

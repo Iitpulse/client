@@ -19,7 +19,7 @@ import { useInstituteState } from "@/components/brand/InstituteBanners";
 import { useBrand } from "@/lib/brand";
 import { BulkPreviewDialog } from "@/components/questions-admin/bulk-ai";
 import type { AdminOverview, DraftKind, LiveTest, QuestionFilter, QuestionSearchResponse, TestKind } from "@/lib/m5-contract";
-import type { AdminResultsResponse, AdminTestListItem, TaxonomyTreeResponse } from "@/lib/m6-contract";
+import type { AdminResultsResponse, AdminTestListItem, ChapterAccuracyResponse, TaxonomyTreeResponse } from "@/lib/m6-contract";
 
 /*
   Admin-Dashboard board (canvas: states full, many-live, day-one, teacher, loading, card-errors, ai-paused).
@@ -35,7 +35,9 @@ import type { AdminResultsResponse, AdminTestListItem, TaxonomyTreeResponse } fr
   - per card: skeletons while loading, "Couldn't load …" with Try again and a support code when a card fails.
   - AI paused (institute state or the summary's AI_PAUSED): AI buttons off with a note, the summary line says so. The
     shell's institute banner says why; the page draws its own banner only when that one is absent.
-  Not built (no data): the teacher's "weakest chapter in the last test" attention row; the board's "Ask <name>".
+    The teacher's "weakest chapter in the last test" row: GET /tests/admin/dashboard/chapter-accuracy?lastN=1&subjects=…
+    (their batches by role scope, their subjects).
+  Not built (no data): the board's "Ask <name>".
 */
 
 interface Submission {
@@ -210,6 +212,18 @@ function AdminDashboard({ name, instituteId }: { name: string; instituteId?: str
   }, [teacher, subjectBank]);
   const teacherBankLoading = teacher && canQuestions && !teacherBank && !subjectBank.some((q) => q.isError);
 
+  // Teacher: the weakest chapter of the last closed test of their batches (role scope), in their subjects
+  const weakest = useQuery({
+    queryKey: ["dash", "chapter-accuracy", subjects.join("|")],
+    enabled: teacher && can("VIEW_RESULT") && meDetail.isSuccess,
+    staleTime: 5 * 60_000,
+    retry: false,
+    queryFn: async () => {
+      const r = await apiTests.get("/admin/dashboard/chapter-accuracy", { params: { lastN: 1, limit: 5, ...(subjects.length ? { subjects: subjects.join(",") } : {}) } });
+      return (r.data?.data ?? r.data) as ChapterAccuracyResponse;
+    },
+  });
+
   // The latest result's subject (teacher): average from insights, marks spread from the M6 results table
   const insights = useResultInsights(teacher ? latest?.testId : undefined);
   const subjectRow = useMemo(() => insights.data?.subjects.find((x) => subjects.some((n) => same(n, x.subject))) ?? null, [insights.data, subjects]);
@@ -330,8 +344,19 @@ function AdminDashboard({ name, instituteId }: { name: string; instituteId?: str
 
   const subjectFilter: QuestionFilter = subjectIds.length === 1 ? { subjectId: subjectIds[0]!.id } : {};
   const subjectLabel = subjects.length === 1 ? `${subjects[0]} ` : "";
+  const weakRow: AttentionRow[] = weakest.data?.weakestInLastTest
+    ? [
+        {
+          key: "weakest-chapter",
+          title: `${weakest.data.weakestInLastTest.chapter}: ${weakest.data.weakestInLastTest.accuracyPercent}% right in ${weakest.data.weakestInLastTest.test.shortName || weakest.data.weakestInLastTest.test.name}`,
+          sub: subjects.length > 1 ? `Your weakest chapter in the last test (${weakest.data.weakestInLastTest.subject})` : "Your weakest chapter in the last test",
+          href: `/tests/${encodeURIComponent(weakest.data.weakestInLastTest.test.testId)}/detailed-analysis`,
+          action: "See questions",
+        },
+      ]
+    : [];
   const attention: AttentionRow[] = teacher
-    ? teacherAttention(teacherBank, subjectFilter, subjectLabel, subjectIds.length > 1, can("CREATE_QUESTION", "UPDATE_QUESTION"))
+    ? [...teacherAttention(teacherBank, subjectFilter, subjectLabel, subjectIds.length > 1, can("CREATE_QUESTION", "UPDATE_QUESTION")), ...weakRow]
     : attentionRows(ov, bank.data?.counts, canQuestions);
   const attentionLoading = teacher ? teacherBankLoading : overview.isLoading || (canQuestions && bank.isLoading);
 

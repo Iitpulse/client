@@ -33,7 +33,7 @@ import {
   minSec,
   mmss,
   optionLetters,
-  useOptionOrder,
+  orderOf,
   useRankNeighbours,
   useReportQuestion,
   useReportQuestions,
@@ -359,6 +359,11 @@ function KeyNotes({ r, testId }: { r: Report; testId: string }) {
               ? `${f}'s score went from ${r1(k.yourScore.before)} to ${r1(k.yourScore.after)}${k.yourRank.before && k.yourRank.after && k.yourRank.before !== k.yourRank.after ? ` and the rank from ${k.yourRank.before} to ${k.yourRank.after}` : ""}.`
               : `${f}'s score did not change.`}{" "}
             {k.yourMarks.before !== k.yourMarks.after ? `${f} sees a "key corrected" note on the result.` : ""}
+            {k.reason ? (
+              <span className="mt-0.5 block" data-testid="sr-key-reason">
+                Reason: {k.reason}
+              </span>
+            ) : null}
           </span>
           <Link href={`/audit-logs?involving=${encodeURIComponent(testId)}&range=30d`} className="btn btn-ghost">
             See in audit log
@@ -760,7 +765,6 @@ const ANC = { r: "sr-ans ok", w: "sr-ans bad", s: "sr-ans", p: "sr-ans" } as con
 
 function Questions({ r, testId, studentId, q }: { r: Report; testId: string; studentId: string; q: ReturnType<typeof useReportQuestions> }) {
   const fname = first(r.student.name);
-  const order = useOptionOrder(testId).data;
   const [filter, setFilter] = React.useState<Filter>("all");
   const [subject, setSubject] = React.useState<string | null>(null);
   const [open, setOpen] = React.useState<number | null>(null);
@@ -956,10 +960,10 @@ function Questions({ r, testId, studentId, q }: { r: Report; testId: string; stu
                       <span className="badge b-grey">{TYPE_LABEL[x.type] ?? x.type}</span>
                     </td>
                     <td>
-                      <span className={ANC[s]}>{yoursText(x, order?.get(x.questionId))}</span>
+                      <span className={ANC[s]}>{yoursText(x, orderOf(x))}</span>
                     </td>
                     <td>
-                      <span className="sr-ans">{x.dropped ? "Dropped" : x.keyLabel || keyText(x.type, x.key, order?.get(x.questionId))}</span>
+                      <span className="sr-ans">{x.dropped ? "Dropped" : keyText(x.type, x.key, orderOf(x), x.keyLabel)}</span>
                       {x.keyCorrected && <span className="badge b-navy ml-1.5">Key corrected</span>}
                     </td>
                     <td className="num">
@@ -973,7 +977,7 @@ function Questions({ r, testId, studentId, q }: { r: Report; testId: string; stu
                   {isOpen && (
                     <tr>
                       <td colSpan={8} className="p-0">
-                        <QuestionDetail testId={testId} studentId={studentId} item={x} name={fname} order={order?.get(x.questionId)} />
+                        <QuestionDetail testId={testId} studentId={studentId} item={x} name={fname} order={orderOf(x)} />
                       </td>
                     </tr>
                   )}
@@ -1113,7 +1117,7 @@ function QuestionDetail({ testId, studentId, item, name, order }: { testId: stri
           </div>
         ) : (
           <span className="sm">
-            <b>{name}:</b> <span className="mono">{yoursText(item, order)}</span> · <b>Key:</b> <span className="mono">{keyText(item.type, item.key, order)}</span>
+            <b>{name}:</b> <span className="mono">{yoursText(item, order)}</span> · <b>Key:</b> <span className="mono">{keyText(item.type, item.key, order, item.keyLabel)}</span>
           </span>
         )}
         {solution && (
@@ -1226,7 +1230,6 @@ function PrintView({ r, sub, testId, studentId }: { r: Report; sub: Sub; testId:
   const ai = useStudentAiReview(testId, studentId, o.ai);
   const { me } = useCan();
   const brand = useBrand();
-  const order = useOptionOrder(testId).data;
   const items = React.useMemo(() => qs.data ?? [], [qs.data]);
   const missed = items.filter((x) => x.outcome === "wrong" || x.outcome === "skipped");
   const fullQ = useQueries({
@@ -1405,7 +1408,7 @@ function PrintView({ r, sub, testId, studentId }: { r: Report; sub: Sub; testId:
             missed.map((x, i) => {
               const d = fullQ[i]?.data;
               const qq = d?.question;
-              const ids = qq?.en.options?.map((op) => op.id) ?? order?.get(x.questionId);
+              const ids = qq?.en.options?.map((op) => op.id) ?? orderOf(x);
               return (
                 <div key={x.n} className="full col gap-1.5">
                   <span className="lbl">

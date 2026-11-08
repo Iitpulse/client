@@ -3,11 +3,11 @@
 /*
   Admin-Results board (states published, key-corrected, not-published, publish-confirm, summary-writing / too-few /
   ai-paused / failed, flag-detail, copied, no-submissions, loading, error, no-permission).
-  Data (lib/m6/results-admin.ts): GET /tests/admin/tests/:id/results (every row; sorted, filtered and paged here because
-  the route sorts by rank/name/score only), results.csv for Export, the test's settings + tests-list row (result mode,
-  published / due, live), result-publish-preview + PATCH /tests/test/publish-result for "Publish now" (manual result
-  mode only: the backend has no early publish for "After N days" / "At close"), the Monitor student detail for the flag
-  drawer. M5: result-insights (appeared / assigned, average vs the previous mock, subject averages, integrity),
+  Data (lib/m6/results-admin.ts): GET /tests/admin/tests/:id/results (one page, sorted / filtered by the server, with the
+  tiles' summary and the batch list), results.csv for Export, GET …/:id/summary for the header (state, result mode,
+  published / due, publishNow), result-publish-preview + POST …/results/publish for "Publish now" (Manual, or early for
+  "After N days"; the other modes publish by themselves and the banner says why there's no button), the Monitor student
+  detail for the flag drawer. M5: result-insights (appeared / assigned, average vs the previous mock, subject averages, integrity),
   ai batch summary and key check.
   Not built yet: "Send to parents", "Add to schedule", "Assign practice". Owner, 8 Nov: they ship before release, from
   design batch 8 boards. Slots kept for them: `pageActions` (top bar, before Export) for page-wide actions such as
@@ -40,7 +40,7 @@ import {
   useFillHeight,
   useUrlState,
 } from "@/components/kit";
-import { duration, fmt, quantile } from "@/lib/results";
+import { duration, fmt } from "@/lib/results";
 import { deltaTone, m5ErrorCode, useBatchSummary, useKeyCheck, useResultInsights, vsPrevious } from "@/lib/queries-tests-admin";
 import type { BatchSummaryResponse } from "@/lib/m5-contract";
 import type { KeyCorrection, MonitorStudentDetail, ResultPublishPreview, StudentReportResponse } from "@/lib/m6-contract";
@@ -51,6 +51,7 @@ import {
   downloadResultsCsv,
   fetchResultPublishPreview,
   keyText,
+  publishNowWhy,
   publishResultsNow,
   useAdminResults,
   useOptionLetters,
@@ -80,8 +81,6 @@ function RankBadge({ rank }: { rank: number }) {
   const cls = rank === 1 ? "g" : rank === 2 ? "s" : rank === 3 ? "b" : "";
   return <span className={`rs-rk ${cls}`}>{rank}</span>;
 }
-
-const hasFlag = (r: ResultRow) => (r.fullscreenExits ?? 0) > 0 || !!r.autoSubmitted;
 
 /** Flags column: "3 exits · auto-submitted", "2 fullscreen exits", "Auto-submitted · time ran out". */
 function flagOf(r: ResultRow): { text: string; amber: boolean } | null {
@@ -405,27 +404,28 @@ export default function TestResultPage() {
   const testId = params.testId as string;
   const { roleName } = useCan();
 
-  const res = useAdminResults(testId);
-  const info = useResultsTestInfo(testId);
-  const insightsQ = useResultInsights(testId);
-  const insights = insightsQ.data;
-  const items = React.useMemo(() => res.data?.items ?? [], [res.data]);
-  const summaryQ = useBatchSummary(testId, items.length > 0);
-  const keyCheckQ = useKeyCheck(testId, items.length > 0);
-
   const [s, set] = useUrlState(DEFAULTS);
   const sortKey: SortKey = s.sort || "rank";
   const dir: "asc" | "desc" = s.dir === "asc" || s.dir === "desc" ? s.dir : sortKey === "rank" ? "asc" : "desc";
   const page = Math.max(1, Number(s.page) || 1);
 
+  const res = useAdminResults(testId, { q: s.q, batchId: s.batch, flagged: !!s.flagged, sort: sortKey, dir, page, pageSize: PAGE });
+  const info = useResultsTestInfo(testId);
+  const insightsQ = useResultInsights(testId);
+  const insights = insightsQ.data;
+  const pageRows = React.useMemo(() => res.data?.items ?? [], [res.data]);
+  const sum = res.data?.summary;
+  const appeared = sum?.appeared ?? 0;
+  const summaryQ = useBatchSummary(testId, appeared > 0);
+  const keyCheckQ = useKeyCheck(testId, appeared > 0);
+
   const [flagRow, setFlagRow] = React.useState<ResultRow | null>(null);
   const [publishPreview, setPublishPreview] = React.useState<ResultPublishPreview | null>(null);
   const [asking, setAsking] = React.useState(false);
 
-  const settings = info.data?.settings ?? null;
-  const listRow = info.data?.row ?? null;
-  const testName = settings?.name ?? insights?.test.name ?? listRow?.name ?? "Results";
-  const sectionNames = React.useMemo(() => items[0]?.sections.map((x) => x.name) ?? [], [items]);
+  const head = info.data ?? null;
+  const testName = head?.name ?? insights?.test.name ?? "Results";
+  const sectionNames = React.useMemo(() => sum?.sections.map((x) => x.name) ?? pageRows[0]?.sections.map((x) => x.name) ?? [], [sum, pageRows]);
 
   // latest finished key correction ("Key corrected for Q38 on 4 Nov, by …")
   const corrections = res.data?.keyCorrections;
@@ -435,51 +435,31 @@ export default function TestResultPage() {
   );
   const fixLetters = useOptionLetters(testId, lastFix && !lastFix.newKey.range ? lastFix.questionId : null);
 
-  const batchOptions = React.useMemo(() => {
-    const m = new Map<string, string>();
-    for (const r of items) if (r.student.batch) m.set(r.student.batch.id, r.student.batch.name);
-    return [...m].map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label));
-  }, [items]);
-  const flaggedCount = React.useMemo(() => items.filter(hasFlag).length, [items]);
+  const batchOptions = React.useMemo(() => (res.data?.batches ?? []).map((b) => ({ value: b.id, label: b.name })), [res.data?.batches]);
+  const flaggedCount = sum?.withFlags ?? 0;
+  const total = res.data?.pageInfo.total ?? 0;
+  const pg = res.data?.pageInfo.page ?? page;
 
-  const filtered = React.useMemo(() => {
-    const needle = s.q.trim().toLowerCase();
-    const val = (r: ResultRow): number => {
-      if (sortKey === "rank") return r.rank;
-      if (sortKey === "score") return r.score;
-      if (sortKey === "time") return r.timeUsedSeconds;
-      const i = Number(sortKey.slice(1));
-      return r.sections[i]?.score ?? -Infinity;
-    };
-    return items
-      .filter((r) => (!needle || r.student.name.toLowerCase().includes(needle) || r.student.id.toLowerCase() === needle) && (!s.batch || r.student.batch?.id === s.batch) && (!s.flagged || hasFlag(r)))
-      .sort((a, b) => (val(a) - val(b)) * (dir === "asc" ? 1 : -1) || a.rank - b.rank || a.student.name.localeCompare(b.student.name));
-  }, [items, s.q, s.batch, s.flagged, sortKey, dir]);
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE));
-  const pg = Math.min(page, pageCount);
-  const pageRows = filtered.slice((pg - 1) * PAGE, pg * PAGE);
+  const [fillRef, fillH] = useFillHeight<HTMLElement>(appeared > 0, 320, 0, "panel");
 
-  const [fillRef, fillH] = useFillHeight<HTMLElement>(items.length > 0, 320, 0, "panel");
-
-  const scores = React.useMemo(() => items.map((r) => r.score).sort((a, b) => a - b), [items]);
-  const top = React.useMemo(() => [...items].sort((a, b) => a.rank - b.rank)[0], [items]);
-  const maxScore = insights?.test.maxScore ?? items[0]?.maxScore ?? 1;
+  const maxScore = insights?.test.maxScore ?? head?.maxMarks ?? pageRows[0]?.maxScore ?? 1;
   const integrity = insights?.integrity;
-  const threshold = integrity?.threshold ?? settings?.fullscreenPolicy.maxExits ?? 3;
+  const threshold = integrity?.threshold ?? head?.fullscreenPolicy.maxExits ?? 3;
 
   // publish state
-  const state = listRow?.state ?? settings?.state ?? null;
-  const mode = listRow?.resultMode ?? settings?.resultMode ?? null;
-  const published = !!(listRow?.resultPublishedAt || insights?.test.resultPublished);
-  const pending = !published && !!mode && mode !== "immediately" && items.length > 0;
-  const canPublishNow = pending && mode === "manual";
-  const dueAt = listRow?.resultDueAt ?? (mode === "atTheEndOfTest" ? settings?.closesAt ?? null : null);
+  const state = head?.state ?? null;
+  const mode = head?.resultMode ?? null;
+  const published = !!(head?.resultPublishedAt || head?.resultVisible || insights?.test.resultPublished);
+  const pending = !published && !!mode && mode !== "immediately" && appeared > 0;
+  const canPublishNow = pending && !!head?.publishNow.allowed;
+  const whyNot = pending && !canPublishNow ? publishNowWhy(head?.publishNow.code) : null;
+  const dueAt = head?.resultDueAt ?? (mode === "atTheEndOfTest" ? head?.closesAt ?? null : null);
 
   const badge =
     state === "live" ? (
-      <span className="badge b-live">Live · closes {istTime(listRow?.closesAt ?? settings?.closesAt)}</span>
+      <span className="badge b-live">Live · closes {istTime(head?.closesAt)}</span>
     ) : published ? (
-      <span className="badge b-green">Published{listRow?.resultPublishedAt ? ` ${istDate(listRow.resultPublishedAt)}` : ""}</span>
+      <span className="badge b-green">Published{head?.resultPublishedAt ? ` ${istDate(head.resultPublishedAt)}` : ""}</span>
     ) : pending ? (
       <span className="badge b-amber">Not published</span>
     ) : null;
@@ -498,7 +478,7 @@ export default function TestResultPage() {
 
   const exportCsv = async () => {
     try {
-      await downloadResultsCsv(testId, testName, { batchId: s.batch || undefined, flagged: !!s.flagged });
+      await downloadResultsCsv(testId, testName, { batchId: s.batch || undefined, flagged: !!s.flagged, sort: sortKey, dir });
       notify.success("Exported results.csv");
     } catch (e) {
       const a = apiError(e);
@@ -507,8 +487,8 @@ export default function TestResultPage() {
   };
 
   const onSort = (key: SortKey) => {
-    if (key === sortKey) set({ sort: key, dir: dir === "asc" ? "desc" : "asc" });
-    else set({ sort: key, dir: "" });
+    if (key === sortKey) set({ sort: key, dir: dir === "asc" ? "desc" : "asc", page: "1" });
+    else set({ sort: key, dir: "", page: "1" });
   };
 
   const err = res.error ? apiError(res.error) : null;
@@ -518,7 +498,7 @@ export default function TestResultPage() {
   const actions = (
     <>
       {pageActions}
-      <button type="button" className="btn btn-ghost btn-sm" onClick={exportCsv} disabled={!items.length} data-testid="results-export">
+      <button type="button" className="btn btn-ghost btn-sm" onClick={exportCsv} disabled={!appeared} data-testid="results-export">
         Export .csv
       </button>
       {canPublishNow && (
@@ -542,7 +522,7 @@ export default function TestResultPage() {
             <StateBox
               doodle={<Lock className="size-6 text-muted" aria-hidden />}
               title="You can't see these results"
-              body={`${roleName ? `Your role, ${roleName}, ` : "Your role "}can't open results for this test${settings?.batches.length ? ` (${settings.batches.map((b) => b.name).join(" and ")})` : ""}. An admin at your institute can give you access.`}
+              body={`${roleName ? `Your role, ${roleName}, ` : "Your role "}can't open results for this test${head?.batches.length ? ` (${head.batches.map((b) => b.name).join(" and ")})` : ""}. An admin at your institute can give you access.`}
               action={
                 <Link href="/tests" className="btn btn-secondary btn-sm">
                   Back to tests
@@ -589,9 +569,9 @@ export default function TestResultPage() {
       </>
     );
   }
-  if (res.data && !items.length) {
-    const writing = listRow?.attempts ? Math.max(0, listRow.attempts.started - listRow.attempts.submitted) : 0;
-    const closes = listRow?.closesAt ?? settings?.closesAt ?? null;
+  if (res.data && !appeared) {
+    const writing = head?.attempts ? Math.max(0, head.attempts.started - head.attempts.submitted) : 0;
+    const closes = head?.closesAt ?? null;
     return (
       <>
         <Topbar title={title} back={{ href: "/tests", label: "Tests" }} badge={badge} actions={actions} />
@@ -664,6 +644,11 @@ export default function TestResultPage() {
                     : `${fixKey.from} → ${fixKey.to}. `
                   : ""}
               {inr(lastFix.scoresChanged)} {lastFix.scoresChanged === 1 ? "score" : "scores"} and {inr(lastFix.ranksChanged)} {lastFix.ranksChanged === 1 ? "rank" : "ranks"} changed; those students see a &ldquo;key corrected&rdquo; note on their result.
+              {lastFix.reason ? (
+                <span className="mt-0.5 block" data-testid="results-key-reason">
+                  Reason: {lastFix.reason}
+                </span>
+              ) : null}
             </span>
             <Link href={lastFix.auditEventId ? `/audit-logs?event=${enc(lastFix.auditEventId)}` : "/audit-logs"} className="btn btn-ghost">
               See in audit log
@@ -685,9 +670,14 @@ export default function TestResultPage() {
             {mode === "manual"
               ? "Result mode is Manual: they stay hidden until you publish them."
               : mode === "autoAfterXDays"
-                ? `Result mode is After ${settings?.resultAfterDays ?? "N"} day${settings?.resultAfterDays === 1 ? "" : "s"}: they publish by themselves${dueAt ? ` on ${istDateTime(dueAt)}` : ""}.`
+                ? `Result mode is After ${head?.resultAfterDays ?? "N"} day${head?.resultAfterDays === 1 ? "" : "s"}: they publish by themselves${dueAt ? ` on ${istDateTime(dueAt)}` : ""}.`
                 : `Result mode is At close: they publish by themselves when the test closes${dueAt ? `, ${istDateTime(dueAt)}` : ""}.`}{" "}
             Until then students see &ldquo;Results coming soon&rdquo;.
+            {whyNot ? (
+              <span className="mt-0.5 block" data-testid="results-publish-why">
+                {whyNot}
+              </span>
+            ) : null}
           </Banner>
         )}
 
@@ -702,12 +692,12 @@ export default function TestResultPage() {
                 label="Appeared"
                 value={
                   <>
-                    {inr(insights?.appeared ?? items.length)}
+                    {inr(insights?.appeared ?? appeared)}
                     {insights?.assigned && insights.assigned >= insights.appeared ? <span className="sm muted"> / {inr(insights.assigned)}</span> : null}
                   </>
                 }
                 sub={(() => {
-                  const auto = items.filter((r) => r.autoSubmitted).length;
+                  const auto = sum?.autoSubmitted ?? 0;
                   return auto ? `${auto} auto-submitted` : "No auto-submits";
                 })()}
               />
@@ -715,7 +705,7 @@ export default function TestResultPage() {
                 i={1}
                 testId="results-average"
                 label="Average"
-                value={fmt(insights?.average ?? (scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0))}
+                value={fmt(insights?.average ?? sum?.average ?? 0)}
                 sub={
                   insights?.previous && insights.averageDelta !== null
                     ? vsPrevious(insights.averageDelta, insights.averageDeltaUnit, insights.previous.shortName || insights.previous.name)
@@ -723,14 +713,14 @@ export default function TestResultPage() {
                 }
                 tone={insights?.previous && insights.averageDelta !== null ? deltaTone(insights.averageDelta, maxScore, insights.averageDeltaUnit) : undefined}
               />
-              <Stat i={2} label="Highest" value={top ? fmt(top.score) : "—"} sub={top?.student.name} />
-              <Stat i={3} label="Median" value={scores.length ? fmt(quantile(scores, 0.5)) : "—"} sub={scores.length ? `Middle half: ${fmt(quantile(scores, 0.25), 0)}–${fmt(quantile(scores, 0.75), 0)}` : undefined} />
+              <Stat i={2} label="Highest" value={sum?.highest ? fmt(sum.highest.score) : "—"} sub={sum?.highest?.student.name} />
+              <Stat i={3} label="Median" value={appeared ? fmt(sum!.median) : "—"} sub={appeared ? `Middle half: ${fmt(sum!.q1, 0)}–${fmt(sum!.q3, 0)}` : undefined} />
               <Stat
                 i={4}
                 testId="results-integrity"
                 label="Integrity flags"
-                value={integrity?.recorded || items.some((r) => r.fullscreenExits != null) ? (integrity?.recorded ? integrity.flaggedCount : items.filter((r) => r.flagged).length) : "—"}
-                sub={!integrity?.recorded && !items.some((r) => r.fullscreenExits != null) ? "Not recorded for this test" : `${threshold}+ fullscreen exits`}
+                value={integrity?.recorded ? integrity.flaggedCount : integrity ? "—" : (sum?.flagged ?? "—")}
+                sub={integrity && !integrity.recorded ? "Not recorded for this test" : `${threshold}+ fullscreen exits`}
               />
             </>
           )}
@@ -742,7 +732,7 @@ export default function TestResultPage() {
               data={summaryQ.data}
               error={summaryQ.error}
               loading={summaryQ.isLoading}
-              appeared={insights?.appeared ?? items.length}
+              appeared={insights?.appeared ?? appeared}
               onRetry={() => summaryQ.refetch()}
               rewrittenAfterFix={summaryRewritten}
             />
@@ -799,12 +789,12 @@ export default function TestResultPage() {
           <div className="pad row between wrap gap-2 border-b border-line-2">
             <span className="h3">Students</span>
             <div className="row wrap gap-2">
-              <SearchBox value={s.q} onChange={(q) => set({ q })} placeholder="Name or student ID" label="Search students" width={240} />
+              <SearchBox value={s.q} onChange={(q) => set({ q, page: "1" })} placeholder={res.data?.phones ? "Name or phone" : "Name or student ID"} label="Search students" width={240} />
               {batchOptions.length > 0 && (
-                <FilterChip label="Batch" noun="batch" options={batchOptions} value={s.batch || null} onChange={(v) => set({ batch: v ?? "" })} />
+                <FilterChip label="Batch" noun="batch" options={batchOptions} value={s.batch || null} onChange={(v) => set({ batch: v ?? "", page: "1" })} />
               )}
               {flaggedCount > 0 && (
-                <ToggleChip on={!!s.flagged} onChange={(v) => set({ flagged: v ? "1" : "" })}>
+                <ToggleChip on={!!s.flagged} onChange={(v) => set({ flagged: v ? "1" : "", page: "1" })}>
                   Flagged only · {flaggedCount}
                 </ToggleChip>
               )}
@@ -901,12 +891,12 @@ export default function TestResultPage() {
             </table>
           </div>
           {!loading && (
-            <Pagination page={pg} pageSize={PAGE} total={filtered.length} onPage={(p) => set({ page: String(p) })} sortLabel={`${sortLabel} · click a student for their report`} />
+            <Pagination page={pg} pageSize={PAGE} total={total} onPage={(p) => set({ page: String(p) })} sortLabel={`${sortLabel} · click a student for their report`} />
           )}
         </section>
       </main>
 
-      <FlagDrawer testId={testId} row={flagRow} onClose={() => setFlagRow(null)} policy={settings?.fullscreenPolicy ?? null} />
+      <FlagDrawer testId={testId} row={flagRow} onClose={() => setFlagRow(null)} policy={head?.fullscreenPolicy ?? null} />
 
       <ConfirmDialog
         open={!!publishPreview}
@@ -929,12 +919,14 @@ export default function TestResultPage() {
         confirmLabel={publishPreview ? `Publish to ${plural(publishPreview.students, "student")}` : "Publish"}
         onConfirm={async () => {
           if (!publishPreview) return;
+          let emailed = publishPreview.emailed;
           try {
-            await publishResultsNow(testId);
+            emailed = (await publishResultsNow(testId)).emailed;
           } catch (e) {
-            throw new Error(`Not published. ${apiError(e).message}`);
+            const a = apiError(e);
+            await qc.invalidateQueries({ queryKey: ["m6", "results-test", testId] });
+            throw new Error(`Not published. ${publishNowWhy(a.code) ?? a.message}`);
           }
-          const emailed = publishPreview.emailed;
           await Promise.all([
             qc.invalidateQueries({ queryKey: ["m6", "results-test", testId] }),
             qc.invalidateQueries({ queryKey: ["m5", "result-insights", testId] }),

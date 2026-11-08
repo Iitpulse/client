@@ -1,8 +1,8 @@
 /*
   Answer-key fix and re-score (owner D6; contract api-ai docs/m6-api.md "Answer-key fix and re-score", board
   Admin-Analysis fix-key / fix-impact / fix-confirm / fix-progress / fix-done). Real routes only (no sample data):
-    POST /tests/admin/tests/:id/key-fix/preview {questionId, mode, newKey, acceptKeys?, updateBank} → KeyFixPreview
-    POST /tests/admin/tests/:id/key-fix {previewId} → 202 KeyCorrection
+    POST /tests/admin/tests/:id/key-fix/preview {questionId, mode, newKey, acceptKeys?, updateBank, reason} → KeyFixPreview
+    POST /tests/admin/tests/:id/key-fix {previewId, reason?} → 202 KeyCorrection
     GET  /tests/admin/tests/:id/key-fix/:correctionId → KeyCorrection (poll while running)
   The test's corrections so far come with GET /tests/admin/tests/:id/results (keyCorrections).
 */
@@ -18,9 +18,9 @@ export async function previewKeyFix(testId: string, body: KeyFixPreviewRequest):
   }
 }
 
-export async function startKeyFix(testId: string, previewId: string): Promise<KeyCorrection> {
+export async function startKeyFix(testId: string, previewId: string, reason?: string): Promise<KeyCorrection> {
   try {
-    const d = unwrap<KeyCorrection | { correction: KeyCorrection }>((await m6Tests.post(`/admin/tests/${testId}/key-fix`, { previewId }, source("Question analysis · Fix key"))).data);
+    const d = unwrap<KeyCorrection | { correction: KeyCorrection }>((await m6Tests.post(`/admin/tests/${testId}/key-fix`, { previewId, ...(reason ? { reason } : {}) }, source("Question analysis · Fix key"))).data);
     return "correction" in d ? d.correction : d;
   } catch (e) {
     throw apiError(e);

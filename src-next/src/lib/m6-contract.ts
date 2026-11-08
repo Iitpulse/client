@@ -1285,6 +1285,8 @@ export interface KeyFixPreviewRequest {
   newKey: AnswerKey;
   /** also correct the bank question (default true) */
   updateBank?: boolean;
+  /** why the key changes (8 Nov: required, 3–500 characters; audited, shown in the admin "key corrected" notes) */
+  reason: string;
 }
 export interface KeyFixPreview {
   now: IsoDateTime;
@@ -1309,8 +1311,12 @@ export interface KeyFixPreview {
   examples: Array<{ student: { id: string; name: string }; score: { before: number; after: number }; rank: { before: number; after: number } }>;
   /** students who get the short "key corrected" email (mark changed and results emails on) */
   emailed: number;
+  /** additions (8 Nov): the reason as saved, the fixed question's section average, the top 10 change (board fix-impact "Top 10 · 2 in, 2 out · Topper unchanged") */
+  reason?: string;
+  sectionAverage?: { name: string; before: number; after: number } | null;
+  top10?: { in: number; out: number; topperChanged: boolean; entered: Array<{ id: string; name: string }>; left: Array<{ id: string; name: string }> };
 }
-/** POST /tests/admin/tests/:id/key-fix { previewId } → 202 { correction }; poll GET /tests/admin/tests/:id/key-fix/:correctionId */
+/** POST /tests/admin/tests/:id/key-fix { previewId, reason? } → 202 { correction }; poll GET /tests/admin/tests/:id/key-fix/:correctionId */
 export interface KeyCorrection {
   id: string;
   status: "running" | "done" | "failed";
@@ -1331,6 +1337,9 @@ export interface KeyCorrection {
   rescored: number;
   studentsNotified: number;
   auditEventId: string | null;
+  /** additions (8 Nov): the batch average before the re-score, why the key changed (null for corrections before 8 Nov) */
+  averageBefore?: number | null;
+  reason?: string | null;
 }
 
 /** Added to the student result (GET /tests/student/results/:testId) and review question */
@@ -1346,6 +1355,8 @@ export interface StudentKeyCorrectionNote {
   /** "Your score went from 243 to 248 and your rank from 17 to 14" (rank null while not final) */
   yourScore: { before: number; after: number };
   yourRank: { before: number | null; after: number | null };
+  /** admin student report only (8 Nov): why the key changed; never sent to students */
+  reason?: string | null;
 }
 
 /* ═══════════════════════════════ tests: results publish confirm ═══════════════════════════════ */
@@ -1359,6 +1370,67 @@ export interface ResultPublishPreview {
   /** students with email results on (students only; no parent emails, owner 5 Nov) */
   emailed: number;
   aiReviewUnlocks: boolean;
+  /** addition (8 Nov): whether "Publish now" works, else the code POST …/results/publish would answer */
+  publishNow?: PublishNowCheck;
+}
+
+/**
+ * "Publish now" (8 Nov). POST /tests/admin/tests/:id/results/publish [PUBLISH_RESULT]: Manual publishes; "After N days"
+ * publishes early (the automatic date moves to now). 409 codes: ALREADY_PUBLISHED (students see them: Immediately, At
+ * close after the close, or published), TEST_NOT_ENDED (not closed yet, or a student's extra time still running),
+ * RESULT_HIDDEN (results hidden in the test's settings), NO_SUBMISSIONS. "Results out" emails follow from the
+ * notifications job once the rank is final.
+ */
+export interface PublishNowCheck {
+  allowed: boolean;
+  code: "ALREADY_PUBLISHED" | "TEST_NOT_ENDED" | "RESULT_HIDDEN" | "NO_SUBMISSIONS" | null;
+  message: string | null;
+}
+export interface PublishResultsNowResponse {
+  now: IsoDateTime;
+  publishedAt: IsoDateTime;
+  students: number;
+  emailed: number;
+  test: AdminTestSummary;
+}
+
+/** GET /tests/admin/tests/:id/summary [READ_TEST or VIEW_RESULT] (8 Nov): one list row plus the header facts of Results, Analysis and the student report */
+export interface AdminTestSummary extends AdminTestListItem {
+  kind: string | null;
+  isDeleted: boolean;
+  durationMinutes: number;
+  resultAfterDays: number | null;
+  hideResult: boolean;
+  /** students can see their result now */
+  resultVisible: boolean;
+  fullscreenPolicy: FullscreenPolicy;
+  submissions: number;
+  autoSubmitted: number;
+  settlesAt: IsoDateTime | null;
+  /** ranks are final (no attempt can still be running) */
+  settled: boolean;
+  publishNow: PublishNowCheck;
+}
+export interface AdminTestSummaryResponse {
+  now: IsoDateTime;
+  test: AdminTestSummary;
+}
+
+/**
+ * GET /tests/admin/dashboard/chapter-accuracy?lastN=3&subjects=Physics&batchIds=&limit=10 [VIEW_RESULT] (8 Nov; board
+ * Admin-Dashboard "teacher"): a scoped role's batches (narrowed by batchIds), an institute-wide caller's batchIds or every
+ * batch; the last lastN (1–10) closed tests of those batches with a submission, newest first; accuracy = right /
+ * attempted over those batches' submitters, weakest first (then most attempted).
+ */
+export interface ChapterAccuracyResponse {
+  now: IsoDateTime;
+  /** null = every batch */
+  batchIds: string[] | null;
+  lastN: number;
+  tests: Array<TestRef & { closesAt: IsoDateTime | null; students: number }>;
+  chapters: Array<{ subject: string; chapter: string; questions: number; attempted: number; right: number; accuracyPercent: number | null; perTest: Array<{ testId: string; accuracyPercent: number | null }> }>;
+  /** "Rotational motion: 41% right in Mock 11" */
+  weakestInLastTest: { test: TestRef; subject: string; chapter: string; accuracyPercent: number; attempted: number } | null;
 }
 
 /* ═══════════════════════════════ tests: student exam payload (compat with the frozen NTA screens) ═══════════════════════════════ */
@@ -1879,7 +1951,8 @@ export interface ReviewQuestionExtras {
 export interface AdminResultsResponse {
   now: IsoDateTime;
   items: Array<{
-    student: { id: string; name: string; batch: Ref | null };
+    /** phone: addition (8 Nov), READ_USER only, else null */
+    student: { id: string; name: string; batch: Ref | null; phone?: string | null };
     rank: number;
     score: number;
     maxScore: number;
@@ -1894,6 +1967,27 @@ export interface AdminResultsResponse {
   }>;
   pageInfo: PageInfo;
   keyCorrections: KeyCorrection[];
+  /**
+   * additions (8 Nov): sort = rank|name|score|time|submitted|exits|s<i> (i-th section) with dir asc|desc (default rank /
+   * name ascending, the rest descending); flagged=1 (at the integrity line) or flagged=any (any exit or auto-submit);
+   * q also matches phone digits when phones are shown. `summary` and `batches` cover every row the caller may see
+   * (before q / batch / flag filters); `student.phone` only with READ_USER (as the Users page), else null.
+   */
+  sort?: { by: string; dir: "asc" | "desc" };
+  summary?: {
+    appeared: number;
+    autoSubmitted: number;
+    flagged: number;
+    withFlags: number;
+    average: number;
+    median: number;
+    q1: number;
+    q3: number;
+    highest: { score: number; student: { id: string; name: string } } | null;
+    sections: Array<{ name: string; average: number }>;
+  };
+  batches?: Ref[];
+  phones?: boolean;
 }
 
 /** GET /tests/admin/tests/:id/students/:studentId/report (Admin-StudentReport overview + print) */
@@ -1946,6 +2040,10 @@ export interface StudentReportQuestionsResponse {
     timeSeconds: number;
     batchAverageSeconds: number | null;
     keyCorrected: boolean;
+    /** additions (8 Nov): option letters in paper order (single / multiple; [] otherwise), "A, C" labels; "C or B" after "accept also" */
+    options?: Array<{ id: string; letter: string }>;
+    yoursLabel?: string | null;
+    keyLabel?: string | null;
   }>;
 }
 /** GET …/students/:studentId/report/questions/:n : one question opened (content, shares, visits, changes) */
@@ -1963,6 +2061,10 @@ export interface StudentReportQuestionDetail {
   changes: Array<{ at: IsoDateTime; from: string | null; to: string | null }> | null;
   /** "How the batch answered" (fractions 0–1; integer: top values; matrix: per row-column cell) */
   shares: Record<string, number>;
+  /** additions (8 Nov), as on the questions list */
+  options?: Array<{ id: string; letter: string }>;
+  yoursLabel?: string | null;
+  keyLabel?: string | null;
 }
 
 /** GET /ai/admin/tests/:testId/students/:studentId/review : the AI review the student sees (M3 SummaryResponse shape) */
