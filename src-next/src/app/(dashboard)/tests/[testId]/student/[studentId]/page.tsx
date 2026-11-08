@@ -428,9 +428,11 @@ function Overview({ r, sub, testId, studentId, questions }: { r: Report; sub: Su
         <LastTests r={r} />
         <AiReview testId={testId} studentId={studentId} name={f} />
       </div>
+      {/* Integrity first in the DOM so the chapters panel ends the page (owner table rule); the grid puts it back on the
+          right on desktop as the board draws it, and above the chapters on tablet */}
       <div className="sr-grid3">
-        <Chapters r={r} />
         <Integrity r={r} sub={sub} />
+        <Chapters r={r} />
       </div>
     </div>
   );
@@ -629,10 +631,10 @@ function AiReview({ testId, studentId, name }: { testId: string; studentId: stri
 function Chapters({ r }: { r: Report }) {
   const [all, setAll] = React.useState(false);
   const rows = all ? r.chapters : r.chapters.slice(0, 6);
-  const [ref, h] = useFillHeight<HTMLElement>(all && r.chapters.length > 8, 320, 0, "panel");
+  const [ref, h] = useFillHeight<HTMLElement>(all, 320, 0, "panel"); // owner table rule: expanded, the chapters are a one-screen panel
   const fname = first(r.student.name);
   return (
-    <section ref={ref} className={`card sr-span2 ${h !== null ? "k-fill k-fill-panel" : "scrollx"}`} style={{ height: h ?? undefined }} data-testid="sr-chapters">
+    <section ref={ref} className={`card sr-span2 sr-ch-cell ${h !== null ? "k-fill k-fill-panel" : "scrollx"}`} style={{ height: h ?? undefined }} data-testid="sr-chapters">
       <div className="pad row between border-b border-line-2">
         <span className="h3">Chapters, weakest first</span>
         <span className="xs muted">
@@ -727,7 +729,7 @@ function Integrity({ r, sub }: { r: Report; sub: Sub }) {
   const ex = exitsBadge(sub);
   const events = r.timeline.map((e) => eventLine(e, r, sub)).filter((x): x is { t: string; cls: string } => !!x);
   return (
-    <article id="integrity" className="card pad-lg col scroll-mt-20 gap-3" data-testid="sr-integrity">
+    <article id="integrity" className="card pad-lg col sr-int-cell scroll-mt-20 gap-3" data-testid="sr-integrity">
       <div className="row between">
         <span className="h3">Integrity</span>
         {ex && <span className={`badge ${ex.cls}`}>{ex.text}</span>}
