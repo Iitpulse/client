@@ -4,6 +4,7 @@
 import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { auth } from "./session";
 import { notifyReadOnly, SUPPORT_VISIT_ENDED_PATH } from "./support-visit";
+import { refreshInstituteState } from "./brand";
 
 const PAGE_HANDLES_401 = /\/auth\/(login|reauth|refresh|logout|mfa\/)|\/public\/invites\//;
 
@@ -34,6 +35,8 @@ export function withSession<T extends AxiosInstance>(client: T, options?: { skip
     async (error: AxiosError) => {
       // M8 support visit: every write answers 403 READ_ONLY (board Platform-Impersonation "blocked-change" toast)
       if (error.response?.status === 403 && (error.response.data as { code?: string } | undefined)?.code === "READ_ONLY") notifyReadOnly();
+      // M8: the institute was suspended while this page was open: banners and Billing ask for the state again now
+      if (error.response?.status === 403 && (error.response.data as { code?: string } | undefined)?.code === "TENANT_SUSPENDED") refreshInstituteState();
       const cfg = error.config as (InternalAxiosRequestConfig & { _iitpRetried?: boolean }) | undefined;
       if (error.response?.status === 401 && typeof window !== "undefined" && !PAGE_HANDLES_401.test(cfg?.url ?? "")) {
         if (cfg && !cfg._iitpRetried) {

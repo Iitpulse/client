@@ -45,14 +45,15 @@ type Panel = null | "details" | "auto" | "estimate";
 export function BillingPage() {
   const { owner, loading } = useOwner();
   const visit = auth.isSupportVisit();
-  const q = useQuery({ queryKey: ["billing"], queryFn: billingApi.overview, retry: false, enabled: owner || visit });
+  // money and account state: always read again when the page opens (an invoice made or paid, a suspension, elsewhere)
+  const q = useQuery({ queryKey: ["billing"], queryFn: billingApi.overview, retry: false, enabled: owner || visit, refetchOnMount: "always" });
   const [panel, setPanel] = useState<Panel>(null);
   const [checkout, setCheckout] = useState<CheckoutTarget | null>(null);
   const router = useRouter();
   const sp = useSearchParams();
   const payParam = sp.get("pay");
   const handled = useRef<string | null>(null);
-  const inst = useInstituteState();
+  const inst = useInstituteState({ fresh: true });
   const d = q.data;
 
   // the past-due banner's "Pay now": /billing?pay=<invoiceId> opens that invoice's checkout once
@@ -374,6 +375,7 @@ function Invoices({ d, payOk, onPay }: { d: BillingOverview; payOk: boolean; onP
     queryFn: ({ pageParam }) => billingApi.invoices(pageParam),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
+    refetchOnMount: "always",
   });
   const rows = q.data?.pages.flatMap((p) => p.invoices) ?? d.invoices;
   const [busy, setBusy] = useState<string | null>(null);

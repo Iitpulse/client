@@ -15,7 +15,12 @@ import { fetchInstituteState, useBrand, type InstituteState } from "@/lib/brand"
 import { useBillingVisible } from "@/components/m7b/invites";
 import { auth } from "@/lib/session";
 
-export function useInstituteState(): InstituteState | null {
+/**
+ * The institute's state for banners and pages. Asks on mount (`fresh`: skip the shared answer, e.g. Billing, where a
+ * suspension must show at once), again every 60 s while mounted and when the tab comes back, and right away when any
+ * API call answers 403 TENANT_SUSPENDED (lib/auth-axios).
+ */
+export function useInstituteState({ fresh = false }: { fresh?: boolean } = {}): InstituteState | null {
   const brand = useBrand();
   const [s, setS] = useState<InstituteState | null>(null);
   useEffect(() => {
@@ -24,15 +29,20 @@ export function useInstituteState(): InstituteState | null {
       void fetchInstituteState(fresh).then((v) => {
         if (live) setS(v);
       });
-    load(false);
-    // after a payment or top-up (refreshInstituteState): ask again, past the 60 s cache
+    load(fresh);
+    // after a payment or top-up, or a 403 TENANT_SUSPENDED anywhere (refreshInstituteState): ask again
     const again = () => load(true);
     window.addEventListener("iitp:institute-state", again);
+    const poll = window.setInterval(() => load(false), 60_000);
+    const onVisible = () => document.visibilityState === "visible" && load(false);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       live = false;
       window.removeEventListener("iitp:institute-state", again);
+      window.clearInterval(poll);
+      document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [fresh]);
   if (brand.suspended && !s?.suspended) return { suspended: true, aiPaused: s?.aiPaused ?? null, pastDue: s?.pastDue ?? null, seats: s?.seats ?? null };
   return s;
 }

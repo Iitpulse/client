@@ -110,19 +110,29 @@ export function refreshInstituteState(): void {
   if (typeof window !== "undefined") window.dispatchEvent(new Event("iitp:institute-state"));
 }
 
-/** GET /platform/tenant/state for the signed-in staff member (cached 60 s; any failure = no notices). */
+/** How long one answer is reused (banners, Billing, dashboard all ask; one request serves them). */
+const STATE_TTL_MS = 20_000;
+
+/**
+ * GET /platform/tenant/state for the signed-in staff member (shared for 20 s; any failure = no notices). A request
+ * that hangs gives up after 15 s and is not kept, so the next ask goes out again (staging, 8 Nov: a stalled request
+ * held the pre-suspension state on Billing).
+ */
 export async function fetchInstituteState(fresh = false): Promise<InstituteState | null> {
   const token = await getToken();
   if (!token) return null;
-  if (!fresh && stateCache && stateCache.token === token && Date.now() - stateCache.at < 60_000) return stateCache.p;
-  const p = fetch(`${API_GATEWAY}/platform/tenant/state`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
+  if (!fresh && stateCache && stateCache.token === token && Date.now() - stateCache.at < STATE_TTL_MS) return stateCache.p;
+  const p = fetch(`${API_GATEWAY}/platform/tenant/state`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(15_000) })
     .then(async (r) => {
       const j = (await r.json().catch(() => null)) as { success?: boolean; code?: string; notices?: { suspended?: boolean; aiPaused?: InstituteState["aiPaused"]; pastDue?: InstituteState["pastDue"] }; seats?: InstituteState["seats"] } | null;
       if (r.status === 403 && j?.code === "TENANT_SUSPENDED") return { suspended: true, aiPaused: null, pastDue: null, seats: null };
       if (!r.ok || !j?.success) return null;
       return { suspended: !!j.notices?.suspended, aiPaused: j.notices?.aiPaused ?? null, pastDue: j.notices?.pastDue ?? null, seats: j.seats ?? null };
     })
-    .catch(() => null);
+    .catch(() => {
+      if (stateCache?.p === p) stateCache = null;
+      return null;
+    });
   stateCache = { at: Date.now(), token, p };
   return p;
 }
