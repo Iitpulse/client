@@ -510,7 +510,7 @@ export function QuestionEditor({
     <EditorProvider value={ctx}>
       <header className="topbar row between wrap shrink-0 gap-2.5 px-7" style={{ minHeight: 64, paddingTop: 10, paddingBottom: 10 }}>
         <div className="row wrap min-w-0 gap-2.5">
-          <a
+          <Link
             href="/questions"
             className="btn btn-ghost btn-sm"
             onClick={(e) => {
@@ -519,7 +519,7 @@ export function QuestionEditor({
             }}
           >
             ← Bank
-          </a>
+          </Link>
           <h1 className="h3 shrink-0">{isNew ? "New question" : "Edit question"}</h1>
           {!isNew && loaded && <span className="mono xs muted">{loaded._id}</span>}
           {isNew && fromId && <span className="badge b-sky">Copy of {fromId}</span>}
