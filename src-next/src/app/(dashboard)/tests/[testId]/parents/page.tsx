@@ -21,15 +21,15 @@ import { useCan } from "@/lib/m6/people";
 import { parentTestCopy, sendParents, useParentRecipients, useParentSends, type ParentRecipient } from "@/lib/m6/batch8";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
-  willSend: { label: "Will get it", cls: "pill pill-navy" },
-  delivered: { label: "Delivered", cls: "pill pill-green" },
-  sent: { label: "Sent", cls: "pill pill-green" },
-  queued: { label: "Still sending", cls: "pill" },
-  bounced: { label: "Bounced", cls: "pill pill-red" },
-  failed: { label: "Not sent", cls: "pill pill-red" },
-  noEmail: { label: "No email", cls: "pill" },
-  notConfirmed: { label: "Not confirmed", cls: "pill pill-amber" },
-  stopped: { label: "Stopped result emails", cls: "pill" },
+  willSend: { label: "Will get it", cls: "badge b-navy self-start" },
+  delivered: { label: "Delivered", cls: "badge b-green self-start" },
+  sent: { label: "Sent", cls: "badge b-green self-start" },
+  queued: { label: "Still sending", cls: "badge b-grey self-start" },
+  bounced: { label: "Bounced", cls: "badge b-red self-start" },
+  failed: { label: "Not sent", cls: "badge b-red self-start" },
+  noEmail: { label: "No email", cls: "badge b-grey self-start" },
+  notConfirmed: { label: "Not confirmed", cls: "badge b-amber self-start" },
+  stopped: { label: "Stopped result emails", cls: "badge b-grey self-start" },
 };
 
 function statusOf(r: ParentRecipient): keyof typeof STATUS {
@@ -255,12 +255,12 @@ export default function SendToParentsPage() {
                   </div>
                   {!!c?.noEmail && (
                     <span className="xs">
-                      <b>{c.noEmail} students have no parent email.</b> They&rsquo;re 18 or older, or joined before sign-up asked for it. Add the email on the student, or import many at once.
+                      <b>{c.noEmail === 1 ? "1 student has" : `${c.noEmail} students have`} no parent email.</b> They&rsquo;re 18 or older, or joined before sign-up asked for it. Add the email on the student, or import many at once.
                     </span>
                   )}
                   {!!c?.notConfirmed && (
                     <span className="xs">
-                      <b>{c.notConfirmed} parents haven&rsquo;t confirmed yet.</b> These students are under 18; their parent got a confirmation link at sign-up and hasn&rsquo;t opened it. Results go only to confirmed parents.
+                      <b>{c.notConfirmed === 1 ? "1 parent hasn\u2019t" : `${c.notConfirmed} parents haven\u2019t`} confirmed yet.</b> These students are under 18; their parent got a confirmation link at sign-up and hasn&rsquo;t opened it. Results go only to confirmed parents.
                     </span>
                   )}
                 </div>
@@ -292,10 +292,10 @@ export default function SendToParentsPage() {
                                 <span className="xs muted mono">{r.parent.emailMasked ?? "No email"}</span>
                               </span>
                             </td>
-                            <td className="num">
+                            <td className="num whitespace-nowrap">
                               {r.score} / {r.maxScore}
                             </td>
-                            <td className="num">
+                            <td className="num whitespace-nowrap">
                               {r.rank} of {r.of}
                             </td>
                             <td>

@@ -22,10 +22,10 @@ const Html = ({ text, className = "" }: { text: string; className?: string }) =>
 const day = (iso: string | null | undefined) => (iso ? new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(iso)) : "");
 const mins = (s: number) => `${Math.round(s / 60)} min`;
 const OUT: Record<string, { label: string; cls: string }> = {
-  correct: { label: "Right", cls: "pill pill-green" },
-  partial: { label: "Partly right", cls: "pill pill-amber" },
-  wrong: { label: "Wrong", cls: "pill pill-red" },
-  skipped: { label: "Skipped", cls: "pill" },
+  correct: { label: "Right", cls: "badge b-green self-start" },
+  partial: { label: "Partly right", cls: "badge b-amber self-start" },
+  wrong: { label: "Wrong", cls: "badge b-red self-start" },
+  skipped: { label: "Skipped", cls: "badge b-grey self-start" },
 };
 
 function Shell({ children }: { children: React.ReactNode }) {
