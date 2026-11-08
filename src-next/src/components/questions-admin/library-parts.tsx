@@ -12,7 +12,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Doodle, Segmented, StateBox } from "@/components/kit";
 import { authV2 } from "@/lib/m7b-auth";
 import {
-  ADD_ON_PRICE_PLACEHOLDER,
   blockedWhy,
   fmtDay,
   isLibraryRow,
@@ -45,6 +44,16 @@ export function LibMark() {
 
 const SRC = "inline-flex h-6 max-w-full items-center gap-[5px] rounded-full px-2 text-xs font-semibold whitespace-nowrap";
 
+/** "IIT-PULSE library" with the mark, or a neutral "Library" with a lock (branding off): bank rows and picker rows. */
+export function LibraryBadge({ label, branded }: { label: string; branded: boolean }) {
+  return (
+    <span className={`${SRC} border border-[#C3C6EF] text-brand ${branded ? "bg-[#F1F2FC]" : "bg-white"}`}>
+      {branded ? <LibMark /> : <LockIcon size={11} />}
+      <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
 /** Source badge of a bank row; null for the institute's own questions when nothing else is worth saying. */
 export function SourceBadge({ row, label, branded, mineLabel = true }: { row: LibraryRow; label: string; branded: boolean; mineLabel?: boolean }) {
   if (isLibraryRow(row)) {
@@ -55,12 +64,7 @@ export function SourceBadge({ row, label, branded, mineLabel = true }: { row: Li
           <span className="truncate">{label} · copied</span>
         </span>
       );
-    return (
-      <span className={`${SRC} border border-[#C3C6EF] text-brand ${branded ? "bg-[#F1F2FC]" : "bg-white"}`}>
-        {branded ? <LibMark /> : <LockIcon size={11} />}
-        <span className="truncate">{label}</span>
-      </span>
-    );
+    return <LibraryBadge label={label} branded={branded} />;
   }
   if (row.licence) {
     if (licenceEnded(row)) return <span className={`${SRC} bg-[#EEF0F5] text-muted`}>Licence ended</span>;
@@ -179,7 +183,7 @@ export function NotEntitledCard({ owner, institute, price }: { owner: boolean; i
             <span className="max-w-[500px]">
               Ready-made questions with solutions, written and checked by IIT-PULSE faculty, for the exams your institute runs. Add them to tests as they are, or copy one to your bank and change it.
             </span>
-            <span className="font-semibold text-ink">{price || ADD_ON_PRICE_PLACEHOLDER}</span>
+            {price && <span className="font-semibold text-ink">{price}</span>}
           </span>
         }
         action={

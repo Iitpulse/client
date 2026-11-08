@@ -7,7 +7,8 @@
     POST /admin/tests/:id/picker/search                  PickerSearchRequest → PickerSearchResponse
     GET  /admin/tests/:id/picker/questions/:qid          → PickerPreview
     POST /admin/tests/:id/picker/fill-preview            FillPreviewRequest → FillPreviewResponse
-  Errors: 409 PAPER_CHANGED { revision } (someone else saved: reload), 409 TEST_LOCKED (someone started), 403 FORBIDDEN.
+  Errors: 409 PAPER_CHANGED { revision } (someone else saved: reload), 409 TEST_LOCKED (someone started), 403 FORBIDDEN,
+  M10 409 QUESTIONS_IN_LIBRARY (IIT-PULSE papers; putSubsection asks first, see lib/m10-library-warning.ts).
   Sample data (areas "paper", "picker") until the routes are on the backend: ./fixtures/paper.ts.
 
   Used by the TestBuilder (sections, slots, Undo of an AI rebuild) and the QuestionPicker page.
@@ -24,6 +25,7 @@ import type {
   TestState,
 } from "../m6-contract";
 import { m6Call, m6Tests, source, unwrap } from "./client";
+import { withLibraryWarning } from "../m10-library-warning";
 import * as fx from "./fixtures/paper";
 
 const T = (id: string) => `/admin/tests/${encodeURIComponent(id)}`;
@@ -42,22 +44,45 @@ export function usePaper(testId: string | undefined, enabled = true) {
   });
 }
 
-/** PUT one sub-section's whole ordered list (add, remove, replace, reorder). `sources` marks slots "ai" | "manual" (default manual). */
+export interface PutSubsectionOptions {
+  /** audit source ("Question picker") */
+  where?: string;
+  /** marks slots "ai" | "manual" (default manual) */
+  sources?: Record<string, "ai" | "manual">;
+  /** the ids this write adds (the library warning's "Add all M anyway"); worked out by the caller */
+  added?: string[];
+}
+
+/**
+ * PUT one sub-section's whole ordered list (add, remove, replace, reorder). `sources` marks slots "ai" | "manual"
+ * (default manual). M10: on IIT-PULSE papers, 409 QUESTIONS_IN_LIBRARY asks first (lib/m10-library-warning.ts):
+ * add anyway (acknowledgeLibrary), swap (the answer carries `librarySkipped`), or cancel (throws
+ * LIBRARY_WARNING_CANCELLED: `isLibraryWarningCancel(e)`, show nothing).
+ */
 export function putSubsection(
   testId: string,
   subsectionId: string,
   questionIds: string[],
   expectedRevision: number,
-  where = "Question picker",
+  where: string | PutSubsectionOptions = "Question picker",
   sources?: Record<string, "ai" | "manual">
-): Promise<PaperWriteResponse> {
-  return m6Call<PaperWriteResponse>(
-    "paper",
-    async () =>
-      unwrap<PaperWriteResponse>(
-        (await m6Tests.put(`${T(testId)}/paper/subsections/${encodeURIComponent(subsectionId)}`, { questionIds, expectedRevision, ...(sources ? { sources } : {}) }, source(where))).data
-      ),
-    () => fx.putSubsection(testId, subsectionId, questionIds, expectedRevision)
+): Promise<PaperWriteResponse & { librarySkipped?: string[] }> {
+  const o: PutSubsectionOptions = typeof where === "string" ? { where, sources } : where;
+  return withLibraryWarning(questionIds, o.added, (ids, acknowledge) =>
+    m6Call<PaperWriteResponse>(
+      "paper",
+      async () =>
+        unwrap<PaperWriteResponse>(
+          (
+            await m6Tests.put(
+              `${T(testId)}/paper/subsections/${encodeURIComponent(subsectionId)}`,
+              { questionIds: ids, expectedRevision, ...(o.sources ? { sources: o.sources } : {}), ...(acknowledge ? { acknowledgeLibrary: true } : {}) },
+              source(o.where ?? "Question picker")
+            )
+          ).data
+        ),
+      () => fx.putSubsection(testId, subsectionId, ids, expectedRevision)
+    )
   );
 }
 

@@ -1053,6 +1053,8 @@ export interface SubsectionPutRequest {
   questionIds: string[];
   /** 409 PAPER_CHANGED when another save happened since */
   expectedRevision: number;
+  /** M10: add questions already in the shared library anyway (else 409 QUESTIONS_IN_LIBRARY on IIT-PULSE papers) */
+  acknowledgeLibrary?: boolean;
 }
 export interface PaperWriteResponse {
   now: IsoDateTime;
@@ -1114,6 +1116,8 @@ export interface PickerRow {
   timesUsed: number;
   /** null = can be added; else why not ("This section takes sets of 3") */
   blockedReason: "WRONG_SET_SIZE" | "WRONG_CHILD_TYPE" | "SUBSECTION_FULL" | null;
+  /** M10: a shared IIT-PULSE library question (the picker's source badge; absent on older backends) */
+  fromLibrary?: boolean;
 }
 export interface PickerSearchResponse {
   now: IsoDateTime;

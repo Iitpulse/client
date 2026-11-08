@@ -2,7 +2,8 @@
   M10: the shared IIT-PULSE question library, admin side (contract: api-questions docs/m10-library.md).
     GET  /questions/admin/search                 + source=all|mine|library, hideCopied=1; items add source, library,
                                                    copied, licence, published; the answer adds `library`
-    GET  /questions/admin/library/status         entitlement, branding, label, owner flags, counts, addOnEnded
+    GET  /questions/admin/library/status         entitlement, branding, label, owner flags, counts, addOnEnded,
+                                                   addOnEndedAt (IST "YYYY-MM-DD"), price (from the platform)
     POST /questions/admin/library/copy-plan      { questionIds ≤ 100 } → chapter mapping
     POST /questions/admin/library/copy           { questionIds, chapterMap } → { copies }
     POST /questions/admin/library/publish-check  IIT-PULSE staff: { questionIds ≤ 200 } → per-question status
@@ -48,7 +49,7 @@ export type LibraryRow = BankListItem & {
   licence?: LicenceRef | null;
   /** tnt_iitpulse only */
   published?: PublishedRef | null;
-  /** not in the contract yet: the exams a question is written for (row meta "JEE Main · …", preview badge) */
+  /** the exams a question is written for (row meta "JEE Main · …", preview badge) */
   exams?: Array<{ id: string; name: string }>;
 };
 
@@ -59,12 +60,15 @@ export interface SearchLibrary {
   counts: { all: number; mine: number; library: number };
 }
 
-/** Optional search additions the contract does not have yet (the UI shows their parts only when they arrive). */
+/** M10 search counts (optional: an older backend sends none, and the page then hides their parts). */
 export interface SearchCountsM10 {
-  /** Exam filter chip: count per exam id (with `examId=` on the query) */
+  /** Exam filter chip: count per own exam id, every other filter applied (filter with `examId=`) */
   byExam?: Record<string, number>;
-  /** IIT-PULSE publish tabs "In the library · N / Can be published · N" (with `published=in|can` on the query) */
-  publish?: { inLibrary: number; canPublish: number };
+  /**
+   * IIT-PULSE publish tabs "All · N / In the library · N / Can be published · N" (filter with `published=in|can`).
+   * canPublish is null when tests can't answer the embargo check (the tab shows no count).
+   */
+  publish?: { all?: number; inLibrary: number; canPublish: number | null };
 }
 
 export type SearchResponseM10 = QuestionSearchResponse & { library?: SearchLibrary | null; counts: QuestionSearchResponse["counts"] & SearchCountsM10 };
@@ -84,9 +88,9 @@ export interface LibraryStatus {
   canPublish: boolean;
   counts: { library: number; copies: number; usableCopies: number };
   addOnEnded: boolean;
-  /** not in the contract yet: the day the add-on ended ("ended on 30 Nov") */
+  /** IST date "YYYY-MM-DD" the add-on ended ("ended on 30 Nov"), or null */
   addOnEndedAt?: string | null;
-  /** not in the contract yet: the add-on price line ("₹… per active student per month, before GST") */
+  /** the add-on price line from the platform ("₹10 per active student per month, before GST"); null = no price line */
   price?: string | null;
   /** IIT-PULSE only */
   institutes?: Array<{ id: string; displayName: string }>;
@@ -191,12 +195,14 @@ export function usePublishCheck(ids: string[], enabled: boolean) {
 export const libraryLabel = (branding: boolean | undefined, label?: string | null) => label || (branding === false ? "Library" : "IIT-PULSE library");
 export const solutionBy = (branding: boolean | undefined) => (branding === false ? "Library solution" : "Solution by IIT-PULSE faculty");
 
-/** Shown until the owner sets the add-on price (status.price, not in the contract yet). */
-export const ADD_ON_PRICE_PLACEHOLDER = "[ADD-ON PRICE] per active student per month, before GST";
-
 export const SUPPORT_MAIL = "support@iitpulse.in";
 
-const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" }) : null);
+/** "30 Nov" (IST) from an ISO time or an IST date "YYYY-MM-DD" */
+const day = (iso: string | null | undefined) => {
+  if (!iso) return null;
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T12:00:00+05:30`) : new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" });
+};
 export const fmtDay = day;
 
 /** "In JEE Main Mock 14 · scheduled 29 Nov" */
@@ -210,4 +216,22 @@ export function blockedWhy(b: BlockedBy): string {
 export function blockedUntil(b: BlockedBy): string {
   if (b.state === "results_pending" && b.at) return `Can be published after ${day(b.at)}`;
   return `Can be published after ${b.name} results are out`;
+}
+
+/* ─────────────── licence-free copies (409 LIBRARY_LICENCE_REQUIRED) ─────────────── */
+
+/**
+ * Editor save / import refusal when a new question's text equals a library question or a licensed copy: the
+ * toast's title and text (branding off says "library", never "IIT-PULSE"); null for any other error.
+ */
+export function licenceRequiredCopy(err: { code: string | null; message: string; details?: Record<string, unknown> | null }, branding?: boolean): { title: string; description: string } | null {
+  if (err.code !== "LIBRARY_LICENCE_REQUIRED") return null;
+  const id = typeof err.details?.questionId === "string" ? (err.details.questionId as string) : null;
+  const lib = branding === false ? "library" : "IIT-PULSE library";
+  return {
+    title: `This question is already in the ${lib}`,
+    description: id
+      ? `It matches ${id}. Open it in the ${lib} and choose "Copy to my bank": that copy carries its licence and is yours to edit.`
+      : `It matches ${branding === false ? "a library" : "an IIT-PULSE library"} question you already copied to your bank. Edit that copy instead, or copy it again from the ${lib}.`,
+  };
 }

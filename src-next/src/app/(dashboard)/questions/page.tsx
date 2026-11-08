@@ -13,6 +13,9 @@
   library preview (no Edit, "Add to a test", "Copy to my bank"), the copy dialog, the not-entitled upsell, the
   add-on-ended banner, licence-ended copies, and for IIT-PULSE staff the Library column and "Publish to library…".
   Library rows never get Edit, Delete, AI bulk actions or the CSV. Without the M10 fields the page is as before.
+  Also: the "Exam: …" chip (own exams with `counts.byExam`, `exam` in the URL; exam names on rows and the preview) and,
+  for IIT-PULSE staff, "All · In the library · Can be published" (`counts.publish`, `lib=in|can`; no count when
+  canPublish is null, an inline note on 503 EMBARGO_CHECK_UNAVAILABLE).
 */
 import * as React from "react";
 import { Suspense } from "react";
@@ -238,7 +241,11 @@ function QuestionsBank() {
   if (data?.library && data.library !== lastLib) setLastLib(data.library);
   const libCounts = data?.library?.counts ?? lastLib?.counts ?? null;
   const byExam = data?.counts.byExam;
-  const publishCounts = data?.counts.publish;
+  // the publish tabs keep their last counts while a tab's search fails (503 EMBARGO_CHECK_UNAVAILABLE on "can")
+  const [lastPub, setLastPub] = React.useState<NonNullable<SearchResponseM10["counts"]["publish"]> | null>(null);
+  if (data?.counts.publish && data.counts.publish !== lastPub) setLastPub(data.counts.publish);
+  const publishCounts = data?.counts.publish ?? lastPub;
+  const embargoDown = res.isError && apiError(res.error).code === "EMBARGO_CHECK_UNAVAILABLE";
   // A backend without the M6 search has no needsLatex count: the chip counts 0 and its filter matches nothing
   const latexCount = (data?.counts as { needsLatex?: number } | undefined)?.needsLatex;
   const latexMissing = !!data && latexCount === undefined;
@@ -302,13 +309,14 @@ function QuestionsBank() {
       }),
     }));
   }, [tree.data, subjects.data]);
-  // Exam filter: the institute's own exams, once the search counts per exam (`counts.byExam`, not in the contract yet)
+  // Exam filter (board Admin-Library exam-filter): the institute's own exams with the search's count per exam
+  // (`counts.byExam`, every other filter applied; an exam it leaves out has none). Library rows match by exam name.
   const exams = useExamsList();
   const examOptions = React.useMemo<ComboOption[]>(
     () =>
       byExam
         ? (exams.data ?? [])
-            .map((e) => ({ value: e._id, label: e.name, end: byExam[e._id] === undefined ? undefined : fmt(byExam[e._id]) }))
+            .map((e) => ({ value: e._id, label: e.name, group: "Your institute's exams", end: fmt(byExam[e._id] ?? 0) }))
             .sort((a, b) => a.label.localeCompare(b.label))
         : [],
     [exams.data, byExam]
@@ -586,15 +594,16 @@ function QuestionsBank() {
         {showSourceTabs && (
           <SourceTabs value={sourceTab} onChange={pickSource} counts={libCounts} label={libLocked ? "IIT-PULSE library" : libLabel} locked={libLocked} />
         )}
-        {isLibOwner && publishCounts && (
+        {isLibOwner && (publishCounts || pubTab !== "all") && (
           <Segmented<"all" | "in" | "can">
             ariaLabel="Library"
             value={pubTab}
             onChange={(v) => setFilter({ lib: v === "all" ? null : v })}
             options={[
-              { value: "all", label: "All", count: pubTab === "all" && counts ? fmt(counts.byType.all) : undefined },
-              { value: "in", label: "In the library", count: fmt(publishCounts.inLibrary) },
-              { value: "can", label: "Can be published", count: fmt(publishCounts.canPublish) },
+              { value: "all", label: "All", count: publishCounts?.all != null ? fmt(publishCounts.all) : undefined },
+              { value: "in", label: "In the library", count: publishCounts ? fmt(publishCounts.inLibrary) : undefined },
+              // null: tests couldn't answer the embargo check, so there's no count to show
+              { value: "can", label: "Can be published", count: publishCounts?.canPublish != null ? fmt(publishCounts.canPublish) : undefined },
             ]}
           />
         )}
@@ -634,8 +643,16 @@ function QuestionsBank() {
                 </label>
                 <input id="qs" className="input h-9 pl-[34px] text-[13px]" placeholder="Search text, ID or tag" value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
-              {byExam && (
-                <KitFilterChip label="Exam" noun="exam" value={examId} options={examOptions} valueLabel={examName} onChange={(v) => setFilter({ exam: v })} />
+              {(byExam || examId) && (
+                <KitFilterChip
+                  label="Exam"
+                  noun="exam"
+                  value={examId}
+                  options={examOptions}
+                  valueLabel={examName}
+                  note="Only exams your institute has set up are listed."
+                  onChange={(v) => setFilter({ exam: v })}
+                />
               )}
               <KitFilterChip label="Subject" noun="subject" value={subjectId} options={subjectOptions} onChange={(v) => setFilter({ subject: v, chapter: null })} />
               <KitFilterChip label="Chapter" noun="chapter" value={chapterId} options={chapterOptions} valueLabel={chapterName} onChange={(v) => setFilter({ chapter: v })} />
@@ -726,6 +743,18 @@ function QuestionsBank() {
                       {res.isError &&
                         (apiError(res.error).code === "NOT_IMPLEMENTED" ? (
                           <p className="sm muted p-6">Search needs the Postgres question bank.</p>
+                        ) : embargoDown ? (
+                          <p className="sm muted m-0 p-6" role="status">
+                            We couldn&apos;t check IIT-PULSE tests just now, so we can&apos;t tell which questions can be published.{" "}
+                            <button type="button" className="underline" onClick={() => res.refetch()}>
+                              Try again
+                            </button>{" "}
+                            or{" "}
+                            <button type="button" className="underline" onClick={() => setFilter({ lib: null })}>
+                              see all questions
+                            </button>
+                            .
+                          </p>
                         ) : (
                           <SearchError code={errorCode(res.error)} onRetry={() => res.refetch()} onClear={q ? () => setSearch("") : undefined} />
                         ))}

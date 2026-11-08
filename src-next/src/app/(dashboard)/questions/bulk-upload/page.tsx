@@ -21,7 +21,8 @@ import { MathText } from "@/components/math-text";
 import { Steps } from "@/components/kit/Steps";
 import { KitDialog } from "@/components/kit/Overlay";
 import { notify } from "@/components/kit/Toast";
-import { saveBlob } from "@/lib/ai-admin";
+import { apiError, saveBlob } from "@/lib/ai-admin";
+import { licenceRequiredCopy, useLibraryStatus } from "@/lib/m10-library";
 import { fetchQuestion, stemHtml, useSources, useSubjects } from "@/lib/question-queries";
 import { useQuestionsSource } from "@/lib/m6/questions";
 import {
@@ -89,6 +90,7 @@ export default function BulkUploadPage() {
   const [job, setJob] = React.useState<ParseJobV2 | null>(null);
   const [failure, setFailure] = React.useState<Failure | null>(null);
   const [rows, setRows] = React.useState<ReviewRow[]>([]);
+  const libBranding = useLibraryStatus().data?.branding;
   const [readSeconds, setReadSeconds] = React.useState<number | null>(null);
   const [modelUsed, setModelUsed] = React.useState(true);
   const [tab, setTab] = React.useState<ReviewTab>("look");
@@ -389,7 +391,10 @@ export default function BulkUploadPage() {
     } catch (e) {
       stopProgress();
       setPhase("review");
-      notify.error("Couldn't import the questions", { description: e instanceof Error ? e.message : "Nothing was imported. Try again.", retry: doImport });
+      // M10: a row that is a library question's text needs "Copy to my bank" (retrying won't help)
+      const lic = licenceRequiredCopy(apiError(e), libBranding);
+      if (lic) notify.error(lic.title, { description: `Nothing was imported. ${lic.description} Skip that row, then import again.` });
+      else notify.error("Couldn't import the questions", { description: e instanceof Error ? e.message : "Nothing was imported. Try again.", retry: doImport });
     }
   };
 

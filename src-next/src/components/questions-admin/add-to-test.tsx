@@ -10,6 +10,7 @@ import { Combobox } from "@/components/kit";
 import { questionCount, testState, useAllTests, type AdminTest } from "@/lib/queries";
 import { apiError, testsAdmin, TYPE_LABEL } from "@/lib/ai-admin";
 import type { AddToTestResponse } from "@/lib/m5-contract";
+import { isLibraryWarningCancel, withLibraryWarning } from "@/lib/m10-library-warning";
 import { AlertIcon, BoardDialog, BoardTitle, Note, TickIcon, plural } from "./parts";
 
 const SKIP_TEXT: Record<AddToTestResponse["skipped"][number]["reason"], string> = {
@@ -76,7 +77,9 @@ export function AddToTest({ ids, open, onClose, onDone }: { ids: string[]; open:
     try {
       const merged: AddToTestResponse = { now: "", added: [], skipped: [], filled: 0, needed: 0 };
       for (let i = 0; i < ids.length; i += 100) {
-        const r = await testsAdmin.addToTest(picked.t._id, ids.slice(i, i + 100), sectionId || null);
+        // M10: on IIT-PULSE tests, questions already in the shared library ask first (lib/m10-library-warning.ts)
+        const chunk = ids.slice(i, i + 100);
+        const r = await withLibraryWarning(chunk, chunk, (list, ack) => testsAdmin.addToTest(picked.t._id, list, sectionId || null, ack));
         merged.added.push(...r.added);
         merged.skipped.push(...r.skipped);
         merged.filled = r.filled;
@@ -87,6 +90,7 @@ export function AddToTest({ ids, open, onClose, onDone }: { ids: string[]; open:
       qc.invalidateQueries({ queryKey: ["tests"] });
     } catch (e) {
       const err = apiError(e);
+      if (isLibraryWarningCancel(e)) return; // Cancel in the library warning: nothing was added
       setError(err.code === "TEST_LOCKED" ? "This test has opened, so its questions can't change. Pick another test." : err.message);
     } finally {
       setBusy(false);

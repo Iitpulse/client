@@ -101,8 +101,11 @@ export function useQuestionSearch(p: SearchParams) {
 
 export const testsAdmin = {
   usage: (questionIds: string[]) => data<QuestionUsageResponse>(apiT.post("/admin/question-usage", { questionIds })),
-  addToTest: (testId: string, questionIds: string[], sectionId?: string | null) =>
-    data<AddToTestResponse>(apiT.post(`/admin/tests/${encodeURIComponent(testId)}/questions`, { questionIds, ...(sectionId ? { sectionId } : {}) })),
+  /** `acknowledgeLibrary`: M10, add questions already in the shared library anyway (after 409 QUESTIONS_IN_LIBRARY) */
+  addToTest: (testId: string, questionIds: string[], sectionId?: string | null, acknowledgeLibrary = false) =>
+    data<AddToTestResponse>(
+      apiT.post(`/admin/tests/${encodeURIComponent(testId)}/questions`, { questionIds, ...(sectionId ? { sectionId } : {}), ...(acknowledgeLibrary ? { acknowledgeLibrary: true } : {}) })
+    ),
 };
 
 /** "used in N tests" for the rows on screen (1–200 ids per call). */

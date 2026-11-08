@@ -47,6 +47,7 @@ import {
 } from "@/lib/m6/questions";
 import type { QuestionUsageM6, SoftDeleteResponse } from "@/lib/m6-contract";
 import { isBlankHtml } from "@/lib/latex-source";
+import { licenceRequiredCopy, useLibraryStatus } from "@/lib/m10-library";
 import {
   TYPE_HINT,
   TYPE_TABS,
@@ -174,6 +175,7 @@ export function QuestionEditor({
 }) {
   const router = useRouter();
   const qc = useQueryClient();
+  const libBranding = useLibraryStatus().data?.branding;
   const { currentUser } = useAuthStore();
   const subjectsQ = useSubjects();
   const sourcesQ = useSources();
@@ -364,7 +366,10 @@ export function QuestionEditor({
       } else if (err.status === 0 || err.status >= 500) {
         setSrvErr(true);
       } else {
-        notify.error(isNew ? "Couldn't create the question" : "Couldn't save the question", { description: err.message });
+        // M10: a new question whose text is a library question's (Duplicate, paste) needs "Copy to my bank"
+        const lic = licenceRequiredCopy(err, libBranding);
+        if (lic) notify.error(lic.title, { description: lic.description });
+        else notify.error(isNew ? "Couldn't create the question" : "Couldn't save the question", { description: err.message });
       }
       return false;
     } finally {

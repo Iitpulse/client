@@ -14,6 +14,10 @@
   Every write is a sub-section PUT with the paper's revision; the toast's Undo restores `previousRevision` (6 s).
   Questions whose equation is an image are added with a warning, never blocked. Kit: FilterBar/FilterChip/
   ToggleChip/SearchBox, Segmented, DataTable/Pagination/BulkBar, Banner, notify, page states.
+  M10 (boards Library-Branding, Admin-LibraryPublish): rows from the shared library (`fromLibrary`) carry the source
+  badge ("IIT-PULSE library" with the mark, or "Library" when the institute's branding is off) and institutes with
+  the library get the "Source: My bank, IIT-PULSE library" chip (`src=mine|library`, filters the page client-side).
+  On IIT-PULSE papers, adding questions already in the library asks first (putSubsection → the layout's dialog).
 */
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -58,6 +62,9 @@ import {
   useSetPaper,
 } from "@/lib/m6/paper";
 import { istDate, useM6Subjects } from "@/lib/m6/shared";
+import { libraryLabel, useLibraryStatus } from "@/lib/m10-library";
+import { isLibraryWarningCancel, swappedNote } from "@/lib/m10-library-warning";
+import { LibraryBadge } from "@/components/questions-admin/library-parts";
 import { FillByRule } from "./FillByRule";
 import { PickedPanel } from "./PickedPanel";
 import { DIFF_LABEL, PreviewPane, shortId, Stem, type PaperSection, type PaperSub } from "./parts";
@@ -169,6 +176,8 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
   const hiOn = param("hi") === "1";
   const sort = (param("sort") || "leastUsed") as NonNullable<PickerSearchRequest["sort"]>;
   const page = Math.max(1, parseInt(param("page") || "1", 10) || 1);
+  const srcParam = param("src");
+  const srcFilter: "mine" | "library" | null = srcParam === "mine" || srcParam === "library" ? srcParam : null;
 
   const subject = subjects.data?.find((s) => (cur?.sec.subject?.id && s.id === cur.sec.subject.id) || s.name === cur?.sec.subject?.name);
   const chapters = subject?.chapters ?? [];
@@ -191,10 +200,16 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
       }
     : null;
   const search = usePickerSearch(testId, mode === "hand" ? req : null);
-  const rows = search.data?.items;
+  // M10: the library source (badge and the Source chip; the chip filters the page on `fromLibrary`)
+  const libStatus = useLibraryStatus().data ?? null;
+  const libBranded = libStatus?.branding !== false;
+  const libLabel = libraryLabel(libBranded, libStatus?.label);
+  const showSrcChip = !!libStatus?.entitled || !!srcFilter;
+  const allRows = search.data?.items;
+  const rows = useMemo(() => (allRows && srcFilter ? allRows.filter((r) => (srcFilter === "library") === (r.fromLibrary === true)) : allRows), [allRows, srcFilter]);
   const list = rows ?? [];
-  const filterCount = [chapterId, topicId, difficulty, recentOn ? "r" : "", solOn ? "s" : "", hiOn ? "h" : ""].filter(Boolean).length;
-  const narrowed = !!(q || chapterId || topicId || difficulty || solOn || hiOn) || (search.data?.hiddenRecent ?? 0) > 0;
+  const filterCount = [chapterId, topicId, difficulty, recentOn ? "r" : "", solOn ? "s" : "", hiOn ? "h" : "", srcFilter ?? ""].filter(Boolean).length;
+  const narrowed = !!(q || chapterId || topicId || difficulty || solOn || hiOn || srcFilter) || (search.data?.hiddenRecent ?? 0) > 0;
 
   /* ── selection and preview ── */
   const [sel, setSel] = useState<string[]>([]);
@@ -213,11 +228,14 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
   const tableRef = useRef<HTMLDivElement>(null);
 
   /* ── writes ── */
-  const write = async (ids: string[], done: string, warn?: string) => {
-    if (!sub || !paper.data) return;
+  /** One sub-section PUT; true when it saved. M10: a cancelled library warning saves nothing and says nothing. */
+  const write = async (ids: string[], done: string, warn?: string): Promise<boolean> => {
+    if (!sub || !paper.data) return false;
     setBusy(true);
+    const before = new Set(sub.slots.map((s) => s.questionId));
+    const added = ids.filter((id) => !before.has(id));
     try {
-      const r = await putSubsection(testId, sub.id, ids, paper.data.revision);
+      const r = await putSubsection(testId, sub.id, ids, paper.data.revision, { where: "Question picker", added });
       setPaper(r.paper);
       setSel([]);
       setChanged(false);
@@ -225,24 +243,33 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
         notify.error(r.rejected.length === 1 ? "1 question wasn't added" : `${r.rejected.length} questions weren't added`, {
           description: r.rejected.map((x) => `${shortId(x.questionId)} ${REJECT_COPY[x.reason] ?? x.reason}`).join(" · "),
         });
+      // "Swap these N for others": the flagged ones were left out, the rest went in
+      const skipped = r.librarySkipped?.length ?? 0;
+      const left = added.length - skipped;
+      const title = skipped ? (left === 1 ? "Added 1 question" : `Added ${left} questions`) : done;
+      const description = [skipped ? swappedNote(skipped) : "", warn ?? ""].filter(Boolean).join(" ");
       notify.undo(
-        done,
+        title,
         () =>
           restorePaper(testId, r.previousRevision).then(
             (x) => setPaper(x.paper),
             (e) => notify.error("Couldn't undo", { description: apiError(e).message })
           ),
-        warn ? { description: warn } : undefined
+        description ? { description } : undefined
       );
+      return true;
     } catch (e) {
       const code = errCode(e);
-      if (code === "PAPER_CHANGED") {
+      if (isLibraryWarningCancel(e)) {
+        /* Cancel in the library warning: nothing changed */
+      } else if (code === "PAPER_CHANGED") {
         setChanged(true);
         qc.invalidateQueries({ queryKey: paperKey(testId) });
       } else if (code === "TEST_LOCKED") {
         qc.invalidateQueries({ queryKey: ["m6", "paper-test", testId] });
         notify.error("Students have started this test", { description: "Its questions can't change any more." });
       } else notify.error("Couldn't save", { description: apiError(e).message });
+      return false;
     } finally {
       setBusy(false);
     }
@@ -341,7 +368,7 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
           },
         },
         { key: "id", header: "ID", width: 92, tdClass: "idc", render: (r) => <span title={r.questionId}>{shortId(r.questionId)}</span> },
-        { key: "q", header: isSet ? "Passage" : "Question", render: (r) => <RowStem r={r} sub={sub} isSet={isSet} /> },
+        { key: "q", header: isSet ? "Passage" : "Question", render: (r) => <RowStem r={r} sub={sub} isSet={isSet} lib={{ label: libLabel, branded: libBranded }} /> },
         { key: "d", header: "Difficulty", width: 92, render: (r) => <span className="sm">{DIFF_LABEL[r.difficulty ?? "unset"]}</span> },
         { key: "used", header: "Last used", width: 130, tablet: "hide", render: (r) => <span className="sm muted">{lastUsedLabel(r)}</span> },
         {
@@ -470,7 +497,7 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
                     <>
                       <FilterBar
                         activeCount={filterCount}
-                        onClearAll={() => setParams({ ch: null, tp: null, d: null, recent: "0", sol: null, hi: null })}
+                        onClearAll={() => setParams({ ch: null, tp: null, d: null, recent: "0", sol: null, hi: null, src: null })}
                         search={<SearchBox value={q} onChange={(v) => setParams({ q: v })} placeholder="Words, formula or ID" label="Search questions" width={240} id="pq" />}
                       >
                         <span className="k-fc qp-lock" title="Set by the pattern">
@@ -497,6 +524,20 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
                         <ToggleChip on={hiOn} onChange={(v) => setParams({ hi: v ? "1" : null })}>
                           Has Hindi
                         </ToggleChip>
+                        {showSrcChip && (
+                          <FilterChip
+                            label="Source"
+                            noun="source"
+                            clearable={false}
+                            options={[
+                              { value: "all", label: `My bank, ${libLabel}` },
+                              { value: "mine", label: "My bank" },
+                              { value: "library", label: libLabel },
+                            ]}
+                            value={srcFilter ?? "all"}
+                            onChange={(v) => setParams({ src: v === "mine" || v === "library" ? v : null })}
+                          />
+                        )}
                       </FilterBar>
 
                       {search.isError && isForbidden(search.error) ? (
@@ -550,7 +591,7 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
                                 body={`in ${where}, ${typeChip(sub).toLowerCase()}${recentOn ? ", not in the last 4 tests" : ""}`}
                                 action={
                                   <>
-                                    <button type="button" className="btn btn-secondary" onClick={() => setParams({ ch: null, tp: null, d: null, sol: null, hi: null, q: null })}>
+                                    <button type="button" className="btn btn-secondary" onClick={() => setParams({ ch: null, tp: null, d: null, sol: null, hi: null, q: null, src: null })}>
                                       Clear filters
                                     </button>
                                     {recentOn && hidden > 0 && (
@@ -609,8 +650,8 @@ export function QuestionPicker({ testId, backHref }: { testId: string; backHref?
                       locked={locked}
                       onCancel={() => setParams({ mode: null })}
                       onCommit={async (ids) => {
-                        await write([...current, ...ids], `Filled ${ids.length} ${isSet ? (ids.length === 1 ? "set" : "sets") : ids.length === 1 ? "slot" : "slots"} by rule`);
-                        setParams({ mode: null });
+                        // stays on the rule when nothing was saved (an error, or Cancel in the library warning)
+                        if (await write([...current, ...ids], `Filled ${ids.length} ${isSet ? (ids.length === 1 ? "set" : "sets") : ids.length === 1 ? "slot" : "slots"} by rule`)) setParams({ mode: null });
                       }}
                     />
                   )}
@@ -660,7 +701,7 @@ function Doodle() {
   );
 }
 
-function RowStem({ r, sub, isSet }: { r: PickerRow; sub: PaperSub; isSet: boolean }) {
+function RowStem({ r, sub, isSet, lib }: { r: PickerRow; sub: PaperSub; isSet: boolean; lib: { label: string; branded: boolean } }) {
   const inHere = r.inThisTest?.subsectionId === sub.id;
   const wrong = r.blockedReason === "WRONG_SET_SIZE" || r.blockedReason === "WRONG_CHILD_TYPE";
   const bad = blockedCopy(wrong ? r.blockedReason : null, sub.paragraph?.setSize, sub.paragraph?.childType);
@@ -672,6 +713,7 @@ function RowStem({ r, sub, isSet }: { r: PickerRow; sub: PaperSub; isSet: boolea
     <span className="col min-w-0 gap-1">
       <Stem text={r.stemPreview} />
       <span className="row wrap gap-1.5">
+        {r.fromLibrary && <LibraryBadge label={lib.label} branded={lib.branded} />}
         {setLabel && <span className="badge b-navy">{setLabel}</span>}
         {r.inThisTest && <span className="badge b-green">{inHere && isSet ? `In this test · Set ${setNo}` : `In this test · Q${r.inThisTest.n}`}</span>}
         {r.recentTest && <span className="badge b-grey">Used in {r.recentTest.shortName ?? r.recentTest.name}</span>}

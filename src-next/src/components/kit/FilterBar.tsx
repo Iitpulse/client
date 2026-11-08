@@ -191,6 +191,7 @@ export function FilterChip<V extends string = string>({
   loading,
   valueLabel,
   clearable = true,
+  note,
 }: {
   /** "Batch" */
   label: string;
@@ -206,6 +207,8 @@ export function FilterChip<V extends string = string>({
   valueLabel?: string;
   /** false for filters that always have a value (Status: active); shows no × */
   clearable?: boolean;
+  /** a muted line under the list ("Only exams your institute has set up are listed.") */
+  note?: ReactNode;
 }) {
   const mode = useContext(ModeCtx);
   const [open, setOpen] = useState(false);
@@ -229,22 +232,32 @@ export function FilterChip<V extends string = string>({
     isSelected: (v) => v === value,
     noun,
     loading,
-    footer: clearable ? (
-      <>
-        <div className="k-sep" />
-        <button
-          type="button"
-          className="k-li"
-          onClick={() => {
-            onChange(null);
-            setOpen(false);
-            setQ("");
-          }}
-        >
-          <span className="muted">{anyLabel ?? `Any ${noun}`}</span>
-        </button>
-      </>
-    ) : undefined,
+    footer:
+      clearable || note ? (
+        <>
+          {clearable && (
+            <>
+              <div className="k-sep" />
+              <button
+                type="button"
+                className="k-li"
+                onClick={() => {
+                  onChange(null);
+                  setOpen(false);
+                  setQ("");
+                }}
+              >
+                <span className="muted">{anyLabel ?? `Any ${noun}`}</span>
+              </button>
+            </>
+          )}
+          {note && (
+            <span className="xs muted block" style={{ padding: "6px 10px" }}>
+              {note}
+            </span>
+          )}
+        </>
+      ) : undefined,
   });
   if (mode === "field")
     return (

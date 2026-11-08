@@ -10,6 +10,7 @@ import { StaffTermsPrompt } from "@/components/m7b/staff-terms";
 import { SupportVisitBanner } from "@/components/m8/SupportVisitBanner";
 import { auth } from "@/lib/session";
 import { OfflineBanner } from "@/components/kit";
+import { LibraryWarningDialog } from "@/components/questions-admin/library-warning";
 
 export default function DashboardLayout({
   children,
@@ -74,6 +75,8 @@ export default function DashboardLayout({
 
       {/* M7b: changed terms are accepted before work continues (board Admin-Security, terms-changed); not during a support visit */}
       {!auth.isSupportVisit() && <StaffTermsPrompt />}
+      {/* M10: "N of these are already in the library" for every paper write on an IIT-PULSE paper (lib/m10-library-warning.ts) */}
+      <LibraryWarningDialog />
     </Paper>
   );
 }
