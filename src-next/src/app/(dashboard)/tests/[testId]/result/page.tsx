@@ -9,11 +9,10 @@
   "After N days"; the other modes publish by themselves and the banner says why there's no button), the Monitor student
   detail for the flag drawer. M5: result-insights (appeared / assigned, average vs the previous mock, subject averages, integrity),
   ai batch summary and key check.
-  Batch 8: "Assign practice" (components/results/AssignPractice.tsx: drawer + "Practice from this test" tracking). Not
-  built yet here: "Send to parents", "Add to schedule". Owner, 8 Nov: they ship before release, from
-  design batch 8 boards. Slots kept for them: `pageActions` (top bar, before Export) for page-wide actions such as
-  Send to parents, and BatchSummaryCard's `suggestionAction` (the end of each suggestion row) and `headerActions`
-  (next to Copy for WhatsApp) for Add to schedule / Assign practice. Place them where the batch 8 boards draw them.
+  Batch 8: "Assign practice" (components/results/AssignPractice.tsx: drawer + "Practice from this test" tracking),
+  "Add to schedule" (components/results/AddSchedule.tsx: classes and sessions on the calendar, or a draft retest) in
+  BatchSummaryCard's `headerActions` and each suggestion's `suggestionAction`, and "Send to parents" (page
+  /tests/:id/parents) first in the top bar.
 */
 
 import * as React from "react";
@@ -61,6 +60,7 @@ import {
   type ResultRow,
 } from "@/lib/m6/results-admin";
 import { AssignPracticeDrawer, PracticeTracking } from "@/components/results/AssignPractice";
+import { AddScheduleDrawer } from "@/components/results/AddSchedule";
 import "../results.css";
 import "./results-board.css";
 
@@ -422,6 +422,9 @@ export default function TestResultPage() {
   const [flagRow, setFlagRow] = React.useState<ResultRow | null>(null);
   const [assign, setAssign] = React.useState<{ hint: string | null } | null>(null);
   const canAssign = can("UPDATE_TEST", "VIEW_RESULT");
+  const [schedule, setSchedule] = React.useState<{ hint: string | null } | null>(null);
+  const canSchedule = can("UPDATE_TEST", "CREATE_TEST");
+  const canParents = can("VIEW_RESULT", "PUBLISH_RESULT");
   const [publishPreview, setPublishPreview] = React.useState<ResultPublishPreview | null>(null);
   const [asking, setAsking] = React.useState(false);
 
@@ -495,8 +498,12 @@ export default function TestResultPage() {
 
   const err = res.error ? apiError(res.error) : null;
   const title = `${testName} · results`;
-  // slot (design batch 8): page-wide actions such as "Send to parents" go first, once their board is approved
-  const pageActions: React.ReactNode = null;
+  // batch 8: Send to parents goes first (board Admin-SendParents)
+  const pageActions: React.ReactNode = canParents ? (
+    <Link href={`/tests/${encodeURIComponent(testId)}/parents`} className="btn btn-ghost btn-sm" data-testid="parents-open">
+      Send to parents
+    </Link>
+  ) : null;
   const actions = (
     <>
       {pageActions}
@@ -738,16 +745,27 @@ export default function TestResultPage() {
               onRetry={() => summaryQ.refetch()}
               rewrittenAfterFix={summaryRewritten}
               headerActions={
-                canAssign ? (
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAssign({ hint: null })} data-testid="assign-open">
-                    Assign practice
-                  </button>
-                ) : null
+                <>
+                  {canSchedule && (
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSchedule({ hint: null })} data-testid="schedule-open">
+                      Add to schedule
+                    </button>
+                  )}
+                  {canAssign && (
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAssign({ hint: null })} data-testid="assign-open">
+                      Assign practice
+                    </button>
+                  )}
+                </>
               }
               suggestionAction={(g) =>
                 canAssign && /practi[cs]e|drill|set on/i.test(g.text) ? (
                   <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAssign({ hint: g.text })}>
                     Assign practice
+                  </button>
+                ) : canSchedule && /revis|class|doubt|retest|session/i.test(g.text) ? (
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSchedule({ hint: g.text })}>
+                    Add to schedule
                   </button>
                 ) : null
               }
@@ -914,6 +932,12 @@ export default function TestResultPage() {
         </section>
       </main>
 
+      <AddScheduleDrawer
+        open={!!schedule}
+        onClose={() => setSchedule(null)}
+        hint={schedule?.hint ?? null}
+        test={{ testId, name: testName, maxScore, exam: head?.exam ?? null, pattern: head?.pattern ? { id: head.pattern.id, name: head.pattern.name } : null, batches: head?.batches ?? [] }}
+      />
       <AssignPracticeDrawer open={!!assign} onClose={() => setAssign(null)} testId={testId} testName={testName} maxScore={maxScore} hint={assign?.hint ?? null} />
       <FlagDrawer testId={testId} row={flagRow} onClose={() => setFlagRow(null)} policy={head?.fullscreenPolicy ?? null} />
 

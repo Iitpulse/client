@@ -20,6 +20,9 @@ import { apiError } from "@/lib/m6/client";
 import { examRefs, useM6Batches, useM6Exams } from "@/lib/m6/shared";
 import type { CalendarResponse, RescheduleResponse, ResultMode } from "@/lib/m6-contract";
 import { useInvalidateTests } from "@/lib/m6/tests";
+import { useCan } from "@/lib/m6/people";
+import type { ScheduleEvent } from "@/lib/m6/batch8";
+import { ScheduleEventDrawer } from "@/components/tests-m6/ScheduleEventDrawer";
 
 type CalTest = CalendarResponse["tests"][number];
 type View = "month" | "week";
@@ -177,6 +180,17 @@ function Calendar() {
     for (const v of m.values()) v.sort((a, b) => a.opensAt.localeCompare(b.opensAt));
     return m;
   }, [data]);
+  // batch 8: classes and sessions (Add to schedule), no questions and no score
+  const eventsByDay = useMemo(() => {
+    const m = new Map<string, ScheduleEvent[]>();
+    for (const e of (data as { events?: ScheduleEvent[] } | undefined)?.events ?? []) {
+      const d = dayOf(e.startsAt);
+      m.set(d, [...(m.get(d) ?? []), e]);
+    }
+    return m;
+  }, [data]);
+  const [evOpen, setEvOpen] = useState<ScheduleEvent | null>(null);
+  const { can } = useCan();
   const resultsByDay = useMemo(() => {
     const m = new Map<string, CalendarResponse["resultEvents"]>();
     for (const e of data?.resultEvents ?? []) m.set(e.date, [...(m.get(e.date) ?? []), e]);
@@ -344,6 +358,7 @@ function Calendar() {
               <span className="cal-lg"><i className="ev-draft" />Draft</span>
               <span className="cal-lg"><i className="ev-fail" />Not published</span>
               <span className="cal-lg"><i className="ev-ended" />Ended</span>
+              <span className="cal-lg"><i className="ev-cls" />Class or session</span>
               <span className="cal-lg font-semibold text-success">
                 <Check className="size-3" strokeWidth={2.6} aria-hidden />
                 Results out
@@ -422,6 +437,13 @@ function Calendar() {
                             >
                               <span className="t">{timeShort(t.opensAt)}</span>
                               <span className="ell">{t.name}</span>
+                            </button>
+                          ))}
+                        {!tablet &&
+                          (eventsByDay.get(date) ?? []).map((e) => (
+                            <button key={e.id} type="button" className="ev cls" title={`${e.kindLabel}: ${e.title} · ${timeShort(e.startsAt)}`} onClick={() => setEvOpen(e)} data-testid="cal-event">
+                              <span className="t">{timeShort(e.startsAt)}</span>
+                              <span className="ell">{e.title}</span>
                             </button>
                           ))}
                         {tablet && evs.length > 0 && (
@@ -504,7 +526,18 @@ function Calendar() {
                   {agendaDay === today ? " · today" : ""}
                 </span>
                 <div ref={agRef} className="col gap-2 overflow-y-auto" style={{ height: agH ?? undefined }}>
-                  {(byDay.get(agendaDay) ?? []).length === 0 && <span className="xs muted">No tests on this day.</span>}
+                  {(byDay.get(agendaDay) ?? []).length === 0 && !(eventsByDay.get(agendaDay) ?? []).length && <span className="xs muted">No tests on this day.</span>}
+                  {(eventsByDay.get(agendaDay) ?? []).map((e) => (
+                    <button key={e.id} type="button" className="cal-ag" onClick={() => setEvOpen(e)}>
+                      <span className="col grow min-w-0 gap-px text-left">
+                        <span className="sm ell font-semibold">{e.title}</span>
+                        <span className="xs muted">
+                          {e.kindLabel} · {timeShort(e.startsAt)}
+                          {e.place.label ? ` · ${e.place.label}` : ""}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
                   {(byDay.get(agendaDay) ?? []).map((t) => (
                     <button key={t.testId} type="button" className="cal-ag" onClick={(e) => openPopover(t, e.currentTarget)}>
                       <StateBadge t={t} />
@@ -531,6 +564,7 @@ function Calendar() {
 
       <MoveDialog p={pending} onClose={() => setPending(null)} onConfirm={confirmMove} />
       <TestLinksDrawer test={linksFor} onClose={() => setLinksFor(null)} />
+      <ScheduleEventDrawer event={evOpen} onClose={() => setEvOpen(null)} batchName={(id) => batches.data?.find((b) => b.id === id)?.name ?? id} canEdit={can("UPDATE_TEST", "CREATE_TEST")} />
       <style>{CAL_CSS}</style>
     </>
   );
@@ -831,6 +865,7 @@ const CAL_CSS = `
 .cal-ist{font:600 10px/1 var(--mono);padding:4px 5px;border-radius:4px;background:var(--line-2);color:var(--muted);align-self:center}
 .cal-lg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
 .cal-lg i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.cal-lg i.ev-cls{background:#F4F1FB;border:1px solid #D9D0F0}
 .cal-lg i.ev-live{background:var(--red-50);border:1px solid #F2B1B1}
 .cal-lg i.ev-sched{background:var(--navy-50);border:1px solid var(--navy-200)}
 .cal-lg i.ev-draft{background:var(--surface);border:1px dashed #A9ACC0}
@@ -852,6 +887,7 @@ const CAL_CSS = `
 .cal-mon .ev .t{font-variant-numeric:tabular-nums;opacity:.8;flex:none}
 .ev.live,.blk.live{background:var(--red-50);color:#7A1010;border-color:#F2B1B1}
 .ev.sched,.blk.sched{background:var(--navy-50);color:var(--navy);border-color:var(--navy-200)}
+.ev.cls{background:#F4F1FB;color:#3B2A6B;border:1px solid #D9D0F0}
 .ev.draft,.blk.draft{background:var(--surface);color:var(--ink-2);border:1px dashed #A9ACC0}
 .ev.fail,.blk.fail{background:var(--amber-50);color:#5C3600;border-color:#F1D29A}
 .ev.ended,.blk.ended{background:var(--ground);color:var(--muted);border-color:var(--line-2)}
