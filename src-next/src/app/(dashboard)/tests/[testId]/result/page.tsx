@@ -9,7 +9,8 @@
   "After N days"; the other modes publish by themselves and the banner says why there's no button), the Monitor student
   detail for the flag drawer. M5: result-insights (appeared / assigned, average vs the previous mock, subject averages, integrity),
   ai batch summary and key check.
-  Not built yet: "Send to parents", "Add to schedule", "Assign practice". Owner, 8 Nov: they ship before release, from
+  Batch 8: "Assign practice" (components/results/AssignPractice.tsx: drawer + "Practice from this test" tracking). Not
+  built yet here: "Send to parents", "Add to schedule". Owner, 8 Nov: they ship before release, from
   design batch 8 boards. Slots kept for them: `pageActions` (top bar, before Export) for page-wide actions such as
   Send to parents, and BatchSummaryCard's `suggestionAction` (the end of each suggestion row) and `headerActions`
   (next to Copy for WhatsApp) for Add to schedule / Assign practice. Place them where the batch 8 boards draw them.
@@ -59,6 +60,7 @@ import {
   useResultsTestInfo,
   type ResultRow,
 } from "@/lib/m6/results-admin";
+import { AssignPracticeDrawer, PracticeTracking } from "@/components/results/AssignPractice";
 import "../results.css";
 import "./results-board.css";
 
@@ -400,7 +402,7 @@ export default function TestResultPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const testId = params.testId as string;
-  const { roleName } = useCan();
+  const { roleName, can } = useCan();
 
   const [s, set] = useUrlState(DEFAULTS);
   const sortKey: SortKey = s.sort || "rank";
@@ -418,6 +420,8 @@ export default function TestResultPage() {
   const keyCheckQ = useKeyCheck(testId, appeared > 0);
 
   const [flagRow, setFlagRow] = React.useState<ResultRow | null>(null);
+  const [assign, setAssign] = React.useState<{ hint: string | null } | null>(null);
+  const canAssign = can("UPDATE_TEST", "VIEW_RESULT");
   const [publishPreview, setPublishPreview] = React.useState<ResultPublishPreview | null>(null);
   const [asking, setAsking] = React.useState(false);
 
@@ -733,6 +737,20 @@ export default function TestResultPage() {
               appeared={insights?.appeared ?? appeared}
               onRetry={() => summaryQ.refetch()}
               rewrittenAfterFix={summaryRewritten}
+              headerActions={
+                canAssign ? (
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAssign({ hint: null })} data-testid="assign-open">
+                    Assign practice
+                  </button>
+                ) : null
+              }
+              suggestionAction={(g) =>
+                canAssign && /practi[cs]e|drill|set on/i.test(g.text) ? (
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAssign({ hint: g.text })}>
+                    Assign practice
+                  </button>
+                ) : null
+              }
             />
             <article className="card pad-lg col rise gap-3" style={{ ["--i" as string]: 6 }} data-testid="results-subjects">
               <span className="h3">Subject averages</span>
@@ -777,6 +795,8 @@ export default function TestResultPage() {
             </article>
           </section>
         )}
+
+        {!loading && <PracticeTracking testId={testId} />}
 
         <section
           ref={fillRef}
@@ -894,6 +914,7 @@ export default function TestResultPage() {
         </section>
       </main>
 
+      <AssignPracticeDrawer open={!!assign} onClose={() => setAssign(null)} testId={testId} testName={testName} maxScore={maxScore} hint={assign?.hint ?? null} />
       <FlagDrawer testId={testId} row={flagRow} onClose={() => setFlagRow(null)} policy={head?.fullscreenPolicy ?? null} />
 
       <ConfirmDialog
