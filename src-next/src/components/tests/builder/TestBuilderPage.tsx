@@ -316,11 +316,11 @@ export function TestBuilderPage({ testId, initialExamId }: { testId?: string; in
     if (dirty && !(await save({ quiet: true }))) return;
     setConfirmOpen(true);
   };
-  const doPublish = async () => {
+  const doPublish = async (opts: { sms?: boolean } = {}) => {
     if (!testId) return;
     setPublishing(true);
     try {
-      const r = await publishTest(testId);
+      const r = await publishTest(testId, "Test builder", opts);
       setPublishFailed(false);
       notify.success(`Published ${r.test.name}`, r.notified > 0 ? { description: `${r.notified.toLocaleString("en-IN")} students were told` } : undefined);
       invalidate();

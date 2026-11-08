@@ -7,18 +7,24 @@
   who is skipped and why), sent before (sending again goes only to parents added or confirmed since), bounced (resend
   to these only), the preview of one parent's email with the note, test copy, confirm, sending, sent. Students are
   never told. Data: lib/m6/batch8.ts (api-tests docs/batch8-api.md "Send to parents").
+  Batch 9 (Admin-SMSChannels "send-parents", pay per SMS): when the recipients answer carries `sms`, Send opens the
+  channel summary (by SMS, email as well, can't reach; shared numbers get one SMS naming both children), the
+  parent_result SMS preview with the 160 count and the template, and "Review and send"; over 50 SMS the shared cost
+  confirm sends. Paused by IIT-PULSE: the note, results go by email.
 */
 import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Topbar } from "@/components/admin/Topbar";
-import { ConfirmDialog, FilterChip, SearchBox, StateBox, inr, notify, supportCode, useFillHeight } from "@/components/kit";
+import { ConfirmDialog, FilterChip, KitDialog, SearchBox, StateBox, inr, notify, plural, supportCode, useFillHeight } from "@/components/kit";
 import { apiError, fieldErrors } from "@/lib/m6/client";
 import { istDate, istDateTime } from "@/lib/m6/shared";
 import { useBrand } from "@/lib/brand";
 import { useCan } from "@/lib/m6/people";
 import { addParentEmail, parentTestCopy, resendParentLinks, sendParents, useParentRecipients, useParentSends, type ParentRecipient } from "@/lib/m6/batch8";
+import { COST_CONFIRM_OVER, SAMPLE_LINK, about, fillTemplate, isPaused, nf, pausedSince, useSmsTemplates } from "@/lib/sms";
+import { SmsBubble, SmsCostDialog, SmsMeta, SmsPausedNote, SmsWarnNote, TemplateMeta, useSmsAdmin } from "@/components/sms/Sms";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   willSend: { label: "Will get it", cls: "badge b-navy self-start" },
@@ -75,6 +81,10 @@ export default function SendToParentsPage() {
   const [note, setNote] = React.useState("");
   const [pos, setPos] = React.useState(0);
   const [confirm, setConfirm] = React.useState<null | "all" | "bounced">(null);
+  // batch 9: the SMS channel summary (instead of the email confirm) and the cost confirm over 50 SMS
+  const [smsStep, setSmsStep] = React.useState<null | "channels" | "cost">(null);
+  const [smsErr, setSmsErr] = React.useState<string | null>(null);
+  const smsAdmin = useSmsAdmin();
   const [sending, setSending] = React.useState(false);
   const [done, setDone] = React.useState<null | { sent: number; at: string }>(null);
   const [fillRef, fillH] = useFillHeight<HTMLElement>(!!rec.data?.items.length, 320, 72, "panel");
@@ -90,6 +100,15 @@ export default function SendToParentsPage() {
   const c = d?.counts;
   const skipText = c ? [c.noEmail ? `${c.noEmail} no email` : null, c.notConfirmed ? `${c.notConfirmed} not confirmed` : null, c.stopped ? `${c.stopped} stopped` : null, c.alreadySent ? `${c.alreadySent} already sent` : null].filter(Boolean).join(" · ") : "";
   const testName = d?.test.name ?? "Results";
+  const sms = d?.sms ?? null;
+  const smsPaused = isPaused(sms?.paused);
+  const templates = useSmsTemplates(!!sms && smsAdmin);
+  const viaSms = sms ? (sms.viaSms ?? willSend.filter((r) => r.parent.sms).length) : 0;
+  const emailToo = sms ? (sms.emailToo ?? willSend.filter((r) => r.parent.sms && r.parent.emailMasked).length) : 0;
+  const cantReach = sms ? (sms.cantReach ?? items.filter((r) => !r.parent.emailMasked && !r.parent.phoneLast4).length) : 0;
+  const shared = sms?.sharedPhones ?? 0;
+  const smsN = sms && !smsPaused ? sms.messages : 0;
+  const smsPreview = p ? fillTemplate("parent_result", [p.student.name.split(" ")[0]!, `${p.score}/${p.maxScore}`, d?.test.shortName || testName, `${p.rank} of ${p.of}`, SAMPLE_LINK]) : null;
   const institute = brand.name ?? "Your institute";
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["m6", "parent-recipients", testId] });
@@ -562,7 +581,7 @@ export default function SendToParentsPage() {
             </b>
             {skipText ? <span className="muted"> · {skipText}</span> : null}
           </span>
-          <button type="button" className="btn btn-primary" onClick={() => setConfirm("all")} disabled={!willSend.length || sending} data-testid="parents-send">
+          <button type="button" className="btn btn-primary" onClick={() => (sms ? (setSmsErr(null), setSmsStep("channels")) : setConfirm("all"))} disabled={!willSend.length || sending} data-testid="parents-send">
             {sending ? "Sending…" : `Send to ${inr(willSend.length)} parent${willSend.length === 1 ? "" : "s"}`}
           </button>
         </div>
@@ -585,6 +604,122 @@ export default function SendToParentsPage() {
         confirmLabel={confirm === "bounced" ? `Resend to ${bounced.length} parents` : `Send to ${inr(willSend.length)} parents`}
         onConfirm={() => send(confirm ?? "all")}
       />
+
+      {sms && smsStep === "channels" && (
+        <KitDialog
+          open
+          onOpenChange={(o) => !o && !sending && setSmsStep(null)}
+          busy={sending}
+          width="wide"
+          title={`Send ${testName} results to parents`}
+          description={`${(batchIds.length ? d.batches.filter((b) => batchIds.includes(b.id)) : d.batches).map((b) => b.name).join(", ")} · ${plural(c?.students ?? 0, "student")}`}
+          footer={
+            <>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSmsStep(null)} disabled={sending}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                disabled={sending}
+                data-testid="parents-sms-review"
+                onClick={async () => {
+                  if (smsN > COST_CONFIRM_OVER) return setSmsStep("cost");
+                  setSmsErr(null);
+                  try {
+                    await send("all");
+                    setSmsStep(null);
+                  } catch (e) {
+                    setSmsErr(e instanceof Error ? e.message : "Nothing was sent. Try again.");
+                  }
+                }}
+              >
+                {sending ? "Sending…" : "Review and send"}
+              </button>
+            </>
+          }
+        >
+          <div className="col gap-4" data-testid="parents-sms">
+            {smsPaused && <SmsPausedNote since={pausedSince(sms.paused)} />}
+            <div className="sm-chips">
+              <div className="sm-chip">
+                <span className="l">By SMS</span>
+                <b data-testid="parents-sms-count">{smsPaused ? 0 : nf(viaSms)}</b>
+                <span className="xs muted">{smsPaused ? "paused by IIT-PULSE" : "parents with a phone"}</span>
+              </div>
+              <div className="sm-chip">
+                <span className="l">Email as well</span>
+                <b>{nf(smsPaused ? willSend.filter((r) => r.parent.emailMasked).length : emailToo)}</b>
+                <span className="xs muted">{smsPaused ? "email only while SMS is paused" : "backup if the SMS fails"}</span>
+              </div>
+              <div className="sm-chip">
+                <span className="l">Can&rsquo;t reach</span>
+                <b style={{ color: cantReach ? "#9A5800" : undefined }}>{nf(cantReach)}</b>
+                <span className="xs muted">no phone or email</span>
+              </div>
+            </div>
+            {(cantReach > 0 || shared > 0) && (
+              <SmsWarnNote
+                action={
+                  cantReach > 0 ? (
+                    <Link href="/users?type=student" style={{ color: "#5C3600" }}>
+                      See the {nf(cantReach)}
+                    </Link>
+                  ) : undefined
+                }
+              >
+                {cantReach > 0 && (
+                  <>
+                    <b>{cantReach === 1 ? "1 parent has" : `${nf(cantReach)} parents have`} no phone or email.</b> {cantReach === 1 ? "They get" : "They get"} nothing.{" "}
+                  </>
+                )}
+                {shared > 0 && `${shared === 1 ? "1 phone is" : `${nf(shared)} phones are`} shared by brothers and sisters, so those parents get one SMS naming both children.`}
+              </SmsWarnNote>
+            )}
+            {smsPreview && !smsPaused && (
+              <div className="col gap-1.5">
+                <span className="sm font-semibold">SMS preview</span>
+                <SmsBubble parts={smsPreview.parts} />
+                <SmsMeta length={smsPreview.length} sms={smsPreview.sms}>
+                  <span>
+                    <b className="num">{nf(smsN)} SMS</b> · {about(sms.estimatePaise)} on this month&rsquo;s invoice
+                  </span>
+                  <TemplateMeta k="parent_result" templates={templates.data?.templates} />
+                  <span>Highlighted words change per student; the rest is fixed by DLT</span>
+                </SmsMeta>
+              </div>
+            )}
+            {smsErr && (
+              <span className="sm text-danger" role="alert">
+                {smsErr}
+              </span>
+            )}
+          </div>
+        </KitDialog>
+      )}
+      {sms && smsStep === "cost" && (
+        <SmsCostDialog
+          open
+          count={smsN}
+          unitPricePaise={sms.unitPricePaise}
+          estimatePaise={sms.estimatePaise}
+          detail={`${testName}: ${nf(viaSms)} parents by SMS${emailToo ? `, ${nf(emailToo)} of them emailed as well` : ""}.`}
+          backHint="Parents without a phone get the email only."
+          busy={sending}
+          error={smsErr}
+          onBack={() => setSmsStep("channels")}
+          onCancel={() => setSmsStep(null)}
+          onConfirm={async () => {
+            setSmsErr(null);
+            try {
+              await send("all");
+              setSmsStep(null);
+            } catch (e) {
+              setSmsErr(e instanceof Error ? e.message : "Nothing was sent. Try again.");
+            }
+          }}
+        />
+      )}
     </>
   );
 }

@@ -7,6 +7,9 @@
   where (centre or online), tell students now and remind them 1 hour before. Retest makes a draft test (new questions
   from the same chapters, or the same questions again) and opens it in the test builder; students hear nothing until
   it is published. Contract api-tests docs/batch8-api.md "Add to schedule".
+  Batch 9 (Admin-SMSChannels "add-schedule"): when the check answers `sms`, "Tell students by SMS (+ email) now" and
+  "Remind them by SMS 1 hour before" with the count and cost, the class_added SMS preview (160 count, template), the
+  paused note; over 50 SMS the shared cost confirm comes before the class is added.
 */
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -17,6 +20,9 @@ import { istDateTime, istTime } from "@/lib/m6/shared";
 import type { ResultRow } from "@/lib/m6/results-admin";
 import { useAllResultRows } from "@/lib/m6/assignments";
 import { checkEvent, createEvent, type Clash, type EventKind } from "@/lib/m6/batch8";
+import type { SmsFlowEstimate } from "@/lib/m6-contract";
+import { COST_CONFIRM_OVER, SAMPLE_LINK, about, fillTemplate, isPaused, nf, pausedSince, smsDate, smsTime, useSmsTemplates } from "@/lib/sms";
+import { SmsBubble, SmsCostDialog, SmsMeta, SmsPausedNote, TemplateMeta, useSmsAdmin } from "@/components/sms/Sms";
 
 type Kind = "revision" | "doubt" | "retest";
 const KINDS: Array<{ value: Kind; label: string }> = [
@@ -66,6 +72,10 @@ export function AddScheduleDrawer({ open, onClose, test, hint }: { open: boolean
   const [opens, setOpens] = React.useState<string>(() => tomorrowAt(9));
   const [closes, setCloses] = React.useState<string>(() => tomorrowAt(21));
   const [clashes, setClashes] = React.useState<Clash[]>([]);
+  const [sms, setSms] = React.useState<SmsFlowEstimate | null>(null);
+  const [cost, setCost] = React.useState(false);
+  const smsAdmin = useSmsAdmin();
+  const templates = useSmsTemplates(open && smsAdmin && !!sms);
   const [ph, setPh] = React.useState<"open" | "busy" | "failed">("open");
   const [err, setErr] = React.useState<string | null>(null);
 
@@ -82,29 +92,46 @@ export function AddScheduleDrawer({ open, onClose, test, hint }: { open: boolean
   const autoTitle = kind === "revision" ? `Revision: ${test.name}` : kind === "doubt" ? `Doubt session: ${test.name}` : `Retest: ${test.name}`;
   const batchText = test.batches.filter((b) => batchIds.includes(b.id)).map((b) => b.name).join(", ");
 
-  // the clash line: other tests and classes of these batches at that time
+  // the clash line: other tests and classes of these batches at that time (and, batch 9, what the SMS would cost)
+  const weakIds = weak ? weakRows.map((x) => x.student.id).join(",") : "";
   React.useEffect(() => {
-    if (!open || kind === "retest" || !batchIds.length || !minutes) return setClashes([]);
+    if (!open || kind === "retest" || !batchIds.length || !minutes) {
+      setSms(null);
+      return setClashes([]);
+    }
     let live = true;
     const t = setTimeout(() => {
-      checkEvent({ batchIds, startsAt: at, minutes })
-        .then((r) => live && setClashes(r.clashes))
+      checkEvent({ batchIds, startsAt: at, minutes, ...(weakIds ? { studentIds: weakIds.split(",") } : {}) })
+        .then((r) => {
+          if (!live) return;
+          setClashes(r.clashes);
+          setSms(r.sms ?? null);
+        })
         .catch(() => live && setClashes([]));
     }, 250);
     return () => {
       live = false;
       clearTimeout(t);
     };
-  }, [open, kind, at, minutes, batchIds]);
+  }, [open, kind, at, minutes, batchIds, weakIds]);
 
   const firstFree = () => {
     const c = clashes.at(-1);
     if (c) setAt(c.endsAt);
   };
 
-  const save = async () => {
+  const paused = isPaused(sms?.paused);
+  const smsOn = !!sms && !paused;
+  const smsEach = sms?.messages ?? 0;
+  const smsCountNow = smsOn && tell ? smsEach : 0;
+  const smsCountLater = smsOn && remind ? smsEach : 0;
+  const smsTotal = smsCountNow + smsCountLater;
+  const each = sms && sms.messages ? sms.estimatePaise / sms.messages : 0;
+  const save = async (costOk = false) => {
     setErr(null);
     if (!batchIds.length) return setErr("Pick a batch.");
+    if (kind !== "retest" && !costOk && smsTotal > COST_CONFIRM_OVER) return setCost(true);
+    setCost(false);
     setPh("busy");
     try {
       if (kind === "retest") {
@@ -132,10 +159,11 @@ export function AddScheduleDrawer({ open, onClose, test, hint }: { open: boolean
         sourceTestId: test.testId,
         notify: tell,
         remind,
+        ...(sms ? { sms: smsOn } : {}),
       });
       await qc.invalidateQueries({ queryKey: ["m6", "schedule-events"] });
       await qc.invalidateQueries({ queryKey: ["m6", "calendar"] });
-      notify.success(`Added to the calendar: ${r.event.title}, ${istDateTime(r.event.startsAt)}.`, { description: tell ? `${inr(r.told)} students were told.` : "No student was told." });
+      notify.success(`Added to the calendar: ${r.event.title}, ${istDateTime(r.event.startsAt)}.`, { description: tell ? `${inr(r.told)} students were told${smsCountNow ? " by SMS and email" : ""}.` : "No student was told." });
       setPh("open");
       onClose();
     } catch (e) {
@@ -154,6 +182,12 @@ export function AddScheduleDrawer({ open, onClose, test, hint }: { open: boolean
   };
 
   const whoN = weak ? weakRows.length : inBatches.length;
+  const firstName = ((weak ? weakRows : inBatches)[0]?.student.name ?? "Aarav").split(" ")[0]!;
+  const kindLabel = kind === "doubt" ? "Doubt session" : "Revision class";
+  const placeText = placeKind === "online" ? "Online" : place.trim() || "Centre";
+  const smsPreview = fillTemplate("class_added", [kindLabel, firstName, smsDate(at), placeText, SAMPLE_LINK]);
+  const reminderAt = new Date(Date.parse(at) - 3_600_000).toISOString();
+  const noPhone = sms?.noVerifiedPhone ?? 0;
   const cta = ph === "busy" ? "Adding…" : ph === "failed" ? "Try again" : kind === "retest" ? "Make draft retest" : "Add to calendar";
 
   return (
@@ -171,7 +205,7 @@ export function AddScheduleDrawer({ open, onClose, test, hint }: { open: boolean
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={ph === "busy"}>
               Cancel
             </button>
-            <button type="button" className="btn btn-primary" onClick={save} disabled={ph === "busy"} data-testid="schedule-submit">
+            <button type="button" className="btn btn-primary" onClick={() => save()} disabled={ph === "busy"} data-testid="schedule-submit">
               {cta}
             </button>
           </div>
@@ -250,17 +284,49 @@ export function AddScheduleDrawer({ open, onClose, test, hint }: { open: boolean
                 <input className="input" value={place} maxLength={120} placeholder={placeKind === "centre" ? "Centre and room" : "Meeting link or note"} onChange={(e) => setPlace(e.target.value)} aria-label="Place" />
               </div>
             </div>
-            <fieldset className="col gap-1.5">
-              <legend className="sm font-semibold">Tell students</legend>
-              <label className="row gap-2 sm">
-                <input type="checkbox" checked={tell} onChange={(e) => setTell(e.target.checked)} data-testid="schedule-tell" />
-                Email and app note now <span className="muted">({whoN} students)</span>
-              </label>
-              <label className="row gap-2 sm">
-                <input type="checkbox" checked={remind} onChange={(e) => setRemind(e.target.checked)} />
-                Remind them 1 hour before
-              </label>
-            </fieldset>
+            {smsOn ? (
+              <fieldset className="col gap-2.5 border-t border-line-2 pt-3" data-testid="schedule-sms">
+                <legend className="sm font-semibold">Tell students</legend>
+                <label className="sm-chk">
+                  <input type="checkbox" checked={tell} onChange={(e) => setTell(e.target.checked)} data-testid="schedule-tell" />
+                  <span>
+                    Tell students by SMS (+ email) now{" "}
+                    <span className="muted num">
+                      · {nf(smsEach)} SMS, {about(each * smsEach)}
+                    </span>
+                    <br />
+                    <span className="xs muted">{noPhone ? `The ${nf(noPhone)} without a verified phone get email and the bell.` : `${nf(whoN)} students; every one has a verified phone.`}</span>
+                  </span>
+                </label>
+                <label className="sm-chk">
+                  <input type="checkbox" checked={remind} onChange={(e) => setRemind(e.target.checked)} data-testid="schedule-remind" />
+                  <span>
+                    Remind them by SMS 1 hour before{" "}
+                    <span className="muted num">
+                      · {nf(smsEach)} SMS at {smsTime(reminderAt)}, {about(each * smsEach)}
+                    </span>
+                  </span>
+                </label>
+                <span className="xs muted">Moving or cancelling it later texts the same students again.</span>
+                <SmsBubble parts={smsPreview.parts} />
+                <SmsMeta length={smsPreview.length} sms={smsPreview.sms} short>
+                  <TemplateMeta k="class_added" templates={templates.data?.templates} />
+                </SmsMeta>
+              </fieldset>
+            ) : (
+              <fieldset className="col gap-1.5">
+                <legend className="sm font-semibold">Tell students</legend>
+                {sms && paused && <SmsPausedNote since={pausedSince(sms.paused)} />}
+                <label className="row gap-2 sm">
+                  <input type="checkbox" checked={tell} onChange={(e) => setTell(e.target.checked)} data-testid="schedule-tell" />
+                  Email and app note now <span className="muted">({whoN} students)</span>
+                </label>
+                <label className="row gap-2 sm">
+                  <input type="checkbox" checked={remind} onChange={(e) => setRemind(e.target.checked)} />
+                  Remind them 1 hour before
+                </label>
+              </fieldset>
+            )}
           </>
         ) : (
           <>
@@ -295,6 +361,20 @@ export function AddScheduleDrawer({ open, onClose, test, hint }: { open: boolean
           </span>
         )}
       </div>
+      {cost && sms && (
+        <SmsCostDialog
+          open
+          count={smsTotal}
+          unitPricePaise={sms.unitPricePaise}
+          estimatePaise={Math.round(each * smsTotal)}
+          detail={`${title.trim() || autoTitle}: ${nf(smsCountNow || smsCountLater)} students${smsCountNow && smsCountLater ? " now + the same an hour before it starts" : smsCountNow ? " now" : " an hour before it starts"}.`}
+          backHint="Go back to change who is told."
+          busy={ph === "busy"}
+          onBack={() => setCost(false)}
+          onCancel={() => setCost(false)}
+          onConfirm={() => void save(true)}
+        />
+      )}
     </Drawer>
   );
 }

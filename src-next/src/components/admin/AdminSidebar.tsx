@@ -14,7 +14,7 @@ import { useQuestionBankTotals } from "@/lib/queries";
 import { useBankCounts, useLiveTests } from "@/lib/queries-tests-admin";
 import { CommandPalette } from "./CommandPalette";
 import { NAV, isActive, visibleItem, type Access } from "./nav";
-import { useBillingVisible } from "@/components/m7b/invites";
+import { useBillingVisible, useMessagesVisible } from "@/components/m7b/invites";
 
 const ROLE_LABEL: Record<string, string> = {
   superadmin: "Super admin",
@@ -53,6 +53,7 @@ export function AdminSidebar() {
 
   const rail = useTablet();
   const billing = useBillingVisible();
+  const messages = useMessagesVisible();
   const me = useMe().data;
   // /me is the server's view of the signed-in account; the persisted store is the fallback while it loads.
   const teacher = (me?.user.userType ?? currentUser?.userType) === "teacher";
@@ -93,7 +94,7 @@ export function AdminSidebar() {
         {isLoading
           ? Array.from({ length: 7 }, (_, i) => <span key={i} className="skel h-[38px]" />)
           : NAV.map((g, gi) => {
-              const items = g.items.map((i) => visibleItem(i, access, teacher, billing)).filter((i) => i !== null);
+              const items = g.items.map((i) => visibleItem(i, access, teacher, billing, messages)).filter((i) => i !== null);
               if (!items.length) return null;
               return (
                 <div key={g.label} className="col gap-1.5">

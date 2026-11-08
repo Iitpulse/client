@@ -5,9 +5,15 @@
 // how, questions and marks, exam screen); warnings that don't block publishing, with a Fix link; blocking checks keep
 // Publish off. Publishing itself is the unchanged POST …/publish (lib/m6/builder publishTest). Students' own "Test
 // published" email switch decides who gets an email; there is no switch to suppress them here.
+// Batch 9 (Admin-SMSChannels "publish-test", "sms-paused", "cost-confirm"): when the preview carries `sms`, a "Text
+// students" switch (on by default) with the count and cost (test_assigned now + test_soon an hour before it opens);
+// over 50 SMS "Continue" opens the shared cost confirm, which publishes. Paused by IIT-PULSE: the note, switch off.
 import Link from "next/link";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ConfirmDialog } from "@/components/kit";
+import { SmsCostDialog, SmsPausedNote, TextStudentsRow } from "@/components/sms/Sms";
+import { COST_CONFIRM_OVER, about, isPaused, nf, pausedSince } from "@/lib/sms";
 import { m6Call, m6Tests, unwrap } from "@/lib/m6/client";
 import { istDateTime } from "@/lib/m6/shared";
 import type { PublishPreview, PublishWarningCode } from "@/lib/m6-contract";
@@ -69,13 +75,38 @@ export function PublishConfirmDialog({
   testId: string;
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  /** publish; a thrown error stays in the dialog ("Not published…") */
-  onConfirm: () => Promise<unknown>;
+  /** publish; a thrown error stays in the dialog ("Not published…"). `sms` only when the preview offered the switch. */
+  onConfirm: (opts: { sms?: boolean }) => Promise<unknown>;
   /** where "Fix" goes (the builder) */
   fixHref?: string;
 }) {
   const q = usePublishPreview(open ? testId : null);
   const p = q.data;
+  const [tx, setTx] = useState(true);
+  const [cost, setCostState] = useState(false);
+  // ConfirmDialog closes itself after onConfirm; going on to the cost confirm must not close the flow
+  const costRef = useRef(false);
+  const setCost = (v: boolean) => {
+    costRef.current = v;
+    setCostState(v);
+  };
+  const [costBusy, setCostBusy] = useState(false);
+  const [costErr, setCostErr] = useState<string | null>(null);
+  const sms = p?.sms ?? null;
+  const paused = isPaused(sms?.paused);
+  const smsNow = sms?.messages ?? 0;
+  const smsLater = sms?.reminderMessages ?? 0;
+  const smsTotal = smsNow + smsLater;
+  const sendSms = !!sms && !paused && tx && smsTotal > 0;
+  const needsCost = sendSms && smsTotal > COST_CONFIRM_OVER;
+  const noPhone = sms?.noVerifiedPhone ?? 0;
+  const noPhoneText = noPhone ? ` The ${nf(noPhone)} without a verified phone get email.` : "";
+  const txHint = !tx
+    ? "Off: bell and email only"
+    : smsLater
+      ? `${nf(smsTotal)} SMS, ${about(sms?.estimatePaise)}: ${nf(smsNow)} now (test_assigned) + ${nf(smsLater)} an hour before it opens (test_soon).${noPhoneText}`
+      : `${nf(smsNow)} SMS now, ${about(sms?.estimatePaise)} (template test_assigned).${noPhoneText}`;
+  const smsOpt = sms ? { sms: sendSms } : {};
   const opensNow = !!p && (!p.test.opensAt || Date.parse(p.test.opensAt) <= Date.parse(p.now));
   const title = p ? `Publish ${p.test.name}?` : "Publish this test?";
   const lead = !p
@@ -112,20 +143,38 @@ export function PublishConfirmDialog({
       ]
     : [];
   const blocked = !!p && !p.canPublish;
+  const close = () => {
+    setCost(false);
+    setCostErr(null);
+    setTx(true);
+    onOpenChange(false);
+  };
   return (
+    <>
     <ConfirmDialog
-      open={open}
-      onOpenChange={onOpenChange}
+      open={open && !cost}
+      onOpenChange={(o) => {
+        if (!o && costRef.current) return; // going on to the cost confirm
+        if (!o) setTx(true);
+        onOpenChange(o);
+      }}
       tone="navy"
       title={title}
       description={lead}
       facts={facts}
-      confirmLabel={blocked ? "Fix the checks first" : !p ? "Publish" : opensNow ? "Publish and open now" : `Publish for ${istDateTime(p.test.opensAt)}`}
+      confirmLabel={blocked ? "Fix the checks first" : !p ? "Publish" : needsCost ? "Continue" : opensNow ? "Publish and open now" : `Publish for ${istDateTime(p.test.opensAt)}`}
       onConfirm={async () => {
         if (blocked) throw new Error("This test isn't ready: fix the checks marked ! in the builder.");
-        await onConfirm();
+        if (needsCost) {
+          setCostErr(null);
+          setCost(true);
+          return;
+        }
+        await onConfirm(smsOpt);
       }}
     >
+      {sms && paused && <SmsPausedNote since={pausedSince(sms.paused)} />}
+      {sms && <TextStudentsRow id="pub-tx" on={tx} onChange={setTx} hint={txHint} paused={paused} />}
       {p && p.blocking.length > 0 && (
         <div className="rounded-[10px] border border-[#F2B1B1] bg-[#FFF0F0] p-3 text-[13px] text-[#7A0000]" role="alert">
           <b>Not ready to publish.</b> {p.blocking.map((c) => BLOCK[c.code] ?? c.code).join(" ")}
@@ -155,5 +204,31 @@ export function PublishConfirmDialog({
         </div>
       )}
     </ConfirmDialog>
+    {cost && sms && p && (
+      <SmsCostDialog
+        open
+        count={smsTotal}
+        unitPricePaise={sms.unitPricePaise}
+        estimatePaise={sms.estimatePaise}
+        detail={`${p.test.name}: ${nf(smsNow)} students now${smsLater ? ` + the same ${nf(smsLater)} an hour before it opens` : ""}.`}
+        busy={costBusy}
+        error={costErr}
+        onBack={() => setCost(false)}
+        onCancel={close}
+        onConfirm={async () => {
+          setCostBusy(true);
+          setCostErr(null);
+          try {
+            await onConfirm({ sms: true });
+            close();
+          } catch (e) {
+            setCostErr(e instanceof Error ? e.message : "Not published. Try again.");
+          } finally {
+            setCostBusy(false);
+          }
+        }}
+      />
+    )}
+    </>
   );
 }

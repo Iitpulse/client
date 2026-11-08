@@ -3,10 +3,12 @@
   not migrated yet. Boards: AdminSidebar `nav="m6"` (groups Overview, Content, People, System; "Batches & setup" is
   one page with tabs since M6) and `nav="teacher"` (no setup, roles, audit or templates; Users reads "My students").
   The board's Institute group: Branding since M7b (admins or MANAGE_BRANDING); Billing & usage since M9 (the Owner
-  only: `ownerOnly`; a support visit sees it read-only).
+  only: `ownerOnly`; a support visit sees it read-only). Messages since batch 9 (Admin-Messages: under Billing & usage,
+  Owner and Admin only: `adminOnly`).
 */
 import {
   CreditCard,
+  MessageSquareText,
   FileQuestionMark,
   Palette,
   History,
@@ -43,6 +45,8 @@ export interface NavItem extends NavLink {
   staffOnly?: boolean;
   /** Only the institute's Owner (M9 Billing & usage; route access is owner-only server side) */
   ownerOnly?: boolean;
+  /** Owner and Admins only (batch 9 Messages; the API answers 403 to other roles) */
+  adminOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -86,6 +90,7 @@ export const NAV: NavGroup[] = [
     items: [
       { key: "branding", label: "Branding", href: "/branding", icon: Palette, permission: "branding", keywords: ["logo", "colour", "color", "theme", "white label"], staffOnly: true },
       { key: "billing", label: "Billing & usage", href: "/billing", icon: CreditCard, keywords: ["invoices", "plan", "ai credits", "top-up", "gst", "payment"], staffOnly: true, ownerOnly: true },
+      { key: "messages", label: "Messages", href: "/messages", icon: MessageSquareText, keywords: ["sms", "text messages", "delivery", "dlt", "templates", "sender"], staffOnly: true, adminOnly: true },
     ],
   },
   {
@@ -109,9 +114,10 @@ export function allowed(link: NavLink, hasAccess: Record<Access, boolean>): bool
 }
 
 /** Visible children of an item; an item with children is shown when any child is, and opens the first one. */
-export function visibleItem(item: NavItem, hasAccess: Record<Access, boolean>, teacher = false, owner = false): NavItem | null {
+export function visibleItem(item: NavItem, hasAccess: Record<Access, boolean>, teacher = false, owner = false, admin = false): NavItem | null {
   if (teacher && item.staffOnly) return null;
   if (item.ownerOnly && !owner) return null;
+  if (item.adminOnly && !admin) return null;
   if (teacher && item.key === "users") return { ...item, label: "My students" };
   if (!item.children) return allowed(item, hasAccess) ? item : null;
   const children = item.children.filter((c) => allowed(c, hasAccess));

@@ -39,6 +39,7 @@ import { useAuthStore, usePermissionsStore } from "@/stores";
 import { openStudentPreview } from "@/lib/student-preview";
 import { publishTest } from "@/lib/m6/builder";
 import { PublishConfirmDialog } from "@/components/tests/publish-confirm";
+import { useSmsSwitch } from "@/components/sms/Sms";
 
 type Tab = "all" | TestState;
 const TABS: Array<{ key: Tab; label: string }> = [
@@ -194,6 +195,9 @@ function Tests() {
   const pageSize = [25, 50, 100].includes(Number(s.size)) ? Number(s.size) : 25;
   const win = (WINDOWS.some((w) => w.value === s.window) ? s.window : "") as WindowKey;
   const [dialog, setDialog] = useState<Dialog>(null);
+  // batch 9: "Text students" on the results publish (template result_out) when the preview carries `sms`
+  const resultsPreview = dialog?.kind === "results" ? dialog.preview : null;
+  const resultsSms = useSmsSwitch({ sms: resultsPreview?.sms, template: "result_out", detail: `${dialog?.kind === "results" ? dialog.t.name : "These"} results: ${N(resultsPreview?.sms?.messages ?? 0)} students now.` });
   const [linksFor, setLinksFor] = useState<LinksTest | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   // Batch 7: "Publish…" on a draft opens the confirm (Admin-PublishConfirm, from-tests-list)
@@ -606,8 +610,8 @@ function Tests() {
         }}
       />
       <ConfirmDialog
-        open={dialog?.kind === "results"}
-        onOpenChange={(o) => !o && setDialog(null)}
+        open={dialog?.kind === "results" && !resultsSms.open}
+        onOpenChange={(o) => resultsSms.onOpenChange(o, () => setDialog(null))}
         tone="navy"
         title={dialog?.kind === "results" ? `Publish results for ${dialog.t.name}?` : ""}
         description={
@@ -627,14 +631,19 @@ function Tests() {
               ]
             : undefined
         }
-        confirmLabel="Publish results"
-        onConfirm={async () => {
-          if (dialog?.kind !== "results") return;
-          await testsActions.publishResults(dialog.t.testId);
-          invalidate();
-          notify.success(`Results published · ${N(dialog.preview.emailed)} students emailed`);
-        }}
-      />
+        confirmLabel={resultsSms.confirmLabel("Publish results")}
+        onConfirm={() =>
+          resultsSms.onConfirm(async (opts) => {
+            if (dialog?.kind !== "results") return;
+            await testsActions.publishResults(dialog.t.testId, opts);
+            invalidate();
+            notify.success(`Results published · ${N(dialog.preview.emailed)} students emailed`);
+          })
+        }
+      >
+        {resultsSms.row}
+      </ConfirmDialog>
+      {resultsSms.dialog}
       <TestLinksDrawer test={linksFor} onClose={() => setLinksFor(null)} />
       {publishFor && (
         <PublishConfirmDialog
@@ -642,9 +651,9 @@ function Tests() {
           open
           onOpenChange={(o) => !o && setPublishFor(null)}
           fixHref={`/tests/${publishFor.testId}/edit`}
-          onConfirm={async () => {
+          onConfirm={async (opts) => {
             try {
-              const r = await publishTest(publishFor.testId, "Tests list");
+              const r = await publishTest(publishFor.testId, "Tests list", opts);
               notify.success(`Published ${r.test.name}`, r.notified > 0 ? { description: `${r.notified.toLocaleString("en-IN")} students were told` } : undefined);
             } catch (e) {
               const a = apiError(e);

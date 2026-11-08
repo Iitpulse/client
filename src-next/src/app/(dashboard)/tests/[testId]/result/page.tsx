@@ -44,6 +44,7 @@ import {
 import { duration, fmt } from "@/lib/results";
 import { deltaTone, m5ErrorCode, useBatchSummary, useKeyCheck, useResultInsights, vsPrevious } from "@/lib/queries-tests-admin";
 import type { BatchSummaryResponse } from "@/lib/m5-contract";
+import { useSmsSwitch } from "@/components/sms/Sms";
 import type { KeyCorrection, MonitorStudentDetail, ResultPublishPreview, StudentReportResponse } from "@/lib/m6-contract";
 import { apiError, m6Tests, unwrap } from "@/lib/m6/client";
 import { istDate, istDateTime, istTime } from "@/lib/m6/shared";
@@ -426,6 +427,8 @@ export default function TestResultPage() {
   const canSchedule = can("UPDATE_TEST", "CREATE_TEST");
   const canParents = can("VIEW_RESULT", "PUBLISH_RESULT");
   const [publishPreview, setPublishPreview] = React.useState<ResultPublishPreview | null>(null);
+  // batch 9: "Text students" (template result_out) when the preview carries `sms`
+  const resultsSms = useSmsSwitch({ sms: publishPreview?.sms, template: "result_out", detail: `${publishPreview?.test.name ?? "These"} results: ${inr(publishPreview?.sms?.messages ?? 0)} students now.` });
   const [asking, setAsking] = React.useState(false);
 
   const head = info.data ?? null;
@@ -942,8 +945,8 @@ export default function TestResultPage() {
       <FlagDrawer testId={testId} row={flagRow} onClose={() => setFlagRow(null)} policy={head?.fullscreenPolicy ?? null} />
 
       <ConfirmDialog
-        open={!!publishPreview}
-        onOpenChange={(o) => !o && setPublishPreview(null)}
+        open={!!publishPreview && !resultsSms.open}
+        onOpenChange={(o) => resultsSms.onOpenChange(o, () => setPublishPreview(null))}
         tone="navy"
         title={publishPreview ? `Publish results for ${plural(publishPreview.students, "student")}?` : ""}
         description={
@@ -959,12 +962,12 @@ export default function TestResultPage() {
               ]
             : undefined
         }
-        confirmLabel={publishPreview ? `Publish to ${plural(publishPreview.students, "student")}` : "Publish"}
-        onConfirm={async () => {
+        confirmLabel={resultsSms.confirmLabel(publishPreview ? `Publish to ${plural(publishPreview.students, "student")}` : "Publish")}
+        onConfirm={() => resultsSms.onConfirm(async (opts) => {
           if (!publishPreview) return;
           let emailed = publishPreview.emailed;
           try {
-            emailed = (await publishResultsNow(testId)).emailed;
+            emailed = (await publishResultsNow(testId, opts)).emailed;
           } catch (e) {
             const a = apiError(e);
             await qc.invalidateQueries({ queryKey: ["m6", "results-test", testId] });
@@ -976,8 +979,11 @@ export default function TestResultPage() {
             qc.invalidateQueries({ queryKey: ["m6", "results", testId] }),
           ]);
           notify.success(`Results published · ${inr(emailed)} students emailed`);
-        }}
-      />
+        })}
+      >
+        {resultsSms.row}
+      </ConfirmDialog>
+      {resultsSms.dialog}
     </>
   );
 }

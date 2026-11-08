@@ -80,10 +80,11 @@ export function useReadiness(testId: string | undefined, enabled = true) {
 }
 
 /** POST …/publish → { test, notified }; 409 NOT_READY { checks }. Also used by the Tests list. */
-export function publishTest(testId: string, where = "Test builder"): Promise<PublishResponse> {
+/** `sms` (batch 9 "Text students"): sent only when the publish preview offered the switch */
+export function publishTest(testId: string, where = "Test builder", opts: { sms?: boolean } = {}): Promise<PublishResponse> {
   return m6Call<PublishResponse>(
     "tests",
-    async () => unwrap<PublishResponse>((await m6Tests.post(`/admin/tests/${testId}/publish`, {}, source(where))).data),
+    async () => unwrap<PublishResponse>((await m6Tests.post(`/admin/tests/${testId}/publish`, opts.sms === undefined ? {} : { sms: opts.sms }, source(where))).data),
     () => fx.publish(testId)
   );
 }

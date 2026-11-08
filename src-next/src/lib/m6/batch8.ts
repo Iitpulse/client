@@ -8,6 +8,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { API_GATEWAY } from "../ai-admin";
 import { apiError, m6Tests, m6Users, source, unwrap } from "./client";
+import type { SmsFlowEstimate } from "../m6-contract";
 
 const enc = encodeURIComponent;
 const wrap = async <T>(p: Promise<{ data: unknown }>): Promise<T> => {
@@ -67,11 +68,14 @@ export interface EventRequest {
   sourceTestId?: string | null;
   notify?: boolean;
   remind?: boolean;
+  /** batch 9: false = bell and email only (default true); stored on the event, moves and cancels follow it */
+  sms?: boolean;
 }
 
 const SCH = source("Results · Add to schedule");
+/** batch 9: `sms` = what "Tell students by SMS" would send (api-tests docs/student-classes-api.md; null when users can't say) */
 export const checkEvent = (b: { batchIds: string[]; startsAt: string; minutes: number; studentIds?: string[] | null; excludeId?: string }) =>
-  wrap<{ clashes: Clash[]; students: number | null }>(m6Tests.post("/admin/schedule-events/check", b, SCH));
+  wrap<{ clashes: Clash[]; students: number | null; sms?: SmsFlowEstimate | null }>(m6Tests.post("/admin/schedule-events/check", b, SCH));
 export const createEvent = (b: EventRequest) => wrap<{ event: ScheduleEvent; told: number; clashes: Clash[] }>(m6Tests.post("/admin/schedule-events", b, SCH));
 export const patchEvent = (id: string, b: Partial<Omit<EventRequest, "kind" | "batchIds" | "studentIds">>) =>
   wrap<{ event: ScheduleEvent; told: number; clashes: Clash[] }>(m6Tests.patch(`/admin/schedule-events/${enc(id)}`, b, source("Calendar · class or session")));
@@ -96,7 +100,8 @@ export interface ParentRecipient {
   of: number;
   submittedAt: string;
   subjects: Array<{ name: string; score: number; maxScore: number; batchAverage: number | null }>;
-  parent: { status: ParentStatus; name: string | null; emailMasked: string | null };
+  /** batch 9 (assumed from api-users parent-contacts `phoneLast4` / `sms`): phoneLast4 "4321", sms = gets the result by SMS */
+  parent: { status: ParentStatus; name: string | null; emailMasked: string | null; phoneLast4?: string | null; sms?: boolean };
   last: { status: Delivery; at: string } | null;
   willSend: boolean;
 }
@@ -109,6 +114,13 @@ export interface ParentRecipients {
   counts: { students: number; willSend: number; alreadySent: number; bounced: number; noEmail: number; notConfirmed: number; stopped: number } | null;
   lastSend: { id: string; at: string; by: { id: string; name: string | null }; sent: number } | null;
   linkDays?: number;
+  /**
+   * Batch 9 (board Admin-SMSChannels "send-parents"; frontend's assumption, not in batch8-api.md yet): `messages` SMS
+   * (parent_result / parent_results; a shared number counts once), `viaSms` parents reached by SMS, `emailToo` of
+   * them also emailed as the backup, `cantReach` with no phone or email, `sharedPhones` numbers shared by brothers
+   * and sisters. Absent = email only, as in batch 8.
+   */
+  sms?: (SmsFlowEstimate & { viaSms?: number | null; emailToo?: number | null; cantReach?: number | null; sharedPhones?: number | null }) | null;
 }
 export interface ParentSend {
   id: string;

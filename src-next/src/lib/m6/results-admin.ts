@@ -79,9 +79,10 @@ export async function fetchResultPublishPreview(testId: string): Promise<ResultP
 }
 
 /** POST …/results/publish: Manual, or early for "After N days". 409 codes: ALREADY_PUBLISHED, TEST_NOT_ENDED, RESULT_HIDDEN, NO_SUBMISSIONS. */
-export async function publishResultsNow(testId: string): Promise<PublishResultsNowResponse> {
+export async function publishResultsNow(testId: string, opts: { sms?: boolean } = {}): Promise<PublishResultsNowResponse> {
   try {
-    return unwrap<PublishResultsNowResponse>((await m6Tests.post(`/admin/tests/${enc(testId)}/results/publish`, {}, source("Results · Publish now"))).data);
+    // batch 9: `sms` ("Text students", result_out) only when the preview offered the switch
+    return unwrap<PublishResultsNowResponse>((await m6Tests.post(`/admin/tests/${enc(testId)}/results/publish`, opts.sms === undefined ? {} : { sms: opts.sms }, source("Results · Publish now"))).data);
   } catch (e) {
     throw apiError(e);
   }

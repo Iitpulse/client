@@ -114,11 +114,11 @@ export const testsActions = {
       true
     ),
   /** Publishing results uses the existing route (contract). */
-  publishResults: (id: string) =>
+  publishResults: (id: string, opts: { sms?: boolean } = {}) =>
     m6Call<void>(
       "tests",
       async () => {
-        await api.tests.publishResult(id);
+        await api.tests.publishResult(id, opts.sms);
       },
       () => fixturePublishResults(id)
     ),

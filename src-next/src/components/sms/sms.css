@@ -1,0 +1,49 @@
+/* Batch 9 SMS (boards Admin-SMSChannels, Admin-Messages): the pieces the boards draw in their own <style>. */
+.sm-sms { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 14px; background: #F5F6FA; border: 1px solid #E4E6EF }
+.sm-sms .from { font: 600 11px "Geist Mono", ui-monospace, monospace; color: #575C75; letter-spacing: .04em }
+.sm-sms .bub { align-self: flex-start; max-width: 340px; padding: 10px 12px; border-radius: 14px 14px 14px 4px; background: #fff; border: 1px solid #E4E6EF; font-size: 13px; line-height: 1.45; color: #0D0F2B; overflow-wrap: anywhere }
+.sm-sms .var { background: #E1E3F8; border-radius: 4px; padding: 0 2px }
+.sm-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: #575C75 }
+.sm-meta b { color: #2B2F4A; font-weight: 600 }
+.sm-trow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid #E4E6EF; border-radius: 12px; background: #fff }
+.sm-trow.off { opacity: .7 }
+.sm-switch { width: 40px; height: 24px; border-radius: 999px; position: relative; flex: none; border: 0; padding: 0; cursor: pointer; transition: background 200ms; background: #D3D6E2 }
+.sm-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left 240ms cubic-bezier(.34, 1.56, .64, 1) }
+.sm-switch[aria-checked="true"] { background: #00007E }
+.sm-switch[aria-checked="true"]::after { left: 19px }
+.sm-switch:disabled { cursor: not-allowed }
+.sm-switch:focus-visible { outline: 3px solid #C3C6EF; outline-offset: 2px }
+.sm-note { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.45 }
+.sm-note > svg { flex: none; margin-top: 2px }
+.sm-note.warn { background: #FFF4E2; border: 1px solid #F1D29A; color: #5C3600 }
+.sm-note.info { background: #E8F1FD; border: 1px solid #BBD5F5; color: #0D2E57 }
+.sm-note.grey { background: #F5F6FA; border: 1px solid #E4E6EF; color: #2B2F4A }
+.sm-note a { font-weight: 600; white-space: nowrap; color: inherit }
+.sm-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
+.sm-chip { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border: 1px solid #E4E6EF; border-radius: 12px; background: #fff }
+.sm-chip .l { font-size: 12px; color: #575C75 }
+.sm-chip b { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums }
+.sm-chk { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.4; cursor: pointer }
+.sm-chk input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: #00007E; flex: none }
+.sm-facts { display: grid; grid-template-columns: 170px minmax(0, 1fr); row-gap: 9px; column-gap: 14px; padding: 12px 0; border-top: 1px solid #EEF0F5; border-bottom: 1px solid #EEF0F5; font-size: 13px }
+.sm-facts .k { color: #575C75 }
+
+/* Messages page */
+.ms-page { padding: 20px 28px 40px; gap: 16px; display: flex; flex-direction: column; min-width: 0 }
+.ms-head { padding: 12px 28px 0; gap: 6px; display: flex; flex-direction: column; background: #fff; border-bottom: 1px solid #E4E6EF }
+.ms-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px }
+.ms-tile { display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid #E4E6EF; border-radius: 12px; background: #fff }
+.ms-tile.wide { grid-column: span 2 }
+.ms-tile .l { font-size: 13px; color: #575C75 }
+.ms-tile b { font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums }
+.ms-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start }
+@media (max-width: 1179px) {
+  .ms-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .ms-2 { grid-template-columns: minmax(0, 1fr) }
+}
+.ms-bn { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45; background: #FFF4E2; border: 1px solid #F1D29A; color: #5C3600 }
+.ms-bn > svg { flex: none; margin-top: 2px }
+.ms-txt { font-size: 12px; line-height: 1.5; color: #2B2F4A; max-width: 520px; white-space: normal }
+.ms-txt .var { background: #E1E3F8; border-radius: 4px; padding: 0 2px; font-family: "Geist Mono", ui-monospace, monospace; font-size: 11px }
+.ms-sender { font: 600 22px "Geist Mono", ui-monospace, monospace; letter-spacing: .08em }
+.ms-ico { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex: none; background: #FFF0F0; color: #C40000 }

@@ -25,6 +25,13 @@ export function useBillingVisible(): boolean {
   return owner || auth.isSupportVisit();
 }
 
+/** Batch 9 Messages (SMS usage, delivery log, templates): the Owner and Admins; a support visit looks too */
+export function useMessagesVisible(): boolean {
+  const { owner } = useOwner();
+  const me = useMe();
+  return owner || isAdminUser(me.data?.user) || auth.isSupportVisit();
+}
+
 /** Owner flag plus whether it is known yet (pages that only the Owner opens wait for it) */
 export function useOwner(): { owner: boolean; loading: boolean } {
   const me = useMe();

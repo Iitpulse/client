@@ -202,7 +202,8 @@ export const api = {
     delete: (id: string) => apiTests.delete(`/test/delete/${id}`),
     restore: (id: string) => apiTests.post(`/test/${id}/restore`),
     publish: (id: string) => apiTests.patch("/test/publish", { id }),
-    publishResult: (id: string) => apiTests.patch("/test/publish-result", { id }),
+    /** batch 9: `sms` ("Text students") only when the preview offered the switch */
+    publishResult: (id: string, sms?: boolean) => apiTests.patch("/test/publish-result", sms === undefined ? { id } : { id, sms }),
     toggleResult: (id: string, hideResult: boolean) =>
       apiTests.patch("/test/toggle-result", { id, hideResult }),
     getStudentResult: (testId: string) =>

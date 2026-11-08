@@ -1458,6 +1458,8 @@ export interface ResultPublishPreview {
   aiReviewUnlocks: boolean;
   /** addition (8 Nov): whether "Publish now" works, else the code POST …/results/publish would answer */
   publishNow?: PublishNowCheck;
+  /** Batch 9 "Text students" (template result_out; frontend's assumption): absent = no switch. Publishing sends `{ sms }`. */
+  sms?: SmsFlowEstimate | null;
 }
 
 /**
@@ -2271,6 +2273,26 @@ export interface PublishPreview {
     /** OVERLAP: the other tests of the same batches whose window overlaps */
     tests?: Array<{ testId: string; name: string; opensAt: IsoDateTime | null; closesAt: IsoDateTime | null; batch: { id: string; name: string } }>;
   }>;
+  /**
+   * Batch 9 (board Admin-SMSChannels, "Text students"; frontend's assumption, not in the v1 contracts yet): users'
+   * notify/preview SMS answer for `testPublished` (template test_assigned) plus the test_soon reminder an hour before
+   * it opens. `messages` = SMS now, `reminderMessages` = SMS an hour before (null when it opens at once),
+   * `estimatePaise` = both. Absent = the backend can't say yet (no switch shown). POST …/publish takes `{ sms }`.
+   */
+  sms?: SmsFlowEstimate | null;
+}
+
+/** Batch 9: an SMS estimate on a staff-flow preview (api-users docs/sms-api.md §6 `sms`, through api-tests) */
+export interface SmsFlowEstimate {
+  messages: number;
+  reminderMessages?: number | null;
+  students?: number | null;
+  noVerifiedPhone?: number | null;
+  switchedOff?: number | null;
+  flagged?: number | null;
+  paused?: { since: string; reason?: string | null } | boolean | null;
+  unitPricePaise: number;
+  estimatePaise: number;
 }
 
 /** users ← tests: POST /internal/users/notify/preview {kind, studentIds ≤ 1000}: notify's rules, nothing sent */
