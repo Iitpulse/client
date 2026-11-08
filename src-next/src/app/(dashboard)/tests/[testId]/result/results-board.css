@@ -1,0 +1,19 @@
+/* Admin-Results board pieces not in the kit: "was …" lines after a key fix, sortable headers, the flag drawer's timeline and facts. */
+.rb-was { display: block; font-size: 11px; font-weight: 500; color: var(--muted) }
+.rb-sort { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 0; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer }
+.rb-sort:focus-visible { outline: 2px solid var(--navy-200); outline-offset: 2px; border-radius: 4px }
+th.rb-sorted { color: var(--navy) }
+.rb-row { cursor: pointer }
+.rb-row:hover { background: var(--navy-50) }
+.rb-flag { border: 0; cursor: pointer; font: inherit }
+.rb-flag:focus-visible { outline: 2px solid var(--navy-200); outline-offset: 2px }
+.rb-tl { display: flex; flex-direction: column; border-left: 2px solid var(--line); margin-left: 6px; padding-left: 14px }
+.rb-tl .ev { position: relative; padding: 5px 0; font-size: 13px }
+.rb-tl .ev::before { content: ""; position: absolute; left: -20px; top: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid #A9ACC0 }
+.rb-tl .ev.w::before { border-color: var(--amber); background: var(--amber-50) }
+.rb-tl .ev.r::before { border-color: var(--red-600); background: var(--red-50) }
+.rb-tl .ev.s::before { border-color: var(--green); background: var(--green-50) }
+.rb-tl .ev.x::before { border-color: var(--navy); background: var(--navy-50) }
+.rb-facts { display: grid; grid-template-columns: 110px minmax(0, 1fr); row-gap: 8px; column-gap: 12px; font-size: 13px }
+.rb-bn-navy { background: var(--navy-50); color: var(--ink); border: 1px solid var(--navy-200) }
+.rb-bn-navy > svg { color: var(--navy) }

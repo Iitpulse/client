@@ -6,6 +6,7 @@ import Link from "next/link";
 import dayjs from "dayjs";
 import { Search } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Combobox } from "@/components/kit";
 import { questionCount, testState, useAllTests, type AdminTest } from "@/lib/queries";
 import { apiError, testsAdmin, TYPE_LABEL } from "@/lib/ai-admin";
 import type { AddToTestResponse } from "@/lib/m5-contract";
@@ -193,14 +194,17 @@ export function AddToTest({ ids, open, onClose, onDone }: { ids: string[]; open:
         <label className="label" htmlFor="atsec">
           Section <span className="muted font-normal">(optional)</span>
         </label>
-        <select id="atsec" className="input h-9 w-full text-[13px]" value={sectionId} onChange={(e) => setSectionId(e.target.value)} disabled={!picked}>
-          <option value="">Any section with room</option>
-          {(picked?.t.sections ?? []).map((s) => (
-            <option key={s.id} value={s.id}>
-              {sectionLabel(s)}
-            </option>
-          ))}
-        </select>
+        <Combobox
+          id="atsec"
+          noun="section"
+          clearable
+          disabled={!picked}
+          disabledText="Pick a test first"
+          placeholder="Any section with room"
+          value={sectionId || null}
+          onChange={(v) => setSectionId(v ?? "")}
+          options={(picked?.t.sections ?? []).map((s) => ({ value: s.id, label: sectionLabel(s) }))}
+        />
       </div>
       <span className="xs muted">No section picked: each question goes into the first section of its type that has room.</span>
       {error && (
