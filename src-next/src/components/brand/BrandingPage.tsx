@@ -11,6 +11,7 @@ import { Blueboard, LogoMark } from "@iitpulse/ui";
 import { contrast, deriveTenantTheme, isHexColor, parseHex, tenantCss } from "@iitpulse/ui/tenant";
 import { Topbar } from "@/components/admin/Topbar";
 import { ConfirmDialog, Drawer, Field, FileDrop, InlineNote, NoAccess, PageError, PageSkeleton, Segmented, TextInput, apiError, fmtDateTime, notify } from "@/components/kit";
+import { examRefs, useM6Exams } from "@/lib/m6/shared";
 import { brandingApi, type BrandView, type BrandingPage as PageData, type BrandingState, type UploadedAsset } from "@/lib/branding-api";
 
 const SWATCHES = ["#00007E", "#0E6B4A", "#B4530A", "#6D28D9", "#0B63C4", "#BE123C", "#F5B700"];
@@ -338,6 +339,9 @@ function initials(name: string): string {
 
 /** The board's preview: the student home or sign-in page, themed with the draft colour (scoped to .brand-pv). */
 function BrandPreview({ view, onView, primary, accent, logoUrl, name, isIitp, host }: { view: "home" | "login"; onView: (v: "home" | "login") => void; primary: string; accent: string; logoUrl: string | null; name: string; isIitp: boolean; host: string | null }) {
+  // G69: the sign-in tagline names the institute's own exams (Setup › Exams), never a hard-coded list
+  const exams = useM6Exams(isIitp);
+  const examLine = examRefs(exams.data).slice(0, 3).map((e) => e.name).join(" · ");
   const css = useMemo(() => {
     try {
       return tenantCss(deriveTenantTheme({ primary, accent }), ".brand-pv");
@@ -422,7 +426,7 @@ function BrandPreview({ view, onView, primary, accent, logoUrl, name, isIitp, ho
                 {!isIitp && <span className="sm font-semibold">{name}</span>}
                 <span style={{ fontSize: 22, fontWeight: 650 }}>Every test makes the next one easier.</span>
                 <span className="xs" style={{ opacity: 0.8 }}>
-                  {isIitp ? "JEE · NEET" : `${host ?? ""} · Powered by IIT-PULSE`}
+                  {isIitp ? examLine : `${host ?? ""} · Powered by IIT-PULSE`}
                 </span>
               </Blueboard>
               <div className="col" style={{ flex: 1, padding: 24, gap: 10, justifyContent: "center", background: "#fff" }}>
